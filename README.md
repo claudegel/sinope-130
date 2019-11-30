@@ -3,7 +3,7 @@
 Here is a custom components to suport [Neviweb](https://neviweb.com/) in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light switches/dimmers , load controllers, plug and water leak detector etc. 
 
-Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway. It is presently in pre-release stage as some information are still missing from Sinopé.
+Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway. It is presently in pre-release stage as some information are still missing from Sinopé. I need your help to test as I don't have all zigbee device connected to my network yet.
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
