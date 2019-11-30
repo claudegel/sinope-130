@@ -70,7 +70,7 @@ To enable Neviweb130 management in your installation, add the following to your 
 neviweb130:
   username: '<your Neviweb username>'
   password: '<your Neviweb password>'
-  network: '<your gt130 network name in neviweb>'
+  network: '<your gt130 network name in Neviweb>'
 ```
 
 **Configuration options:**  
