@@ -1,0 +1,15 @@
+{
+    "neviweb130": {
+        "version": "0.0.1",
+        "local_location": "/custom_components/neviweb130/__init__.py",
+        "remote_location": "https://github.com/claudegel/sinope-130/tree/master/custom_components/neviweb/__init__.py",
+        "visit_repo": "https://github.com/claudegel/sinope-130",
+        "changelog": "https://github.com/claudegel/sinope-130/wiki/Changelog",
+        "resources": [
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/neviweb/light.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/neviweb/climate.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/neviweb/switch.py"
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/neviweb/sensor.py"
+        ]
+    }
+}
