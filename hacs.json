@@ -1,0 +1,12 @@
+{
+  "name": "Sinope Neviweb130",
+  "content_in_root": false,
+  "zip_release": false,
+  "filename": false,
+  "render_readme": true,
+  "domains": ["sensor", "switch", "climate", "light"],
+  "country": ["CA"],
+  "homeassistant": false,
+  "persistent_directory": "backup",
+  "iot_class": "Cloud Polling"
+}
