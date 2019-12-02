@@ -1,8 +1,8 @@
 """
 Need to be changed
 Support for Neviweb light switch/dimmer connected to GT130 ZigBee.
-type 102 = light switch SW2500ZB
-type 112 = light dimmer DM2500ZB
+model 2121 = light switch SW2500ZB
+model 2131 = light dimmer DM2500ZB
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -26,9 +26,10 @@ DEFAULT_NAME = 'neviweb130 light'
 UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI, 
     ATTR_WATTAGE_OVERRIDE]
 
-DEVICE_TYPE_DIMMER = [112]
-DEVICE_TYPE_LIGHT = [102]
-IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
+#DEVICE_TYPE_DIMMER = [112]
+#DEVICE_TYPE_LIGHT = [102]
+#IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
+IMPLEMENTED_DEVICE_MODEL = [2121, 2131]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb light."""
@@ -38,7 +39,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
-            device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["type"] in DEVICE_TYPE_DIMMER 
                 else "light", device_info["name"])
