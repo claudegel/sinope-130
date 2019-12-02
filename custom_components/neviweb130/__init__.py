@@ -48,6 +48,7 @@ async def async_setup(hass, hass_config):
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
+#    discovery.load_platform(hass, 'sensor', DOMAIN, {}, hass_config)
 
     return True
 
