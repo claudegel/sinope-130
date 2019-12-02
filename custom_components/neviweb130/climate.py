@@ -1,9 +1,10 @@
 """
 Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
-type 10 = thermostat TH1124ZB 3000W and 4000W
-type 20 = thermostat TH1300ZB 3600W floor, TH1500RF double pole thermostat
-type 21 = thermostat TH1400ZB low voltage
+model 1124 = thermostat TH1123ZB 3000W and TH1124ZB 4000W
+model 737 = thermostat TH1300ZB 3600W floor 
+model xxx = thermostat TH1500ZB double pole thermostat
+model xxx = thermostat TH1400ZB low voltage
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -47,7 +48,8 @@ PRESET_MODES = [
     PRESET_BYPASS
 ]
 
-IMPLEMENTED_DEVICE_TYPES = [10, 20, 21]
+#IMPLEMENTED_DEVICE_TYPES = [10, 20, 21]
+IMPLEMENTED_DEVICE_MODEL = [1124, 737]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb thermostats."""
@@ -57,7 +59,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "type" in device_info["signature"] and \
-            device_info["signature"]["type"] in IMPLEMENTED_DEVICE_TYPES:
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             devices.append(Neviweb130Thermostat(data, device_info, device_name))
 
