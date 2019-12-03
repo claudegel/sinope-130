@@ -26,9 +26,9 @@ DEFAULT_NAME = 'neviweb130 light'
 UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI, 
     ATTR_WATTAGE_OVERRIDE]
 
-#DEVICE_TYPE_DIMMER = [112]
-#DEVICE_TYPE_LIGHT = [102]
-#IMPLEMENTED_DEVICE_TYPES = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
+DEVICE_MODEL_DIMMER = [2131]
+DEVICE_MODEL_LIGHT = [2121]
+#IMPLEMENTED_DEVICE_MODEL = DEVICE_TYPE_LIGHT + DEVICE_TYPE_DIMMER
 IMPLEMENTED_DEVICE_MODEL = [2121, 2131]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -38,10 +38,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     devices = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
-            "type" in device_info["signature"] and \
+            "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
-                "dimmer" if device_info["signature"]["type"] in DEVICE_TYPE_DIMMER 
+                "dimmer" if device_info["signature"]["model"] in DEVICE_MODEL_DIMMER 
                 else "light", device_info["name"])
             devices.append(Neviweb130Light(data, device_info, device_name))
 
@@ -66,10 +66,8 @@ class Neviweb130Light(Light):
         self._wattage_override = 0 # keyCheck("wattageOverride", device_info, 0, name)
         self._brightness_pct = 0
         self._operation_mode = 1
-        #self._alarm = None
-        self._rssi = None
         self._is_dimmable = device_info["signature"]["type"] in \
-            DEVICE_TYPE_DIMMER
+            DEVICE_MODEL_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -87,8 +85,6 @@ class Neviweb130Light(Light):
                     device_data[ATTR_INTENSITY] is not None else 0.0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-                #self._alarm = device_data["alarm"]
-                self._rssi = device_data[ATTR_RSSI]
                 self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -147,9 +143,7 @@ class Neviweb130Light(Light):
         data = {}
         if self._is_dimmable and self._brightness_pct:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
-        data.update({#'alarm': self._alarm,
-                     'operation_mode': self.operation_mode,
-                     'rssi': self._rssi,
+        data.update({'operation_mode': self.operation_mode,
                      'wattage_override': self._wattage_override,
                      'id': self._id})
         return data
