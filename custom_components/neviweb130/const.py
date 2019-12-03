@@ -5,6 +5,7 @@ CONF_NETWORK = 'network'
 
 ATTR_SIGNATURE = "signature"
 ATTR_POWER_MODE = "powerMode"
+ATTR_ONOFF = "onOff"
 ATTR_INTENSITY = "intensity"
 #ATTR_RSSI = "rssi"
 ATTR_WATTAGE = "loadConnected"
