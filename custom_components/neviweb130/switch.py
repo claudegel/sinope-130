@@ -38,7 +38,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     devices = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
-            "type" in device_info["signature"] and \
+            "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             devices.append(Neviweb130Switch(data, device_info, device_name))
@@ -56,10 +56,8 @@ class Neviweb130Switch(SwitchDevice):
         self._wattage = 0 # keyCheck("wattage", device_info, 0, name)
         self._brightness = 0
         self._operation_mode = 1
-        #self._alarm = None
         self._current_power_w = None
         self._today_energy_kwh = None
-        self._rssi = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -78,10 +76,8 @@ class Neviweb130Switch(SwitchDevice):
                     device_data[ATTR_INTENSITY] is not None else 0.0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-                #self._alarm = device_data["alarm"]
                 self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]["value"]
                 self._wattage = device_data[ATTR_WATTAGE]["value"]
-                self._rssi = device_data[ATTR_RSSI]
                 self._today_energy_kwh = device_daily_stats[0] / 1000
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -114,9 +110,7 @@ class Neviweb130Switch(SwitchDevice):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        return {#'alarm': self._alarm,
-                'operation_mode': self.operation_mode,
-                'rssi': self._rssi,
+        return {'operation_mode': self.operation_mode,
                 'wattage': self._wattage,
                 'id': self._id}
        
