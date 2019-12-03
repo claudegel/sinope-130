@@ -58,7 +58,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     devices = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
-            "type" in device_info["signature"] and \
+            "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             devices.append(Neviweb130Thermostat(data, device_info, device_name))
@@ -79,7 +79,7 @@ class Neviweb130Thermostat(ClimateDevice):
         self._max_temp = 0
         self._target_temp = None
         self._cur_temp = None
-        self._rssi = None
+#        self._rssi = None
         #self._alarm = None
         self._operation_mode = None
         self._heat_level = 0
@@ -101,12 +101,10 @@ class Neviweb130Thermostat(ClimateDevice):
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
                     device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                #self._alarm = device_data["alarm"]
-                self._rssi = device_data[ATTR_RSSI]
-                self._operation_mode = device_data[ATTR_SETPOINT_MODE]
+#                self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                self._wattage = device_data[ATTR_WATTAGE]["value"]
+                self._wattage = device_data[ATTR_WATTAGE]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
