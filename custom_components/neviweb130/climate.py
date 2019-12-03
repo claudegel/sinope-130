@@ -48,11 +48,10 @@ PRESET_MODES = [
     PRESET_BYPASS
 ]
 
-#IMPLEMENTED_DEVICE_TYPES = [10, 20, 21]
 IMPLEMENTED_DEVICE_MODEL = [1124, 737]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up the neviweb thermostats."""
+    """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN]
     
     devices = []
@@ -109,7 +108,7 @@ class Neviweb130Thermostat(ClimateDevice):
 
     @property
     def unique_id(self):
-        """Return unique ID based on Neviweb device ID."""
+        """Return unique ID based on Neviweb130 device ID."""
         return self._id
 
     @property
