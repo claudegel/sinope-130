@@ -74,13 +74,10 @@ class Neviweb130Thermostat(ClimateDevice):
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._wattage = 0
-        #self._wattage_override = device_info["wattageOverride"]
         self._min_temp = 0
         self._max_temp = 0
         self._target_temp = None
         self._cur_temp = None
-#        self._rssi = None
-        #self._alarm = None
         self._operation_mode = None
         self._heat_level = 0
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -123,11 +120,8 @@ class Neviweb130Thermostat(ClimateDevice):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        return {#'alarm': self._alarm,
-                'heat_level': self._heat_level,
-                'rssi': self._rssi,
+        return {'heat_level': self._heat_level,
                 'wattage': self._wattage,
-                #'wattage_override': self._wattage_override,
                 'id': self._id}
 
     @property
