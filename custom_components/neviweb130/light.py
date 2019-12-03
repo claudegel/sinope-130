@@ -17,7 +17,7 @@ from homeassistant.components.light import (Light, ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
 from datetime import timedelta
 from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_ONOFF,
-    ATTR_WATTAGE_OVERRIDE, MODE_AUTO, MODE_MANUAL)
+    ATTR_WATTAGE_OVERRIDE, MODE_AUTO, MODE_MANUAL, MODE_OFF)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class Neviweb130Light(Light):
                         device_data[ATTR_INTENSITY] is not None else 0.0
                 else:
                     self._brightness_pct = 100 if \
-                        device_data[ATTR_ONOFF] is not "off" else 0.0
+                        device_data[ATTR_ONOFF] != MODE_OFF else 0.0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
