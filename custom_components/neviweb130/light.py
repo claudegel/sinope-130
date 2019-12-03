@@ -16,14 +16,14 @@ from . import (SCAN_INTERVAL)
 from homeassistant.components.light import (Light, ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
 from datetime import timedelta
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY,
+from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_ONOFF,
     ATTR_WATTAGE_OVERRIDE, MODE_AUTO, MODE_MANUAL)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 light'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, 
+UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_ONOFF
     ATTR_WATTAGE_OVERRIDE]
 
 DEVICE_MODEL_DIMMER = [2131]
@@ -66,7 +66,7 @@ class Neviweb130Light(Light):
         self._wattage_override = 0 # keyCheck("wattageOverride", device_info, 0, name)
         self._brightness_pct = 0
         self._operation_mode = 1
-        self._is_dimmable = device_info["signature"]["type"] in \
+        self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
@@ -81,8 +81,12 @@ class Neviweb130Light(Light):
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                self._brightness_pct = device_data[ATTR_INTENSITY] if \
-                    device_data[ATTR_INTENSITY] is not None else 0.0
+                if self._is_dimmable:   
+                    self._brightness_pct = device_data[ATTR_INTENSITY] if \
+                        device_data[ATTR_INTENSITY] is not None else 0.0
+                else:
+                    self._brightness_pct = 100 if \
+                        device_data[ATTR_ONOFF] is not "off" else 0.0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
