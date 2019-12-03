@@ -18,14 +18,14 @@ from homeassistant.components.switch import (SwitchDevice,
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI,
+from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY,
     ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, MODE_AUTO, MODE_MANUAL)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_RSSI, 
+UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, 
     ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
 
 #IMPLEMENTED_DEVICE_TYPES = [120] #power control device
