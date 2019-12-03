@@ -18,14 +18,14 @@ from homeassistant.components.switch import (SwitchDevice,
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY,
-    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, MODE_AUTO, MODE_MANUAL)
+from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_ONOFF,
+    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, MODE_AUTO, MODE_MANUAL, MODE_OFF)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, 
+UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_ONOFF, 
     ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
 
 #IMPLEMENTED_DEVICE_TYPES = [120] #power control device
@@ -72,8 +72,8 @@ class Neviweb130Switch(SwitchDevice):
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                self._brightness = device_data[ATTR_INTENSITY] if \
-                    device_data[ATTR_INTENSITY] is not None else 0.0
+                self._brightness = 100 if \
+                    device_data[ATTR_ONOFF] != MODE_OFF else 0.0
                 self._operation_mode = device_data[ATTR_POWER_MODE] if \
                     device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]["value"]
