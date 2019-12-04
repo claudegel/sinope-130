@@ -74,11 +74,11 @@ class Neviweb130Switch(SwitchDevice):
             if "errorCode" not in device_data:
                 self._brightness = 100 if \
                     device_data[ATTR_ONOFF] != MODE_OFF else 0.0
-                self._operation_mode = device_data[ATTR_POWER_MODE] if \
-                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-                self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]["value"]
-                self._wattage = device_data[ATTR_WATTAGE]["value"]
-                self._today_energy_kwh = device_daily_stats[0] / 1000
+#                self._operation_mode = device_data[ATTR_POWER_MODE] if \
+#                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
+                self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                self._wattage = device_data[ATTR_WATTAGE]
+#                self._today_energy_kwh = device_daily_stats[0] / 1000
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
