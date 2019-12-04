@@ -213,6 +213,7 @@ class Neviweb130Client(object):
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                     "/statistics/30days", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
+            _LOGGER.debug("Cannot get devices daily stat: %s", raw_res.json())
         except OSError:
             raise PyNeviweb130Error("Cannot get device daily stats")
         # Update cookies
