@@ -87,8 +87,8 @@ class Neviweb130Light(Light):
                 else:
                     self._brightness_pct = 100 if \
                         device_data[ATTR_ONOFF] != MODE_OFF else 0.0
-                self._operation_mode = device_data[ATTR_POWER_MODE] if \
-                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
+#                self._operation_mode = device_data[ATTR_POWER_MODE] if \
+#                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
