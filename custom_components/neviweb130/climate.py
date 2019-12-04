@@ -94,8 +94,8 @@ class Neviweb130Thermostat(ClimateDevice):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
-                    device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
+                self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) #if \
+#                    device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
 #                self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
