@@ -101,11 +101,11 @@ class Neviweb130Switch(SwitchDevice):
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
-        self._client.set_brightness(self._id, 100)
+        self._client.set_onOff(self._id, "on")
         
     def turn_off(self, **kwargs):
         """Turn the device off."""
-        self._client.set_brightness(self._id, 0)
+        self._client.set_onOff(self._id, "off")
 
     @property
     def device_state_attributes(self):
