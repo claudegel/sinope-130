@@ -17,6 +17,7 @@ ATTR_ROOM_TEMPERATURE = "roomTemperature"
 ATTR_OUTPUT_PERCENT_DISPLAY = "outputPercentDisplay"
 ATTR_ROOM_SETPOINT_MIN = "roomSetpointMin"
 ATTR_ROOM_SETPOINT_MAX = "roomSetpointMax"
+ATTR_GFCI_STATUS = "gfciStatus"
 ATTR_WATER_LEAK_STATUS = "waterLeakStatus"
 ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 
