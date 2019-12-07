@@ -211,7 +211,7 @@ class Neviweb130Client(object):
         # Http request
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                    "/statistics/30days", headers=self._headers,
+                    "/energy/daily", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
             _LOGGER.debug("Cannot get devices daily stat: %s", raw_res.json())
         except OSError:
@@ -231,7 +231,7 @@ class Neviweb130Client(object):
         # Http request
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                "/statistics/24hours", headers=self._headers,
+                "/energy/hourly", headers=self._headers,
                 cookies=self._cookies, timeout=self._timeout)
         except OSError:
             raise PyNeviweb130Error("Cannot get device hourly stats")
