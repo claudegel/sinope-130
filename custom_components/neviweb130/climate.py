@@ -26,7 +26,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, MODE_AUTO, MODE_AUTO_BYPASS, 
+    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, MODE_AUTO, MODE_AUTO_BYPASS, 
     MODE_MANUAL, MODE_OFF, MODE_AWAY)
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,7 +48,9 @@ PRESET_MODES = [
     PRESET_BYPASS
 ]
 
-IMPLEMENTED_DEVICE_MODEL = [1124, 737]
+DEVICE_MODEL_FLOOR = [737]
+DEVICE_MODEL_HEAT = [1124]
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb130 thermostats."""
@@ -79,6 +81,9 @@ class Neviweb130Thermostat(ClimateDevice):
         self._cur_temp = None
         self._operation_mode = None
         self._heat_level = 0
+        self._is_floor = device_info["signature"]["model"] in \
+            DEVICE_MODEL_FLOOR
+#        self._gfci_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -101,6 +106,8 @@ class Neviweb130Thermostat(ClimateDevice):
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                 self._wattage = device_data[ATTR_WATTAGE]
+#                if self._is_floor:
+#                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -119,6 +126,13 @@ class Neviweb130Thermostat(ClimateDevice):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
+#        data = {}
+#        if self._is_floor:
+#            data = {'gfci_status': self._gfci_status}
+#        data.update({'heat_level': self._heat_level,
+#                     'wattage': self._wattage,
+#                     'id': self._id})
+#        return data
         return {'heat_level': self._heat_level,
                 'wattage': self._wattage,
                 'id': self._id}
