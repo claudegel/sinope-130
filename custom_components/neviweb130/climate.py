@@ -83,14 +83,18 @@ class Neviweb130Thermostat(ClimateDevice):
         self._heat_level = 0
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
-#        self._gfci_status = None
+        self._gfci_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if self._is_floor:
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS]
+        else:
+            FLOOR_ATTRIBUTE = ""
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -106,8 +110,8 @@ class Neviweb130Thermostat(ClimateDevice):
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                 self._wattage = device_data[ATTR_WATTAGE]
-#                if self._is_floor:
-#                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
+                if self._is_floor:
+                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -126,16 +130,16 @@ class Neviweb130Thermostat(ClimateDevice):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-#        data = {}
-#        if self._is_floor:
-#            data = {'gfci_status': self._gfci_status}
-#        data.update({'heat_level': self._heat_level,
-#                     'wattage': self._wattage,
-#                     'id': self._id})
-#        return data
-        return {'heat_level': self._heat_level,
-                'wattage': self._wattage,
-                'id': self._id}
+        data = {}
+        if self._is_floor:
+            data = {'gfci_status': self._gfci_status}
+        data.update({'heat_level': self._heat_level,
+                     'wattage': self._wattage,
+                     'id': self._id})
+        return data
+#        return {'heat_level': self._heat_level,
+#                'wattage': self._wattage,
+#                'id': self._id}
 
     @property
     def supported_features(self):
