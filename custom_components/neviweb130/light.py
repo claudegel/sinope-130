@@ -132,11 +132,11 @@ class Neviweb130Light(Light):
     # state. So we force the set_brightness each time.
     def turn_on(self, **kwargs):
         """Turn the light on."""
-#        if self._is_dimmable:
-#            brightness_pct = 101 # Sets the light to last known brightness.
-#            self._client.set_brightness(self._id, brightness_pct)
-#        else:
-        self._client.set_onOff(self._id, "on")  
+        if not self._is_on:    
+            self._client.set_onOff(self._id, "on")
+        if self._is_dimmable:
+            brightness_pct = brightness_to_percentage(kwargs.get(ATTR_BRIGHTNESS))
+            self._client.set_brightness(self._id, brightness_pct)  
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
@@ -159,12 +159,4 @@ class Neviweb130Light(Light):
     @property
     def operation_mode(self):
         return self._operation_mode
-
-    def set_brightness(self, **kwargs):
-        """Set new target intensity."""
-        intensity = brightness_to_percentage(kwargs.get(ATTR_INTENSITY))
-        if intensity is None:
-            return
-        self._client.set_brightness(self._id, intensity)
-        self._brightness_pct = intensity
-        
+    
