@@ -58,6 +58,7 @@ class Neviweb130Switch(SwitchDevice):
         self._operation_mode = 1
         self._current_power_w = None
         self._today_energy_kwh = None
+        self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -72,8 +73,8 @@ class Neviweb130Switch(SwitchDevice):
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                self._brightness = 100 if \
-                    device_data[ATTR_ONOFF] != MODE_OFF else 0.0
+#                self._brightness = 100 if \
+                self._onOff = device_data[ATTR_ONOFF] #!= MODE_OFF else 0.0
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
 #                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
@@ -97,7 +98,7 @@ class Neviweb130Switch(SwitchDevice):
     @property  
     def is_on(self):
         """Return current operation i.e. ON, OFF """
-        return self._brightness != 0
+        return self._onOff != MODE_OFF
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
