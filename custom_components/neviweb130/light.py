@@ -68,6 +68,7 @@ class Neviweb130Light(Light):
         self._operation_mode = 1
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
+        self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -84,9 +85,10 @@ class Neviweb130Light(Light):
                 if self._is_dimmable:   
                     self._brightness_pct = device_data[ATTR_INTENSITY] if \
                         device_data[ATTR_INTENSITY] is not None else 0.0
-                else:
-                    self._brightness_pct = 100 if \
-                        device_data[ATTR_ONOFF] != MODE_OFF else 0.0
+                self._onOff = device_data[ATTR_ONOFF]   
+#                else:
+#                    self._brightness_pct = 100 if \
+#                        device_data[ATTR_ONOFF] != MODE_OFF else 0.0
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
 #                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
 #                self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
@@ -120,7 +122,8 @@ class Neviweb130Light(Light):
     @property
     def is_on(self):
         """Return true if device is on."""
-        return self._brightness_pct != 0
+#        return self._brightness_pct != 0
+        return self._onOff != MODE_OFF
 
     # For the turn_on and turn_off functions, we would normally check if the
     # the requested state is different from the actual state to issue the 
@@ -129,18 +132,18 @@ class Neviweb130Light(Light):
     # state. So we force the set_brightness each time.
     def turn_on(self, **kwargs):
         """Turn the light on."""
-        if self._is_dimmable:
-            brightness_pct = 101 # Sets the light to last known brightness.
-            self._client.set_brightness(self._id, brightness_pct)
-        else:
-            self._client.set_onOff(self._id, "on")  
+#        if self._is_dimmable:
+#            brightness_pct = 101 # Sets the light to last known brightness.
+#            self._client.set_brightness(self._id, brightness_pct)
+#        else:
+        self._client.set_onOff(self._id, "on")  
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        if self._is_dimmable:
-            self._client.set_brightness(self._id, 0)
-        else:
-            self._client.set_onOff(self._id, "off")
+#        if self._is_dimmable:
+#            self._client.set_brightness(self._id, 0)
+#        else:
+        self._client.set_onOff(self._id, "off")
 
     @property
     def device_state_attributes(self):
