@@ -160,7 +160,7 @@ class Neviweb130Light(Light):
     def operation_mode(self):
         return self._operation_mode
 
-    def set_intensity(self, **kwargs):
+    def set_brightness(self, **kwargs):
         """Set new target intensity."""
         intensity = brightness_to_percentage(kwargs.get(ATTR_INTENSITY))
         if intensity is None:
