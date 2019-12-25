@@ -90,7 +90,7 @@ class Neviweb130Thermostat(ClimateDevice):
         if self._is_floor:
             FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS]
         else:
-            FLOOR_ATTRIBUTE = ""
+            FLOOR_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
