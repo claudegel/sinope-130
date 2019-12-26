@@ -22,3 +22,5 @@ MODE_AUTO_BYPASS = "autoBypass"
 MODE_MANUAL = "manual"
 MODE_AWAY = "away"
 MODE_OFF = "off"
+
+STATE_WATER_LEAK = "water"
