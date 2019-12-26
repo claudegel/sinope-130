@@ -18,12 +18,12 @@ import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT)
+from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT, STATE_OK, ATTR_VOLTAGE)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_BATTERY_VOLTAGE, MODE_OFF)
+from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_BATTERY_VOLTAGE, MODE_OFF, STATE_WATER_LEAK)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ IMPLEMENTED_DEVICE_MODEL = [5051]
 SENSOR_TYPES = [
     ["temperature", TEMP_CELSIUS, "mdi:thermometer"],
     ["leak status", None, "mdi:water-percent"],
-    ["battery", "%", "mdi:battery-50"],
+    ["battery", "v", "mdi:battery-50"],
 ]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -79,8 +79,8 @@ class Neviweb130Sensor(Entity):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]      
-                self._leak_status = MODE_OFF if \
-                    device_data[ATTR_WATER_LEAK_STATUS] = MODE_OFF else "on"
+                self._leak_status = STATE_WATER_LEAK if \
+                    device_data[ATTR_WATER_LEAK_STATUS] = STATE_WATER_LEAK else "ok"
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
 #                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
@@ -114,7 +114,7 @@ class Neviweb130Sensor(Entity):
         """Return the state attributes."""
         return {'Battery': self._battery_voltage,
                 'leak': self._leak_status,
-                'temperature': self._cur_temp,
+#                'temperature': self._cur_temp,
                 'id': self._id}
 
     @property
