@@ -106,7 +106,7 @@ class Neviweb130Sensor(Entity):
     
     @property  
     def leak_status(self):
-        """Return current sensor leak status: ON, OFF """
+        """Return current sensor leak status: 'water' or 'ok' """
         return self._leak_status != None
 
     @property
