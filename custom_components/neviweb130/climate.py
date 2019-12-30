@@ -1,7 +1,8 @@
 """
 Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
-model 1124 = thermostat TH1123ZB 3000W and TH1124ZB 4000W
+model 1124 = thermostat TH1124ZB 4000W
+model 1123 = thermostat TH1123ZB 3000W
 model 737 = thermostat TH1300ZB 3600W floor 
 model xxx = thermostat TH1500ZB double pole thermostat
 model xxx = thermostat TH1400ZB low voltage
@@ -49,7 +50,7 @@ PRESET_MODES = [
 ]
 
 DEVICE_MODEL_FLOOR = [737]
-DEVICE_MODEL_HEAT = [1124]
+DEVICE_MODEL_HEAT = [1123, 1124]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
