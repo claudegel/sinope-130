@@ -2,8 +2,8 @@
 Need to be changed
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
-model xxx =  wall plug, SP2610ZB
-model xxx =  portable plug, SP2600ZB
+model 2610 = wall plug, SP2610ZB
+model 2600 = portable plug, SP2600ZB
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -29,7 +29,8 @@ UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_ONOFF,
     ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
 
 #IMPLEMENTED_DEVICE_TYPES = [120] #power control device
-IMPLEMENTED_DEVICE_MODEL = [2506]
+
+IMPLEMENTED_DEVICE_MODEL = [2506, 2600, 2610]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Neviweb switch."""
@@ -61,7 +62,7 @@ class Neviweb130Switch(SwitchDevice):
         self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
-    def update(self):
+    def update(self)
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
