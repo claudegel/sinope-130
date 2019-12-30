@@ -2,7 +2,7 @@
 Need to be changed
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
-model 2610 = wall plug, SP2610ZB
+model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
