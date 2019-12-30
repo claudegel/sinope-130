@@ -62,7 +62,7 @@ class Neviweb130Switch(SwitchDevice):
         self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
-    def update(self)
+    def update(self):
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
