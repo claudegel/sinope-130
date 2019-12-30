@@ -4,7 +4,7 @@ model xxx = VA4201WZ, sedna valve 1 inch
 model xxx = VA4200WZ, sedna valve 3/4 inch
 model 5051 = WL4200, water leak detector
 model xxx = WL4200S, water leak detector with sensor
-model xxx = LM4110-ZB, level monitor
+model 4110 = LM4110-ZB, level monitor
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -23,7 +23,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_BATTERY_VOLTAGE, MODE_OFF, STATE_WATER_LEAK)
+from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_LEVEL_STATUS, ATTR_BATTERY_VOLTAGE, MODE_OFF, STATE_WATER_LEAK)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,11 +31,14 @@ DEFAULT_NAME = 'neviweb130 sensor'
 
 UPDATE_ATTRIBUTES = [ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_BATTERY_VOLTAGE]
 
-IMPLEMENTED_DEVICE_MODEL = [5051]
+IMPLEMENTED_TANK_MONITOR = [4110]
+IMPLEMENTED_SENSOR_MODEL = [5051]
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR
 
 SENSOR_TYPES = [
     ["temperature", TEMP_CELSIUS, "mdi:thermometer"],
     ["leak status", None, "mdi:water-percent"],
+    ["level status", "%", "mdi:water-percent"],
     ["battery", "v", "mdi:battery-50"],
 ]
 
@@ -64,13 +67,20 @@ class Neviweb130Sensor(Entity):
         self._cur_temp = None
         self._leak_status = None
         self._battery_voltage = None
+        self._is_monitor = device_info["signature"]["model"] in \
+            IMPLEMENTED_TANK_MONITOR
+        self._level_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if self._is_monitor:
+            MONITOR_ATTRIBUTE = [ATTR_LEVEL_STATUS]
+        else:
+            MONITOR_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+            UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE)
         device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
@@ -81,6 +91,8 @@ class Neviweb130Sensor(Entity):
                 self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]      
                 self._leak_status = STATE_WATER_LEAK if \
                     device_data[ATTR_WATER_LEAK_STATUS] = STATE_WATER_LEAK else "ok"
+                if self._is_monitor:
+                    self._level_status = device_data[ATTR_LEVEL_STATUS]
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
 #                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
@@ -108,13 +120,19 @@ class Neviweb130Sensor(Entity):
     def leak_status(self):
         """Return current sensor leak status: 'water' or 'ok' """
         return self._leak_status != None
-
+    
+    @property  
+    def level_status(self):
+        """Return current sensor liquid level status in % """
+        return self._level_status != None
+    
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
         return {'Battery': self._battery_voltage,
                 'leak': self._leak_status,
 #                'temperature': self._cur_temp,
+#                'level': self._level_status,
                 'id': self._id}
 
     @property
