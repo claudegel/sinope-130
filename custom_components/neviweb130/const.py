@@ -20,6 +20,7 @@ ATTR_ROOM_SETPOINT_MAX = "roomSetpointMax"
 ATTR_GFCI_STATUS = "gfciStatus"
 ATTR_WATER_LEAK_STATUS = "waterLeakStatus"
 ATTR_BATTERY_VOLTAGE = "batteryVoltage"
+ATTR_LEVEL_STATUS = "tankLevelPercent"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
