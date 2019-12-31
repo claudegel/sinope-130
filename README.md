@@ -85,9 +85,9 @@ neviweb130:
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
 
-In the log look for line:
+In the log look for lines:
 ```yaml
-[custom_components.neviweb130] Received gateway data: [{'id': 100225, 'identifier': '500b91400001f750', 'name': 'Chargeur auto', 'family': '2506',
+[custom_components.neviweb130] Received gateway data: [{'id': 100225, 'identifier': '500b91400001f750', 'name': 'Chargeur auto', 'family': '2506',...
 [custom_components.neviweb130] Received signature data: {'signature': {'model': 2506, 'modelCfg': 0, 'softBuildCfg': 0, 'softVersion': {'minor': 9, 'middle': 2, 'major': 1}, 'hardRev': 2, 'protocol': 'sinopcom'}}
 ```
 'family': '2506' and 'model': 2506 is what you need to find the model number of your device. It should be added id climate.py, light.py, switch.py or sensor.py than restart HA and your device will be listed in entity list.
