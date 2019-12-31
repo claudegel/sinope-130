@@ -10,10 +10,10 @@ from homeassistant.helpers import discovery
 from homeassistant.const import (CONF_USERNAME, CONF_EMAIL, CONF_PASSWORD,
     CONF_SCAN_INTERVAL)
 from homeassistant.util import Throttle
-from .const import (DOMAIN, CONF_NETWORK, ATTR_INTENSITY, ATTR_POWER_MODE,
+from .const import (DOMAIN, CONF_NETWORK, ATTR_INTENSITY, ATTR_ONOFF, ATTR_POWER_MODE,
     ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT, ATTR_SIGNATURE)
 
-VERSION = '0.0.1'
+VERSION = '0.0.4'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -211,8 +211,9 @@ class Neviweb130Client(object):
         # Http request
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                    "/statistics/30days", headers=self._headers,
+                    "/energy/daily", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
+            _LOGGER.debug("Cannot get devices daily stat: %s", raw_res.json())
         except OSError:
             raise PyNeviweb130Error("Cannot get device daily stats")
         # Update cookies
@@ -230,7 +231,7 @@ class Neviweb130Client(object):
         # Http request
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                "/statistics/24hours", headers=self._headers,
+                "/energy/hourly", headers=self._headers,
                 cookies=self._cookies, timeout=self._timeout)
         except OSError:
             raise PyNeviweb130Error("Cannot get device hourly stats")
@@ -247,6 +248,11 @@ class Neviweb130Client(object):
         data = {ATTR_INTENSITY: brightness}
         self.set_device_attributes(device_id, data)
 
+    def set_onOff(self, device_id, onoff):
+        """Set device onOff state."""
+        data = {ATTR_ONOFF: onoff}
+        self.set_device_attributes(device_id, data)    
+        
     def set_mode(self, device_id, mode):
         """Set device operation mode."""
         data = {ATTR_POWER_MODE: mode}

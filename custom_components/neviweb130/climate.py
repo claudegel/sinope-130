@@ -1,10 +1,11 @@
 """
 Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
-model 1124 = thermostat TH1123ZB 3000W and TH1124ZB 4000W
+model 1124 = thermostat TH1124ZB 4000W
+model 1123 = thermostat TH1123ZB 3000W
 model 737 = thermostat TH1300ZB 3600W floor 
-model xxx = thermostat TH1500ZB double pole thermostat
-model xxx = thermostat TH1400ZB low voltage
+model 1500 = thermostat TH1500ZB double pole thermostat
+model 1400 = thermostat TH1400ZB low voltage
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -24,9 +25,9 @@ from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-from .const import (DOMAIN, ATTR_RSSI, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
+from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, MODE_AUTO, MODE_AUTO_BYPASS, 
+    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, MODE_AUTO, MODE_AUTO_BYPASS, 
     MODE_MANUAL, MODE_OFF, MODE_AWAY)
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 
 DEFAULT_NAME = "neviweb130 climate"
 
-UPDATE_ATTRIBUTES = [ATTR_SETPOINT_MODE, ATTR_RSSI, ATTR_ROOM_SETPOINT,
+UPDATE_ATTRIBUTES = [ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE]
 
@@ -48,7 +49,9 @@ PRESET_MODES = [
     PRESET_BYPASS
 ]
 
-IMPLEMENTED_DEVICE_MODEL = [1124, 737]
+DEVICE_MODEL_FLOOR = [737]
+DEVICE_MODEL_HEAT = [1123, 1124, 1400, 1500]
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb130 thermostats."""
@@ -79,13 +82,20 @@ class Neviweb130Thermostat(ClimateDevice):
         self._cur_temp = None
         self._operation_mode = None
         self._heat_level = 0
+        self._is_floor = device_info["signature"]["model"] in \
+            DEVICE_MODEL_FLOOR
+        self._gfci_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if self._is_floor:
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS]
+        else:
+            FLOOR_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -94,13 +104,15 @@ class Neviweb130Thermostat(ClimateDevice):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) if \
-                    device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
+                self._target_temp = float(device_data[ATTR_ROOM_SETPOINT]) #if \
+#                    device_data[ATTR_SETPOINT_MODE] != MODE_OFF else 0.0
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
 #                self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                 self._wattage = device_data[ATTR_WATTAGE]
+                if self._is_floor:
+                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -119,9 +131,16 @@ class Neviweb130Thermostat(ClimateDevice):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        return {'heat_level': self._heat_level,
-                'wattage': self._wattage,
-                'id': self._id}
+        data = {}
+        if self._is_floor:
+            data = {'gfci_status': self._gfci_status}
+        data.update({'heat_level': self._heat_level,
+                     'wattage': self._wattage,
+                     'id': self._id})
+        return data
+#        return {'heat_level': self._heat_level,
+#                'wattage': self._wattage,
+#                'id': self._id}
 
     @property
     def supported_features(self):

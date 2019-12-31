@@ -5,6 +5,7 @@ CONF_NETWORK = 'network'
 
 ATTR_SIGNATURE = "signature"
 ATTR_POWER_MODE = "powerMode"
+ATTR_ONOFF = "onOff"
 ATTR_INTENSITY = "intensity"
 #ATTR_RSSI = "rssi"
 ATTR_WATTAGE = "loadConnected"
@@ -19,7 +20,6 @@ ATTR_ROOM_SETPOINT_MAX = "roomSetpointMax"
 ATTR_GFCI_STATUS = "gfciStatus"
 ATTR_WATER_LEAK_STATUS = "waterLeakStatus"
 ATTR_BATTERY_VOLTAGE = "batteryVoltage"
-ATTR_LEVEL_STATUS = "tankLevelPercent"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
