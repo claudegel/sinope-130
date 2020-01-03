@@ -90,7 +90,7 @@ class Neviweb130Sensor(Entity):
             if "errorCode" not in device_data:
                 self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]      
                 self._leak_status = STATE_WATER_LEAK if \
-                    device_data[ATTR_WATER_LEAK_STATUS] = STATE_WATER_LEAK else "ok"
+                    device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
                 if self._is_monitor:
                     self._level_status = device_data[ATTR_LEVEL_STATUS]
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
