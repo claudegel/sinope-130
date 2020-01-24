@@ -111,6 +111,30 @@ Add thoses lines to your `configuration.yaml` file
    ```
 This will set default log level to warning for all your components, except for Neviweb which will display more detailed messages.
 
+## Customization
+Install Custom UI and add the following in your code:
+
+Icons for heat level: create folder www in the root folder .homeassistant/www
+copy the six icons there. You can find them under local/www
+feel free to improve my icons and let me know. (See icon_view2.png)
+
+For each thermostat add this code in `customize.yaml`
+```yaml
+climate.neviweb_climate_thermostat_name:
+  templates:
+    entity_picture: >
+      if (attributes.heat_level < 1) return '/local/heat-0.png';
+      if (attributes.heat_level < 21) return '/local/heat-1.png';
+      if (attributes.heat_level < 41) return '/local/heat-2.png';
+      if (attributes.heat_level < 61) return '/local/heat-3.png';
+      if (attributes.heat_level < 81) return '/local/heat-4.png';
+      return '/local/heat-5.png';
+ ```  
+ In `configuration.yaml` add this
+```yaml
+customize: !include customize.yaml
+``` 
+
 If you find a bug it's very new release without all the doc from Sinopé.
 
 ## TO DO
