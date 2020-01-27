@@ -5,7 +5,7 @@ model 1124 = thermostat TH1124ZB 4000W
 model 1123 = thermostat TH1123ZB 3000W
 model 737 = thermostat TH1300ZB 3600W floor 
 model 1500 = thermostat TH1500ZB double pole thermostat
-model 1400 = thermostat TH1400ZB low voltage
+model 7372 = thermostat TH1400ZB low voltage
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
