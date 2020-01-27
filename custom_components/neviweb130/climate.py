@@ -50,7 +50,7 @@ PRESET_MODES = [
 ]
 
 DEVICE_MODEL_FLOOR = [737]
-DEVICE_MODEL_HEAT = [1123, 1124, 1400, 1500]
+DEVICE_MODEL_HEAT = [1123, 1124, 1400, 1500, 7372]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
