@@ -175,7 +175,7 @@ class Neviweb130Sensor(Entity):
 
     @property  
     def valve_status(self):
-        """Return current valve status in % """
+        """Return current valve status, open or closed"""
         return self._valve_status != None
 
     @property
@@ -196,7 +196,7 @@ class Neviweb130Sensor(Entity):
 
     @property
     def battery_voltage(self):
-        """Return the current battery voltage."""
+        """Return the current battery voltage of the sensor in %."""
         return voltage_to_percentage(self._battery_voltage)
 
     @property
