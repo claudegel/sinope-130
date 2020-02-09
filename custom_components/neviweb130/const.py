@@ -21,6 +21,7 @@ ATTR_GFCI_STATUS = "gfciStatus"
 ATTR_WATER_LEAK_STATUS = "waterLeakStatus"
 ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 ATTR_LEVEL_STATUS = "tankLevelPercent"
+ATTR_VALVE_STATUS = "valveAction"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
@@ -29,3 +30,4 @@ MODE_AWAY = "away"
 MODE_OFF = "off"
 
 STATE_WATER_LEAK = "water"
+STATE_VALVE_STATUS = "closed"
