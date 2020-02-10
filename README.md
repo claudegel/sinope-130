@@ -134,6 +134,18 @@ climate.neviweb_climate_thermostat_name:
 ```yaml
 customize: !include customize.yaml
 ``` 
+## Customization for leak sensor
+
+Same as above. For each leak detector add this to your `customize.yaml`
+```yaml
+sensor.neviweb130_sensor_spa:
+  templates:
+    entity_picture: 'if (attributes.Battery < 20) return ''/local/battery-2.png'';
+      if (attributes.Leak_status == "ok") return ''/local/drop.png'';
+      return ''/local/leak.png'';'
+```
+Icon are available from www dorectory.
+
 
 If you find a bug it's very new release without all the doc from Sinopé.
 
