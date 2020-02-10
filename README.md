@@ -144,7 +144,7 @@ sensor.neviweb130_sensor_spa:
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';
       return ''/local/leak.png'';'
 ```
-Icon are available from www dorectory.
+Icons are availables from www directory.
 
 
 If you find a bug it's very new release without all the doc from Sinopé.
