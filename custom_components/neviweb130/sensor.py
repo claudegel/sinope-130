@@ -190,7 +190,7 @@ class Neviweb130Sensor(Entity):
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp}
-        data.update({'Battery_%': voltage_to_percentage(self._battery_voltage),
+        data.update({'Battery': voltage_to_percentage(self._battery_voltage),
                     'Id': self._id})
         return data
 
