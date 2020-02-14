@@ -30,7 +30,9 @@ UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_ONOFF,
 
 #IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
-IMPLEMENTED_DEVICE_MODEL = [2506, 2600, 2610]
+IMPLEMENTED_WALL_DEVICES = [2600, 2610]
+IMPLEMENTED_LOAD_DEVICES = [2506]
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Neviweb switch."""
@@ -60,13 +62,21 @@ class Neviweb130Switch(SwitchDevice):
         self._current_power_w = None
         self._today_energy_kwh = None
         self._onOff = None
+        self._is_wall = device_info["signature"]["model"] in \
+            IMPLEMENTED_WALL_DEVICES
+        self._is_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_LOAD_DEVICES
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if self._is_load:
+            LOAD_ATTRIBUTE = [ATTR_POWER_MODE, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
+        else:
+            LOAD_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+            UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
         device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
@@ -78,8 +88,9 @@ class Neviweb130Switch(SwitchDevice):
                 self._onOff = device_data[ATTR_ONOFF] #!= MODE_OFF else 0.0
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
 #                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-                self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
-                self._wattage = device_data[ATTR_WATTAGE]
+                if self._is_load:
+                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                    self._wattage = device_data[ATTR_WATTAGE]
 #                self._today_energy_kwh = device_daily_stats[0] / 1000
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -112,9 +123,12 @@ class Neviweb130Switch(SwitchDevice):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        return {'operation_mode': self.operation_mode,
-                'wattage': self._wattage,
-                'id': self._id}
+        data = {}
+        if self._is_load:
+            data = {'wattage': self._wattage}
+        data.update({#'operation_mode': self.operation_mode,
+                'id': self._id})
+        return data
        
     @property
     def operation_mode(self):
