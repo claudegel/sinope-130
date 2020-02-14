@@ -141,9 +141,6 @@ class Neviweb130Thermostat(ClimateDevice):
                      'wattage': self._wattage,
                      'id': self._id})
         return data
-#        return {'heat_level': self._heat_level,
-#                'wattage': self._wattage,
-#                'id': self._id}
 
     @property
     def supported_features(self):
