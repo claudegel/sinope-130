@@ -27,7 +27,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, MODE_AUTO, MODE_AUTO_BYPASS, 
+    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, MODE_AUTO, MODE_AUTO_BYPASS, 
     MODE_MANUAL, MODE_OFF, MODE_AWAY)
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,11 +85,12 @@ class Neviweb130Thermostat(ClimateDevice):
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._gfci_status = None
+        self._floor_mode = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS]
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE]
         else:
             FLOOR_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -113,6 +114,7 @@ class Neviweb130Thermostat(ClimateDevice):
                 self._wattage = device_data[ATTR_WATTAGE]
                 if self._is_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
+                    self._floor_mode = device_data[ATTR_FLOOR_MODE]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -133,7 +135,8 @@ class Neviweb130Thermostat(ClimateDevice):
         """Return the state attributes."""
         data = {}
         if self._is_floor:
-            data = {'gfci_status': self._gfci_status}
+            data = {'gfci_status': self._gfci_status,
+                    'sensor_mode': self._floor_mode}
         data.update({'heat_level': self._heat_level,
                      'wattage': self._wattage,
                      'id': self._id})
