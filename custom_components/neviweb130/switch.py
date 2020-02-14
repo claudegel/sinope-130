@@ -25,8 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_ONOFF, 
-    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
+UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 #IMPLEMENTED_DEVICE_TYPES = [120] #power control device
 
@@ -57,7 +56,7 @@ class Neviweb130Switch(SwitchDevice):
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._wattage = 0 # keyCheck("wattage", device_info, 0, name)
-        self._brightness = 0
+#        self._brightness = 0
         self._operation_mode = 1
         self._current_power_w = None
         self._today_energy_kwh = None
@@ -85,7 +84,7 @@ class Neviweb130Switch(SwitchDevice):
         if "error" not in device_data:
             if "errorCode" not in device_data:
 #                self._brightness = 100 if \
-                self._onOff = device_data[ATTR_ONOFF] #!= MODE_OFF else 0.0
+                self._onOff = device_data[ATTR_ONOFF]
 #                self._operation_mode = device_data[ATTR_POWER_MODE] if \
 #                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 if self._is_load:
