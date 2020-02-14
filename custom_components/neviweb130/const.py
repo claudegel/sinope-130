@@ -22,6 +22,7 @@ ATTR_WATER_LEAK_STATUS = "waterLeakStatus"
 ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 ATTR_LEVEL_STATUS = "tankLevelPercent"
 ATTR_VALVE_STATUS = "valveAction"
+ATTR_FLOOR_MODE = "airFloorMode"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
