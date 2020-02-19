@@ -1,7 +1,5 @@
 """
 Support for Neviweb sensors connected via GT130 ZigBee.
-model xxx = VA4201WZ, sedna valve 1 inch
-model xxx = VA4200WZ, sedna valve 3/4 inch
 model 5051 = WL4200ZB, water leak detector
 model xxx = WL4200S, water leak detector with sensor
 model 4110 = LM4110-ZB, level monitor
@@ -23,7 +21,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_LEVEL_STATUS, ATTR_BATTERY_VOLTAGE, ATTR_VALVE_STATUS, MODE_OFF, STATE_WATER_LEAK, STATE_VALVE_STATUS)
+from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_LEVEL_STATUS, ATTR_BATTERY_VOLTAGE, MODE_OFF, STATE_WATER_LEAK)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,13 +29,11 @@ DEFAULT_NAME = 'neviweb130 sensor'
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE]
 
-IMPLEMENTED_VALVE_MODEL = []
 IMPLEMENTED_TANK_MONITOR = [4110]
 IMPLEMENTED_SENSOR_MODEL = [5051]
-IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_VALVE_MODEL
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR
 
 SENSOR_TYPES = {
-    "valve": ["", None, None],
     "leak": ["", None, None],
     "level": ["%", None, None],
 }
@@ -56,8 +52,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 device_type = "leak"
             elif  device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
                 device_type = "level"
-            else:
-                device_type = "valve"
             devices.append(Neviweb130Sensor(data, device_info, device_name, device_type))
 
     async_add_entities(devices, True)
@@ -82,18 +76,13 @@ class Neviweb130Sensor(Entity):
             IMPLEMENTED_TANK_MONITOR
         self._is_leak = device_info["signature"]["model"] in \
             IMPLEMENTED_SENSOR_MODEL
-        self._is_valve = device_info["signature"]["model"] in \
-            IMPLEMENTED_VALVE_MODEL
         self._level_status = None
-        self._valve_status = None
         self._leak_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_monitor:
             MONITOR_ATTRIBUTE = [ATTR_LEVEL_STATUS]
-        elif self._is_valve:
-            MONITOR_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE]
         else:
             MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE]
         """Get the latest data from Neviweb and update the state."""
@@ -107,11 +96,7 @@ class Neviweb130Sensor(Entity):
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                if self._is_valve:
-                    self._valve_status = STATE_VALVE_STATUS if \
-                        device_data[ATTR_VALVE_STATUS] == STATE_VALVE_STATUS else "open"
-                    self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
-                elif self._is_leak:
+                if self._is_leak:
                     self._leak_status = STATE_WATER_LEAK if \
                         device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
                     self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
@@ -173,11 +158,6 @@ class Neviweb130Sensor(Entity):
         """Return current sensor liquid level status in % """
         return self._level_status != None
 
-    @property  
-    def valve_status(self):
-        """Return current valve status, open or closed"""
-        return self._valve_status != None
-
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
@@ -186,9 +166,6 @@ class Neviweb130Sensor(Entity):
             data = {'Level': self._level_status}
         elif self._is_leak:
             data = {'Leak_status': self._leak_status,
-                   'Temperature': self._cur_temp}
-        elif self._is_valve:
-            data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp}
         data.update({'Battery': voltage_to_percentage(self._battery_voltage),
                     'Id': self._id})
@@ -206,4 +183,3 @@ class Neviweb130Sensor(Entity):
             return self._level_status
         elif self._is_leak:
             return self._leak_status
-        return self._valve_status

@@ -4,6 +4,8 @@ Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
+model xxx = VA4201WZ, sedna valve 1 inch
+model xxx = VA4200WZ, sedna valve 3/4 inch
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -16,10 +18,12 @@ import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
 from homeassistant.components.switch import (SwitchDevice, 
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
+from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
+from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_ONOFF,
-    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, MODE_AUTO, MODE_MANUAL, MODE_OFF)
+    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_VALVE_STATUS, ATTR_BATTERY_VOLTAGE, MODE_AUTO, MODE_MANUAL, MODE_OFF, STATE_VALVE_STATUS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,14 +31,13 @@ DEFAULT_NAME = 'neviweb130 switch'
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
-#IMPLEMENTED_DEVICE_TYPES = [120] #power control device
-
+IMPLEMENTED_VALVE_MODEL = []
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
-IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_VALVE_MODEL
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up the Neviweb switch."""
+    """Set up the Neviweb130 switch."""
     data = hass.data[DOMAIN]
     
     devices = []
@@ -46,6 +49,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             devices.append(Neviweb130Switch(data, device_info, device_name))
 
     async_add_entities(devices, True)
+
+def voltage_to_percentage(voltage):
+    """Convert voltage level from absolute 0..3.25 to percentage."""
+    return int((voltage * 100.0) / 3.25)
 
 class Neviweb130Switch(SwitchDevice):
     """Implementation of a Neviweb switch."""
@@ -65,11 +72,18 @@ class Neviweb130Switch(SwitchDevice):
             IMPLEMENTED_WALL_DEVICES
         self._is_load = device_info["signature"]["model"] in \
             IMPLEMENTED_LOAD_DEVICES
+        self._is_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_VALVE_MODEL
+        self._valve_status = None
+        self._cur_temp = None
+        self._battery_voltage = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_load:
             LOAD_ATTRIBUTE = [ATTR_POWER_MODE, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
+        elif self._is_valve:
+            LOAD_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_BATTERY_VOLTAGE]
         else:
             LOAD_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -83,14 +97,20 @@ class Neviweb130Switch(SwitchDevice):
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-#                self._brightness = 100 if \
-                self._onOff = device_data[ATTR_ONOFF]
-#                self._operation_mode = device_data[ATTR_POWER_MODE] if \
-#                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-                if self._is_load:
+                if self._is_valve:
+                    self._valve_status = STATE_VALVE_STATUS if \
+                        device_data[ATTR_VALVE_STATUS] == STATE_VALVE_STATUS else "open"
+                    self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
+                    self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                elif self._is_load:
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._wattage = device_data[ATTR_WATTAGE]
+                    self._onOff = device_data[ATTR_ONOFF]
+                else:
+                    self._onOff = device_data[ATTR_ONOFF]
 #                self._today_energy_kwh = device_daily_stats[0] / 1000
+#                self._operation_mode = device_data[ATTR_POWER_MODE] if \
+#                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -119,16 +139,35 @@ class Neviweb130Switch(SwitchDevice):
         """Turn the device off."""
         self._client.set_onOff(self._id, "off")
 
+    @property  
+    def valve_status(self):
+        """Return current valve status, open or closed"""
+        return self._valve_status != None
+
+    @property
+    def current_temperature(self):
+        """Return the current valve temperature."""
+        return self._cur_temp
+
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
         if self._is_load:
-            data = {'wattage': self._wattage}
+            data = {'Wattage': self._wattage}
+        elif self._is_valve:
+            data = {'Valve_status': self._valve_status,
+                   'Temperature': self._cur_temp,
+                   'Battery': voltage_to_percentage(self._battery_voltage),}
         data.update({#'operation_mode': self.operation_mode,
                 'id': self._id})
         return data
-       
+
+    @property
+    def battery_voltage(self):
+        """Return the current battery voltage of the valve in %."""
+        return voltage_to_percentage(self._battery_voltage)
+    
     @property
     def operation_mode(self):
         return self._operation_mode
