@@ -122,28 +122,33 @@ class Neviweb130Light(Light):
     @property
     def is_on(self):
         """Return true if device is on."""
-#        return self._brightness_pct != 0
+        if self._is_dimmable:
+            return self._brightness_pct != 0
         return self._onOff != MODE_OFF
 
     # For the turn_on and turn_off functions, we would normally check if the
     # the requested state is different from the actual state to issue the 
-    # command. But since we update the state every 15 minutes, there is good
+    # command. But since we update the state every 6 minutes, there is good
     # chance that the current stored state doesn't match with real device 
     # state. So we force the set_brightness each time.
     def turn_on(self, **kwargs):
         """Turn the light on."""
-        if not self._is_on:    
-            self._client.set_onOff(self._id, "on")
+        brightness_pct = 100
+        if kwargs.get(ATTR_BRIGHTNESS):
+            brightness_pct = \
+                brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
         if self._is_dimmable:
-            brightness_pct = brightness_to_percentage(kwargs.get(ATTR_BRIGHTNESS))
-            self._client.set_brightness(self._id, brightness_pct)  
+            brightness_pct = 101 # Sets the light to last known brightness.
+        self._client.set_brightness(self._id, brightness_pct)
+        if not self._is_on:      
+            self._client.set_onOff(self._id, "on")
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-#        if self._is_dimmable:
-#            self._client.set_brightness(self._id, 0)
-#        else:
-        self._client.set_onOff(self._id, "off")
+        if self._is_dimmable:
+            self._client.set_brightness(self._id, 0)
+        else:
+            self._client.set_onOff(self._id, "off")
 
     @property
     def device_state_attributes(self):
