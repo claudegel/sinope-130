@@ -120,7 +120,7 @@ class Neviweb130Light(Light):
         return brightness_from_percentage(self._brightness_pct)
 
     @property
-    def is_on(self):
+    def is_on(self): ## need to change this for neviweb130
         """Return true if device is on."""
         if self._is_dimmable:
             return self._brightness_pct != 0
