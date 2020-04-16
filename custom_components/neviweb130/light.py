@@ -140,8 +140,8 @@ class Neviweb130Light(Light):
         if self._is_dimmable:
             brightness_pct = 101 # Sets the light to last known brightness.
         self._client.set_brightness(self._id, brightness_pct)
-        if not self._is_on:      
-            self._client.set_onOff(self._id, "on")
+#        if not self._is_on:      
+#            self._client.set_onOff(self._id, "on")
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
