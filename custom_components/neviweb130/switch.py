@@ -146,8 +146,7 @@ class Neviweb130Switch(SwitchDevice):
         """Return the state attributes."""
         data = {}
         if self._is_load or self._is_wall:
-            data = {'Current_power_watt': self._current_power_w,
-                    'onOff': self._onOff,}
+            data = {'onOff': self._onOff,}
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp,
