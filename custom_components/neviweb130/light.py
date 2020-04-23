@@ -105,6 +105,16 @@ class Neviweb130Light(Light):
         return self._name
     
     @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        data = {}
+        if self._is_dimmable and self._brightness_pct:
+            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
+        data.update({'onOff': self._onOff,
+                     'id': self._id})
+        return data
+    
+    @property
     def brightness(self):
         """Return intensity of light"""
         return brightness_from_percentage(self._brightness_pct)
@@ -121,6 +131,7 @@ class Neviweb130Light(Light):
     # command. But since we update the state every 6 minutes, there is good
     # chance that the current stored state doesn't match with real device 
     # state. So we force the set_brightness each time.
+    
     def turn_on(self, **kwargs):
         """Turn the light on."""
 #        brightness_pct = 100
@@ -130,7 +141,12 @@ class Neviweb130Light(Light):
 #        if self._is_dimmable:
 #            brightness_pct = 101 # Sets the light to last known brightness.
 #        self._client.set_brightness(self._id, brightness_pct)
-        self._client.set_onOff(self._id, "on")
+        if not self.is_on:
+            self._client.set_onOff(self._id, "on")
+        if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
+            brightness_pct = \
+                brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
+            self._client.set_brightness(self._id, brightness_pct)
         
     def turn_off(self, **kwargs):
         """Turn the light off."""
@@ -138,13 +154,3 @@ class Neviweb130Light(Light):
 #            self._client.set_brightness(self._id, 0)
 #        else:
         self._client.set_onOff(self._id, "off")
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        data = {}
-        if self._is_dimmable and self._brightness_pct:
-            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
-        data.update({'onOff': self._onOff,
-                     'id': self._id})
-        return data
