@@ -22,8 +22,8 @@ from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE,
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_ONOFF,
-    ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_VALVE_STATUS, ATTR_BATTERY_VOLTAGE, MODE_AUTO, MODE_MANUAL, MODE_OFF, STATE_VALVE_STATUS)
+from .const import (DOMAIN, ATTR_ONOFF,
+    ATTR_WATTAGE_INSTANT, ATTR_VALVE_STATUS, ATTR_BATTERY_VOLTAGE, MODE_AUTO, MODE_MANUAL, MODE_OFF, STATE_VALVE_STATUS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,9 +62,6 @@ class Neviweb130Switch(SwitchDevice):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
-        self._wattage = 0 # keyCheck("wattage", device_info, 0, name)
-#        self._brightness = 0
-        self._operation_mode = 1
         self._current_power_w = None
         self._today_energy_kwh = None
         self._onOff = None
@@ -81,11 +78,11 @@ class Neviweb130Switch(SwitchDevice):
 
     def update(self):
         if self._is_load:
-            LOAD_ATTRIBUTE = [ATTR_POWER_MODE, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT]
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
         elif self._is_valve:
             LOAD_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_BATTERY_VOLTAGE]
         else:
-            LOAD_ATTRIBUTE = []
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
@@ -102,15 +99,10 @@ class Neviweb130Switch(SwitchDevice):
                         device_data[ATTR_VALVE_STATUS] == STATE_VALVE_STATUS else "open"
                     self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                elif self._is_load:
+                else: #for is_wall and is_load
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
-                    self._wattage = device_data[ATTR_WATTAGE]
-                    self._onOff = device_data[ATTR_ONOFF]
-                else:
                     self._onOff = device_data[ATTR_ONOFF]
 #                self._today_energy_kwh = device_daily_stats[0] / 1000
-#                self._operation_mode = device_data[ATTR_POWER_MODE] if \
-#                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -153,24 +145,19 @@ class Neviweb130Switch(SwitchDevice):
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if self._is_load:
-            data = {'Wattage': self._wattage}
+        if self._is_load or self._is_wall:
+            data = {'onOff': self._onOff,}
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp,
                    'Battery': voltage_to_percentage(self._battery_voltage),}
-        data.update({#'operation_mode': self.operation_mode,
-                'id': self._id})
+        data.update({'id': self._id})
         return data
 
     @property
     def battery_voltage(self):
         """Return the current battery voltage of the valve in %."""
         return voltage_to_percentage(self._battery_voltage)
-    
-    @property
-    def operation_mode(self):
-        return self._operation_mode
 
     @property
     def current_power_w(self):

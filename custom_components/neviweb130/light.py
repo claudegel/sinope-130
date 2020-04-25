@@ -16,20 +16,18 @@ from . import (SCAN_INTERVAL)
 from homeassistant.components.light import (Light, ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
 from datetime import timedelta
-from .const import (DOMAIN, ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_ONOFF,
-    ATTR_WATTAGE_OVERRIDE, MODE_AUTO, MODE_MANUAL, MODE_OFF)
+from .const import (DOMAIN, ATTR_INTENSITY, ATTR_ONOFF,
+    MODE_AUTO, MODE_MANUAL, MODE_OFF)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 light'
 
-UPDATE_ATTRIBUTES = [ATTR_POWER_MODE, ATTR_INTENSITY, ATTR_ONOFF,
-    ATTR_WATTAGE_OVERRIDE]
+UPDATE_ATTRIBUTES = [ATTR_INTENSITY, ATTR_ONOFF]
 
 DEVICE_MODEL_DIMMER = [2131]
 DEVICE_MODEL_LIGHT = [2121]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER
-#IMPLEMENTED_DEVICE_MODEL = [2121, 2131]
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb light."""
@@ -63,9 +61,7 @@ class Neviweb130Light(Light):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
-        self._wattage_override = 0 # keyCheck("wattageOverride", device_info, 0, name)
         self._brightness_pct = 0
-        self._operation_mode = 1
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
         self._onOff = None
@@ -86,12 +82,6 @@ class Neviweb130Light(Light):
                     self._brightness_pct = device_data[ATTR_INTENSITY] if \
                         device_data[ATTR_INTENSITY] is not None else 0.0
                 self._onOff = device_data[ATTR_ONOFF]   
-#                else:
-#                    self._brightness_pct = 100 if \
-#                        device_data[ATTR_ONOFF] != MODE_OFF else 0.0
-#                self._operation_mode = device_data[ATTR_POWER_MODE] if \
-#                    device_data[ATTR_POWER_MODE] is not None else MODE_MANUAL
-#                self._wattage_override = device_data[ATTR_WATTAGE_OVERRIDE]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -115,15 +105,23 @@ class Neviweb130Light(Light):
         return self._name
     
     @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        data = {}
+        if self._is_dimmable and self._brightness_pct:
+            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
+        data.update({'onOff': self._onOff,
+                     'id': self._id})
+        return data
+    
+    @property
     def brightness(self):
         """Return intensity of light"""
         return brightness_from_percentage(self._brightness_pct)
 
     @property
-    def is_on(self):
+    def is_on(self): ## need to change this for neviweb130
         """Return true if device is on."""
-        if self._is_dimmable:
-            return self._brightness_pct != 0
         return self._onOff != MODE_OFF
 
     # For the turn_on and turn_off functions, we would normally check if the
@@ -131,37 +129,16 @@ class Neviweb130Light(Light):
     # command. But since we update the state every 6 minutes, there is good
     # chance that the current stored state doesn't match with real device 
     # state. So we force the set_brightness each time.
+    
     def turn_on(self, **kwargs):
         """Turn the light on."""
-        brightness_pct = 100
-        if kwargs.get(ATTR_BRIGHTNESS):
+        if not self.is_on:
+            self._client.set_onOff(self._id, "on")
+        if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
             brightness_pct = \
                 brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
-        if self._is_dimmable:
-            brightness_pct = 101 # Sets the light to last known brightness.
-        self._client.set_brightness(self._id, brightness_pct)
-        if not self._is_on:      
-            self._client.set_onOff(self._id, "on")
-
+            self._client.set_brightness(self._id, brightness_pct)
+        
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        if self._is_dimmable:
-            self._client.set_brightness(self._id, 0)
-        else:
-            self._client.set_onOff(self._id, "off")
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        data = {}
-        if self._is_dimmable and self._brightness_pct:
-            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
-        data.update({'operation_mode': self.operation_mode,
-                     'wattage_override': self._wattage_override,
-                     'id': self._id})
-        return data
- 
-    @property
-    def operation_mode(self):
-        return self._operation_mode
-    
+        self._client.set_onOff(self._id, "off")
