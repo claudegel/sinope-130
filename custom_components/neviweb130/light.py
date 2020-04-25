@@ -122,8 +122,6 @@ class Neviweb130Light(Light):
     @property
     def is_on(self): ## need to change this for neviweb130
         """Return true if device is on."""
-#        if self._is_dimmable:
-#            return self._brightness_pct != 0
         return self._onOff != MODE_OFF
 
     # For the turn_on and turn_off functions, we would normally check if the
@@ -134,13 +132,6 @@ class Neviweb130Light(Light):
     
     def turn_on(self, **kwargs):
         """Turn the light on."""
-#        brightness_pct = 100
-#        if kwargs.get(ATTR_BRIGHTNESS):
-#            brightness_pct = \
-#                brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
-#        if self._is_dimmable:
-#            brightness_pct = 101 # Sets the light to last known brightness.
-#        self._client.set_brightness(self._id, brightness_pct)
         if not self.is_on:
             self._client.set_onOff(self._id, "on")
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
@@ -150,7 +141,4 @@ class Neviweb130Light(Light):
         
     def turn_off(self, **kwargs):
         """Turn the light off."""
-#        if self._is_dimmable:
-#            self._client.set_brightness(self._id, 0)
-#        else:
         self._client.set_onOff(self._id, "off")
