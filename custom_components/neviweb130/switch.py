@@ -16,7 +16,7 @@ import time
 
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
-from homeassistant.components.switch import (SwitchDevice, 
+from homeassistant.components.switch import (SwitchEntity, 
     ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
 from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT)
 from datetime import timedelta
@@ -54,7 +54,7 @@ def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
     return int((voltage * 100.0) / 3.25)
 
-class Neviweb130Switch(SwitchDevice):
+class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
     def __init__(self, data, device_info, name):
