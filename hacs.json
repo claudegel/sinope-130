@@ -7,6 +7,5 @@
   "render_readme": true,
   "domains": ["sensor", "switch", "climate", "light"],
   "country": ["CA"],
-  "homeassistant": "0.110.0",
   "iot_class": "Cloud Polling"
 }
