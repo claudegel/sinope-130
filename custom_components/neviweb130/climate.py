@@ -3,7 +3,7 @@ Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
 model 1124 = thermostat TH1124ZB 4000W
 model 1123 = thermostat TH1123ZB 3000W
-model 737 = thermostat TH1300ZB 3600W floor 
+model 737 = thermostat TH1300ZB 3600W (floor) 
 model 1500 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
 For more details about this platform, please refer to the documentation at  
@@ -28,7 +28,7 @@ from homeassistant.helpers.event import track_time_interval
 from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, MODE_AUTO, MODE_AUTO_BYPASS, 
-    MODE_MANUAL, MODE_OFF, MODE_AWAY)
+    MODE_MANUAL, MODE_OFF, MODE_AWAY, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,11 +86,13 @@ class Neviweb130Thermostat(ClimateEntity):
             DEVICE_MODEL_FLOOR
         self._gfci_status = None
         self._floor_mode = None
+        self._aux_heat = None
+        self._load2 = 0
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE]
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2]
         else:
             FLOOR_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -113,6 +115,9 @@ class Neviweb130Thermostat(ClimateEntity):
                 if self._is_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                    self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                    if self._aux_heat == "slave":
+                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -134,7 +139,8 @@ class Neviweb130Thermostat(ClimateEntity):
         data = {}
         if self._is_floor:
             data = {'gfci_status': self._gfci_status,
-                    'sensor_mode': self._floor_mode}
+                    'sensor_mode': self._floor_mode,
+                    'slave_heat': self._aux_heat}
         data.update({'heat_level': self._heat_level,
                      'wattage': self._wattage,
                      'id': self._id})
