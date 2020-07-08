@@ -22,6 +22,8 @@ ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 ATTR_LEVEL_STATUS = "tankLevelPercent"
 ATTR_VALVE_STATUS = "valveAction"
 ATTR_FLOOR_MODE = "airFloorMode"
+ATTR_FLOOR_OUTPUT2 = "loadWattOutput2"
+ATTR_FLOOR_AUX = "auxHeatConfig"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
