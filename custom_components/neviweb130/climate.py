@@ -140,7 +140,8 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_floor:
             data = {'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
-                    'slave_heat': self._aux_heat}
+                    'slave_heat': self._aux_heat,
+                    'slave_load': self._load2}
         data.update({'heat_level': self._heat_level,
                      'wattage': self._wattage,
                      'id': self._id})
