@@ -146,11 +146,11 @@ class Neviweb130Switch(SwitchEntity):
         """Return the state attributes."""
         data = {}
         if self._is_load or self._is_wall:
-            data = {'onOff': self._onOff,}
+            data = {'onOff': self._onOff}
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp,
-                   'Battery': voltage_to_percentage(self._battery_voltage),}
+                   'Battery': voltage_to_percentage(self._battery_voltage)}
         data.update({'id': self._id})
         return data
 
