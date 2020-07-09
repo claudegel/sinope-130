@@ -38,7 +38,7 @@ DEFAULT_NAME = "neviweb130 climate"
 
 UPDATE_ATTRIBUTES = [ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE]
+    ATTR_ROOM_SETPOINT_MAX]
 
 SUPPORTED_HVAC_MODES = [HVAC_MODE_OFF, HVAC_MODE_AUTO, HVAC_MODE_HEAT]
 
@@ -49,9 +49,10 @@ PRESET_MODES = [
     PRESET_BYPASS
 ]
 
+DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_FLOOR = [737]
-DEVICE_MODEL_HEAT = [1123, 1124, 1500, 7372]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR
+DEVICE_MODEL_HEAT = [1123, 1124, 1500]
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb130 thermostats."""
@@ -88,9 +89,16 @@ class Neviweb130Thermostat(ClimateEntity):
         self._floor_mode = None
         self._aux_heat = None
         self._load2 = 0
+        self._load2_status = None
+        self._is_low_voltage = device_info["signature"]["model"] in \
+            DEVICE_MODEL_LOW
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if not self._is_low_voltage:
+            WATT_ATTRIBUTE = [ATTR_WATTAGE]
+        else:
+            WATT_ATTRIBUTE = []
         if self._is_floor:
             FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2]
         else:
@@ -98,7 +106,7 @@ class Neviweb130Thermostat(ClimateEntity):
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -111,13 +119,14 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                self._wattage = device_data[ATTR_WATTAGE]
+                if not self._is_low_voltage:
+                    self._wattage = device_data[ATTR_WATTAGE]
                 if self._is_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
-                    if self._aux_heat == "slave":
-                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -137,13 +146,15 @@ class Neviweb130Thermostat(ClimateEntity):
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
+        if not self._is_low_voltage:
+            data = {'wattage': self._wattage}
         if self._is_floor:
-            data = {'gfci_status': self._gfci_status,
+            data.update({'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
                     'slave_heat': self._aux_heat,
-                    'slave_load': self._load2}
+                    'slave_status': self._load2_status,
+                    'slave_load': self._load2})
         data.update({'heat_level': self._heat_level,
-                     'wattage': self._wattage,
                      'id': self._id})
         return data
 
