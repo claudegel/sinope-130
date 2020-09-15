@@ -129,8 +129,12 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
-                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    if not self._is_wifi_floor:
+                        self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    else:
+                        self._load2_status = None
+                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
