@@ -3,7 +3,8 @@ Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
 model 1124 = thermostat TH1124ZB 4000W
 model 1123 = thermostat TH1123ZB 3000W
-model 737 = thermostat TH1300ZB 3600W (floor) 
+model 737 = thermostat TH1300ZB 3600W (floor)
+model 738 = thermostat TH1300WF 3600W (wifi floor)
 model 1500 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
 For more details about this platform, please refer to the documentation at  
@@ -51,8 +52,9 @@ PRESET_MODES = [
 
 DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_FLOOR = [737]
+DEVICE_MODEL_WIFI_FLOOR = [738]
 DEVICE_MODEL_HEAT = [1123, 1124, 1500]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb130 thermostats."""
@@ -85,6 +87,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._heat_level = 0
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
+        self._is_wifi_floor = device_info["signature"]["model"] in \
+            DEVICE_MODEL_WIFI_FLOOR
         self._gfci_status = None
         self._floor_mode = None
         self._aux_heat = None
@@ -95,11 +99,11 @@ class Neviweb130Thermostat(ClimateEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if not self._is_low_voltage:
+        if not self._is_low_voltage and not self._is_wifi_floor:
             WATT_ATTRIBUTE = [ATTR_WATTAGE]
         else:
             WATT_ATTRIBUTE = []
-        if self._is_floor:
+        if self._is_floor or self._is_wifi_floor:
             FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2]
         else:
             FLOOR_ATTRIBUTE = []
@@ -119,9 +123,9 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                if not self._is_low_voltage:
+                if not self._is_low_voltage and not self._is_wifi_floor:
                     self._wattage = device_data[ATTR_WATTAGE]
-                if self._is_floor:
+                if self._is_floor or self._is_wifi_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
@@ -146,9 +150,9 @@ class Neviweb130Thermostat(ClimateEntity):
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if not self._is_low_voltage:
+        if not self._is_low_voltage and not self._is_wifi_floor:
             data = {'wattage': self._wattage}
-        if self._is_floor:
+        if self._is_floor or self._is_wifi_floor:
             data.update({'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
                     'slave_heat': self._aux_heat,
