@@ -29,7 +29,8 @@ from homeassistant.helpers.event import track_time_interval
 from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, MODE_AUTO, MODE_AUTO_BYPASS, 
-    MODE_MANUAL, MODE_OFF, MODE_AWAY, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2)
+    MODE_MANUAL, MODE_OFF, MODE_AWAY, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_KEYPAD, ATTR_FLOOR_OUTPUT1,
+    ATTR_FLOOR_LOAD, ATTR_WIFI)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,10 +108,14 @@ class Neviweb130Thermostat(ClimateEntity):
             FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2]
         else:
             FLOOR_ATTRIBUTE = []
+        if self._is_wifi_floor:
+            WIFI_ATTRIBUTE = [ATTR_WIFI, ATTR_FLOOR_LOAD, ATTR_FLOOR_OUTPUT1]
+        else:
+            WIFI_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
