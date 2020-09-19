@@ -28,6 +28,7 @@ ATTR_KEYPAD = "lockKeypad"
 ATTR_FLOOR_OUTPUT1 = "loadWattOutput1"
 ATTR_FLOOR_LOAD = "loadWatt"
 ATTR_WIFI = "wifiRssi"
+ATTR_WIFI_DISPLAY2 = "config2ndDisplay"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
