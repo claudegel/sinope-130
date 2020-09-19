@@ -142,7 +142,8 @@ climate.neviweb_climate_thermostat_name:
  ```  
  In `configuration.yaml` add this
 ```yaml
-customize: !include customize.yaml
+homeassistant:
+  customize: !include customize.yaml
 ``` 
 ## Customization for leak sensor
 
