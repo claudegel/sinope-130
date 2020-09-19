@@ -3,24 +3,30 @@
 Here is a custom components to suport [Neviweb](https://neviweb.com/) in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light switches/dimmers , load controllers, plug and water leak detector etc. 
 
-Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway. It is presently in pre-release stage as some information are still missing from Sinopé.
+Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway and the new wifi devices. It is presently in pre-release stage as some information are still missing from Sinopé.
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
-- Thermostats
-  - Sinopé TH1124ZB-3000 Line voltage thermostat
-  - Sinopé TH1124ZB-4000 Line voltage thermostat
-  - Sinopé TH1124ZB-3000 Thermostat for public areas
-  - Sinopé TH1124ZB-4000 Thermostat for public areas
-  - Sinopé TH1300ZB 3600w Floor heating thermostat
+- Zigbee thermostats
+  - Sinopé TH1124ZB 3000W Line voltage thermostat
+  - Sinopé TH1124ZB 4000W Line voltage thermostat
+  - Sinopé TH1124ZB 3000W Thermostat for public areas
+  - Sinopé TH1124ZB 4000W Thermostat for public areas
+  - Sinopé TH1300ZB 3600W Floor heating thermostat
   - Sinopé TH1400ZB Low voltage thermostat
-- Lighting
+  - Sinopé TH1500ZB 3600W double pole thermostat
+- Wifi thermostats
+  - Sinopé TH1124WF wifi 4000W Line voltage thermostat
+  - Sinopé TH1123WF wifi 3000W Line voltage thermostat
+  - Sinopé TH1400WF wifi low voltage thermostat
+  - Sinopé TH1300WF wifi 3600W floor thermostat
+- Zigbee lighting
   - Sinopé SW2500ZB Light switch
   - Sinopé DM2500ZB Dimmer 
-- Specialized Control
+- Zigbee specialized Control
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé SP2610ZB in-wall outlet
-  - Sinopé SP2600ZB smart plug
+  - Sinopé SP2600ZB smart portable plug
 - Water leak detector
   - Sinopé VA4201WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, sedna valve 3/4 inch
@@ -32,11 +38,13 @@ Here is a list of currently supported devices. Basically, it's everything that c
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
 
+For wifi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 zigbee devices. Later I'll add support to add them in the GT125 network.
+
 There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT130 gateway:
 - [Neviweb130](https://github.com/claudegel/sinope-130) custom component to manage your devices via neviweb portal
-- [Sinope130](https://github.com/claudegel/sinope-gt130) custom component to manage your devices directly via your GT130 web gateway
+- Buy a zigbee gateway like Dresden Conbe II usb dongle and manage directly your zigbee device via ZHA component. I'm adding support for Sinopé zigbee there
 
-You need to install only one of them but both can be used at the same time on HA.
+You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via Conbe II must be removed from Neviweb.
 
 ## Neviweb custom component to manage your device via Neviweb portal:
 ## Installation
@@ -56,6 +64,7 @@ There are two methods to install this custom component:
         neviweb130/
           __init__.py
           light.py
+          const.py
           switch.py
           climate.py
           sensor.py
@@ -71,6 +80,7 @@ neviweb130:
   username: '<your Neviweb username>'
   password: '<your Neviweb password>'
   network: '<your gt130 network name in Neviweb>'
+  scan_interval: 360
 ```
 
 **Configuration options:**  
@@ -80,7 +90,7 @@ neviweb130:
 | **username** | yes |  | Your email address used to log in Neviweb.
 | **password** | yes |  | Your Neviweb password.
 | **network** | yes | if not specified, 1st network found is used. Write the name of the GT130 network you want to control.
-| **scan_interval** | no | 540 | The number of seconds between access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
+| **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
@@ -112,7 +122,7 @@ Add thoses lines to your `configuration.yaml` file
 This will set default log level to warning for all your components, except for Neviweb which will display more detailed messages.
 
 ## Customization
-Install Custom UI and add the following in your code:
+Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
 copy the six icons there. You can find them under local/www
