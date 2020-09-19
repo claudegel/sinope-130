@@ -1,4 +1,4 @@
-"""Constants for neviweb component."""
+"""Constants for neviweb130 component."""
 
 DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
