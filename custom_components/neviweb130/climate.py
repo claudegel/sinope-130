@@ -119,7 +119,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
-            WIFI_ATTRIBUTE = [ATTR_WIFI, ATTR_WIFI_KEYPAD]
+            WIFI_ATTRIBUTE = [ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2]
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD]
         """Get the latest data from Neviweb and update the state."""
@@ -144,6 +144,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 else:
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
+                    self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
                 if not self._is_low_voltage and not self._is_wifi_floor:
                     self._wattage = device_data[ATTR_WATTAGE]
                 if self._is_floor or self._is_wifi_floor:
@@ -157,9 +158,6 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._load2_status = None
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                         self._wattage = device_data[ATTR_WIFI_FLOOR_LOAD]
-                if self._is_wifi:
-                    self._rssi = device_data[ATTR_WIFI]
-                    self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -187,6 +185,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     'slave_heat': self._aux_heat,
                     'slave_status': self._load2_status,
                     'slave_load': self._load2})
+        if self._is_wifi:
+            data.update({'second display': self._wifi_display2})
         data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
                      'rssi': self._rssi,
