@@ -135,13 +135,14 @@ class Neviweb130Thermostat(ClimateEntity):
             if "errorCode" not in device_data:
                 self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
-                self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                 if not self._is_wifi:
+                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._rssi = None
                 else:
+                    self._heat_level = None
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
