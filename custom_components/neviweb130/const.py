@@ -1,4 +1,4 @@
-"""Constants for neviweb component."""
+"""Constants for neviweb130 component."""
 
 DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
@@ -24,6 +24,12 @@ ATTR_VALVE_STATUS = "valveAction"
 ATTR_FLOOR_MODE = "airFloorMode"
 ATTR_FLOOR_OUTPUT2 = "loadWattOutput2"
 ATTR_FLOOR_AUX = "auxHeatConfig"
+ATTR_KEYPAD = "lockKeypad"
+ATTR_WIFI_FLOOR_OUTPUT1 = "loadWattOutput1"
+ATTR_WIFI_FLOOR_LOAD = "loadWatt"
+ATTR_WIFI = "wifiRssi"
+ATTR_WIFI_DISPLAY2 = "config2ndDisplay"
+ATTR_WIFI_KEYPAD = "keyboardLock"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"

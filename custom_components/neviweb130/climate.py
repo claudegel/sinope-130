@@ -3,10 +3,11 @@ Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
 model 1124 = thermostat TH1124ZB 4000W
 model 1123 = thermostat TH1123ZB 3000W
-model 737 = thermostat TH1300ZB 3600W (floor) 
+model 737 = thermostat TH1300ZB 3600W (floor)
+model 738 = thermostat TH1300WF 3600W (wifi floor)
 model 1500 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 import logging
@@ -28,7 +29,8 @@ from homeassistant.helpers.event import track_time_interval
 from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, MODE_AUTO, MODE_AUTO_BYPASS, 
-    MODE_MANUAL, MODE_OFF, MODE_AWAY, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2)
+    MODE_MANUAL, MODE_OFF, MODE_AWAY, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_KEYPAD, ATTR_WIFI_FLOOR_OUTPUT1,
+    ATTR_WIFI_FLOOR_LOAD, ATTR_WIFI, ATTR_WIFI_DISPLAY2, ATTR_WIFI_KEYPAD)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,8 +53,10 @@ PRESET_MODES = [
 
 DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_FLOOR = [737]
+DEVICE_MODEL_WIFI_FLOOR = [738]
+DEVICE_MODEL_WIFI = []
 DEVICE_MODEL_HEAT = [1123, 1124, 1500]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb130 thermostats."""
@@ -83,30 +87,45 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cur_temp = None
         self._operation_mode = None
         self._heat_level = 0
-        self._is_floor = device_info["signature"]["model"] in \
-            DEVICE_MODEL_FLOOR
         self._gfci_status = None
         self._floor_mode = None
         self._aux_heat = None
+        self._keypad = None
         self._load2 = 0
         self._load2_status = None
+        self._rssi = None
+        self._wifi_display2 = None
+        self._is_floor = device_info["signature"]["model"] in \
+            DEVICE_MODEL_FLOOR
+        self._is_wifi_floor = device_info["signature"]["model"] in \
+            DEVICE_MODEL_WIFI_FLOOR
+        self._is_wifi = device_info["signature"]["model"] in \
+            DEVICE_MODEL_WIFI_FLOOR or DEVICE_MODEL_WIFI
         self._is_low_voltage = device_info["signature"]["model"] in \
             DEVICE_MODEL_LOW
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if not self._is_low_voltage:
+        if not self._is_low_voltage and not self._is_wifi_floor:
             WATT_ATTRIBUTE = [ATTR_WATTAGE]
         else:
             WATT_ATTRIBUTE = []
-        if self._is_floor:
+        if self._is_floor or self._is_wifi_floor:
             FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2]
         else:
             FLOOR_ATTRIBUTE = []
+        if self._is_wifi_floor:
+            WIFI_FLOOR_ATTRIBUTE = [ATTR_WIFI_FLOOR_LOAD, ATTR_WIFI_FLOOR_OUTPUT1]
+        else:
+            WIFI_FLOOR_ATTRIBUTE = []
+        if self._is_wifi:
+            WIFI_ATTRIBUTE = [ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2]
+        else:
+            WIFI_ATTRIBUTE = [ATTR_KEYPAD]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -116,17 +135,30 @@ class Neviweb130Thermostat(ClimateEntity):
             if "errorCode" not in device_data:
                 self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
-                self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                if not self._is_low_voltage:
+                if not self._is_wifi:
+                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    self._keypad = device_data[ATTR_KEYPAD]
+                    self._rssi = None
+                else:
+                    self._heat_level = None
+                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._rssi = device_data[ATTR_WIFI]
+                    self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
+                if not self._is_low_voltage and not self._is_wifi_floor:
                     self._wattage = device_data[ATTR_WATTAGE]
-                if self._is_floor:
+                if self._is_floor or self._is_wifi_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
-                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    if not self._is_wifi_floor:
+                        self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    else:
+                        self._load2_status = None
+                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+                        self._wattage = device_data[ATTR_WIFI_FLOOR_LOAD]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -148,13 +180,17 @@ class Neviweb130Thermostat(ClimateEntity):
         data = {}
         if not self._is_low_voltage:
             data = {'wattage': self._wattage}
-        if self._is_floor:
+        if self._is_floor or self._is_wifi_floor:
             data.update({'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
                     'slave_heat': self._aux_heat,
                     'slave_status': self._load2_status,
                     'slave_load': self._load2})
+        if self._is_wifi:
+            data.update({'second display': self._wifi_display2})
         data.update({'heat_level': self._heat_level,
+                     'keypad': self._keypad,
+                     'rssi': self._rssi,
                      'id': self._id})
         return data
 
