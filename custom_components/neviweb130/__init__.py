@@ -13,7 +13,7 @@ from homeassistant.util import Throttle
 from .const import (DOMAIN, CONF_NETWORK, ATTR_INTENSITY, ATTR_ONOFF, ATTR_POWER_MODE,
     ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT, ATTR_SIGNATURE)
 
-VERSION = '0.1.4'
+VERSION = '0.1.5'
 
 _LOGGER = logging.getLogger(__name__)
 
