@@ -142,7 +142,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._rssi = None
                 else:
-                    self._heat_level = None
+                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY][percent]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
