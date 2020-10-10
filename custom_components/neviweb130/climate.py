@@ -16,6 +16,7 @@ model ???? = thermostat TH1400WF low voltage (wifi)
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
+
 import logging
 
 import voluptuous as vol
@@ -152,6 +153,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
+                    self._wattage = device_data[ATTR_WIFI_FLOOR_LOAD]
                 if not self._is_low_voltage and not self._is_wifi_floor:
                     self._wattage = device_data[ATTR_WATTAGE]
                 if self._is_floor or self._is_wifi_floor:
@@ -164,7 +166,6 @@ class Neviweb130Thermostat(ClimateEntity):
                     else:
                         self._load2_status = None
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                        self._wattage = device_data[ATTR_WIFI_FLOOR_LOAD]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
