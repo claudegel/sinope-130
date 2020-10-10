@@ -1,15 +1,18 @@
 """
 Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
-model 1124 = thermostat TH1124ZB 4000W
 model 1123 = thermostat TH1123ZB 3000W
-model 1510 = thermostat TH1123WF 3000W (wifi)
-model ???? = thermostat TH1124WF 4000W (wifi)
+model 1124 = thermostat TH1124ZB 4000W
 model 737 = thermostat TH1300ZB 3600W (floor)
-model 738 = thermostat TH1300WF 3600W (wifi floor)
 model 1500 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
+
+Support for Neviweb wifi thermostats
+model 1510 = thermostat TH1123WF 3000W (wifi)
+model ???? = thermostat TH1124WF 4000W (wifi)
+model 738 = thermostat TH1300WF 3600W (wifi floor)
 model ???? = thermostat TH1400WF low voltage (wifi)
+
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
