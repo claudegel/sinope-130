@@ -106,7 +106,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._is_wifi_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_WIFI_FLOOR
         self._is_wifi = device_info["signature"]["model"] in \
-            DEVICE_MODEL_WIFI_FLOOR or DEVICE_MODEL_WIFI
+            DEVICE_MODEL_WIFI_FLOOR or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
         self._is_low_voltage = device_info["signature"]["model"] in \
             DEVICE_MODEL_LOW
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
