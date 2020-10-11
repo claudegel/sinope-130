@@ -23,7 +23,8 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (DOMAIN, ATTR_ONOFF,
-    ATTR_WATTAGE_INSTANT, ATTR_VALVE_STATUS, ATTR_BATTERY_VOLTAGE, MODE_AUTO, MODE_MANUAL, MODE_OFF, STATE_VALVE_STATUS)
+    ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_VALVE_STATUS, ATTR_BATTERY_VOLTAGE, MODE_AUTO, MODE_MANUAL, MODE_OFF, STATE_VALVE_STATUS,
+    STATE_KEYPAD_STATUS, ATTR_SWITCH_TIMER, ATTR_KEYPAD)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,11 +75,13 @@ class Neviweb130Switch(SwitchEntity):
         self._valve_status = None
         self._cur_temp = None
         self._battery_voltage = None
+        self._timer = 0
+        self._keypad = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_load:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_SWITCH_TIMER, ATTR_KEYPAD]
         elif self._is_valve:
             LOAD_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_BATTERY_VOLTAGE]
         else:
@@ -96,10 +99,17 @@ class Neviweb130Switch(SwitchEntity):
             if "errorCode" not in device_data:
                 if self._is_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
-                        device_data[ATTR_VALVE_STATUS] == STATE_VALVE_STATUS else "open"
+                        device_data[ATTR_VALVE_STATUS] == STATE_VALVE_STATUS else "closed"
                     self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                else: #for is_wall and is_load
+                elif self._is_load: #for is_load
+                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                    self._wattage = device_data[ATTR_WATTAGE]
+                    self._keypad = STATE_KEYPAD_STATUS if \
+                        device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked" 
+                    self._timer = device_data[ATTR_SWITCH_TIMER]
+                    self._onOff = device_data[ATTR_ONOFF]
+                else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
 #                self._today_energy_kwh = device_daily_stats[0] / 1000
@@ -126,7 +136,7 @@ class Neviweb130Switch(SwitchEntity):
     def turn_on(self, **kwargs):
         """Turn the device on."""
         self._client.set_onOff(self._id, "on")
-        
+
     def turn_off(self, **kwargs):
         """Turn the device off."""
         self._client.set_onOff(self._id, "off")
@@ -135,6 +145,11 @@ class Neviweb130Switch(SwitchEntity):
     def valve_status(self):
         """Return current valve status, open or closed"""
         return self._valve_status != None
+
+    @property  
+    def keypad_status(self):
+        """Return current keypad status, unlocked or locked"""
+        return self._keypad_status != None
 
     @property
     def current_temperature(self):
@@ -145,12 +160,18 @@ class Neviweb130Switch(SwitchEntity):
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if self._is_load or self._is_wall:
-            data = {'onOff': self._onOff}
+        if self._is_load:
+            data = {'onOff': self._onOff,
+                   'Wattage': self._wattage,
+                   'Keypad': self._keypad,
+                   'Timer': self._timer}
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp,
                    'Battery': voltage_to_percentage(self._battery_voltage)}
+        else:
+            data = {'onOff': self._onOff,
+                   'Wattage': self._current_power_w}
         data.update({'id': self._id})
         return data
 
@@ -168,7 +189,7 @@ class Neviweb130Switch(SwitchEntity):
     def today_energy_kwh(self):
         """Return the today total energy usage in kWh."""
         return self._today_energy_kwh
-    
+
     @property
     def is_standby(self):
         """Return true if device is in standby."""
