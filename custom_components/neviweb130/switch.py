@@ -40,7 +40,7 @@ IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES +
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Neviweb130 switch."""
     data = hass.data[DOMAIN]
-    
+
     devices = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
