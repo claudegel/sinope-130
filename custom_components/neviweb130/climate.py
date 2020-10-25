@@ -1,5 +1,4 @@
 """
-Need to be changed
 Support for Neviweb thermostat connected to GT130 ZigBee.
 model 1123 = thermostat TH1123ZB 3000W
 model 1124 = thermostat TH1124ZB 4000W
@@ -68,7 +67,7 @@ IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN]
-    
+
     devices = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
@@ -240,7 +239,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def current_temperature(self):
         """Return the current temperature."""
         return self._cur_temp
-    
+
     @property
     def target_temperature (self):
         """Return the temperature we try to reach."""
