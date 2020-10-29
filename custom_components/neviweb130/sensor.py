@@ -1,7 +1,7 @@
 """
 Support for Neviweb sensors connected via GT130 ZigBee.
 model 5051 = WL4200ZB, water leak detector
-model xxx = WL4200S, water leak detector with sensor
+model 5051 = WL4200S, water leak detector with sensor
 model 4110 = LM4110-ZB, level monitor
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
@@ -21,13 +21,22 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (DOMAIN, ATTR_ROOM_TEMPERATURE, ATTR_WATER_LEAK_STATUS, ATTR_LEVEL_STATUS, ATTR_BATTERY_VOLTAGE, MODE_OFF, STATE_WATER_LEAK)
+from .const import (
+    DOMAIN,
+    ATTR_LEVEL_STATUS,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_WATER_LEAK_STATUS,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_BATTERY_STATUS,
+    MODE_OFF,
+    STATE_WATER_LEAK,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 sensor'
 
-UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE]
+UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
 
 IMPLEMENTED_TANK_MONITOR = [4110]
 IMPLEMENTED_SENSOR_MODEL = [5051]
@@ -41,7 +50,7 @@ SENSOR_TYPES = {
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Neviweb sensor."""
     data = hass.data[DOMAIN]
-    
+
     devices = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
@@ -72,6 +81,7 @@ class Neviweb130Sensor(Entity):
         self._cur_temp = None
         self._leak_status = None
         self._battery_voltage = None
+        self._battery_status = None
         self._is_monitor = device_info["signature"]["model"] in \
             IMPLEMENTED_TANK_MONITOR
         self._is_leak = device_info["signature"]["model"] in \
@@ -103,6 +113,7 @@ class Neviweb130Sensor(Entity):
                 else:
                     self._level_status = device_data[ATTR_LEVEL_STATUS]
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                self._battery_status = device_data[ATTR_BATTERY_STATUS]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -168,13 +179,19 @@ class Neviweb130Sensor(Entity):
             data = {'Leak_status': self._leak_status,
                    'Temperature': self._cur_temp}
         data.update({'Battery': voltage_to_percentage(self._battery_voltage),
-                    'Id': self._id})
+                     'Battery status': self._battery_status,
+                     'Id': self._id})
         return data
 
     @property
     def battery_voltage(self):
         """Return the current battery voltage of the sensor in %."""
         return voltage_to_percentage(self._battery_voltage)
+
+    @property
+    def battery_status(self):
+        """Return the current battery status."""
+        return self._battery_status
 
     @property
     def state(self):
