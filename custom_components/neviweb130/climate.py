@@ -44,7 +44,7 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 
 DEFAULT_NAME = "neviweb130 climate"
 
-UPDATE_ATTRIBUTES = [ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
+UPDATE_ATTRIBUTES = [ATTR_ROOM_SETPOINT,
     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX]
 
@@ -125,7 +125,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
-            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2]
+            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE]
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD]
         """Get the latest data from Neviweb and update the state."""
@@ -155,6 +155,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._rssi = device_data[ATTR_WIFI]
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 if self._is_floor or self._is_wifi_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
