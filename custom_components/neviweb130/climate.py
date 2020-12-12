@@ -8,7 +8,7 @@ model 7372 = thermostat TH1400ZB low voltage
 
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
-model ???? = thermostat TH1124WF 4000W (wifi)
+model 1510 = thermostat TH1124WF 4000W (wifi)
 model 738 = thermostat TH1300WF 3600W (wifi floor)
 model ???? = thermostat TH1400WF low voltage (wifi)
 
