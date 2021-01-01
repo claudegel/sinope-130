@@ -17,11 +17,12 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1500ZB 3600W double pole thermostat
   - Ouellet OTH4000-ZB 4000W Line voltage thermostat
   - Ouellet OTH3600-GA-ZB Floor thermostat
-- Wifi thermostats
+- Wifi thermostats (no need for GT130)
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
+  - Sinopé TH1310WF wifi 3600W floor thermostat
 - Zigbee lighting
   - Sinopé SW2500ZB Light switch
   - Sinopé DM2500ZB Dimmer 
