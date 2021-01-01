@@ -11,7 +11,7 @@ model 737 = thermostat OTH3600-GA-ZB Ouellet
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
-model 738 = thermostat TH1300WF 3600W (wifi floor)
+model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
 model ???? = thermostat TH1400WF low voltage (wifi)
 
 For more details about this platform, please refer to the documentation at
@@ -141,6 +141,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._max_temp = 0
         self._target_temp = None
         self._cur_temp = None
+        self._cur_temp_before = None
         self._operation_mode = None
         self._heat_level = 0
         self._gfci_status = None
@@ -191,7 +192,9 @@ class Neviweb130Thermostat(ClimateEntity):
 
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
+                self._cur_temp_before = self._cur_temp
+                self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
+                    device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
