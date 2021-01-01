@@ -16,15 +16,39 @@ import time
 
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
-from homeassistant.components.switch import (SwitchEntity, 
-    ATTR_TODAY_ENERGY_KWH, ATTR_CURRENT_POWER_W)
-from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT)
+from homeassistant.components.switch import (
+    SwitchEntity,
+    ATTR_TODAY_ENERGY_KWH,
+    ATTR_CURRENT_POWER_W,
+)
+
+from homeassistant.const import (
+    DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_POWER,
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
+)
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (DOMAIN, ATTR_ONOFF,
-    ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_VALVE_STATUS, ATTR_BATTERY_VOLTAGE, MODE_AUTO, MODE_MANUAL, MODE_OFF, STATE_VALVE_STATUS,
-    STATE_KEYPAD_STATUS, ATTR_SWITCH_TIMER, ATTR_KEYPAD)
+from .const import (
+    DOMAIN,
+    ATTR_ONOFF,
+    ATTR_WATTAGE_INSTANT,
+    ATTR_WATTAGE,
+    ATTR_VALVE_STATUS,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_SWITCH_TIMER,
+    ATTR_KEYPAD,
+    ATTR_DRSTATUS,
+    MODE_AUTO,
+    MODE_MANUAL,
+    MODE_OFF,
+    STATE_VALVE_STATUS,
+    STATE_KEYPAD_STATUS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +61,12 @@ IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_VALVE_MODEL
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the Neviweb130 switch."""
     data = hass.data[DOMAIN]
 
@@ -77,11 +106,14 @@ class Neviweb130Switch(SwitchEntity):
         self._battery_voltage = None
         self._timer = 0
         self._keypad = None
+        self._drstatus_active = None
+        self._drstatus_out = None
+        self._drstatus_onoff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_load:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_SWITCH_TIMER, ATTR_KEYPAD]
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_SWITCH_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
         elif self._is_valve:
             LOAD_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_BATTERY_VOLTAGE]
         else:
@@ -109,6 +141,9 @@ class Neviweb130Switch(SwitchEntity):
                         device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked" 
                     self._timer = device_data[ATTR_SWITCH_TIMER]
                     self._onOff = device_data[ATTR_ONOFF]
+                    self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
+                    self._drstatus_out = device_data[ATTR_DRSTATUS]["optOut"]
+                    self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
@@ -127,6 +162,11 @@ class Neviweb130Switch(SwitchEntity):
     def name(self):
         """Return the name of the switch."""
         return self._name
+
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return DEVICE_CLASS_POWER
 
     @property  
     def is_on(self):
@@ -164,7 +204,10 @@ class Neviweb130Switch(SwitchEntity):
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
                    'Keypad': self._keypad,
-                   'Timer': self._timer}
+                   'Timer': self._timer,
+                   'drstatus_active': self._drstatus_active,
+                   'drstatus_optOut': self._drstatus_out,
+                   'drstatus_onoff': self._drstatus_onoff}
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature': self._cur_temp,
