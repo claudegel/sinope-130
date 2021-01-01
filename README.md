@@ -81,7 +81,7 @@ To enable Neviweb130 management in your installation, add the following to your 
 neviweb130:
   username: '<your Neviweb username>'
   password: '<your Neviweb password>'
-  network: '<your gt130 network name in Neviweb>'
+  network: '<your gt130 location name in Neviweb>' (gt130 emplacement dans Neviweb)
   scan_interval: 360
 ```
 
@@ -91,7 +91,7 @@ neviweb130:
 | --- | --- | --- | ---
 | **username** | yes |  | Your email address used to log in Neviweb.
 | **password** | yes |  | Your Neviweb password.
-| **network** | yes | if not specified, 1st network found is used. Write the name of the GT130 network you want to control.
+| **network** | yes | if not specified, 1st location found is used. Write the name of the GT130 location you want to control.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 
 ## Troubleshooting
