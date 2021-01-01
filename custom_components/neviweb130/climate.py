@@ -26,19 +26,54 @@ import time
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import (HVAC_MODE_HEAT, 
-    HVAC_MODE_OFF, HVAC_MODE_AUTO, SUPPORT_TARGET_TEMPERATURE, 
-    SUPPORT_PRESET_MODE, PRESET_AWAY, PRESET_NONE, CURRENT_HVAC_HEAT, 
-    CURRENT_HVAC_IDLE, CURRENT_HVAC_OFF)
-from homeassistant.const import (TEMP_CELSIUS, TEMP_FAHRENHEIT, 
-    ATTR_TEMPERATURE)
+from homeassistant.components.climate.const import (
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
+    HVAC_MODE_AUTO,
+    SUPPORT_TARGET_TEMPERATURE,
+    SUPPORT_PRESET_MODE,
+    PRESET_AWAY,
+    PRESET_NONE,
+    CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_IDLE,
+    CURRENT_HVAC_OFF,
+)
+from homeassistant.const import (
+    DEVICE_CLASS_TEMPERATURE,
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
+    ATTR_TEMPERATURE,
+)
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
-from .const import (DOMAIN, ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT,
-    ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX, ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, MODE_AUTO, MODE_AUTO_BYPASS, 
-    MODE_MANUAL, MODE_OFF, MODE_AWAY, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_KEYPAD, ATTR_WIFI_FLOOR_OUTPUT1,
-    ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_DISPLAY2, ATTR_WIFI_KEYPAD)
+from .const import (
+    DOMAIN,
+    ATTR_SETPOINT_MODE,
+    ATTR_ROOM_SETPOINT,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_WATTAGE,
+    ATTR_GFCI_STATUS,
+    ATTR_FLOOR_MODE,
+    ATTR_OCCUPANCY,
+    ATTR_FLOOR_AUX,
+    ATTR_FLOOR_OUTPUT2,
+    ATTR_KEYPAD,
+    ATTR_OCCUPANCY,
+    ATTR_BACKLIGHT,
+    ATTR_WIFI_FLOOR_OUTPUT1,
+    ATTR_WIFI_WATTAGE,
+    ATTR_WIFI,
+    ATTR_WIFI_DISPLAY2,
+    ATTR_WIFI_KEYPAD,
+    MODE_AUTO,
+    MODE_AUTO_BYPASS,
+    MODE_MANUAL,
+    MODE_OFF,
+    MODE_AWAY,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,17 +81,25 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 
 DEFAULT_NAME = "neviweb130 climate"
 
-UPDATE_ATTRIBUTES = [ATTR_ROOM_SETPOINT,
-    ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX]
+UPDATE_ATTRIBUTES = [
+    ATTR_ROOM_SETPOINT,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+]
 
-SUPPORTED_HVAC_MODES = [HVAC_MODE_OFF, HVAC_MODE_AUTO, HVAC_MODE_HEAT]
+SUPPORTED_HVAC_MODES = [
+    HVAC_MODE_OFF,
+    HVAC_MODE_AUTO,
+    HVAC_MODE_HEAT,
+]
 
 PRESET_BYPASS = 'temporary'
 PRESET_MODES = [
     PRESET_NONE,
     PRESET_AWAY,
-    PRESET_BYPASS
+    PRESET_BYPASS,
 ]
 
 DEVICE_MODEL_LOW = [7372]
@@ -66,7 +109,12 @@ DEVICE_MODEL_WIFI = [1510]
 DEVICE_MODEL_HEAT = [1123, 1124, 7373]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN]
 
@@ -102,7 +150,9 @@ class Neviweb130Thermostat(ClimateEntity):
         self._load2 = 0
         self._load2_status = None
         self._rssi = None
+        self._occupancy = None
         self._wifi_display2 = None
+        self._backlight = None
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -127,9 +177,9 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
-            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE]
+            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY]
         else:
-            WIFI_ATTRIBUTE = [ATTR_KEYPAD]
+            WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
@@ -148,6 +198,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 if not self._is_wifi:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
+                    self._backlight = device_data[ATTR_BACKLIGHT]
                     self._rssi = None
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
@@ -158,6 +209,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
+                    self._occupancy = device_data[ATTR_OCCUPANCY]
                 if self._is_floor or self._is_wifi_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
@@ -184,6 +236,16 @@ class Neviweb130Thermostat(ClimateEntity):
         return self._name
 
     @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        return TEMP_CELSIUS
+
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return DEVICE_CLASS_TEMPERATURE
+
+    @property
     def device_state_attributes(self):
         """Return the state attributes."""
         data = {}
@@ -196,9 +258,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     'slave_status': self._load2_status,
                     'slave_load': self._load2})
         if self._is_wifi:
-            data.update({'second display': self._wifi_display2})
+            data.update({'second display': self._wifi_display2,
+                         'occupancy': self._occupancy})
         data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
+                     'backlight': self._backlight,
                      'rssi': self._rssi,
                      'id': self._id})
         return data
