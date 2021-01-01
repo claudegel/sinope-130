@@ -33,6 +33,8 @@ ATTR_WIFI = "wifiRssi"
 ATTR_WIFI_DISPLAY2 = "config2ndDisplay"
 ATTR_WIFI_KEYPAD = "keyboardLock"
 ATTR_SWITCH_TIMER = "powerTimer"
+ATTR_DRSTATUS = "drStatus"
+ATTR_BACKLIGHT = "backlightAdaptive"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
