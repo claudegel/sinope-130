@@ -13,23 +13,43 @@ import time
 
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
-from homeassistant.components.light import (LightEntity, ATTR_BRIGHTNESS,
-    ATTR_BRIGHTNESS_PCT, SUPPORT_BRIGHTNESS)
+from homeassistant.components.light import (
+    LightEntity,
+    ATTR_BRIGHTNESS,
+    ATTR_BRIGHTNESS_PCT,
+    SUPPORT_BRIGHTNESS,
+)
 from datetime import timedelta
-from .const import (DOMAIN, ATTR_INTENSITY, ATTR_ONOFF,
-    MODE_AUTO, MODE_MANUAL, MODE_OFF)
+from .const import (
+    DOMAIN,
+    ATTR_INTENSITY,
+    ATTR_ONOFF,
+    ATTR_OCCUPANCY,
+    MODE_AUTO,
+    MODE_MANUAL,
+    MODE_OFF,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 light'
 
-UPDATE_ATTRIBUTES = [ATTR_INTENSITY, ATTR_ONOFF]
+UPDATE_ATTRIBUTES = [
+    ATTR_INTENSITY,
+    ATTR_ONOFF,
+    ATTR_OCCUPANCY,
+]
 
 DEVICE_MODEL_DIMMER = [2131]
 DEVICE_MODEL_LIGHT = [2121]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
@@ -65,6 +85,7 @@ class Neviweb130Light(LightEntity):
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
         self._onOff = None
+        self._occupancy = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -81,7 +102,8 @@ class Neviweb130Light(LightEntity):
                 if self._is_dimmable:   
                     self._brightness_pct = device_data[ATTR_INTENSITY] if \
                         device_data[ATTR_INTENSITY] is not None else 0.0
-                self._onOff = device_data[ATTR_ONOFF]   
+                self._onOff = device_data[ATTR_ONOFF]
+                self._occupancy = device_data[ATTR_OCCUPANCY]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -103,7 +125,12 @@ class Neviweb130Light(LightEntity):
     def name(self):
         """Return the name of the light."""
         return self._name
-    
+
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return "light"
+
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
@@ -111,6 +138,7 @@ class Neviweb130Light(LightEntity):
         if self._is_dimmable and self._brightness_pct:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
         data.update({'onOff': self._onOff,
+                     'occupancy': self._occupancy,
                      'id': self._id})
         return data
     
