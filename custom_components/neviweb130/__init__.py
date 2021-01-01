@@ -7,13 +7,25 @@ import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import discovery
-from homeassistant.const import (CONF_USERNAME, CONF_EMAIL, CONF_PASSWORD,
-    CONF_SCAN_INTERVAL)
+from homeassistant.const import (
+    CONF_USERNAME,
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+)
 from homeassistant.util import Throttle
-from .const import (DOMAIN, CONF_NETWORK, ATTR_INTENSITY, ATTR_ONOFF, ATTR_POWER_MODE,
-    ATTR_SETPOINT_MODE, ATTR_ROOM_SETPOINT, ATTR_SIGNATURE)
+from .const import (
+    DOMAIN,
+    CONF_NETWORK,
+    ATTR_INTENSITY,
+    ATTR_ONOFF,
+    ATTR_POWER_MODE,
+    ATTR_SETPOINT_MODE,
+    ATTR_ROOM_SETPOINT,
+    ATTR_SIGNATURE,
+)
 
-VERSION = '0.1.8'
+VERSION = '0.1.9'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,9 +44,11 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_NETWORK): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
-            cv.time_period
+            cv.time_period,
     })
-}, extra=vol.ALLOW_EXTRA)
+},
+    extra=vol.ALLOW_EXTRA,
+)
 
 def setup(hass, hass_config):
     """Set up neviweb130."""
@@ -63,15 +77,6 @@ class Neviweb130Data:
         network = config.get(CONF_NETWORK)
         self.neviweb130_client = Neviweb130Client(username, password, network)
 
-    # Need some refactoring here concerning the class used to transport data
-    # @Throttle(SCAN_INTERVAL)
-    # def update(self):
-    #     """Get the latest data from pyneviweb."""
-    #     self.neviweb130_client.update()
-    #     _LOGGER.debug("Neviweb130 data updated successfully")
-
-
-
 # According to HA: 
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
 # "All API specific code has to be part of a third party library hosted on PyPi. 
@@ -83,9 +88,9 @@ class PyNeviweb130Error(Exception):
 
 class Neviweb130Client(object):
 
-    def __init__(self, email, password, network, timeout=REQUESTS_TIMEOUT):
+    def __init__(self, username, password, network, timeout=REQUESTS_TIMEOUT):
         """Initialize the client object."""
-        self._email = email
+        self._email = username
         self._password = password
         self._network_name = network
         self._gateway_id = None
@@ -108,8 +113,8 @@ class Neviweb130Client(object):
             "interface": "neviweb", "stayConnected": 1}
         try:
             raw_res = requests.post(LOGIN_URL, data=data, 
-                cookies=self._cookies, allow_redirects=False, 
-                timeout=self._timeout)
+                cookies = self._cookies, allow_redirects=False, 
+                timeout = self._timeout)
         except OSError:
             raise PyNeviweb130Error("Cannot submit login form")
         if raw_res.status_code != 200:
@@ -176,7 +181,7 @@ class Neviweb130Client(object):
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)     ###
-        # _LOGGER.debug("Updated gateway data: %s", self.gateway_data) 
+#        _LOGGER.debug("Updated gateway data: %s", self.gateway_data) 
 
     def get_device_attributes(self, device_id, attributes):
         """Get device attributes."""
