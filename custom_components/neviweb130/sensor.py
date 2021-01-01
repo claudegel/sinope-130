@@ -16,7 +16,15 @@ import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import (DEVICE_CLASS_BATTERY, DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT, STATE_OK, ATTR_VOLTAGE)
+from homeassistant.const import (
+    DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_TEMPERATURE,
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
+    STATE_OK,
+    ATTR_VOLTAGE,
+)
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.entity import Entity
@@ -47,7 +55,12 @@ SENSOR_TYPES = {
     "level": ["%", None, None],
 }
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass,
+    config,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up the Neviweb sensor."""
     data = hass.data[DOMAIN]
 
