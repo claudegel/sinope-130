@@ -24,7 +24,6 @@ from .const import (
     DOMAIN,
     ATTR_INTENSITY,
     ATTR_ONOFF,
-    ATTR_OCCUPANCY,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -37,7 +36,6 @@ DEFAULT_NAME = 'neviweb130 light'
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
     ATTR_ONOFF,
-    ATTR_OCCUPANCY,
 ]
 
 DEVICE_MODEL_DIMMER = [2131]
@@ -85,7 +83,6 @@ class Neviweb130Light(LightEntity):
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
         self._onOff = None
-        self._occupancy = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -103,7 +100,6 @@ class Neviweb130Light(LightEntity):
                     self._brightness_pct = device_data[ATTR_INTENSITY] if \
                         device_data[ATTR_INTENSITY] is not None else 0.0
                 self._onOff = device_data[ATTR_ONOFF]
-                self._occupancy = device_data[ATTR_OCCUPANCY]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -138,7 +134,6 @@ class Neviweb130Light(LightEntity):
         if self._is_dimmable and self._brightness_pct:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
         data.update({'onOff': self._onOff,
-                     'occupancy': self._occupancy,
                      'id': self._id})
         return data
     
