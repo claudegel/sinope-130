@@ -70,15 +70,15 @@ async def async_setup_platform(
     """Set up the Neviweb130 switch."""
     data = hass.data[DOMAIN]
 
-    devices = []
+    entities = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            devices.append(Neviweb130Switch(data, device_info, device_name))
+            entities.append(Neviweb130Switch(data, device_info, device_name))
 
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
