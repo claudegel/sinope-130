@@ -53,7 +53,7 @@ async def async_setup_platform(
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
-    devices = []
+    entities = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
@@ -61,9 +61,9 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["model"] in DEVICE_MODEL_DIMMER 
                 else "light", device_info["name"])
-            devices.append(Neviweb130Light(data, device_info, device_name))
+            entities.append(Neviweb130Light(data, device_info, device_name))
 
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
 
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
