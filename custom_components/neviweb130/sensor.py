@@ -64,7 +64,7 @@ async def async_setup_platform(
     """Set up the Neviweb sensor."""
     data = hass.data[DOMAIN]
 
-    devices = []
+    entities = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
@@ -74,9 +74,9 @@ async def async_setup_platform(
                 device_type = "leak"
             elif  device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
                 device_type = "level"
-            devices.append(Neviweb130Sensor(data, device_info, device_name, device_type))
+            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type))
 
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""

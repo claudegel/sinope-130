@@ -60,6 +60,7 @@ from .const import (
     ATTR_OCCUPANCY,
     ATTR_FLOOR_AUX,
     ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_MAX,
     ATTR_KEYPAD,
     ATTR_OCCUPANCY,
     ATTR_BACKLIGHT,
@@ -118,15 +119,15 @@ async def async_setup_platform(
     """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN]
 
-    devices = []
+    entities = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            devices.append(Neviweb130Thermostat(data, device_info, device_name))
+            entities.append(Neviweb130Thermostat(data, device_info, device_name))
 
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
 
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
@@ -154,6 +155,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._occupancy = None
         self._wifi_display2 = None
         self._backlight = None
+        self._floor_max = None
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -170,7 +172,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WATT_ATTRIBUTE = []
         if self._is_floor or self._is_wifi_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2]
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_MAX]
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_wifi_floor:
@@ -220,6 +222,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     if not self._is_wifi_floor:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     else:
                         self._load2_status = None
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
@@ -259,7 +262,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     'sensor_mode': self._floor_mode,
                     'slave_heat': self._aux_heat,
                     'slave_status': self._load2_status,
-                    'slave_load': self._load2})
+                    'slave_load': self._load2,
+                    'setpoint_max': self._floor_max})
         if self._is_wifi:
             data.update({'second display': self._wifi_display2,
                          'occupancy': self._occupancy})

@@ -24,7 +24,6 @@ from .const import (
     DOMAIN,
     ATTR_INTENSITY,
     ATTR_ONOFF,
-    ATTR_OCCUPANCY,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -37,7 +36,6 @@ DEFAULT_NAME = 'neviweb130 light'
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
     ATTR_ONOFF,
-    ATTR_OCCUPANCY,
 ]
 
 DEVICE_MODEL_DIMMER = [2131]
@@ -53,7 +51,7 @@ async def async_setup_platform(
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
-    devices = []
+    entities = []
     for device_info in data.neviweb130_client.gateway_data:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
@@ -61,9 +59,9 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["model"] in DEVICE_MODEL_DIMMER 
                 else "light", device_info["name"])
-            devices.append(Neviweb130Light(data, device_info, device_name))
+            entities.append(Neviweb130Light(data, device_info, device_name))
 
-    async_add_entities(devices, True)
+    async_add_entities(entities, True)
 
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
@@ -85,7 +83,6 @@ class Neviweb130Light(LightEntity):
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
         self._onOff = None
-        self._occupancy = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -103,7 +100,6 @@ class Neviweb130Light(LightEntity):
                     self._brightness_pct = device_data[ATTR_INTENSITY] if \
                         device_data[ATTR_INTENSITY] is not None else 0.0
                 self._onOff = device_data[ATTR_ONOFF]
-                self._occupancy = device_data[ATTR_OCCUPANCY]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -138,7 +134,6 @@ class Neviweb130Light(LightEntity):
         if self._is_dimmable and self._brightness_pct:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
         data.update({'onOff': self._onOff,
-                     'occupancy': self._occupancy,
                      'id': self._id})
         return data
     
