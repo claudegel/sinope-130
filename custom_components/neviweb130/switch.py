@@ -23,12 +23,25 @@ from homeassistant.components.switch import (
 )
 
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_POWER,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
+
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    service,
+    entity_platform,
+    entity_component,
+    entity_registry,
+    device_registry,
+)
+
+from homeassistant.helpers.typing import HomeAssistantType
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -40,7 +53,7 @@ from .const import (
     ATTR_WATTAGE,
     ATTR_VALVE_STATUS,
     ATTR_BATTERY_VOLTAGE,
-    ATTR_SWITCH_TIMER,
+    ATTR_TIMER,
     ATTR_KEYPAD,
     ATTR_DRSTATUS,
     MODE_AUTO,
@@ -48,6 +61,8 @@ from .const import (
     MODE_OFF,
     STATE_VALVE_STATUS,
     STATE_KEYPAD_STATUS,
+    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_TIMER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,6 +75,22 @@ IMPLEMENTED_VALVE_MODEL = []
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_VALVE_MODEL
+
+SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_KEYPAD): cv.string,
+    }
+)
+
+SET_TIMER_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TIMER): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
 
 async def async_setup_platform(
     hass,
@@ -79,6 +110,42 @@ async def async_setup_platform(
             entities.append(Neviweb130Switch(data, device_info, device_name))
 
     async_add_entities(entities, True)
+
+    def set_keypad_lock_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                switch.set_keypad_lock(value)
+                switch.schedule_update_ha_state(True)
+                break
+
+    def set_timer_service(service):
+        """ set timer for switch device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
+                switch.set_timer(value)
+                switch.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEYPAD_LOCK,
+        set_keypad_lock_service,
+        schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TIMER,
+        set_timer_service,
+        schema=SET_TIMER_SCHEMA,
+    )
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
@@ -113,7 +180,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def update(self):
         if self._is_load:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_SWITCH_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
         elif self._is_valve:
             LOAD_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_BATTERY_VOLTAGE]
         else:
@@ -139,7 +206,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._keypad = STATE_KEYPAD_STATUS if \
                         device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked" 
-                    self._timer = device_data[ATTR_SWITCH_TIMER]
+                    self._timer = device_data[ATTR_TIMER]
                     self._onOff = device_data[ATTR_ONOFF]
                     self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                     self._drstatus_out = device_data[ATTR_DRSTATUS]["optOut"]
@@ -237,3 +304,24 @@ class Neviweb130Switch(SwitchEntity):
     def is_standby(self):
         """Return true if device is in standby."""
         return self._current_power_w == 0
+
+    def set_keypad_lock(self, value):
+        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
+        lock = value["lock"]
+        entity = value["id"]
+        key = "off"
+        if lock == "locked":
+            lock_name = "Locked"
+        else:
+            lock_name = "Unlocked"
+        self._client.set_keypad_lock(
+            entity, lock, key)
+        self._keypad = lock_name
+
+    def set_timer(self, value):
+        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_timer(
+            entity, time)
+        self._timer = time

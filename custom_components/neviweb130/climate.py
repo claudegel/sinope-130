@@ -39,11 +39,25 @@ from homeassistant.components.climate.const import (
     CURRENT_HVAC_OFF,
 )
 from homeassistant.const import (
+    ATTR_ENTITY_ID,
     DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
 )
+
+from homeassistant.helpers import (
+    config_validation as cv,
+    discovery,
+    service,
+    entity_platform,
+    entity_component,
+    entity_registry,
+    device_registry,
+)
+
+from homeassistant.helpers.typing import HomeAssistantType
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
@@ -62,8 +76,9 @@ from .const import (
     ATTR_FLOOR_OUTPUT2,
     ATTR_FLOOR_MAX,
     ATTR_KEYPAD,
-    ATTR_OCCUPANCY,
     ATTR_BACKLIGHT,
+    ATTR_TIME,
+    ATTR_TEMP,
     ATTR_WIFI_FLOOR_OUTPUT1,
     ATTR_WIFI_WATTAGE,
     ATTR_WIFI,
@@ -74,6 +89,13 @@ from .const import (
     MODE_MANUAL,
     MODE_OFF,
     MODE_AWAY,
+    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_SECOND_DISPLAY,
+    SERVICE_SET_BACKLIGHT,
+    SERVICE_SET_TIME_FORMAT,
+    SERVICE_SET_TEMPERATURE_FORMAT,
+    SERVICE_SET_SETPOINT_MAX,
+    SERVICE_SET_SETPOINT_MIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,6 +110,8 @@ UPDATE_ATTRIBUTES = [
     ATTR_ROOM_TEMPERATURE,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
+    ATTR_TIME,
+    ATTR_TEMP,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -110,6 +134,61 @@ DEVICE_MODEL_WIFI = [1510]
 DEVICE_MODEL_HEAT = [1123, 1124, 7373]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI
 
+SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_WIFI_DISPLAY2): cv.string,
+    }
+)
+
+SET_BACKLIGHT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_BACKLIGHT): cv.string,
+    }
+)
+
+SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_KEYPAD): cv.string,
+    }
+)
+
+SET_TIME_FORMAT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TIME): vol.All(
+             vol.Coerce(int), vol.Range(min=12, max=24)
+         ),
+    }
+)
+
+SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TEMP): cv.string,
+    }
+)
+
+SET_SETPOINT_MAX_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
+             vol.Coerce(float), vol.Range(min=8, max=36)
+         ),
+    }
+)
+
+SET_SETPOINT_MIN_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
+             vol.Coerce(float), vol.Range(min=5, max=26)
+         ),
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -128,6 +207,132 @@ async def async_setup_platform(
             entities.append(Neviweb130Thermostat(data, device_info, device_name))
 
     async_add_entities(entities, True)
+
+    def set_second_display_service(service):
+        """Set to outside or setpoint temperature display for wifi thermostats"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "display": service.data[ATTR_WIFI_DISPLAY2]}
+                thermostat.set_second_display(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_backlight_service(service):
+        """Set backlight always on or auto"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_BACKLIGHT]}
+                thermostat.set_backlight(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_keypad_lock_service(service):
+        """ lock/unlock keypad device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                thermostat.set_keypad_lock(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_time_format_service(service):
+        """ set time format 12h or 24h"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "time": service.data[ATTR_TIME]}
+                thermostat.set_time_format(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_temperature_format_service(service):
+        """ set temperature format, celsius or fahrenheit"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_TEMP]}
+                thermostat.set_temperature_format(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_setpoint_max_service(service):
+        """ set maximum setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_ROOM_SETPOINT_MAX]}
+                thermostat.set_setpoint_max(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_setpoint_min_service(service):
+        """ set minimum setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_ROOM_SETPOINT_MIN]}
+                thermostat.set_setpoint_min(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SECOND_DISPLAY,
+        set_second_display_service,
+        schema=SET_SECOND_DISPLAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BACKLIGHT,
+        set_backlight_service,
+        schema=SET_BACKLIGHT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEYPAD_LOCK,
+        set_keypad_lock_service,
+        schema=SET_KEYPAD_LOCK_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TIME_FORMAT,
+        set_time_format_service,
+        schema=SET_TIME_FORMAT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TEMPERATURE_FORMAT,
+        set_temperature_format_service,
+        schema=SET_TEMPERATURE_FORMAT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SETPOINT_MAX,
+        set_setpoint_max_service,
+        schema=SET_SETPOINT_MAX_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SETPOINT_MIN,
+        set_setpoint_min_service,
+        schema=SET_SETPOINT_MIN_SCHEMA,
+    )
 
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
@@ -156,6 +361,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._wifi_display2 = None
         self._backlight = None
         self._floor_max = None
+        self._time_format = "24h"
+        self._temperature_format = TEMP_CELSIUS
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -200,6 +407,8 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                 self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                 self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
+                self._temperature_format = device_data[ATTR_TEMP]
+                self._time_format = device_data[ATTR_TIME]
                 if not self._is_wifi:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -244,7 +453,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return TEMP_CELSIUS
+        return self._temperature_format
 
     @property
     def device_class(self):
@@ -263,13 +472,17 @@ class Neviweb130Thermostat(ClimateEntity):
                     'slave_heat': self._aux_heat,
                     'slave_status': self._load2_status,
                     'slave_load': self._load2,
-                    'setpoint_max': self._floor_max})
+                    'floor_setpoint_max': self._floor_max})
         if self._is_wifi:
-            data.update({'second display': self._wifi_display2,
+            data.update({'second_display': self._wifi_display2,
                          'occupancy': self._occupancy})
         data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
                      'backlight': self._backlight,
+                     'time_format': self._time_format,
+                     'temperature_format': self._temperature_format,
+                     'setpoint_max': self._max_temp,
+                     'setpoint_min': self._min_temp,
                      'rssi': self._rssi,
                      'id': self._id})
         return data
@@ -351,6 +564,82 @@ class Neviweb130Thermostat(ClimateEntity):
             return
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
+
+    def set_second_display(self, value):
+        """Set thermostat second display between outside and setpoint temperature"""
+        display = value["display"]
+        entity = value["id"]
+        if display == "outsideTemperature":
+            display_name = "Outside"
+        else:
+            display_name = "Setpoint"
+        self._client.set_second_display(
+            entity, display)
+        self._wifi_display2 = display_name
+
+    def set_backlight(self, value):
+        """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on"""
+        level = value["level"]
+        entity = value["id"]
+        if level == "on":
+            level_command = "always"
+            level_name = "On"
+        else:
+            level_command = "onActive"
+            level_name = "Auto"
+        self._client.set_backlight(
+            entity, level_command)
+        self._backlight = level_name
+
+    def set_keypad_lock(self, value):
+        """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked"""
+        lock = value["lock"]
+        entity = value["id"]
+#        lock_key = ATTR_FLOOR_OUTPUT2+':{"status":self._load2_status,"value":self._load2}'
+        lock_key = "on"
+        if lock == "locked":
+            lock_name = "Locked"
+        else:
+            lock_name = "Unlocked"
+        self._client.set_keypad_lock(
+            entity, lock, lock_key)
+        self._keypad = lock_name
+
+    def set_time_format(self, value):
+        """set time format 12h or 24h"""
+        time = value["time"]
+        entity = value["id"]
+        if time == 12:
+            time_commande = "12h"
+        else:
+            time_commande = "24h"
+        self._client.set_time_format(
+            entity, time_commande)
+        self._time_format = time_commande
+
+    def set_temperature_format(self, value):
+        """set temperature format, celsius or fahrenheit"""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_temperature_format(
+            entity, temp)
+        self._temperature_format = temp
+
+    def set_setpoint_max(self, value):
+        """set maximum setpoint temperature"""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_setpoint_max(
+            entity, temp)
+        self._max_temp = temp
+
+    def set_setpoint_min(self, value):
+        """set minimum setpoint temperature"""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_setpoint_min(
+            entity, temp)
+        self._min_temp = temp
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""

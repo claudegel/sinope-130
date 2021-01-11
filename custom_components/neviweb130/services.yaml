@@ -1,0 +1,111 @@
+set_keypad_lock:
+  description: Lock or unlock device keypad. Work on climate, light, dimmer and switch.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to lock/unlock the keypad.
+      example: "climate.neviweb130_climate_office"
+    lockKeypad:
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      example: "locked"
+
+set_timer:
+  description: Set device timer, 0 = off, 1 to 10800 = timer length in seconds. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set timer.
+      example: "light.neviweb130_light_office"
+    powerTimer:
+      description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
+      example: 10
+
+set_time_format:
+  description: Set device time format 12h or 24h.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set time format.
+      example: "climate.neviweb130_climate_office"
+    timeFormat:
+      description: Time format to set, 12  or 24.
+      example: 24
+
+set_temperature_format:
+  description: Set device temperature format, celsius or fahrenheit.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set temperature format.
+      example: "climate.neviweb130_climate_office"
+    temperatureFormat:
+      description: Temperature format to set, «celsius» or «fahrenheit».
+      example: "celsius"
+
+set_led_indicator:
+  description: Set led indicator intensity an color for each light state, on/off.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set the led indicator color and intensity.
+      example: "light.neviweb130_light_office"
+    state:
+      description: 0 = when light is «off», 1 = when light is «on»
+      example: 1
+    intensity:
+      description: 0 = off, 1 to 100 intensity.
+      example: 50
+    red:
+      description: 0 to 255 RGB reb color indice.
+      example: 25
+    green:
+      description: 0 to 255 RGB green color indice.
+      example: 25
+    blue:
+      description: 0 to 255 RGB blue color indice.
+      example: 255
+
+set_second_display:
+  description: Set the second neviweb130 thermostat display to show setpoint or outside temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set the second display.
+      example: "climate.neviweb130_climate_office"
+    config2ndDisplay:
+      description: «outsideTemperature» = outside temperature display, «default» = setpoint display.
+      example: "outsideTemperature"
+
+set_backlight:
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set the backlight intensity.
+      example: "climate.neviweb130_climate_office"
+    backlightAdaptive:
+      description: «auto» or «on».
+      example: "auto"
+
+set_wattage:
+  description: Set device wattageOverride value for light 0-1800w, and dimmer 0-600w.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb device to set the wattageOverride (light or dimmer).
+      example: "light.neviweb_light_office"
+    loadWattOutput1:
+      description: wattage to set, 0-1800w light, 0-600w dimmer.
+      example: 250
+
+set_setpoint_max:
+  description: Set climate device room setpoint max temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    roomSetpointMax:
+      description: Maximum setpoint temperature to set.
+      example: 25
+
+set_setpoint_min:
+  description: Set climate device room setpoint min temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    roomSetpointMin:
+      description: Minimum setpoint temperature to set.
+      example: 10

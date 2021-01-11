@@ -22,10 +22,23 @@ from .const import (
     ATTR_POWER_MODE,
     ATTR_SETPOINT_MODE,
     ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_KEYPAD,
+    ATTR_BACKLIGHT,
+    ATTR_WIFI_DISPLAY2,
+    ATTR_TIMER,
+    ATTR_TIME,
+    ATTR_TEMP,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_COLOR,
+    ATTR_LED_OFF_COLOR,
+    ATTR_LIGHT_WATTAGE,
     ATTR_SIGNATURE,
 )
 
-VERSION = '0.2.1'
+VERSION = '0.3.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -271,6 +284,78 @@ class Neviweb130Client(object):
     def set_temperature(self, device_id, temperature):
         """Set device temperature."""
         data = {ATTR_ROOM_SETPOINT: temperature}
+        self.set_device_attributes(device_id, data)
+
+    def set_backlight(self, device_id, level):
+        """ Set backlight intensity when idle, on or auto"""
+        data = {ATTR_BACKLIGHT: level,"loadWattOutput2":{"status":"off","value":0}}
+        _LOGGER.debug("backlight.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_second_display(self, device_id, display):
+        """Set device second display for outside temperature or setpoint temperature."""
+        data = {ATTR_WIFI_DISPLAY2: display}
+        _LOGGER.debug("display.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_keypad_lock(self, device_id, lock, key):
+        """Set device keyboard locked/unlocked."""
+        if key == "off":
+            data = {ATTR_KEYPAD: lock}
+        else:
+            data = {ATTR_KEYPAD:lock,"loadWattOutput2":{"status":"off","value":0}}
+        _LOGGER.debug("lock.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_timer(self, device_id, time):
+        """Set device auto off timer."""
+        data = {ATTR_TIMER: time}
+        _LOGGER.debug("timer.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_time_format(self, device_id, time):
+        """Set device time format 12h or 24h."""
+        data = {ATTR_TIME: time}
+        _LOGGER.debug("time.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_temperature_format(self, device_id, deg):
+        """Set device temperature format: celsius or fahrenheit."""
+        data = {ATTR_TEMP: deg}
+        _LOGGER.debug("temperature.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_setpoint_min(self, device_id, temp):
+        """Set device setpoint minimum temperature."""
+        data = {ATTR_ROOM_SETPOINT_MIN: temp}
+        _LOGGER.debug("setpointMin.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_setpoint_max(self, device_id, temp):
+        """Set device setpoint maximum temperature."""
+        data = {ATTR_ROOM_SETPOINT_MAX: temp}
+        _LOGGER.debug("setpointMax.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_led_indicator(self, device_id, state, intensity, red, green, blue):
+        """Set devive led indicator intensity and color for on and off state"""
+        if state == 1:
+            data = {ATTR_LED_ON_COLOR:{"red":red,"green":green,"blue":blue}}
+            self.set_device_attributes(device_id, data)
+            data2 = {ATTR_LED_ON_INTENSITY:intensity}
+            self.set_device_attributes(device_id, data2)
+        else:
+            data = {ATTR_LED_OFF_COLOR:{"red":red,"green":green,"blue":blue}}
+            self.set_device_attributes(device_id, data)
+            data2 = {ATTR_LED_OFF_INTENSITY:intensity}
+            self.set_device_attributes(device_id, data2)
+        _LOGGER.debug("led.data = %s, led.data2 = %s", data, data2)
+        self.set_device_attributes(device_id, data)
+
+    def set_wattage(self, device_id, watt):
+        """Set light and dimmer watt load."""
+        data = {ATTR_LIGHT_WATTAGE:{"status":"on","value":watt}}
+        _LOGGER.debug("wattage.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
