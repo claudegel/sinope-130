@@ -30,6 +30,7 @@ ATTR_KEYPAD = "lockKeypad"
 ATTR_OCCUPANCY = "occupancyMode"
 ATTR_WIFI_FLOOR_OUTPUT1 = "loadWattOutput1" #status on/off, value=xx
 ATTR_LIGHT_WATTAGE = "loadWattOutput1" #status on/off, value=xx
+ATTR_WIFI_WATTAGE = "loadWatt"
 ATTR_WIFI = "wifiRssi"
 ATTR_WIFI_DISPLAY2 = "config2ndDisplay"
 ATTR_WIFI_KEYPAD = "keyboardLock"
