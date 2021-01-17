@@ -40,6 +40,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (
     DOMAIN,
