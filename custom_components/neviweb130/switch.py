@@ -235,6 +235,7 @@ class Neviweb130Switch(SwitchEntity):
                 if self._is_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    self._onOff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
                     self._temp_alarm = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
@@ -281,11 +282,21 @@ class Neviweb130Switch(SwitchEntity):
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
-        self._client.set_onOff(self._id, "on")
+        if self._is_valve:
+            self._client.set_valve_onOff(self._id, 100)
+            self._valve_status = "open"
+            self._onOff = "on"
+        else:
+            self._client.set_onOff(self._id, "on")
 
     def turn_off(self, **kwargs):
         """Turn the device off."""
-        self._client.set_onOff(self._id, "off")
+        if self._is_valve:
+            self._client.set_valve_onOff(self._id, 0)
+            self._valve_status = "closed"
+            self._onOff = MODE_OFF
+        else:
+            self._client.set_onOff(self._id, "off")
 
     @property  
     def valve_status(self):
