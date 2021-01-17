@@ -111,8 +111,7 @@ set_setpoint_min:
       example: 10
 
 set_sensor_alert:
-  description: Set water leak sensor alert service. For leak sensor connected to Sedna valve, all four alert can be set. 
-  For leak sensor not connected to Sedna valve only the battery alert is set.
+  description: Set water leak sensor alert service. For leak sensor connected to Sedna valve, all four alert can be set. For leak sensor not connected to Sedna valve only the battery alert is set.
   fields:
     entity_id:
       description: Name(s) of neviweb130 water leak sensor.
