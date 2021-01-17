@@ -39,6 +39,7 @@ from .const import (
     ATTR_BATT_ALERT,
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
+    ATTR_MOTOR_TARGET,
     ATTR_SIGNATURE,
 )
 
@@ -273,8 +274,13 @@ class Neviweb130Client(object):
     def set_onOff(self, device_id, onoff):
         """Set device onOff state."""
         data = {ATTR_ONOFF: onoff}
-        self.set_device_attributes(device_id, data)    
-        
+        self.set_device_attributes(device_id, data)
+
+    def set_valve_onOff(self, device_id, onoff):
+        """Set sedna valve onOff state."""
+        data = {ATTR_MOTOR_TARGET: onoff}
+        self.set_device_attributes(device_id, data)
+
     def set_mode(self, device_id, mode):
         """Set device operation mode."""
         data = {ATTR_POWER_MODE: mode}
