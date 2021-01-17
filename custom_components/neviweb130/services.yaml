@@ -109,3 +109,33 @@ set_setpoint_min:
     roomSetpointMin:
       description: Minimum setpoint temperature to set.
       example: 10
+
+set_sensor_alert:
+  description: Set water leak sensor alert service. For leak sensor connected to Sedna valve, all four alert can be set. 
+  For leak sensor not connected to Sedna valve only the battery alert is set.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 water leak sensor.
+      example: "sensor.neviweb130_sensor_water_heater"
+    alertWaterLeak:
+      description: Set to 1, send alert or 0, do nothing.
+      example: 1
+    alertLowBatt:
+      description: Set to 1, send alert or 0, do nothing.
+      example: 1
+    alertLowTemp:
+      description: Set to 1, send alert or 0, do nothing.
+      example: 1
+    cfgValveClosure:
+      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection.
+      example: "on"
+
+set_valve_alert:
+  description: Set water valve alert service.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 water leak sensor.
+      example: "switch.neviweb130_switch_valve"
+    alertLowBatt:
+      description: Set to «true», send alert or «false», do nothing.
+      example: "true"
