@@ -54,6 +54,7 @@ ATTR_LEAK_ALERT = "alertWaterLeak"
 ATTR_BATT_ALERT = "alertLowBatt"
 ATTR_TEMP_ALERT = "alertLowTemp"
 ATTR_CONF_CLOSURE = "cfgValveClosure"
+ATTR_MOTOR_TARGET = "motorTargetPosition"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
