@@ -5,7 +5,9 @@ model 2506 = load controller device, RM3250ZB, 50A
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 model xxx = VA4201WZ, sedna valve 1 inch
-model xxx = VA4200WZ, sedna valve 3/4 inch
+model 3150 = VA4200WZ, sedna valve 3/4 inch
+model xxx = VA4220WZ, sedna 2e gen 3/4 inch
+model xxx = VA4221WZ, sedna 2e gen 1 inch
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -56,6 +58,11 @@ from .const import (
     ATTR_TIMER,
     ATTR_KEYPAD,
     ATTR_DRSTATUS,
+    ATTR_MOTOR_POS,
+    ATTR_TEMP_ALARM,
+    ATTR_BATTERY_STATUS,
+    ATTR_BATT_ALERT,
+    ATTR_VALVE_CLOSURE,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -63,6 +70,7 @@ from .const import (
     STATE_KEYPAD_STATUS,
     SERVICE_SET_KEYPAD_LOCK,
     SERVICE_SET_TIMER,
+    SERVICE_SET_VALVE_ALERT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,7 +79,7 @@ DEFAULT_NAME = 'neviweb130 switch'
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
-IMPLEMENTED_VALVE_MODEL = []
+IMPLEMENTED_VALVE_MODEL = [3150]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_VALVE_MODEL
@@ -89,6 +97,13 @@ SET_TIMER_SCHEMA = vol.Schema(
          vol.Required(ATTR_TIMER): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=255)
          ),
+    }
+)
+
+SET_VALVE_ALERT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_BATT_ALERT): cv.string,
     }
 )
 
@@ -133,6 +148,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_valve_alert_service(service):
+        """ Set alert for water valve """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+                switch.set_sensor_alert(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_KEYPAD_LOCK,
@@ -147,9 +173,16 @@ async def async_setup_platform(
         schema=SET_TIMER_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_VALVE_ALERT,
+        set_valve_alert_service,
+        schema=SET_VALVE_ALERT_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage * 100.0) / 3.25)
+    return int((voltage * 100.0) / 6)
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -171,18 +204,22 @@ class Neviweb130Switch(SwitchEntity):
         self._valve_status = None
         self._cur_temp = None
         self._battery_voltage = None
+        self._battery_status = None
+        self._valve_closure = None
+        self._temp_alarm = None
         self._timer = 0
         self._keypad = None
         self._drstatus_active = None
         self._drstatus_out = None
         self._drstatus_onoff = None
+        self._battery_alert = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
         elif self._is_valve:
-            LOAD_ATTRIBUTE = [ATTR_VALVE_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_BATTERY_VOLTAGE]
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_TEMP_ALARM, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT]
         else:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
         """Get the latest data from Neviweb and update the state."""
@@ -198,9 +235,12 @@ class Neviweb130Switch(SwitchEntity):
             if "errorCode" not in device_data:
                 if self._is_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
-                        device_data[ATTR_VALVE_STATUS] == STATE_VALVE_STATUS else "closed"
-                    self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
+                        device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    self._temp_alarm = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                    self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
+                    self._battery_alert = device_data[ATTR_BATT_ALERT]
                 elif self._is_load: #for is_load
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._wattage = device_data[ATTR_WATTAGE]
@@ -277,8 +317,11 @@ class Neviweb130Switch(SwitchEntity):
                    'drstatus_onoff': self._drstatus_onoff}
         elif self._is_valve:
             data = {'Valve_status': self._valve_status,
-                   'Temperature': self._cur_temp,
-                   'Battery': voltage_to_percentage(self._battery_voltage)}
+                   'Temperature_alarm': self._temp_alarm,
+                   'Battery_voltage': voltage_to_percentage(self._battery_voltage),
+                   'Battery_status': self._battery_status,
+                   'Valve_closure_source': self._valve_closure,
+                   'Battery_alert': self._battery_alert}
         else:
             data = {'onOff': self._onOff,
                    'Wattage': self._current_power_w}
@@ -325,3 +368,11 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_timer(
             entity, time)
         self._timer = time
+
+    def set_valve_alert(self, value):
+        """ Set water leak sensor alert and action """
+        batt = value["batt"]
+        entity = value["id"]
+        self._client.set_valve_alert(
+            entity, batt)
+        self._battery_alert = batt
