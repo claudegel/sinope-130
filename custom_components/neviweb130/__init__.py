@@ -35,10 +35,15 @@ from .const import (
     ATTR_LED_ON_COLOR,
     ATTR_LED_OFF_COLOR,
     ATTR_LIGHT_WATTAGE,
+    ATTR_LEAK_ALERT,
+    ATTR_BATT_ALERT,
+    ATTR_TEMP_ALERT,
+    ATTR_CONF_CLOSURE,
+    ATTR_MOTOR_TARGET,
     ATTR_SIGNATURE,
 )
 
-VERSION = '0.3.0'
+VERSION = '0.4.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -269,8 +274,13 @@ class Neviweb130Client(object):
     def set_onOff(self, device_id, onoff):
         """Set device onOff state."""
         data = {ATTR_ONOFF: onoff}
-        self.set_device_attributes(device_id, data)    
-        
+        self.set_device_attributes(device_id, data)
+
+    def set_valve_onOff(self, device_id, onoff):
+        """Set sedna valve onOff state."""
+        data = {ATTR_MOTOR_TARGET: onoff}
+        self.set_device_attributes(device_id, data)
+
     def set_mode(self, device_id, mode):
         """Set device operation mode."""
         data = {ATTR_POWER_MODE: mode}
@@ -356,6 +366,18 @@ class Neviweb130Client(object):
         """Set light and dimmer watt load."""
         data = {ATTR_LIGHT_WATTAGE:{"status":"on","value":watt}}
         _LOGGER.debug("wattage.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_valve_alert(self, device_id, batt):
+        """Set Sedna valve battery alert on/off."""
+        data = {ATTR_BATT_ALERT: batt}
+        _LOGGER.debug("valve.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_sensor_alert(self, device_id, leak, batt, temp, close):
+        """Set leak detector alert, battery, temperature, leak, Sedna valve closing."""
+        data = {ATTR_LEAK_ALERT: leak, ATTR_BATT_ALERT: batt, ATTR_TEMP_ALERT: temp, ATTR_CONF_CLOSURE: close}
+        _LOGGER.debug("leak.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

@@ -31,8 +31,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
 - Water leak detector
-  - Sinopé VA4201WZ, sedna valve 1 inch
-  - Sinopé VA4200WZ, sedna valve 3/4 inch
+  - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
+  - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch
   - Sinopé WL4200,   water leak detector
   - Sinopé WL4200S,  water leak detector with sensor
 - Tank level monitor
@@ -107,6 +107,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_wattage to set wattageOverload for light devices.
 - neviweb130.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
+- neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve
+- neviweb130.set_valve_alert to set low battery allert status
 
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
