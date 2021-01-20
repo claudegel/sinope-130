@@ -110,6 +110,16 @@ set_setpoint_min:
       description: Minimum setpoint temperature to set.
       example: 10
 
+set_floor_air_limit:
+  description: Set floor thermostat max air limit temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    floorMaxAirTemperature:
+      description: Maximum air temperature limit to set.
+      example: 25
+
 set_sensor_alert:
   description: Set water leak sensor alert service. For leak sensor connected to Sedna valve, all four alert can be set. For leak sensor not connected to Sedna valve only the battery alert is set.
   fields:
