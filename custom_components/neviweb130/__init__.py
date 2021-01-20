@@ -40,6 +40,7 @@ from .const import (
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
     ATTR_MOTOR_TARGET,
+    ATTR_FLOOR_AIR_LIMIT,
     ATTR_SIGNATURE,
 )
 
@@ -333,6 +334,14 @@ class Neviweb130Client(object):
         """Set device temperature format: celsius or fahrenheit."""
         data = {ATTR_TEMP: deg}
         _LOGGER.debug("temperature.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_floor_air_limit(self, device_id, status, temp):
+        """ Set device maximum air temperature limit. """
+        if temp == 0:
+            temp = Null
+        data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
+        _LOGGER.debug("floorairlimit.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_setpoint_min(self, device_id, temp):
