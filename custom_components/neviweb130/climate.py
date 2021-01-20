@@ -84,6 +84,7 @@ from .const import (
     ATTR_WIFI,
     ATTR_WIFI_DISPLAY2,
     ATTR_WIFI_KEYPAD,
+    ATTR_FLOOR_AIR_LIMIT,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -96,6 +97,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_SETPOINT_MAX,
     SERVICE_SET_SETPOINT_MIN,
+    SERVICE_SET_FLOOR_AIR_LIMIT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -185,6 +187,15 @@ SET_SETPOINT_MIN_SCHEMA = vol.Schema(
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
              vol.Coerce(float), vol.Range(min=5, max=26)
+         ),
+    }
+)
+
+SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(
+             vol.Coerce(float), vol.Range(min=0, max=36)
          ),
     }
 )
@@ -285,6 +296,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_floor_air_limit_service(service):
+        """ set minimum setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_FLOOR_AIR_LIMIT]}
+                thermostat.set_floor_air_limit(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -334,6 +356,13 @@ async def async_setup_platform(
         schema=SET_SETPOINT_MIN_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOOR_AIR_LIMIT,
+        set_floor_air_limit_service,
+        schema=SET_FLOOR_AIR_LIMIT_SCHEMA,
+    )
+
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
@@ -362,6 +391,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._backlight = None
         self._floor_max = None
         self._time_format = "24h"
+        self._floor_air_limit = None
         self._temperature_format = TEMP_CELSIUS
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
@@ -379,7 +409,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WATT_ATTRIBUTE = []
         if self._is_floor or self._is_wifi_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_MAX]
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_MAX, ATTR_FLOOR_AIR_LIMIT]
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_wifi_floor:
@@ -428,6 +458,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                    self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                     if not self._is_wifi_floor:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
@@ -472,7 +503,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     'slave_heat': self._aux_heat,
                     'slave_status': self._load2_status,
                     'slave_load': self._load2,
-                    'floor_setpoint_max': self._floor_max})
+                    'floor_setpoint_max': self._floor_max,
+                    'floor_air_limit': self._floor_air_limit})
         if self._is_wifi:
             data.update({'second_display': self._wifi_display2,
                          'occupancy': self._occupancy})
@@ -640,6 +672,18 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_setpoint_min(
             entity, temp)
         self._min_temp = temp
+
+    def set_floor_air_limit(self, value):
+        """ set maximum temperature air limit for floor thermostat """
+        temp = value["temp"]
+        entity = value["id"]
+        if temp == 0:
+           status = "off"
+        else:
+            status = "on"
+        self._client.set_floor_air_limit(
+            entity, status, temp)
+        self._floor_air_limit = temp
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
