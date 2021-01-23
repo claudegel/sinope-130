@@ -391,9 +391,14 @@ class Neviweb130Client(object):
 
     def set_device_attributes(self, device_id, data):
         try:
-            requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
-                data=data, headers=self._headers, cookies=self._cookies,
+            resp = requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
+                json=data, headers=self._headers, cookies=self._cookies,
                 timeout=self._timeout)
+            _LOGGER.debug("Data = %s", data)
+            _LOGGER.debug("Request response = %s", resp.status_code)
+            _LOGGER.debug("Json Data received= %s", resp.json())
+            _LOGGER.debug("Content = %s", resp.content)
+            _LOGGER.debug("Text = %s", resp.text)
         except OSError:
             raise PyNeviweb130Error("Cannot set device %s attributes: %s", 
                 device_id, data)
