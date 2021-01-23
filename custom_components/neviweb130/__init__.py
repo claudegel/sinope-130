@@ -40,10 +40,11 @@ from .const import (
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
     ATTR_MOTOR_TARGET,
+    ATTR_FLOOR_AIR_LIMIT,
     ATTR_SIGNATURE,
 )
 
-VERSION = '0.4.0'
+VERSION = '0.4.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -335,6 +336,14 @@ class Neviweb130Client(object):
         _LOGGER.debug("temperature.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_floor_air_limit(self, device_id, status, temp):
+        """ Set device maximum air temperature limit. """
+        if temp == 0:
+            temp = Null
+        data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
+        _LOGGER.debug("floorairlimit.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_setpoint_min(self, device_id, temp):
         """Set device setpoint minimum temperature."""
         data = {ATTR_ROOM_SETPOINT_MIN: temp}
@@ -381,10 +390,24 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
-        try:
-            requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
-                data=data, headers=self._headers, cookies=self._cookies,
-                timeout=self._timeout)
-        except OSError:
-            raise PyNeviweb130Error("Cannot set device %s attributes: %s", 
-                device_id, data)
+        result = 1
+        while result < 4:
+            try:
+                resp = requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
+                    json=data, headers=self._headers, cookies=self._cookies,
+                    timeout=self._timeout)
+                _LOGGER.debug("Data = %s", data)
+                _LOGGER.debug("Request response = %s", resp.status_code)
+                _LOGGER.debug("Json Data received= %s", resp.json())
+                _LOGGER.debug("Content = %s", resp.content)
+                _LOGGER.debug("Text = %s", resp.text)
+            except OSError:
+                raise PyNeviweb130Error("Cannot set device %s attributes: %s", 
+                    device_id, data)
+            finally:
+                if "error" in resp.json():
+                    result += 1
+                    _LOGGER.debug("Service error received: %s, resending request %s",resp.json(), result)
+                    continue
+                else:
+                    break
