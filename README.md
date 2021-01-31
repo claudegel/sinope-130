@@ -98,8 +98,11 @@ neviweb130:
 ## Custom services
 Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via neviweb130, it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
 - neviweb130.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
-- neviweb130.set_keypad_lock, allow to lock the keypad of the device. Work for thermostat, light and power controler.
-- neviweb130.set_timer, this is used to set a timer in seconds (0 to 10800) to the light and switch devices to turn_off after that delay.
+- neviweb130.set_climate_keypad_lock, allow to lock the keypad of the climate device.
+- neviweb130.set_light_keypad_lock, allow to lock the keypad of the light device.
+- neviweb130.set_switch_keypad_lock, allow to lock the keypad of the switch device.
+- neviweb130.set_light_timer, this is used to set a timer in seconds (0 to 10800) to the light devices to turn_off after that delay.
+- neviweb130.set_switch_timer, this is used to set a timer in seconds (0 to 10800) to the switch devices to turn_off after that delay.
 - neviweb130.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
 - neviweb130.set_time_format to display time in 12h or 24h on thermostats.
 - neviweb130.set_temperature_format to disply temperature in celsius or fahrenheit format on thermostats.

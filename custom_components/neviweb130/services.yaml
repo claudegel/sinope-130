@@ -1,19 +1,49 @@
-set_keypad_lock:
-  description: Lock or unlock device keypad. Work on climate, light, dimmer and switch.
+set_climate_keypad_lock:
+  description: Lock or unlock climate device keypad.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 device to lock/unlock the keypad.
+      description: Name(s) of neviweb130 climate device to lock/unlock the keypad.
       example: "climate.neviweb130_climate_office"
     lockKeypad:
       description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
       example: "locked"
 
-set_timer:
-  description: Set device timer, 0 = off, 1 to 10800 = timer length in seconds. Devices will turn_off after that delay.
+set_light_keypad_lock:
+  description: Lock or unlock light device keypad. Work on light and dimmer.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 device to set timer.
+      description: Name(s) of neviweb130 light device to lock/unlock the keypad.
       example: "light.neviweb130_light_office"
+    lockKeypad:
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      example: "locked"
+
+set_switch_keypad_lock:
+  description: Lock or unlock switch device keypad.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 switch device to lock/unlock the keypad.
+      example: "switch.neviweb130_switch_office"
+    lockKeypad:
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      example: "locked"
+
+set_light_timer:
+  description: Set light device timer, 0 = off, 1 to 10800 = timer length in seconds. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 light device to set timer.
+      example: "light.neviweb130_light_office"
+    powerTimer:
+      description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
+      example: 10
+
+set_switch_timer:
+  description: Set switch device timer, 0 = off, 1 to 10800 = timer length in seconds. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 switch device to set timer.
+      example: "switch.neviweb130_switch_office"
     powerTimer:
       description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
       example: 10

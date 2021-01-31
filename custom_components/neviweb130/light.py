@@ -57,8 +57,8 @@ from .const import (
     MODE_MANUAL,
     MODE_OFF,
     SERVICE_SET_LED_INDICATOR,
-    SERVICE_SET_KEYPAD_LOCK,
-    SERVICE_SET_TIMER,
+    SERVICE_SET_LIGHT_KEYPAD_LOCK,
+    SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_WATTAGE,
 )
 
@@ -82,14 +82,14 @@ DEVICE_MODEL_DIMMER = [2131]
 DEVICE_MODEL_LIGHT = [2121]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD): cv.string,
     }
 )
 
-SET_TIMER_SCHEMA = vol.Schema(
+SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
@@ -149,7 +149,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_keypad_lock_service(service):
+    def set_light_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -160,7 +160,7 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
-    def set_timer_service(service):
+    def set_light_timer_service(service):
         """ set timer for light device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -195,16 +195,16 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_LIGHT_KEYPAD_LOCK,
+        set_light_keypad_lock_service,
+        schema=SET_LIGHT_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_TIMER,
-        set_timer_service,
-        schema=SET_TIMER_SCHEMA,
+        SERVICE_SET_LIGHT_TIMER,
+        set_light_timer_service,
+        schema=SET_LIGHT_TIMER_SCHEMA,
     )
 
     hass.services.async_register(

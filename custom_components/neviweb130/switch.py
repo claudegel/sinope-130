@@ -67,8 +67,8 @@ from .const import (
     MODE_OFF,
     STATE_VALVE_STATUS,
     STATE_KEYPAD_STATUS,
-    SERVICE_SET_KEYPAD_LOCK,
-    SERVICE_SET_TIMER,
+    SERVICE_SET_SWITCH_KEYPAD_LOCK,
+    SERVICE_SET_SWITCH_TIMER,
     SERVICE_SET_VALVE_ALERT,
 )
 
@@ -83,14 +83,14 @@ IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_VALVE_MODEL
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD): cv.string,
     }
 )
 
-SET_TIMER_SCHEMA = vol.Schema(
+SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
@@ -125,7 +125,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_keypad_lock_service(service):
+    def set_switch_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -136,7 +136,7 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_timer_service(service):
+    def set_switch_timer_service(service):
         """ set timer for switch device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -160,16 +160,16 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_SWITCH_KEYPAD_LOCK,
+        set_switch_keypad_lock_service,
+        schema=SET_SWITCH_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_TIMER,
-        set_timer_service,
-        schema=SET_TIMER_SCHEMA,
+        SERVICE_SET_SWITCH_TIMER,
+        set_switch_timer_service,
+        schema=SET_SWITCH_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
