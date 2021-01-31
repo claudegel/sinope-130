@@ -90,7 +90,7 @@ from .const import (
     MODE_MANUAL,
     MODE_OFF,
     MODE_AWAY,
-    SERVICE_SET_KEYPAD_LOCK,
+    SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT,
     SERVICE_SET_TIME_FORMAT,
@@ -150,7 +150,7 @@ SET_BACKLIGHT_SCHEMA = vol.Schema(
     }
 )
 
-SET_KEYPAD_LOCK_SCHEMA = vol.Schema(
+SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_KEYPAD): cv.string,
@@ -241,7 +241,7 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_keypad_lock_service(service):
+    def set_climate_keypad_lock_service(service):
         """ lock/unlock keypad device"""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
@@ -323,9 +323,9 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_KEYPAD_LOCK,
-        set_keypad_lock_service,
-        schema=SET_KEYPAD_LOCK_SCHEMA,
+        SERVICE_SET_CLIMATE_KEYPAD_LOCK,
+        set_climate_keypad_lock_service,
+        schema=SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
     )
 
     hass.services.async_register(
