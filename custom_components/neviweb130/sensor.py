@@ -169,11 +169,15 @@ class Neviweb130Sensor(Entity):
         if self._is_monitor:
             MONITOR_ATTRIBUTE = [ATTR_LEVEL_STATUS]
         else:
-            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM]
+            if self._is_connected:
+                CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
+            else:
+                CONNECTED_ATTRIBUTE = []
+            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE + CONNECTED_ATTRIBUTE)
         device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
