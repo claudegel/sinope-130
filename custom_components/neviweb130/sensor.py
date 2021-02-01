@@ -190,6 +190,7 @@ class Neviweb130Sensor(Entity):
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data[ATTR_TEMP_ALERT]
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
+                        self._closure_action = device_data[ATTR_CONF_CLOSURE]
                 else:
                     self._level_status = device_data[ATTR_LEVEL_STATUS]
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
