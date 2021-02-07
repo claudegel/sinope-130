@@ -44,7 +44,7 @@ from .const import (
     ATTR_SIGNATURE,
 )
 
-VERSION = '0.5.1'
+VERSION = '0.5.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -162,17 +162,24 @@ class Neviweb130Client(object):
             raw_res = requests.get(LOCATIONS_URL, headers=self._headers, 
                 cookies=self._cookies, timeout=self._timeout)
             networks = raw_res.json()
-
+            _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
             if self._network_name == None: # Use 1st network found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
+                _LOGGER.debug("Selecting %s as network", self._network_name)
             else:
                 for network in networks:
                     if network["name"] == self._network_name:
                         self._gateway_id = network["id"]
+                        _LOGGER.debug("Selecting %s network among: %s",self._network_name, networks)
                         break
-            _LOGGER.debug("Selecting %s network among: %s",
-                self._network_name, networks)
+                    elif (network["name"] == self._network_name.capitalize()) or (network["name"] == self._network_name[0].lower()+self._network_name[1:]):
+                        self._gateway_id = network["id"]
+                        _LOGGER.debug("Please check first letter of your network name, In capital letter or not? Selecting %s network among: %s",
+                            self._network_name, networks)
+                        break
+                    else:
+                        _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one.... Please check your config if nothing is discovered.", self._network_name, network["name"])
         except OSError:
             raise PyNeviweb130Error("Cannot get network")
         # Update cookies
