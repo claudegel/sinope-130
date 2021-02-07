@@ -71,6 +71,7 @@ There are two methods to install this custom component:
           switch.py
           climate.py
           sensor.py
+          services.yaml
       ...
     ```
 ## Configuration
@@ -85,6 +86,7 @@ neviweb130:
   network: '<your gt130 location name in Neviweb>' (gt130 emplacement dans Neviweb)
   scan_interval: 360
 ```
+Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130.
 
 **Configuration options:**  
 
