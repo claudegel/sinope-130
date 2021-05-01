@@ -101,7 +101,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 ## Sedna valve
 For Sedna valve there is two way to connect it to Neviweb:
 - Via wifi direct connection. This way leak sensor are connected directly to the Sedna valve which will close if leak is detected.
-- via GT130 in zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is passed to the valve. You'll need to set some automation rule to have the sedna valve close if leak is detected by sensor.
+- via GT130 in zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is passed to the valve. You'll need to set some automation rule to have the Sedna valve close if leak is detected by sensor.
 
 Both mode are supported by this custom component. 
 
