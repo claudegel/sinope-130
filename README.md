@@ -32,7 +32,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé SP2600ZB smart portable plug
 - Water leak detector
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
-  - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch
+  - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
+  - Sinopé VA4200ZB, VA4220ZB, sedna valve 3/4 inch zigbee
   - Sinopé WL4200,   water leak detector
   - Sinopé WL4200S,  water leak detector with sensor
 - Tank level monitor
@@ -97,6 +98,13 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **network** | yes | if not specified, 1st location found is used. Write the name of the GT130 location you want to control.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 
+## Sedna valve
+For Sedna valve there is two way to connect it to Neviweb:
+- Via wifi direct connection. This way leak sensor are connected directly to the Sedna valve which will close if leak is detected.
+- via GT130 in zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is passed to the valve. You'll need to set some automation rule to have the Sedna valve close if leak is detected by sensor.
+
+Both mode are supported by this custom component. 
+
 ## Custom services
 Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via neviweb130, it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
 - neviweb130.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
@@ -113,7 +121,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve
-- neviweb130.set_valve_alert to set low battery allert status
+- neviweb130.set_valve_alert to set low battery alert status
+- neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve
 
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.

@@ -170,11 +170,21 @@ set_sensor_alert:
       example: "on"
 
 set_valve_alert:
-  description: Set water valve alert service.
+  description: Set water valve battery alert service.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 water leak sensor.
+      description: Name(s) of neviweb130 water valve.
       example: "switch.neviweb130_switch_valve"
     alertLowBatt:
-      description: Set to «true», send alert or «false», do nothing.
+      description: Set to «true», send battery alert or «false», do nothing.
       example: "true"
+
+set_valve_temp_alert:
+  description: Set water valve temperature alert service.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 water valve.
+      example: "switch.neviweb130_switch_valve"
+    alertLowTemp:
+      description: Set to 1 = «true», send alert or to 0 = «false», do nothing.
+      example: 1
