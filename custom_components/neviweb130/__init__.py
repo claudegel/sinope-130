@@ -390,6 +390,12 @@ class Neviweb130Client(object):
         _LOGGER.debug("valve.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_valve_temp_alert(self, device_id, temp):
+        """Set Sedna valve temperature alert on/off."""
+        data = {ATTR_TEMP_ALERT: temp}
+        _LOGGER.debug("valve.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_sensor_alert(self, device_id, leak, batt, temp, close):
         """Set leak detector alert, battery, temperature, leak, Sedna valve closing."""
         data = {ATTR_LEAK_ALERT: leak, ATTR_BATT_ALERT: batt, ATTR_TEMP_ALERT: temp, ATTR_CONF_CLOSURE: close}
