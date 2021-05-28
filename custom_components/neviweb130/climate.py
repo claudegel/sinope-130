@@ -14,6 +14,9 @@ model 1510 = thermostat TH1124WF 4000W (wifi)
 model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
 model ???? = thermostat TH1400WF low voltage (wifi)
 
+Support for Flextherm wifi thermostat
+model 738 = Thermostat concerto connect FLP55 (wifi floor)
+
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
