@@ -23,7 +23,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
-  - Flextherm (TH1300WF) FLP55 floor thermostat 
+  - Flextherm concerto connect FLP55 floor thermostat 
 - Zigbee lighting
   - Sinopé SW2500ZB Light switch
   - Sinopé DM2500ZB Dimmer 
