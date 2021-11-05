@@ -44,7 +44,7 @@ from .const import (
     ATTR_SIGNATURE,
 )
 
-VERSION = '0.6.0'
+VERSION = '0.6.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -232,7 +232,8 @@ class Neviweb130Client(object):
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
-                raise PyNeviweb130Error("Session expired")
+                raise PyNeviweb130Error("Session expired... reconnecting...")
+                self.__post_login_page()
         return data
 
     def get_device_daily_stats(self, device_id):
