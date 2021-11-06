@@ -178,7 +178,7 @@ class Neviweb130Sensor(Entity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE + CONNECTED_ATTRIBUTE)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
+#        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -202,7 +202,10 @@ class Neviweb130Sensor(Entity):
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
-        _LOGGER.warning("Cannot update %s: %s", self._name, device_data)     
+        _LOGGER.warning("Cannot update %s: %s", self._name, device_data)
+        if device_data["error"]["code"] == "USRSESSEXP":
+            _LOGGER.warning("Session expired... reconnecting...")
+            self._client.reconnect()
 
     @property
     def unique_id(self):
