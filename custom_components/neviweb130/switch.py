@@ -4,11 +4,13 @@ Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
-model xxx = VA4201WZ, sedna valve 1 inch
+model 3150 = VA4201WZ, sedna valve 1 inch
 model 3150 = VA4200WZ, sedna valve 3/4 inch via wifi
 model 3151 = VA4200ZB, sedna valve 3/4 inch via GT130, zigbee
-model xxx = VA4220WZ, sedna 2e gen 3/4 inch
-model xxx = VA4221WZ, sedna 2e gen 1 inch
+model 3150 = VA4220WZ, sedna 2e gen 3/4 inch
+model 3150 = VA4220WF, sedna 2e generation 3/4 inch, wifi
+model 3150 = VA4221WZ, sedna 2e gen 1 inch
+model 3150 = VA4221WF, sedna 2e generation 1 inch, wifi
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -273,7 +275,8 @@ class Neviweb130Switch(SwitchEntity):
                     self._temp_alarm = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                    self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
+                    if ATTR_VALVE_CLOSURE in device_data:
+                        self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
                 elif self._is_zb_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
@@ -281,8 +284,10 @@ class Neviweb130Switch(SwitchEntity):
                     self._onOff = device_data[ATTR_ONOFF]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-#                    self._battery_alert = device_data[ATTR_BATT_ALERT]
-#                    self._temp_alert = device_data[ATTR_TEMP_ALERT]
+                    if ATTR_BATT_ALERT in device_data:
+                        self._battery_alert = device_data[ATTR_BATT_ALERT]
+                    if ATTR_TEMP_ALERT in device_data:
+                        self._temp_alert = device_data[ATTR_TEMP_ALERT]
                 elif self._is_load: #for is_load
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._wattage = device_data[ATTR_WATTAGE]
