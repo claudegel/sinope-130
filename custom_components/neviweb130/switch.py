@@ -275,9 +275,9 @@ class Neviweb130Switch(SwitchEntity):
                     self._temp_alarm = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_VALVE_CLOSURE in device_data:
                         self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
-                    self._battery_alert = device_data[ATTR_BATT_ALERT]
                 elif self._is_zb_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
