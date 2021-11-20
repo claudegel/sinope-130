@@ -12,7 +12,7 @@ Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
 model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
-model ???? = thermostat TH1400WF low voltage (wifi)
+model 739 = thermostat TH1400WF low voltage (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat concerto connect FLP55 (wifi floor)
@@ -133,11 +133,12 @@ PRESET_MODES = [
 ]
 
 DEVICE_MODEL_LOW = [7372]
+DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
 DEVICE_MODEL_WIFI = [1510]
 DEVICE_MODEL_HEAT = [1123, 1124, 7373]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -404,6 +405,8 @@ class Neviweb130Thermostat(ClimateEntity):
             DEVICE_MODEL_WIFI_FLOOR or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
         self._is_low_voltage = device_info["signature"]["model"] in \
             DEVICE_MODEL_LOW
+        self._is_low_wifi = device_info["signature"]["model"] in \
+            DEVICE_MODEL_LOW_WIFI
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
