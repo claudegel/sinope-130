@@ -431,7 +431,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT]
         if self._is_low_wifi:
-            LOW_WIFI_ATTRIBUTE = [ATTR_ROOM_TEMP_DISPLAY, ATTR_SETPOINT]
+            LOW_WIFI_ATTRIBUTE = [ATTR_ROOM_TEMP_DISPLAY]
         else:
             LOW_WIFI_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
