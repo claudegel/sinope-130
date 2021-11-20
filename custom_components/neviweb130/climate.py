@@ -603,7 +603,7 @@ class Neviweb130Thermostat(ClimateEntity):
             data.update({'second_display': self._wifi_display2,
                          'occupancy': self._occupancy,
                          'backlight': self._backlight})
-        data.update({'Heat_level': self._heat_level,
+        data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
                      'backlight': self._backlight,
                      'time_format': self._time_format,
