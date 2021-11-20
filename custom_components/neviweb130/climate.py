@@ -71,24 +71,32 @@ from .const import (
     ATTR_ROOM_TEMPERATURE,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_AWAY,
     ATTR_WATTAGE,
     ATTR_GFCI_STATUS,
     ATTR_FLOOR_MODE,
     ATTR_OCCUPANCY,
     ATTR_FLOOR_AUX,
+    ATTR_FLOOR_OUTPUT1,
     ATTR_FLOOR_OUTPUT2,
-    ATTR_FLOOR_MAX,
     ATTR_KEYPAD,
     ATTR_BACKLIGHT,
+    ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_TIME,
     ATTR_TEMP,
-    ATTR_WIFI_FLOOR_OUTPUT1,
     ATTR_WIFI_WATTAGE,
     ATTR_WIFI,
     ATTR_WIFI_DISPLAY2,
     ATTR_WIFI_KEYPAD,
     ATTR_FLOOR_AIR_LIMIT,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
     ATTR_ROOM_TEMP_DISPLAY,
+    ATTR_EARLY_START,
+    ATTR_FLOOR_SENSOR,
+    ATTR_AUX_CYCLE,
+    ATTR_CYCLE,
+    ATTR_PUMP_PROTEC,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -380,6 +388,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._min_temp = 0
         self._max_temp = 0
         self._target_temp = None
+        self._target_temp_away = None
         self._cur_temp = None
         self._cur_temp_before = None
         self._operation_mode = None
@@ -387,7 +396,9 @@ class Neviweb130Thermostat(ClimateEntity):
         self._heat_source_type = None
         self._gfci_status = None
         self._floor_mode = None
+        self._floor_sensor_type = None
         self._aux_heat = None
+        self._early_start = "off"
         self._keypad = None
         self._load2 = 0
         self._load2_status = None
@@ -395,12 +406,21 @@ class Neviweb130Thermostat(ClimateEntity):
         self._occupancy = None
         self._wifi_display2 = None
         self._backlight = None
-        self._floor_max = None
         self._time_format = "24h"
         self._floor_air_limit = None
+        self._floor_air_limit_status = None
+        self._floor_max = None
+        self._floor_max_status = "off"
+        self._floor_min = None
+        self._floor_min_status = "off"
         self._temperature_format = TEMP_CELSIUS
         self._temp_display_status = None
         self._temp_display_value = None
+        self._cycle_length = None
+        self._aux_cycle_length = None
+        self._pump_protec_status = None
+        self._pump_protec_duration = None
+        self._pump_protec_freq = None
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -419,11 +439,11 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WATT_ATTRIBUTE = []
         if self._is_floor or self._is_wifi_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_MAX, ATTR_FLOOR_AIR_LIMIT]
+            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SENSOR]
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_wifi_floor:
-            WIFI_FLOOR_ATTRIBUTE = [ATTR_WIFI_FLOOR_OUTPUT1]
+            WIFI_FLOOR_ATTRIBUTE = [ATTR_WIFI_FLOOR_OUTPUT1, ATTR_FLOOR_MAX, ATTR_FLOOR_MIM]
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
@@ -431,7 +451,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT]
         if self._is_low_wifi:
-            LOW_WIFI_ATTRIBUTE = [ATTR_ROOM_TEMP_DISPLAY]
+            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_ROOM_TEMP_DISPLAY, ATTR_FLOOR_MODE, ATTR_BACKLIGHT_AUTO_DIM, ATTR_EARLY_START, ATTR_FLOOR_SENSOR, ATTR_ROOM_SETPOINT_AWAY, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
         else:
             LOW_WIFI_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -464,24 +484,52 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    if not self._is_low_wifi:
-                        self._keypad = device_data[ATTR_WIFI_KEYPAD]
-                        self._rssi = device_data[ATTR_WIFI]
-                        self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
-                        self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    else:
+                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._rssi = device_data[ATTR_WIFI]
+                    self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
+                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    if self._is_low_wifi:
                         self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
+                        self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                        self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                        self._early_start= device_data[ATTR_EARLY_START]
+                        self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
+                        self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
+                        self._aux_cycle_length = device_data[ATTR_AUX_CYCLE]
+                        self._cycle_length = device_data[ATTR_CYCLE]
+                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                        self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
+                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                        self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
+                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                        self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                        self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
+                        self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
+                        self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                        if ATTR_FLOOR_AIR_LIMIT in device_data:
+                            self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                            self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
                 if self._is_floor or self._is_wifi_floor:
                     self._gfci_status = device_data[ATTR_GFCI_STATUS]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                    self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                    self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
+                    if ATTR_FLOOR_AIR_LIMIT in device_data:
+                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                        self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                    if ATTR_FLOOR_MAX in device_data:
+                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                        self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
+                    if ATTR_FLOOR_MIN in device_data:
+                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                        self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     if not self._is_wifi_floor:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
-                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     else:
                         self._load2_status = None
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
@@ -520,9 +568,19 @@ class Neviweb130Thermostat(ClimateEntity):
         if not self._is_low_voltage:
             data = {'wattage': self._wattage}
         if self._is_low_wifi:
-            data.update({'Source_type': self._heat_source_type,
-                    'Temp_display_status': self._temp_display_status,
-                    'Temp_display_value': self._temp_display_value})
+            data.update({'source_type': self._heat_source_type,
+                    'temp_display_status': self._temp_display_status,
+                    'temp_display_value': self._temp_display_value,
+                    'sensor_mode': self._floor_mode,
+                    'early_start': self._early_start,
+                    'floor_sensor_type': self._floor_sensor_type,
+                    'load_watt': self._wattage,
+                    'setpoint_away': self._target_temp_away,
+                    'aux_cycle_length': self._aux_cycle_lenght,
+                    'cycle_length': self._cycle_lenght,
+                    'pump_protection_status': self._pump_protec_status,
+                    'pump_protection_duration': self._pump_protec_duration,
+                    'pump_protection_frequency': self._pump_protec_freq})
         if self._is_floor or self._is_wifi_floor:
             data.update({'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
@@ -530,11 +588,22 @@ class Neviweb130Thermostat(ClimateEntity):
                     'slave_status': self._load2_status,
                     'slave_load': self._load2,
                     'floor_setpoint_max': self._floor_max,
-                    'floor_air_limit': self._floor_air_limit})
+                    'floor_setpoint_low': self._floor_min,
+                    'floor_air_limit': self._floor_air_limit,
+                    'floor_sensor_type': self._floor_sensor_type,
+                    'load_watt': self._wattage})
+        if self._is_wifi_floor or self._is_low_wifi:
+            data.update({'floor_limit_high': self._floor_max,
+                         'floor_limit_high_status': self._floor_max_status,
+                         'floor_limit_low': self._floor_min,
+                         'floor_limit_low_status': self._floor_min_status,
+                         'max_air_limit': self._floor_air_limit,
+                         'max_air_limit_status': self._floor_air_limit_status})
         if self._is_wifi and not self._is_low_wifi:
             data.update({'second_display': self._wifi_display2,
-                         'occupancy': self._occupancy})
-        data.update({'heat_level': self._heat_level,
+                         'occupancy': self._occupancy,
+                         'backlight': self._backlight})
+        data.update({'Heat_level': self._heat_level,
                      'keypad': self._keypad,
                      'backlight': self._backlight,
                      'time_format': self._time_format,
