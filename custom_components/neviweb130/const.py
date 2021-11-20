@@ -56,6 +56,8 @@ ATTR_TEMP_ALERT = "alertLowTemp"
 ATTR_CONF_CLOSURE = "cfgValveClosure"
 ATTR_MOTOR_TARGET = "motorTargetPosition"
 ATTR_FLOOR_AIR_LIMIT = "floorMaxAirTemperature"
+ATTR_ROOM_TEMP_DISPLAY = "roomTemperatureDisplay"
+ATTR_SETPOINT = "setpoint"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
