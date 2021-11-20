@@ -44,7 +44,7 @@ from .const import (
     ATTR_SIGNATURE,
 )
 
-VERSION = '0.6.5'
+VERSION = '0.7.0'
 
 _LOGGER = logging.getLogger(__name__)
 
