@@ -89,7 +89,6 @@ from .const import (
     ATTR_WIFI_KEYPAD,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_ROOM_TEMP_DISPLAY,
-    ATTR_SETPOINT,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -400,7 +399,6 @@ class Neviweb130Thermostat(ClimateEntity):
         self._time_format = "24h"
         self._floor_air_limit = None
         self._temperature_format = TEMP_CELSIUS
-        self._setpoint = None
         self._temp_display_status = None
         self._temp_display_value = None
         self._is_floor = device_info["signature"]["model"] in \
@@ -473,7 +471,6 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._wattage = device_data[ATTR_WIFI_WATTAGE]
                     else:
                         self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
-                        self._setpoint = device_data[ATTR_SETPOINT]
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                 if self._is_floor or self._is_wifi_floor:
@@ -524,7 +521,6 @@ class Neviweb130Thermostat(ClimateEntity):
             data = {'wattage': self._wattage}
         if self._is_low_wifi:
             data.update({'Source_type': self._heat_source_type,
-                    'Setpoint': self._setpoint,
                     'Temp_display_status': self._temp_display_status,
                     'Temp_display_value': self._temp_display_value})
         if self._is_floor or self._is_wifi_floor:
