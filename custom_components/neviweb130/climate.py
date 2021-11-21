@@ -577,7 +577,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'load_watt': self._wattage,
                     'setpoint_away': self._target_temp_away,
                     'aux_cycle_length': self._aux_cycle_length,
-                    'cycle_length': self._cycle_lenght,
+                    'cycle_length': self._cycle_length,
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
                     'pump_protection_frequency': self._pump_protec_freq})
