@@ -110,6 +110,7 @@ from .const import (
     SERVICE_SET_SETPOINT_MAX,
     SERVICE_SET_SETPOINT_MIN,
     SERVICE_SET_FLOOR_AIR_LIMIT,
+    SERVICE_SET_EARLY_START,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -210,6 +211,13 @@ SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema(
          vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(
              vol.Coerce(float), vol.Range(min=0, max=36)
          ),
+    }
+)
+
+SET_EARLY_START_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_EARLY_START): cv.string,
     }
 )
 
@@ -320,6 +328,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_early_start_service(service):
+        """ set early heating on/off for wifi thermostat """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "start": service.data[ATTR_EARLY_START]}
+                thermostat.set_early_start(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -374,6 +393,13 @@ async def async_setup_platform(
         SERVICE_SET_FLOOR_AIR_LIMIT,
         set_floor_air_limit_service,
         schema=SET_FLOOR_AIR_LIMIT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_EARLY_START,
+        set_early_start_service,
+        schema=SET_EARLY_START_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -779,6 +805,14 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_floor_air_limit(
             entity, status, temp)
         self._floor_air_limit = temp
+
+    def set_early_start(self, value):
+        """ set early heating on/off for wifi thermostat """
+        start = value["start"]
+        entity = value["id"]
+        self._client.set_early_start(
+            entity, start)
+        self._early_start = start
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
