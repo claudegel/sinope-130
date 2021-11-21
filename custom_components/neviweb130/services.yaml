@@ -188,3 +188,13 @@ set_valve_temp_alert:
     alertLowTemp:
       description: Set to 1 = «true», send alert or to 0 = «false», do nothing.
       example: 1
+
+set_early_start:
+  description: Set thermostats early start for heating (for wifi thermostat).
+  fields:
+    entity_id:
+      description: Name of neviweb130 thermostat wifi device.
+      example: "climate.neviweb130_climate_kitchen"
+    earlyStartCfg:
+      description: Set to «on», or to «off» to start/stop early heating on thermostat.
+      example: "on"

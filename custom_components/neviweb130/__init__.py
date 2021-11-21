@@ -42,9 +42,10 @@ from .const import (
     ATTR_MOTOR_TARGET,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_SIGNATURE,
+    ATTR_EARLY_START,
 )
 
-VERSION = '0.6.2'
+VERSION = '0.7.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -355,6 +356,12 @@ class Neviweb130Client(object):
             temp = Null
         data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
         _LOGGER.debug("floorairlimit.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_early_start(self, device_id, start):
+        """Set early start on/off for wifi thermostats."""
+        data = {ATTR_EARLY_START: start}
+        _LOGGER.debug("early_start.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_setpoint_min(self, device_id, temp):
