@@ -576,7 +576,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'floor_sensor_type': self._floor_sensor_type,
                     'load_watt': self._wattage,
                     'setpoint_away': self._target_temp_away,
-                    'aux_cycle_length': self._aux_cycle_lenght,
+                    'aux_cycle_length': self._aux_cycle_length,
                     'cycle_length': self._cycle_lenght,
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
