@@ -469,7 +469,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_wifi_floor:
-            WIFI_FLOOR_ATTRIBUTE = [ATTR_WIFI_FLOOR_OUTPUT1, ATTR_FLOOR_MAX, ATTR_FLOOR_MIM]
+            WIFI_FLOOR_ATTRIBUTE = [ATTR_FLOOR_MAX, ATTR_FLOOR_MIM]
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
