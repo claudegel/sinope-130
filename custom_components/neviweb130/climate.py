@@ -634,7 +634,7 @@ class Neviweb130Thermostat(ClimateEntity):
                          'occupancy': self._occupancy,
                          'backlight': self._backlight})
         if self._is_wifi_floor:
-            data.update({'connected_load': self._load1,
+            data.update({'load_watt_1': self._load1,
                          'gfci_alert': self._gfci_alert})
         data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
