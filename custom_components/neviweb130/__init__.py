@@ -45,7 +45,7 @@ from .const import (
     ATTR_EARLY_START,
 )
 
-VERSION = '0.7.5'
+VERSION = '0.8.0'
 
 _LOGGER = logging.getLogger(__name__)
 
