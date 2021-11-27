@@ -502,11 +502,11 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
-            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY]
+            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY, ATTR_BACKLIGHT_AUTO_DIM]
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT]
         if self._is_low_wifi:
-            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_ROOM_TEMP_DISPLAY, ATTR_FLOOR_MODE, ATTR_BACKLIGHT_AUTO_DIM, ATTR_EARLY_START, ATTR_FLOOR_SENSOR, ATTR_ROOM_SETPOINT_AWAY, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
+            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_ROOM_TEMP_DISPLAY, ATTR_FLOOR_MODE, ATTR_EARLY_START, ATTR_FLOOR_SENSOR, ATTR_ROOM_SETPOINT_AWAY, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
         else:
             LOW_WIFI_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -543,12 +543,12 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._rssi = device_data[ATTR_WIFI]
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     if self._is_low_wifi:
                         self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                        self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                         self._early_start= device_data[ATTR_EARLY_START]
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                         self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
