@@ -198,3 +198,13 @@ set_early_start:
     earlyStartCfg:
       description: Set to «on», or to «off» to start/stop early heating on thermostat.
       example: "on"
+
+set_air_floor_mode:
+  description: Set floor thermostat control mode via Ambiant or Floor temperature sensor.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 floor thermostat.
+      example: "climate.neviweb130_climate_plancher_cuisine"
+    airFloorMode:
+      description: Set to "airByFloor" = «Air», ambiant temperature sensor or to "floor" = «Floor», floor temperature sensor.
+      example: "floor"
