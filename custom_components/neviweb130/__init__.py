@@ -43,6 +43,7 @@ from .const import (
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_SIGNATURE,
     ATTR_EARLY_START,
+    ATTR_FLOOR_MODE,
 )
 
 VERSION = '0.8.0'
@@ -362,6 +363,12 @@ class Neviweb130Client(object):
         """Set early start on/off for wifi thermostats."""
         data = {ATTR_EARLY_START: start}
         _LOGGER.debug("early_start.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_air_floor_mode(self, device_id, mode):
+        """switch temperature control between floor and ambiant sensor."""
+        data = {ATTR_FLOOR_MODE: mode}
+        _LOGGER.debug("floor_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_setpoint_min(self, device_id, temp):
