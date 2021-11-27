@@ -74,6 +74,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_AWAY,
     ATTR_WATTAGE,
     ATTR_GFCI_STATUS,
+    ATTR_GFCI_ALERT,
     ATTR_FLOOR_MODE,
     ATTR_OCCUPANCY,
     ATTR_FLOOR_AUX,
@@ -421,11 +422,13 @@ class Neviweb130Thermostat(ClimateEntity):
         self._heat_level = 0
         self._heat_source_type = None
         self._gfci_status = None
+        self._gfci_alert = None
         self._floor_mode = None
         self._floor_sensor_type = None
         self._aux_heat = None
         self._early_start = "off"
         self._keypad = None
+        self._load1 = 0
         self._load2 = 0
         self._load2_status = None
         self._rssi = None
@@ -469,7 +472,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_wifi_floor:
-            WIFI_FLOOR_ATTRIBUTE = [ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
+            WIFI_FLOOR_ATTRIBUTE = [ATTR_FLOOR_OUTPUT1, ATTR_GFCI_ALERT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
@@ -557,7 +560,8 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                     else:
-                        self._load2_status = None
+                        self._gfci_alert = device_data[ATTR_GFCI_ALERT]
+                        self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -629,6 +633,9 @@ class Neviweb130Thermostat(ClimateEntity):
             data.update({'second_display': self._wifi_display2,
                          'occupancy': self._occupancy,
                          'backlight': self._backlight})
+        if self._is_wifi_floor:
+            data.update({'load_watt_1': self._load1,
+                         'gfci_alert': self._gfci_alert})
         data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
                      'backlight': self._backlight,
