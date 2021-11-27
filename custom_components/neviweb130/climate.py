@@ -112,6 +112,7 @@ from .const import (
     SERVICE_SET_SETPOINT_MIN,
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_EARLY_START,
+    SERVICE_SET_AIR_FLOOR_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -219,6 +220,13 @@ SET_EARLY_START_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_EARLY_START): cv.string,
+    }
+)
+
+SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_FLOOR_MODE): cv.string,
     }
 )
 
@@ -340,6 +348,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_air_floor_mode_service(service):
+        """ switch between ambiant or floor temperature sensor """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "mode": service.data[ATTR_FLOOR_MODE]}
+                thermostat.set_air_floor_mode(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -401,6 +420,13 @@ async def async_setup_platform(
         SERVICE_SET_EARLY_START,
         set_early_start_service,
         schema=SET_EARLY_START_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AIR_FLOOR_MODE,
+        set_air_floor_mode_service,
+        schema=SET_AIR_FLOOR_MODE_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -784,6 +810,14 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_temperature_format(
             entity, temp)
         self._temperature_format = temp
+
+    def set_air_floor_mode(self, value):
+        """switch temperature control between floor and ambiant sensor"""
+        mode = value["mode"]
+        entity = value["id"]
+        self._client.set_air_floor_mode(
+            entity, mode)
+        self._floor_mode = mode
 
     def set_setpoint_max(self, value):
         """set maximum setpoint temperature"""
