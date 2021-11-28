@@ -101,11 +101,14 @@ set_second_display:
       example: "outsideTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on.
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; wifi or zigbee
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
       example: "climate.neviweb130_climate_office"
+    type:
+      description: «wifi» for wifi devices or «zigbee» for zigbee devices
+      example: "wifi"
     backlightAdaptive:
       description: «auto» or «on».
       example: "auto"
@@ -198,3 +201,13 @@ set_early_start:
     earlyStartCfg:
       description: Set to «on», or to «off» to start/stop early heating on thermostat.
       example: "on"
+
+set_air_floor_mode:
+  description: Set floor thermostat control mode via Ambiant or Floor temperature sensor.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 floor thermostat.
+      example: "climate.neviweb130_climate_plancher_cuisine"
+    airFloorMode:
+      description: Set to «airByFloor» for ambiant temperature sensor or to «floor» for floor temperature sensor.
+      example: "floor"

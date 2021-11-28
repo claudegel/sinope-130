@@ -66,6 +66,7 @@ ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
 ATTR_PUMP_PROTEC = "pumpProtection" #status on/off, duration, frequency
+ATTR_TYPE = "type"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
@@ -95,3 +96,4 @@ SERVICE_SET_SENSOR_ALERT = "set_sensor_alert"
 SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_FLOOR_AIR_LIMIT = "set_floor_air_limit"
+SERVICE_SET_AIR_FLOOR_MODE = "set_air_floor_mode"

@@ -98,6 +98,7 @@ from .const import (
     ATTR_AUX_CYCLE,
     ATTR_CYCLE,
     ATTR_PUMP_PROTEC,
+    ATTR_TYPE,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -112,6 +113,7 @@ from .const import (
     SERVICE_SET_SETPOINT_MIN,
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_EARLY_START,
+    SERVICE_SET_AIR_FLOOR_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -161,6 +163,7 @@ SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TYPE): cv.string,
          vol.Required(ATTR_BACKLIGHT): cv.string,
     }
 )
@@ -222,6 +225,13 @@ SET_EARLY_START_SCHEMA = vol.Schema(
     }
 )
 
+SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_FLOOR_MODE): cv.string,
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -258,7 +268,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_BACKLIGHT]}
+                value = {"id": thermostat.unique_id, "type": service.data[ATTR_TYPE], "level": service.data[ATTR_BACKLIGHT]}
                 thermostat.set_backlight(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -340,6 +350,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_air_floor_mode_service(service):
+        """ switch between ambiant or floor temperature sensor """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "mode": service.data[ATTR_FLOOR_MODE]}
+                thermostat.set_air_floor_mode(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -401,6 +422,13 @@ async def async_setup_platform(
         SERVICE_SET_EARLY_START,
         set_early_start_service,
         schema=SET_EARLY_START_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AIR_FLOOR_MODE,
+        set_air_floor_mode_service,
+        schema=SET_AIR_FLOOR_MODE_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -476,11 +504,11 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
-            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY]
+            WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY, ATTR_BACKLIGHT_AUTO_DIM]
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT]
         if self._is_low_wifi:
-            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_ROOM_TEMP_DISPLAY, ATTR_FLOOR_MODE, ATTR_BACKLIGHT_AUTO_DIM, ATTR_EARLY_START, ATTR_FLOOR_SENSOR, ATTR_ROOM_SETPOINT_AWAY, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
+            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_ROOM_TEMP_DISPLAY, ATTR_FLOOR_MODE, ATTR_EARLY_START, ATTR_FLOOR_SENSOR, ATTR_ROOM_SETPOINT_AWAY, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
         else:
             LOW_WIFI_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -517,12 +545,12 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._rssi = device_data[ATTR_WIFI]
                     self._wifi_display2 = device_data[ATTR_WIFI_DISPLAY2]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     if self._is_low_wifi:
                         self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                        self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                         self._early_start= device_data[ATTR_EARLY_START]
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                         self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -739,30 +767,36 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on"""
+        """fonction differently for zigbee and wifi devices"""
         level = value["level"]
+        device = value["type"]
         entity = value["id"]
         if level == "on":
-            level_command = "always"
+            if device == "wifi":
+                level_command = "alwaysOn"
+            else:
+                level_command = "always"
             level_name = "On"
         else:
-            level_command = "onActive"
+            if device == "wifi":
+                level_command = "onUserActive"
+            else:
+                level_command = "onActive"
             level_name = "Auto"
         self._client.set_backlight(
-            entity, level_command)
+            entity, level_command, device)
         self._backlight = level_name
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked"""
         lock = value["lock"]
         entity = value["id"]
-#        lock_key = ATTR_FLOOR_OUTPUT2+':{"status":self._load2_status,"value":self._load2}'
-        lock_key = "on"
         if lock == "locked":
             lock_name = "Locked"
         else:
             lock_name = "Unlocked"
         self._client.set_keypad_lock(
-            entity, lock, lock_key)
+            entity, lock)
         self._keypad = lock_name
 
     def set_time_format(self, value):
@@ -784,6 +818,14 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_temperature_format(
             entity, temp)
         self._temperature_format = temp
+
+    def set_air_floor_mode(self, value):
+        """switch temperature control between floor and ambiant sensor"""
+        mode = value["mode"]
+        entity = value["id"]
+        self._client.set_air_floor_mode(
+            entity, mode)
+        self._floor_mode = mode
 
     def set_setpoint_max(self, value):
         """set maximum setpoint temperature"""

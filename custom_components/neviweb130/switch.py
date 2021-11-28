@@ -422,13 +422,12 @@ class Neviweb130Switch(SwitchEntity):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
         lock = value["lock"]
         entity = value["id"]
-        key = "off"
         if lock == "locked":
             lock_name = "Locked"
         else:
             lock_name = "Unlocked"
         self._client.set_keypad_lock(
-            entity, lock, key)
+            entity, lock)
         self._keypad = lock_name
 
     def set_timer(self, value):
