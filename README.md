@@ -125,6 +125,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_valve_alert to set low battery alert status
 - neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve
 - neviweb130.set_early_start to set early heating on/off for wifi thermostats
+- neviweb130.set_air_floor_mode to switch between floor or ambiant temperature sensor to control room temperature
 
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
