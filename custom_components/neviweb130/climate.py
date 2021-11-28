@@ -98,6 +98,7 @@ from .const import (
     ATTR_AUX_CYCLE,
     ATTR_CYCLE,
     ATTR_PUMP_PROTEC,
+    ATTR_TYPE,
     MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
@@ -162,6 +163,7 @@ SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TYPE): cv.string,
          vol.Required(ATTR_BACKLIGHT): cv.string,
     }
 )
@@ -266,7 +268,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_BACKLIGHT]}
+                value = {"id": thermostat.unique_id, "type": service.data[ATTR_TYPE], "level": service.data[ATTR_BACKLIGHT]}
                 thermostat.set_backlight(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -765,16 +767,24 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on"""
+        """fonction differently for zigbee and wifi devices"""
         level = value["level"]
+        device = value["type"]
         entity = value["id"]
         if level == "on":
-            level_command = "always"
+            if device == "wifi":
+                level_command = "alwaysOn"
+            else:
+                level_command = "always"
             level_name = "On"
         else:
-            level_command = "onActive"
+            if device == "wifi":
+                level_command = "onUserActive"
+            else:
+                level_command = "onActive"
             level_name = "Auto"
         self._client.set_backlight(
-            entity, level_command)
+            entity, level_command,device)
         self._backlight = level_name
 
     def set_keypad_lock(self, value):
