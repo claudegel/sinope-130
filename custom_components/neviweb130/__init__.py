@@ -26,6 +26,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_KEYPAD,
     ATTR_BACKLIGHT,
+    ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_WIFI_DISPLAY2,
     ATTR_TIMER,
     ATTR_TIME,
@@ -312,9 +313,13 @@ class Neviweb130Client(object):
         data = {ATTR_ROOM_SETPOINT: temperature}
         self.set_device_attributes(device_id, data)
 
-    def set_backlight(self, device_id, level):
-        """ Set backlight intensity when idle, on or auto"""
-        data = {ATTR_BACKLIGHT: level,"loadWattOutput2":{"status":"off","value":0}}
+    def set_backlight(self, device_id, level, device):
+        """ Set backlight intensity when idle, on or auto """
+        """ Work differently for wifi and zigbee devices """
+        if device == "wifi":
+            data = {ATTR_BACKLIGHT_AUTO_DIM: level}
+        else:
+            data = {ATTR_BACKLIGHT: level}
         _LOGGER.debug("backlight.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -324,12 +329,9 @@ class Neviweb130Client(object):
         _LOGGER.debug("display.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_keypad_lock(self, device_id, lock, key):
+    def set_keypad_lock(self, device_id, lock):
         """Set device keyboard locked/unlocked."""
-        if key == "off":
-            data = {ATTR_KEYPAD: lock}
-        else:
-            data = {ATTR_KEYPAD:lock,"loadWattOutput2":{"status":"off","value":0}}
+        data = {ATTR_KEYPAD: lock}
         _LOGGER.debug("lock.data = %s", data)
         self.set_device_attributes(device_id, data)
 
