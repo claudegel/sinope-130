@@ -784,21 +784,19 @@ class Neviweb130Thermostat(ClimateEntity):
                 level_command = "onActive"
             level_name = "Auto"
         self._client.set_backlight(
-            entity, level_command,device)
+            entity, level_command, device)
         self._backlight = level_name
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked"""
         lock = value["lock"]
         entity = value["id"]
-#        lock_key = ATTR_FLOOR_OUTPUT2+':{"status":self._load2_status,"value":self._load2}'
-        lock_key = "on"
         if lock == "locked":
             lock_name = "Locked"
         else:
             lock_name = "Unlocked"
         self._client.set_keypad_lock(
-            entity, lock, lock_key)
+            entity, lock)
         self._keypad = lock_name
 
     def set_time_format(self, value):
