@@ -66,6 +66,7 @@ ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
 ATTR_PUMP_PROTEC = "pumpProtection" #status on/off, duration, frequency
+ATTR_TYPE = "type"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
