@@ -132,17 +132,27 @@ UPDATE_ATTRIBUTES = [
     ATTR_TEMP,
 ]
 
-SUPPORTED_HVAC_MODES = [
+SUPPORTED_HVAC_WIFI_MODES = [
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
 ]
 
+SUPPORTED_HVAC_MODES = [
+    HVAC_MODE_OFF,
+    HVAC_MODE_HEAT,
+]
+
 PRESET_BYPASS = 'temporary'
-PRESET_MODES = [
+PRESET_WIFI_MODES = [
     PRESET_NONE,
     PRESET_AWAY,
     PRESET_BYPASS,
+]
+
+PRESET_MODES = [
+    PRESET_NONE,
+    PRESET_AWAY,
 ]
 
 DEVICE_MODEL_LOW = [7372]
@@ -708,7 +718,10 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_modes(self):
         """Return the list of available operation modes."""
-        return SUPPORTED_HVAC_MODES
+        if self._is_wifi:
+            return SUPPORTED_HVAC_WIFI_MODES
+        else:
+            return SUPPORTED_HVAC_MODES
 
     @property
     def current_temperature(self):
@@ -723,7 +736,10 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_modes(self):
         """Return available preset modes."""
-        return PRESET_MODES
+        if self._is_wifi:
+            return PRESET_WIFI_MODES
+        else:
+            return PRESET_MODES
 
     @property
     def preset_mode(self):
@@ -878,7 +894,6 @@ class Neviweb130Thermostat(ClimateEntity):
         """Activate a preset."""
         if preset_mode == self.preset_mode:
             return
-
         if preset_mode == PRESET_AWAY:
             self._client.set_setpoint_mode(self._id, MODE_AWAY)
         elif preset_mode == PRESET_BYPASS:
