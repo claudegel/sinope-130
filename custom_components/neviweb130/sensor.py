@@ -259,7 +259,7 @@ class Neviweb130Sensor(Entity):
         return self._level_status != None
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
         if self._is_monitor:
