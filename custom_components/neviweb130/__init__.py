@@ -47,7 +47,7 @@ from .const import (
     ATTR_FLOOR_MODE,
 )
 
-VERSION = '0.8.1'
+VERSION = '0.8.2'
 
 _LOGGER = logging.getLogger(__name__)
 
