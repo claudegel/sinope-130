@@ -250,6 +250,7 @@ async def async_setup_platform(
         SERVICE_SET_PHASE_CONTROL,
         set_phase_control_service,
         schema=SET_PHASE_CONTROL_SCHEMA,
+    )
 
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
