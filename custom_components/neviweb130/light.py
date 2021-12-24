@@ -71,22 +71,20 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = 'neviweb130 light'
 
 UPDATE_ATTRIBUTES = [
-    ATTR_INTENSITY,
     ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
-    ATTR_LIGHT_WATTAGE,
     ATTR_KEYPAD,
     ATTR_TIMER,
     ATTR_LED_ON_INTENSITY,
     ATTR_LED_OFF_INTENSITY,
     ATTR_LED_ON_COLOR,
     ATTR_LED_OFF_COLOR,
-    ATTR_PHASE_CONTROL,
 ]
 
-DEVICE_MODEL_DIMMER = [2131, 2132]
+DEVICE_MODEL_DIMMER = [2131]
+DEVICE_MODEL_NEW_DIMMER = [2132]
 DEVICE_MODEL_LIGHT = [2121]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER + DEVICE_MODEL_NEW_DIMMER
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
@@ -277,15 +275,21 @@ class Neviweb130Light(LightEntity):
         self._intensity_min = 600
         self._wattage = None
         self._is_dimmable = device_info["signature"]["model"] in \
-            DEVICE_MODEL_DIMMER
+            DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
+        self._is_new_dimmable = device_info["signature"]["model"] in \
+            DEVICE_MODEL_NEW_DIMMER
         self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
         """Get the latest data from neviweb and update the state."""
+        if not self._is_new_dimmable:
+            WATT_ATTRIBUTE = [ATTR_INTENSITY, ATTR_LIGHT_WATTAGE]
+        else:
+            WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL]
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -293,13 +297,15 @@ class Neviweb130Light(LightEntity):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 if self._is_dimmable:   
-                    self._brightness_pct = device_data[ATTR_INTENSITY] if \
-                        device_data[ATTR_INTENSITY] is not None else 0.0
+                    if ATTR_INTENSITY in device_data:
+                        self._brightness_pct = device_data[ATTR_INTENSITY] if \
+                            device_data[ATTR_INTENSITY] is not None else 0.0
                     self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                     if ATTR_PHASE_CONTROL in device_data:
                         self._phase_control = device_data[ATTR_PHASE_CONTROL]
                 self._onOff = device_data[ATTR_ONOFF]
-                self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                if ATTR_LIGHT_WATTAGE in device_data:
+                    self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
@@ -340,8 +346,9 @@ class Neviweb130Light(LightEntity):
         data = {}
         if self._is_dimmable:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
-                    'phase_control': self._phase_control,
                     'minimum_intensity': self._intensity_min}
+        if self._is_new_dimmable:
+            data.update({'phase_control': self._phase_control})
         data.update({'onOff': self._onOff,
                      'wattage': self._wattage,
                      'keypad': self._keypad,
