@@ -61,6 +61,7 @@ from .const import (
     SERVICE_SET_LED_INDICATOR,
     SERVICE_SET_LIGHT_KEYPAD_LOCK,
     SERVICE_SET_LIGHT_TIMER,
+    SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
 )
 
@@ -131,6 +132,13 @@ SET_WATTAGE_SCHEMA = vol.Schema(
     }
 )
 
+SET_PHASE_CONTROL_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_PHASE_CONTROL): cv.string,
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -196,6 +204,17 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
+    def set_phase_control_service(service):
+        """ Change phase control mode for dimmer device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "phase": service.data[ATTR_PHASE_CONTROL]}
+                light.set_phase_control(value)
+                light.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_LIGHT_KEYPAD_LOCK,
@@ -223,6 +242,12 @@ async def async_setup_platform(
         set_wattage_service,
         schema=SET_WATTAGE_SCHEMA,
     )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_PHASE_CONTROL,
+        set_phase_control_service,
+        schema=SET_PHASE_CONTROL_SCHEMA,
 
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
@@ -355,7 +380,7 @@ class Neviweb130Light(LightEntity):
         entity = value["id"]
         self._client.set_phase(
             entity, phase)
-        self._keypad = phase
+        self._phase_control = phase
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
