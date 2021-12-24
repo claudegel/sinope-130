@@ -71,6 +71,7 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = 'neviweb130 light'
 
 UPDATE_ATTRIBUTES = [
+    ATTR_INTENSITY,
     ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
     ATTR_KEYPAD,
@@ -284,7 +285,7 @@ class Neviweb130Light(LightEntity):
     def update(self):
         """Get the latest data from neviweb and update the state."""
         if not self._is_new_dimmable:
-            WATT_ATTRIBUTE = [ATTR_INTENSITY, ATTR_LIGHT_WATTAGE]
+            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE]
         else:
             WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL]
         start = time.time()
