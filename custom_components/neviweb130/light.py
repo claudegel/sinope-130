@@ -338,7 +338,7 @@ class Neviweb130Light(LightEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if self._is_dimmable and self._brightness_pct:
+        if self._is_dimmable:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                     'phase_control': self._phase_control,
                     'minimum_intensity': self._intensity_min}
