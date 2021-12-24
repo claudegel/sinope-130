@@ -42,6 +42,7 @@ from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
     ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
     ATTR_LIGHT_WATTAGE,
     ATTR_KEYPAD,
@@ -71,6 +72,7 @@ DEFAULT_NAME = 'neviweb130 light'
 
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
     ATTR_LIGHT_WATTAGE,
     ATTR_KEYPAD,
@@ -271,6 +273,7 @@ class Neviweb130Light(LightEntity):
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
         self._phase_control = None
+        self._intensity_min = 600
         self._wattage = None
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
@@ -291,14 +294,15 @@ class Neviweb130Light(LightEntity):
                 if self._is_dimmable:   
                     self._brightness_pct = device_data[ATTR_INTENSITY] if \
                         device_data[ATTR_INTENSITY] is not None else 0.0
+                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
+                    if ATTR_PHASE_CONTROL in device_data:
+                        self._phase_control = device_data[ATTR_PHASE_CONTROL]
                 self._onOff = device_data[ATTR_ONOFF]
                 self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
                 self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
-                if ATTR_PHASE_CONTROL in device_data:
-                    self._phase_control = device_data[ATTR_PHASE_CONTROL]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -335,7 +339,8 @@ class Neviweb130Light(LightEntity):
         data = {}
         if self._is_dimmable and self._brightness_pct:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
-                    'phase_control': self._phase_control}
+                    'phase_control': self._phase_control,
+                    'minimum_intensity': self._intensity_min}
         data.update({'onOff': self._onOff,
                      'wattage': self._wattage,
                      'keypad': self._keypad,
