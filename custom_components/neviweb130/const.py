@@ -67,6 +67,7 @@ ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
 ATTR_PUMP_PROTEC = "pumpProtection" #status on/off, duration, frequency
 ATTR_TYPE = "type"
+ATTR_PHASE_CONTROL = "phaseControl"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
