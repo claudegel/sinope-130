@@ -4,7 +4,7 @@ Support for Neviweb light switch/dimmer connected to GT130 ZigBee.
 model 2121 = light switch SW2500ZB
 model 2131 = light dimmer DM2500ZB
 model 2132 = light dimmer DM2550ZB
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 import logging
@@ -280,7 +280,7 @@ class Neviweb130Light(LightEntity):
             DEVICE_MODEL_NEW_DIMMER
         self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
-        
+
     def update(self):
         """Get the latest data from neviweb and update the state."""
         if not self._is_new_dimmable:
@@ -296,7 +296,7 @@ class Neviweb130Light(LightEntity):
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                if self._is_dimmable:   
+                if self._is_dimmable:
                     if ATTR_INTENSITY in device_data:
                         self._brightness_pct = device_data[ATTR_INTENSITY] if \
                             device_data[ATTR_INTENSITY] is not None else 0.0
@@ -317,14 +317,14 @@ class Neviweb130Light(LightEntity):
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
-        
+
     @property
     def supported_features(self):
         """Return the list of supported features."""
         if self._is_dimmable:
             return SUPPORT_BRIGHTNESS
         return 0
-    
+
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb device ID."""
@@ -357,7 +357,7 @@ class Neviweb130Light(LightEntity):
                      'led_off': self._led_off,
                      'id': self._id})
         return data
-    
+
     @property
     def brightness(self):
         """Return intensity of light"""
@@ -373,7 +373,7 @@ class Neviweb130Light(LightEntity):
     # command. But since we update the state every 6 minutes, there is good
     # chance that the current stored state doesn't match with real device 
     # state. So we force the set_brightness each time.
-    
+
     def turn_on(self, **kwargs):
         """Turn the light on."""
         if not self.is_on:
@@ -382,7 +382,7 @@ class Neviweb130Light(LightEntity):
             brightness_pct = \
                 brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
-        
+
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._client.set_onOff(self._id, "off")
