@@ -3,6 +3,7 @@ Need to be changed
 Support for Neviweb light switch/dimmer connected to GT130 ZigBee.
 model 2121 = light switch SW2500ZB
 model 2131 = light dimmer DM2500ZB
+model 2132 = light dimmer DM2550ZB
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -53,6 +54,7 @@ from .const import (
     ATTR_RED,
     ATTR_GREEN,
     ATTR_BLUE,
+    ATTR_PHASE_CONTROL,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -76,9 +78,10 @@ UPDATE_ATTRIBUTES = [
     ATTR_LED_OFF_INTENSITY,
     ATTR_LED_ON_COLOR,
     ATTR_LED_OFF_COLOR,
+    ATTR_PHASE_CONTROL,
 ]
 
-DEVICE_MODEL_DIMMER = [2131]
+DEVICE_MODEL_DIMMER = [2131, 2132]
 DEVICE_MODEL_LIGHT = [2121]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER
 
@@ -242,6 +245,7 @@ class Neviweb130Light(LightEntity):
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
+        self._phase_control = None
         self._wattage = None
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
@@ -268,6 +272,8 @@ class Neviweb130Light(LightEntity):
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
                 self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
+                if ATTR_PHASE_CONTROL in device_data:
+                    self._phase_control = device_data[ATTR_PHASE_CONTROL]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -303,7 +309,8 @@ class Neviweb130Light(LightEntity):
         """Return the state attributes."""
         data = {}
         if self._is_dimmable and self._brightness_pct:
-            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
+            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
+                    'phase_control': self._phase_control}
         data.update({'onOff': self._onOff,
                      'wattage': self._wattage,
                      'keypad': self._keypad,
@@ -341,6 +348,14 @@ class Neviweb130Light(LightEntity):
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._client.set_onOff(self._id, "off")
+
+    def set_phase_control(self, value):
+        """Change phase control parameter, reverse or """
+        phase = value["phase"]
+        entity = value["id"]
+        self._client.set_phase(
+            entity, phase)
+        self._keypad = phase
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
