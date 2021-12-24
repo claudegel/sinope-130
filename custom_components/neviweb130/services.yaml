@@ -207,7 +207,17 @@ set_air_floor_mode:
   fields:
     entity_id:
       description: Name(s) of neviweb130 floor thermostat.
-      example: "climate.neviweb130_climate_plancher_cuisine"
+      example: "climate.neviweb130_climate_kitchen"
     airFloorMode:
       description: Set to «airByFloor» for ambiant temperature sensor or to «floor» for floor temperature sensor.
       example: "floor"
+
+set_phase_control:
+  description: Set dimmer light phase control mode «reverse» or «forward».
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 dimmer light.
+      example: "light.neviweb130_light_kitchen"
+    phaseControl:
+      description: Set to «reverse» or to «forward» for dimmer light phase control.
+      example: "reverse"
