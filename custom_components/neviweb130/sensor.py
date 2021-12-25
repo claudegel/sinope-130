@@ -203,7 +203,6 @@ class Neviweb130Sensor(Entity):
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
-        _LOGGER.warning("Cannot update %s: %s", self._name, device_data)
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
