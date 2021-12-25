@@ -254,11 +254,11 @@ async def async_setup_platform(
 
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
-    return int((brightness * 100.0) / 255.0)
+    return round((brightness * 100.0) / 255.0)
 
 def brightness_from_percentage(percent):
     """Convert percentage to absolute value 0..255."""
-    return int((percent * 255.0) / 100.0)
+    return round((percent * 255.0) / 100.0)
 
 class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light."""
@@ -300,8 +300,8 @@ class Neviweb130Light(LightEntity):
             if "errorCode" not in device_data:
                 if self._is_dimmable:
                     if ATTR_INTENSITY in device_data:
-                        self._brightness_pct = device_data[ATTR_INTENSITY] if \
-                            device_data[ATTR_INTENSITY] is not None else 0.0
+                        self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
+                            device_data[ATTR_INTENSITY] is not None else 0
                     self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                     if ATTR_PHASE_CONTROL in device_data:
                         self._phase_control = device_data[ATTR_PHASE_CONTROL]
@@ -384,7 +384,7 @@ class Neviweb130Light(LightEntity):
             self._client.set_onOff(self._id, "on")
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
             brightness_pct = \
-                brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
+                brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
 
     def turn_off(self, **kwargs):
