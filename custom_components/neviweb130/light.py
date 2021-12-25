@@ -44,7 +44,6 @@ from .const import (
     ATTR_INTENSITY,
     ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
-    ATTR_WATTAGE,
     ATTR_LIGHT_WATTAGE,
     ATTR_KEYPAD,
     ATTR_TIMER,
@@ -288,7 +287,7 @@ class Neviweb130Light(LightEntity):
         if not self._is_new_dimmable:
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE]
         else:
-            WATT_ATTRIBUTE = [ATTR_WATTAGE, ATTR_PHASE_CONTROL]
+            WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL]
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
@@ -308,8 +307,6 @@ class Neviweb130Light(LightEntity):
                 self._onOff = device_data[ATTR_ONOFF]
                 if not self._is_new_dimmable:
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
-                else:
-                    self._wattage = device_data[ATTR_WATTAGE]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
