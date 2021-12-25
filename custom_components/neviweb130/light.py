@@ -318,6 +318,12 @@ class Neviweb130Light(LightEntity):
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
+        elif device_data["error"]["code"] == "ACCSESSEXC":
+            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+        elif device_data["error"]["code"] == "DVCACTNSPTD":
+            _LOGGER.warning("Device action not supported... Report to maintainor.")
+        elif device_data["error"]["code"] == "DVCCOMMTO":
+            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay")
 
     @property
     def supported_features(self):
