@@ -314,7 +314,6 @@ class Neviweb130Light(LightEntity):
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
-        _LOGGER.warning("Cannot update %s: %s", self._name, device_data)
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
@@ -326,7 +325,7 @@ class Neviweb130Light(LightEntity):
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
-            _LOGGER.warning("Unknown error... Report to maintainer.")
+            _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
 
     @property
     def supported_features(self):
