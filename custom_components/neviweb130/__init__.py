@@ -45,9 +45,10 @@ from .const import (
     ATTR_SIGNATURE,
     ATTR_EARLY_START,
     ATTR_FLOOR_MODE,
+    ATTR_PHASE_CONTROL,
 )
 
-VERSION = '0.8.2'
+VERSION = '0.9.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -333,6 +334,12 @@ class Neviweb130Client(object):
         """Set device keyboard locked/unlocked."""
         data = {ATTR_KEYPAD: lock}
         _LOGGER.debug("lock.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_phase(self, device_id, phase):
+        """Set device phase control mode."""
+        data = {ATTR_PHASE_CONTROL: phase}
+        _LOGGER.debug("phase.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):

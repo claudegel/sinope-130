@@ -3,7 +3,8 @@ Need to be changed
 Support for Neviweb light switch/dimmer connected to GT130 ZigBee.
 model 2121 = light switch SW2500ZB
 model 2131 = light dimmer DM2500ZB
-For more details about this platform, please refer to the documentation at  
+model 2132 = light dimmer DM2550ZB
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 import logging
@@ -41,6 +42,7 @@ from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
     ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
     ATTR_LIGHT_WATTAGE,
     ATTR_KEYPAD,
@@ -53,12 +55,14 @@ from .const import (
     ATTR_RED,
     ATTR_GREEN,
     ATTR_BLUE,
+    ATTR_PHASE_CONTROL,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
     SERVICE_SET_LED_INDICATOR,
     SERVICE_SET_LIGHT_KEYPAD_LOCK,
     SERVICE_SET_LIGHT_TIMER,
+    SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
 )
 
@@ -68,8 +72,8 @@ DEFAULT_NAME = 'neviweb130 light'
 
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
-    ATTR_LIGHT_WATTAGE,
     ATTR_KEYPAD,
     ATTR_TIMER,
     ATTR_LED_ON_INTENSITY,
@@ -79,8 +83,9 @@ UPDATE_ATTRIBUTES = [
 ]
 
 DEVICE_MODEL_DIMMER = [2131]
+DEVICE_MODEL_NEW_DIMMER = [2132]
 DEVICE_MODEL_LIGHT = [2121]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER + DEVICE_MODEL_NEW_DIMMER
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
@@ -125,6 +130,13 @@ SET_WATTAGE_SCHEMA = vol.Schema(
          vol.Required(ATTR_LIGHT_WATTAGE): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=1800)
          ),
+    }
+)
+
+SET_PHASE_CONTROL_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_PHASE_CONTROL): cv.string,
     }
 )
 
@@ -193,6 +205,17 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
+    def set_phase_control_service(service):
+        """ Change phase control mode for dimmer device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "phase": service.data[ATTR_PHASE_CONTROL]}
+                light.set_phase_control(value)
+                light.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_LIGHT_KEYPAD_LOCK,
@@ -221,13 +244,20 @@ async def async_setup_platform(
         schema=SET_WATTAGE_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_PHASE_CONTROL,
+        set_phase_control_service,
+        schema=SET_PHASE_CONTROL_SCHEMA,
+    )
+
 def brightness_to_percentage(brightness):
     """Convert brightness from absolute 0..255 to percentage."""
-    return int((brightness * 100.0) / 255.0)
+    return round((brightness * 100.0) / 255.0)
 
 def brightness_from_percentage(percent):
     """Convert percentage to absolute value 0..255."""
-    return int((percent * 255.0) / 100.0)
+    return round((percent * 255.0) / 100.0)
 
 class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light."""
@@ -242,28 +272,41 @@ class Neviweb130Light(LightEntity):
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
+        self._phase_control = None
+        self._intensity_min = 600
         self._wattage = None
         self._is_dimmable = device_info["signature"]["model"] in \
-            DEVICE_MODEL_DIMMER
+            DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
+        self._is_new_dimmable = device_info["signature"]["model"] in \
+            DEVICE_MODEL_NEW_DIMMER
         self._onOff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
-        
+
     def update(self):
         """Get the latest data from neviweb and update the state."""
+        if not self._is_new_dimmable:
+            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE]
+        else:
+            WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL]
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES)
+            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                if self._is_dimmable:   
-                    self._brightness_pct = device_data[ATTR_INTENSITY] if \
-                        device_data[ATTR_INTENSITY] is not None else 0.0
+                if self._is_dimmable:
+                    if ATTR_INTENSITY in device_data:
+                        self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
+                            device_data[ATTR_INTENSITY] is not None else 0
+                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
+                    if ATTR_PHASE_CONTROL in device_data:
+                        self._phase_control = device_data[ATTR_PHASE_CONTROL]
                 self._onOff = device_data[ATTR_ONOFF]
-                self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                if not self._is_new_dimmable:
+                    self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
@@ -275,14 +318,14 @@ class Neviweb130Light(LightEntity):
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
-        
+
     @property
     def supported_features(self):
         """Return the list of supported features."""
         if self._is_dimmable:
             return SUPPORT_BRIGHTNESS
         return 0
-    
+
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb device ID."""
@@ -302,17 +345,21 @@ class Neviweb130Light(LightEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if self._is_dimmable and self._brightness_pct:
-            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct}
+        if self._is_dimmable:
+            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
+                    'minimum_intensity': self._intensity_min}
+        if self._is_new_dimmable:
+            data.update({'phase_control': self._phase_control})
+        else:
+            data.update({'wattage': self._wattage})
         data.update({'onOff': self._onOff,
-                     'wattage': self._wattage,
                      'keypad': self._keypad,
                      'timer': self._timer,
                      'led_on': self._led_on,
                      'led_off': self._led_off,
                      'id': self._id})
         return data
-    
+
     @property
     def brightness(self):
         """Return intensity of light"""
@@ -328,19 +375,27 @@ class Neviweb130Light(LightEntity):
     # command. But since we update the state every 6 minutes, there is good
     # chance that the current stored state doesn't match with real device 
     # state. So we force the set_brightness each time.
-    
+
     def turn_on(self, **kwargs):
         """Turn the light on."""
         if not self.is_on:
             self._client.set_onOff(self._id, "on")
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
             brightness_pct = \
-                brightness_to_percentage(int(kwargs.get(ATTR_BRIGHTNESS)))
+                brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
-        
+
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._client.set_onOff(self._id, "off")
+
+    def set_phase_control(self, value):
+        """Change phase control parameter, reverse or """
+        phase = value["phase"]
+        entity = value["id"]
+        self._client.set_phase(
+            entity, phase)
+        self._phase_control = phase
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
