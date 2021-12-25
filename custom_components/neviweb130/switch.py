@@ -317,7 +317,7 @@ class Neviweb130Switch(SwitchEntity):
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
-            _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name,device_data)
+            _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
 
     @property
     def unique_id(self):
