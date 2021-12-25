@@ -15,18 +15,19 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1300ZB 3600W Floor heating thermostat
   - Sinopé TH1400ZB Low voltage thermostat
   - Sinopé TH1500ZB 3600W double pole thermostat
-  - Ouellet OTH4000-ZB 4000W Line voltage thermostat
   - Ouellet OTH3600-GA-ZB Floor thermostat
+  - Ouellet OTH4000-ZB 4000W Line voltage thermostat
 - Wifi thermostats (no need for GT130)
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
-  - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
+  - Sinopé TH1400WF wifi low voltage thermostat
   - Flextherm concerto connect FLP55 floor thermostat 
 - Zigbee lighting
   - Sinopé SW2500ZB Light switch
-  - Sinopé DM2500ZB Dimmer 
+  - Sinopé DM2500ZB Dimmer
+  - Sinopé DM2550ZB Dimmer
 - Zigbee specialized Control
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé SP2610ZB in-wall outlet
@@ -35,8 +36,14 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
   - Sinopé VA4200ZB, VA4220ZB, sedna valve 3/4 inch zigbee
+  - Sinopé VA4220WZ, sedna 2e gen 3/4 inch
+  - Sinopé VA4220WF, sedna 2e gen 3/4 inch, wifi
+  - Sinopé VA4221WZ, sedna 2e gen 1 inch
+  - Sinopé VA4221WF, sedna 2e gen 1 inch, wifi
   - Sinopé WL4200,   water leak detector
   - Sinopé WL4200S,  water leak detector with sensor
+  - Sinopé WL4200C,  perimeter cable water leak detector
+  - Sinopé WL4200ZB, water leak detector
 - Tank level monitor
   - Sinopé LM4110-ZB, level monitor
 
@@ -126,6 +133,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve
 - neviweb130.set_early_start to set early heating on/off for wifi thermostats
 - neviweb130.set_air_floor_mode to switch between floor or ambiant temperature sensor to control room temperature
+- neviweb130.set_phase_control to set phase control mode for DM2550ZB dimmer (reverse or forward)
 
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
