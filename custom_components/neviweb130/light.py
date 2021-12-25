@@ -350,8 +350,9 @@ class Neviweb130Light(LightEntity):
                     'minimum_intensity': self._intensity_min}
         if self._is_new_dimmable:
             data.update({'phase_control': self._phase_control})
+        else:
+            data.update({'wattage': self._wattage})
         data.update({'onOff': self._onOff,
-                     'wattage': self._wattage,
                      'keypad': self._keypad,
                      'timer': self._timer,
                      'led_on': self._led_on,
