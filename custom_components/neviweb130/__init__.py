@@ -48,7 +48,7 @@ from .const import (
     ATTR_PHASE_CONTROL,
 )
 
-VERSION = '0.9.1'
+VERSION = '0.9.2'
 
 _LOGGER = logging.getLogger(__name__)
 
