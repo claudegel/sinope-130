@@ -243,7 +243,7 @@ class Neviweb130Switch(SwitchEntity):
         self._timer = 0
         self._keypad = None
         self._drstatus_active = None
-        self._drstatus_out = None
+        self._drstatus_optout = None
         self._drstatus_onoff = None
         self._battery_alert = None
         self._temp_alert = None
@@ -297,7 +297,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._timer = device_data[ATTR_TIMER]
                     self._onOff = device_data[ATTR_ONOFF]
                     self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
-                    self._drstatus_out = device_data[ATTR_DRSTATUS]["optOut"]
+                    self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
                     self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
@@ -389,7 +389,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Keypad': self._keypad,
                    'Timer': self._timer,
                    'drstatus_active': self._drstatus_active,
-                   'drstatus_optOut': self._drstatus_out,
+                   'drstatus_optOut': self._drstatus_optout,
                    'drstatus_onoff': self._drstatus_onoff}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
