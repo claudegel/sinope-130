@@ -242,9 +242,9 @@ class Neviweb130Switch(SwitchEntity):
         self._temp_alarm = None
         self._timer = 0
         self._keypad = None
-        self._drstatus_active = None
-        self._drstatus_optout = None
-        self._drstatus_onoff = None
+        self._drstatus_active = "off"
+        self._drstatus_optout = "off"
+        self._drstatus_onoff = "off"
         self._battery_alert = None
         self._temp_alert = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -388,9 +388,9 @@ class Neviweb130Switch(SwitchEntity):
                    'Wattage': self._wattage,
                    'Keypad': self._keypad,
                    'Timer': self._timer,
-                   'drstatus_active': self._drstatus_active,
-                   'drstatus_optOut': self._drstatus_optout,
-                   'drstatus_onoff': self._drstatus_onoff}
+                   'eco_status': self._drstatus_active,
+                   'eco_optOut': self._drstatus_optout,
+                   'eco_onoff': self._drstatus_onoff}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature_alarm': self._temp_alarm,
