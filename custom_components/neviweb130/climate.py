@@ -43,7 +43,6 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     ATTR_TEMPERATURE,
@@ -60,6 +59,8 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
+
+from homeassistant.components.sensor import SensorDeviceClass
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -635,7 +636,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def device_class(self):
         """Return the device class of this entity."""
-        return DEVICE_CLASS_TEMPERATURE
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def extra_state_attributes(self):

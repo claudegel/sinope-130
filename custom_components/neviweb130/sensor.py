@@ -19,8 +19,6 @@ from . import (SCAN_INTERVAL)
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    DEVICE_CLASS_BATTERY,
-    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     STATE_OK,
@@ -38,6 +36,10 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
+
+from homeassistant.components.sensor import SensorStateClass
+
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -72,8 +74,8 @@ IMPLEMENTED_CONNECTED_SENSOR = [5050]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR
 
 SENSOR_TYPES = {
-    "leak": ["", None, None],
-    "level": ["%", None, None],
+    "leak": ["", None, BinarySensorDeviceClass.MOISTURE],
+    "level": ["%", None, SensorStateClass.MEASUREMENT],
 }
 
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
