@@ -135,6 +135,18 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_air_floor_mode to switch between floor or ambiant temperature sensor to control room temperature
 - neviweb130.set_phase_control to set phase control mode for DM2550ZB dimmer (reverse or forward)
 
+## Catch Éco Sinopé signal for peak period
+If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
+
+- For thermostats:
+  - As to now there is no attributes available to catch peak period start.
+- For load controler:
+  - eco_status: set to «off» during normal operation, to «on» during peak period.
+  - eco_power: set to «off» during normal operation, to «on» during peak period.
+  - eco_optout: set to «off» during normal operation during peak period, to «on» if somebody turn on the load controler during peak period.
+
+It is then possible to make an automation to set all devices ready for peak period.
+
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
 
