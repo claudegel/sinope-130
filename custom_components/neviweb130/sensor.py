@@ -138,7 +138,7 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage * 100.0) / 3.25)
+    return int((voltage - 2.2) * 100)
 
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor."""
