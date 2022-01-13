@@ -213,7 +213,7 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage * 100.0) / 6)
+    return int((voltage * 100) / 6.37)
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -381,7 +381,7 @@ class Neviweb130Switch(SwitchEntity):
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Return the extra state attributes."""
         data = {}
         if self._is_load:
             data = {'onOff': self._onOff,
