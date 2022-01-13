@@ -284,7 +284,8 @@ class Neviweb130Sensor(Entity):
                              'Temperature_alert': self._temp_alert,
                              'Battery_alert': self._battery_alert,
                              'Closure_action': self._closure_action})
-        data.update({'Battery': voltage_to_percentage(self._battery_voltage),
+        data.update({'Battery level': voltage_to_percentage(self._battery_voltage),
+                     'Battery voltage': self._battery_voltage,
                      'Battery status': self._battery_status,
                      'Id': self._id})
         return data
