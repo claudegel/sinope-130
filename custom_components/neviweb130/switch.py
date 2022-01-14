@@ -213,7 +213,7 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage * 100.0) / 6)
+    return int((voltage * 100) / 6.37)
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -381,7 +381,7 @@ class Neviweb130Switch(SwitchEntity):
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
+        """Return the extra state attributes."""
         data = {}
         if self._is_load:
             data = {'onOff': self._onOff,
@@ -394,13 +394,15 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature_alarm': self._temp_alarm,
-                   'Battery_voltage': voltage_to_percentage(self._battery_voltage),
+                   'Battery_level': voltage_to_percentage(self._battery_voltage),
+                   'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Valve_closure_source': self._valve_closure,
                    'Battery_alert': self._battery_alert}
         elif self._is_zb_valve:
             data = {'Valve_status': self._valve_status,
-                   'Battery_voltage': voltage_to_percentage(self._battery_voltage),
+                   'Battery_level': voltage_to_percentage(self._battery_voltage),
+                   'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Battery_alert': self._battery_alert,
                    'Temperature_alert': self._temp_alert}

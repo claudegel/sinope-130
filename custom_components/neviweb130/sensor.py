@@ -138,7 +138,7 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage * 100.0) / 3.25)
+    return int((voltage - 2) * 100)
 
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor."""
@@ -284,8 +284,9 @@ class Neviweb130Sensor(Entity):
                              'Temperature_alert': self._temp_alert,
                              'Battery_alert': self._battery_alert,
                              'Closure_action': self._closure_action})
-        data.update({'Battery': voltage_to_percentage(self._battery_voltage),
-                     'Battery status': self._battery_status,
+        data.update({'Battery_level': voltage_to_percentage(self._battery_voltage),
+                     'Battery_voltage': self._battery_voltage,
+                     'Battery_status': self._battery_status,
                      'Id': self._id})
         return data
 
