@@ -202,15 +202,29 @@ homeassistant:
 ``` 
 ## Customization for leak sensor
 
-Same as above. For each leak detector add this to your `customize.yaml`
+Same as above. 
+-Create a sensor:
 ```yaml
-sensor.neviweb130_sensor_spa:
+battery_spa:
+        friendly_name: "Batterie spa"
+        unit_of_measurement: "%"
+        value_template: "{{ state_attr('sensor.neviweb130_sensor_spa', 'Battery_level') }}"
+```        
+-For each leak detector add this to your `customize.yaml` file
+```yaml
+sensor.battery_spa:
   templates:
-    entity_picture: 'if (attributes.Battery < 20) return ''/local/battery-2.png'';
+    entity_picture: >
+      if (entity.state < 20) return '/local/battery-1.png';
+      if (entity.state < 40) return '/local/battery-2.png';
+      if (entity.state < 60) return '/local/battery-3.png';
+      if (entity.state < 80) return '/local/battery-4.png';
+      return '/local/battery-5.png';
+sensor.neviweb130_sensor_spa:    
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';
       return ''/local/leak.png'';'
 ```
-Icons are availables from www directory.
+Icons are availables from www directory. copy them in config/www
 
 
 If you find a bug it's very new release without all the doc from Sinopé.
