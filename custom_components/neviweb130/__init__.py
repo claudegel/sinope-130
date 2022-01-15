@@ -46,6 +46,9 @@ from .const import (
     ATTR_EARLY_START,
     ATTR_FLOOR_MODE,
     ATTR_PHASE_CONTROL,
+    ATTR_OCCUPANCY,
+    MODE_AWAY,
+    MODE_HOME,
 )
 
 VERSION = '0.9.3'
@@ -306,7 +309,10 @@ class Neviweb130Client(object):
 
     def set_setpoint_mode(self, device_id, mode):
         """Set thermostat operation mode."""
-        data = {ATTR_SETPOINT_MODE: mode}
+        if mode in [MODE_AWAY, MODE_HOME]:
+            data = {ATTR_OCCUPANCY: mode}
+        else:
+            data = {ATTR_SETPOINT_MODE: mode}
         self.set_device_attributes(device_id, data)
 
     def set_temperature(self, device_id, temperature):
