@@ -715,7 +715,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current operation"""
-        if self._operation_mode == MODE_OFF:
+        if self._operation_mode == HVAC_MODE_OFF:
             return HVAC_MODE_OFF
         elif self._operation_mode in [HVAC_MODE_AUTO, MODE_AUTO_BYPASS]:
             return HVAC_MODE_AUTO
@@ -751,7 +751,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current preset mode."""
-        if self._operation_mode == PRESET_HOME
+        if self._operation_mode == PRESET_HOME:
             return PRESET_HOME
         elif self._operation_mode == PRESET_AWAY:
             return PRESET_AWAY
@@ -761,7 +761,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if self._operation_mode == MODE_OFF:
+        if self._operation_mode == HVAC_MODE_OFF:
             return CURRENT_HVAC_OFF
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
