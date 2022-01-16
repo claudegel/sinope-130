@@ -14,6 +14,10 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.util import Throttle
+from homeassistant.components.climate.const import (
+    PRESET_HOME,
+    PRESET_AWAY,
+    )
 from .const import (
     DOMAIN,
     CONF_NETWORK,
@@ -309,7 +313,7 @@ class Neviweb130Client(object):
 
     def set_setpoint_mode(self, device_id, mode):
         """Set thermostat operation mode."""
-        if mode in [MODE_AWAY, MODE_HOME]:
+        if mode in [PRESET_AWAY, PRESET_HOME]:
             data = {ATTR_OCCUPANCY: mode}
         else:
             data = {ATTR_SETPOINT_MODE: mode}
