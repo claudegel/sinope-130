@@ -763,6 +763,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return current HVAC action."""
         if self._operation_mode == HVAC_MODE_OFF:
             return CURRENT_HVAC_OFF
+        elif self._operation_mode == MODE_AUTO_BYPASS:
+            return MODE_AUTO_BYPASS
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
         else:
@@ -894,8 +896,12 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.set_setpoint_mode(self._id, hvac_mode)
         elif hvac_mode == HVAC_MODE_AUTO:
             self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO)
+        elif hvac_mode == MODE_AUTO_BYPASS:
+            if self._operation_mode == HVAC_MODE_AUTO:
+                self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+        self._operation_mode = hvac_mode
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
@@ -905,11 +911,9 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.set_setpoint_mode(self._id, PRESET_AWAY)
         elif preset_mode == PRESET_HOME:
             self._client.set_setpoint_mode(self._id, PRESET_HOME)
-        elif preset_mode == MODE_AUTO_BYPASS:
-            if self._operation_mode == HVAC_MODE_AUTO:
-                self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+        self._operation_mode = preset_mode
