@@ -903,7 +903,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return
         if preset_mode == PRESET_AWAY:
             self._client.set_setpoint_mode(self._id, PRESET_AWAY)
-        if preset_mode == PRESET_HOME:
+        elif preset_mode == PRESET_HOME:
             self._client.set_setpoint_mode(self._id, PRESET_HOME)
         elif preset_mode == MODE_AUTO_BYPASS:
             if self._operation_mode == HVAC_MODE_AUTO:
