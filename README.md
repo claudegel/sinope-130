@@ -103,7 +103,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | --- | --- | --- | ---
 | **username** | yes |  | Your email address used to log in Neviweb.
 | **password** | yes |  | Your Neviweb password.
-| **network** | yes | if not specified, 1st location found is used. Write the name of the GT130 location you want to control.
+| **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 
 ## Sedna valve
