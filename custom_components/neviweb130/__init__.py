@@ -55,7 +55,7 @@ from .const import (
     MODE_HOME,
 )
 
-VERSION = '0.9.3'
+VERSION = '0.9.5'
 
 _LOGGER = logging.getLogger(__name__)
 
