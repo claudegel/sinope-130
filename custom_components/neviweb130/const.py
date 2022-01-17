@@ -74,6 +74,7 @@ MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
 MODE_MANUAL = "manual"
 MODE_AWAY = "away"
+MODE_HOME = "home"
 MODE_OFF = "off"
 
 STATE_WATER_LEAK = "water"

@@ -103,7 +103,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | --- | --- | --- | ---
 | **username** | yes |  | Your email address used to log in Neviweb.
 | **password** | yes |  | Your Neviweb password.
-| **network** | yes | if not specified, 1st location found is used. Write the name of the GT130 location you want to control.
+| **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 
 ## Sedna valve
@@ -173,8 +173,21 @@ Add thoses lines to your `configuration.yaml` file
      default: warning
      logs:
        custom_components.neviweb130: debug
+       homeassistant.service: debug
+       homeassistant.config_entries: debug
    ```
 This will set default log level to warning for all your components, except for Neviweb which will display more detailed messages.
+
+### Error messages received from Neviweb
+In you log you can get those messages from Neviweb:
+- VALINVLD : Invalid value sent to Neviweb.
+- SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
+- DVCCOMMTO: Device Communication Timeout: device do not respond fast enough or you are polling that device too frequently.
+- DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
+- USRSESSEXP: User session expired. Reduce your scan_intervall below 6 minutes or your session will be terminated.
+- ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many time and/or you also have an open session on Neviweb. 
+- DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device.
+- SVCERR: Service error. Device cannot send daily stat. Try later.
 
 ## Customization
 Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:

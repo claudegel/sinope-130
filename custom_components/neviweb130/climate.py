@@ -37,6 +37,7 @@ from homeassistant.components.climate.const import (
     SUPPORT_PRESET_MODE,
     PRESET_AWAY,
     PRESET_NONE,
+    PRESET_HOME,
     CURRENT_HVAC_HEAT,
     CURRENT_HVAC_IDLE,
     CURRENT_HVAC_OFF,
@@ -100,11 +101,8 @@ from .const import (
     ATTR_CYCLE,
     ATTR_PUMP_PROTEC,
     ATTR_TYPE,
-    MODE_AUTO,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
-    MODE_OFF,
-    MODE_AWAY,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT,
@@ -136,7 +134,8 @@ UPDATE_ATTRIBUTES = [
 SUPPORTED_HVAC_WIFI_MODES = [
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
+    MODE_MANUAL,
+    MODE_AUTO_BYPASS,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -144,11 +143,10 @@ SUPPORTED_HVAC_MODES = [
     HVAC_MODE_HEAT,
 ]
 
-PRESET_BYPASS = 'temporary'
 PRESET_WIFI_MODES = [
-    PRESET_NONE,
     PRESET_AWAY,
-    PRESET_BYPASS,
+    PRESET_HOME,
+    PRESET_NONE,
 ]
 
 PRESET_MODES = [
@@ -717,9 +715,9 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current operation"""
-        if self._operation_mode == MODE_OFF:
+        if self._operation_mode == HVAC_MODE_OFF:
             return HVAC_MODE_OFF
-        elif self._operation_mode in [MODE_AUTO, MODE_AUTO_BYPASS]:
+        elif self._operation_mode in [HVAC_MODE_AUTO, MODE_AUTO_BYPASS]:
             return HVAC_MODE_AUTO
         else:
             return HVAC_MODE_HEAT
@@ -753,9 +751,9 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current preset mode."""
-        if self._operation_mode in [MODE_AUTO_BYPASS]:
-            return PRESET_BYPASS
-        elif self._operation_mode == MODE_AWAY:
+        if self._operation_mode == PRESET_HOME:
+            return PRESET_HOME
+        elif self._operation_mode == PRESET_AWAY:
             return PRESET_AWAY
         else:
             return PRESET_NONE
@@ -763,8 +761,10 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if self._operation_mode == MODE_OFF:
+        if self._operation_mode == HVAC_MODE_OFF:
             return CURRENT_HVAC_OFF
+        elif self._operation_mode == MODE_AUTO_BYPASS:
+            return MODE_AUTO_BYPASS
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
         else:
@@ -891,25 +891,29 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
         if hvac_mode == HVAC_MODE_OFF:
-            self._client.set_setpoint_mode(self._id, MODE_OFF)
-        elif hvac_mode == HVAC_MODE_HEAT:
-            self._client.set_setpoint_mode(self._id, MODE_MANUAL)
+            self._client.set_setpoint_mode(self._id, HVAC_MODE_OFF)
+        elif hvac_mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+            self._client.set_setpoint_mode(self._id, hvac_mode)
         elif hvac_mode == HVAC_MODE_AUTO:
-            self._client.set_setpoint_mode(self._id, MODE_AUTO)
+            self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO)
+        elif hvac_mode == MODE_AUTO_BYPASS:
+            if self._operation_mode == HVAC_MODE_AUTO:
+                self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+        self._operation_mode = hvac_mode
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
         if preset_mode == self.preset_mode:
             return
         if preset_mode == PRESET_AWAY:
-            self._client.set_setpoint_mode(self._id, MODE_AWAY)
-        elif preset_mode == PRESET_BYPASS:
-            if self._operation_mode == MODE_AUTO:
-                self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS)
+            self._client.set_setpoint_mode(self._id, PRESET_AWAY)
+        elif preset_mode == PRESET_HOME:
+            self._client.set_setpoint_mode(self._id, PRESET_HOME)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+        self._operation_mode = preset_mode
