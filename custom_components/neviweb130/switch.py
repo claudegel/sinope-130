@@ -348,22 +348,22 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_wifi_valve:
             self._client.set_valve_onOff(self._id, 100)
             self._valve_status = "open"
-            self._onOff = "on"
         else:
             self._client.set_onOff(self._id, "on")
             if self._is_zb_valve:
                 self._valve_status = "open"
+        self._onOff = "on"
 
     def turn_off(self, **kwargs):
         """Turn the device off."""
         if self._is_wifi_valve:
             self._client.set_valve_onOff(self._id, 0)
             self._valve_status = "closed"
-            self._onOff = MODE_OFF
         else:
             self._client.set_onOff(self._id, "off")
             if self._is_zb_valve:
                 self._valve_status = "closed"
+        self._onOff = MODE_OFF
 
     @property  
     def valve_status(self):
