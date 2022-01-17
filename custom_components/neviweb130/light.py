@@ -392,10 +392,14 @@ class Neviweb130Light(LightEntity):
             brightness_pct = \
                 brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
+        self._brightness_pct = brightness_pct
+        self._onOff = "on"
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._client.set_onOff(self._id, "off")
+        self._brightness_pct = 0
+        self._onOff = MODE_OFF
 
     def set_phase_control(self, value):
         """Change phase control parameter, reverse or """
