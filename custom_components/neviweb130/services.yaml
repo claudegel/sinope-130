@@ -252,7 +252,7 @@ set_hvac_dr_setpoint:
       example: -10
 
 set_load_dr_options:
-  description: Set demand response attributes for loda controler in Éco Sinopé mode.
+  description: Set demand response attributes for load controler in Éco Sinopé mode.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostats.
