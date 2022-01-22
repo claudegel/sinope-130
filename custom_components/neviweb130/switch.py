@@ -67,6 +67,8 @@ from .const import (
     ATTR_BATT_ALERT,
     ATTR_TEMP_ALERT,
     ATTR_VALVE_CLOSURE,
+    ATTR_DRACTIVE,
+    ATTR_OPTOUT,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -76,6 +78,7 @@ from .const import (
     SERVICE_SET_SWITCH_TIMER,
     SERVICE_SET_VALVE_ALERT,
     SERVICE_SET_VALVE_TEMP_ALERT,
+    SERVICE_SET_LOAD_DR_OPTIONS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -117,6 +120,15 @@ SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TEMP_ALERT): cv.string,
+    }
+)
+
+SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_DRACTIVE): cv.string,
+         vol.Required(ATTR_OPTOUT): cv.string,
+         vol.Required(ATTR_ONOFF): cv.string,
     }
 )
 
@@ -183,6 +195,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_load_dr_options_service(service):
+        """ Set dr mode options for load controler """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "dractive": service.data[ATTR_DRACTIVE], "droptout": service.data[ATTR_OPTOUT], "onoff": service.data[ATTR_ONOFF]}
+                switch.set_load_dr_options(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -209,6 +232,13 @@ async def async_setup_platform(
         SERVICE_SET_VALVE_TEMP_ALERT,
         set_valve_temp_alert_service,
         schema=SET_VALVE_TEMP_ALERT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LOAD_DR_OPTIONS,
+        set_load_dr_options_service,
+        schema=SET_LOAD_DR_OPTIONS_SCHEMA,
     )
 
 def voltage_to_percentage(voltage):
@@ -297,9 +327,10 @@ class Neviweb130Switch(SwitchEntity):
                         device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked" 
                     self._timer = device_data[ATTR_TIMER]
                     self._onOff = device_data[ATTR_ONOFF]
-                    self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
-                    self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
-                    self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
+                        self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
@@ -474,3 +505,14 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_valve_temp_alert(
             entity, temp)
         self._temp_alert = temp
+
+    def set_load_dr_options(self, value):
+        """ set load controler Éco Sinopé attributes """
+        onoff = value["onoff"]
+        optout = value["optout"]
+        dr = value["dractive"]
+        self._client.set_load_dr_options(
+            entity, onoff, optout, dr)
+        self._drstatus_active = dr
+        self._drstatus_optout = optout
+        self._drstatus_onoff = onoff
