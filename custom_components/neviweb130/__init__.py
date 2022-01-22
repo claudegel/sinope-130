@@ -54,6 +54,8 @@ from .const import (
     ATTR_PHASE_CONTROL,
     ATTR_OCCUPANCY,
     ATTR_SYSTEM_MODE,
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
     MODE_AWAY,
     MODE_HOME,
 )
@@ -444,6 +446,24 @@ class Neviweb130Client(object):
         """Set leak detector alert, battery, temperature, leak, Sedna valve closing."""
         data = {ATTR_LEAK_ALERT: leak, ATTR_BATT_ALERT: batt, ATTR_TEMP_ALERT: temp, ATTR_CONF_CLOSURE: close}
         _LOGGER.debug("leak.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_load_dr_options(self, device_id, onoff, optout, dr):
+        """ Set load controler Eco Sinope attributes """
+        data = {ATTR_DRSTATUS:{"drActive":dr,"optOut":optout,"onOff":onoff}}
+        _LOGGER.debug("Load.DR.options = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_hvac_dr_options(self, device_id, dr, optout, setpoint):
+        """ Set load controler Eco Sinope attributes """
+        data = {ATTR_DRSTATUS:{"drActive":dr,"optOut":optout,"setpoint":setpoint}}
+        _LOGGER.debug("hvac.DR.options = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_hvac_dr_setpoint(self, device_id, status, val):
+        """ Set load controler Eco Sinope attributes """
+        data = {ATTR_DRSETPOINT:{"status":status,"value":val}}
+        _LOGGER.debug("hvac.DR.setpoint = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
