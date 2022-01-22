@@ -15,6 +15,8 @@ from homeassistant.const import (
 )
 from homeassistant.util import Throttle
 from homeassistant.components.climate.const import (
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
     PRESET_HOME,
     PRESET_AWAY,
     )
@@ -51,6 +53,7 @@ from .const import (
     ATTR_FLOOR_MODE,
     ATTR_PHASE_CONTROL,
     ATTR_OCCUPANCY,
+    ATTR_SYSTEM_MODE,
     MODE_AWAY,
     MODE_HOME,
 )
@@ -315,6 +318,8 @@ class Neviweb130Client(object):
         """Set thermostat operation mode."""
         if mode in [PRESET_AWAY, PRESET_HOME]:
             data = {ATTR_OCCUPANCY: mode}
+        elif mode in [HVAC_MODE_OFF, HVAC_MODE_HEAT]:
+            data = {ATTR_SYSTEM_MODE: mode}
         else:
             data = {ATTR_SETPOINT_MODE: mode}
         self.set_device_attributes(device_id, data)
