@@ -101,6 +101,9 @@ from .const import (
     ATTR_CYCLE,
     ATTR_PUMP_PROTEC,
     ATTR_TYPE,
+    ATTR_SYSTEM_MODE,
+    ATTR_DRSTATUS,
+    ATTR_DRSETPOINT,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -487,6 +490,14 @@ class Neviweb130Thermostat(ClimateEntity):
         self._pump_protec_status = None
         self._pump_protec_duration = None
         self._pump_protec_freq = None
+        self._system_mode = None
+        self._drstatus_active = "off"
+        self._drstatus_optout = "off"
+        self._drstatus_setpoint = "off"
+        self._drstatus_abs = "off"
+        self._drstatus_rel = "off"
+        self._drsetpoint_status = "off"
+        self._drsetpoint_value = None
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -515,7 +526,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_wifi:
             WIFI_ATTRIBUTE = [ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_WIFI_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY, ATTR_BACKLIGHT_AUTO_DIM]
         else:
-            WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT]
+            WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_DRSTATUS, ATTR_DRSETPOINT]
         if self._is_low_wifi:
             LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_ROOM_TEMP_DISPLAY, ATTR_FLOOR_MODE, ATTR_EARLY_START, ATTR_FLOOR_SENSOR, ATTR_ROOM_SETPOINT_AWAY, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
         else:
@@ -546,6 +557,16 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._rssi = None
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
+                    self._system_mode = device_data[ATTR_SYSTEM_MODE]
+                    if ATTR_DRSETPOINT in device_data:
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
+                        self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
+                        self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
+                        self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                 else:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
@@ -681,6 +702,14 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_wifi_floor:
             data.update({'load_watt_1': self._load1,
                          'gfci_alert': self._gfci_alert})
+        if not self._is_wifi:
+            data.update({'eco_status': self._drstatus_active,
+                         'eco_optOut': self._drstatus_optout,
+                         'eco_onoff': self._drstatus_onoff,
+                         'eco_power_relative': self._drstatus_rel,
+                         'eco_power_absolute': self._drstatus_abs,
+                         'eco_setpoint_status': self._drsetpoint_status,
+                         'eco_setpoint_value': self._drsetpoint_value})
         data.update({'heat_level': self._heat_level,
                      'keypad': self._keypad,
                      'backlight': self._backlight,
