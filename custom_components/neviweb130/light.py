@@ -392,7 +392,7 @@ class Neviweb130Light(LightEntity):
             brightness_pct = \
                 brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
-        self._brightness_pct = brightness_pct
+            self._brightness_pct = brightness_pct
         self._onOff = "on"
 
     def turn_off(self, **kwargs):
