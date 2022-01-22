@@ -103,7 +103,10 @@ from .const import (
     ATTR_TYPE,
     ATTR_SYSTEM_MODE,
     ATTR_DRSTATUS,
+    ATTR_DRACTIVE,
+    ATTR_OPTOUT,
     ATTR_DRSETPOINT,
+    ATTR_SETPOINT,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -116,6 +119,8 @@ from .const import (
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_EARLY_START,
     SERVICE_SET_AIR_FLOOR_MODE,
+    SERVICE_SET_HVAC_DR_OPTIONS,
+    SERVICE_SET_HVAC_DR_SETPOINT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -241,6 +246,25 @@ SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_FLOOR_MODE): cv.string,
+    }
+)
+
+SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_DRACTIVE): cv.string,
+         vol.Required(ATTR_OPTOUT): cv.string,
+         vol.Required(ATTR_SETPOINT): cv.string,
+    }
+)
+
+SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required("status"): cv.string,
+         vol.Required("value"): vol.All(
+             vol.Coerce(float), vol.Range(min=-10, max=0)
+         ),
     }
 )
 
@@ -373,6 +397,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_hvac_dr_options_service(service):
+        """ Set options for hvac dr in Eco Sinope """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "dractive": service.data[ATTR_DRACTIVE], "optout": service.data[ATTR_OPTOUT], "setpoint": service.data[ATTR_SETPOINT]}
+                thermostat.set_hvac_dr_options(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_hvac_dr_setpoint_service(service):
+        """ Set options for hvac dr setpoint in Eco Sinope """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "status": service.data["status"], "value": service.data["value"]}
+                thermostat.set_hvac_dr_setpoint(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -441,6 +487,20 @@ async def async_setup_platform(
         SERVICE_SET_AIR_FLOOR_MODE,
         set_air_floor_mode_service,
         schema=SET_AIR_FLOOR_MODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HVAC_DR_OPTIONS,
+        set_hvac_dr_options_service,
+        schema=SET_HVAC_DR_OPTIONS_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HVAC_DR_SETPOINT,
+        set_hvac_dr_setpoint_service,
+        schema=SET_HVAC_DR_SETPOINT_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -705,7 +765,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if not self._is_wifi:
             data.update({'eco_status': self._drstatus_active,
                          'eco_optOut': self._drstatus_optout,
-                         'eco_onoff': self._drstatus_onoff,
+                         'eco_setpoint': self._drstatus_setpoint,
                          'eco_power_relative': self._drstatus_rel,
                          'eco_power_absolute': self._drstatus_abs,
                          'eco_setpoint_status': self._drsetpoint_status,
@@ -916,6 +976,27 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_early_start(
             entity, start)
         self._early_start = start
+
+    def set_hvac_dr_options(self, value):
+        """ set thermostat DR options for Eco Sinope """
+        dr = value["dractive"]
+        optout = value["optout"]
+        setpoint = value["setpoint"]
+        self._client.set_hvac_dr_options(
+            entity, dr, optout, setpoint)
+        self._drstatus_active = dr
+        self._drstatus_optout = optout
+        self._drstatus_setpoint = setpoint
+
+    def set_hvac_dr_setpoint(self, value):
+        """ set thermostat DR setpoint values for Eco Sinope """
+        status = value["status"]
+        val = value["value"]
+        setpoint = value["setpoint"]
+        self._client.set_hvac_dr_setpoint(
+            entity, status, val)
+        self._drsetpoint_status = status
+        self._drsetpoint_value = val
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
