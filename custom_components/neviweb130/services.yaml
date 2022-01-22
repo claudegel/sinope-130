@@ -221,3 +221,48 @@ set_phase_control:
     phaseControl:
       description: Set to «reverse» or to «forward» for dimmer light phase control.
       example: "reverse"
+
+set_hvac_dr_options:
+  description: Set demand response attributes for thermostats in Éco Sinopé mode.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostats.
+      example: "climate.neviweb130_climate_kitchen"
+    drActive:
+      description: Set to «on» or «off» to activate Éco Sinopé mode.
+      example: "on"
+    optOut:
+      description: Set to «on» or «off» to bypass Éco Sinopé mode.
+      example: "off"
+    setpoint:
+      description: Set to «on» or «off» to activate Éco Sinopé setpoint reduction control.
+      example: "on"
+
+set_hvac_dr_setpoint:
+  description: Set demand response setpoint reduction value for thermostats in Éco Sinopé mode.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostats.
+      example: "climate.neviweb130_climate_kitchen"
+    status:
+      description: Set to «on» or «off» to activate setpoint reduction for Éco Sinopé mode.
+      example: "on"
+    value:
+      description: Set the setpoint reduction amount for Éco Sinopé.
+      example: -10
+
+set_load_dr_options:
+  description: Set demand response attributes for loda controler in Éco Sinopé mode.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostats.
+      example: "switch.neviweb130_switch_pool"
+    drActive:
+      description: Set to «on» or «off» to activate Éco Sinopé mode.
+      example: "on"
+    optOut:
+      description: Set to «on» or «off» to bypass Éco Sinopé mode.
+      example: "off"
+    onOff:
+      description: Set to «on» or «off» to activate Éco Sinopé power on/off control.
+      example: "on"
