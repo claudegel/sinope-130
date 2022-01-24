@@ -136,7 +136,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_phase_control to set phase control mode for DM2550ZB dimmer (reverse or forward).
 - neviweb130.set_hvac_dr_options to set or reset DR period option in Neviweb for thermostats.
 - neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
-- neviweb130.load_dr_options to set or reset DR period options in Neviweb for load controler.
+- neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
