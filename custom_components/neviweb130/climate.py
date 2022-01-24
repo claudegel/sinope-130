@@ -629,8 +629,6 @@ class Neviweb130Thermostat(ClimateEntity):
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
                     self._system_mode = device_data[ATTR_SYSTEM_MODE]
-                    self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
-                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                 else:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
@@ -644,6 +642,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._early_start= device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
+                    self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
+                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                     if self._is_low_wifi:
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
