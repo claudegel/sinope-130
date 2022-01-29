@@ -155,9 +155,10 @@ SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
 SET_CONTROL_ONOFF_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATUS): cv.string,
          vol.Required("onOff_num"): vol.All(
              vol.Coerce(int), vol.Range(min=1, max=2)
-         vol.Required(ATTR_STATUS): cv.string,
+         ),
     }
 )
 
