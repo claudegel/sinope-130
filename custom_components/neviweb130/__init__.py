@@ -25,6 +25,7 @@ from .const import (
     CONF_NETWORK,
     ATTR_INTENSITY,
     ATTR_ONOFF,
+    ATTR_ONOFF2,
     ATTR_POWER_MODE,
     ATTR_SETPOINT_MODE,
     ATTR_ROOM_SETPOINT,
@@ -60,7 +61,7 @@ from .const import (
     MODE_HOME,
 )
 
-VERSION = '0.9.7'
+VERSION = '1.0.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -254,7 +255,6 @@ class Neviweb130Client(object):
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
                 #raise PyNeviweb130Error("Session expired... reconnecting...")
-                return data
         return data
 
     def get_device_daily_stats(self, device_id):
@@ -464,6 +464,15 @@ class Neviweb130Client(object):
         """ Set load controler Eco Sinope attributes """
         data = {ATTR_DRSETPOINT:{"status":status,"value":val}}
         _LOGGER.debug("hvac.DR.setpoint = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_control_onOff(self, device_id, number, status):
+        """Set valve controller onOff or OnOff2 status, on or off."""
+        if number == 1:
+            data = {ATTR_ONOFF: status}
+        else:
+            data = {ATTR_ONOFF2: status}
+        _LOGGER.debug("control.valve.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

@@ -30,8 +30,12 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé DM2550ZB Dimmer
 - Zigbee specialized Control
   - Sinopé RM3250ZB Load controller 50A
+  - Sinopé RM3500ZB Load controller for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
+  - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
+- Wifi specialized control
+  - Sinopé RM3500WF Load controller for water heater
 - Water leak detector
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
@@ -137,6 +141,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_hvac_dr_options to set or reset DR period option in Neviweb for thermostats.
 - neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
 - neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
+- neviweb130.set_control_onOff set change status of output 1 and 2 on alarm multi-controller for sedna valve.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:

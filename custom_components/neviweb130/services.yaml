@@ -266,3 +266,16 @@ set_load_dr_options:
     onOff:
       description: Set to «on» or «off» to activate Éco Sinopé power on/off control.
       example: "on"
+
+set_control_onOff:
+  description: Set valve controller onOff and onOff2 output status.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 valve controller.
+      example: "switch.neviweb130_switch_alarm_control"
+    status:
+      description: Set to «on» or «off» to change status of output valve controller.
+      example: "on"
+    onOff_num:
+      description: Select the output1, (1) or output2, (2) of the controller.
+      example: 1
