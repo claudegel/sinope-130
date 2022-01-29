@@ -107,6 +107,7 @@ from .const import (
     ATTR_OPTOUT,
     ATTR_DRSETPOINT,
     ATTR_SETPOINT,
+    ATTR_STATUS,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -263,7 +264,7 @@ SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
 SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required("status"): cv.string,
+         vol.Required(ATTR_STATUS): cv.string,
          vol.Required("value"): vol.All(
              vol.Coerce(float), vol.Range(min=-10, max=0)
          ),
@@ -416,7 +417,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data["status"], "value": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "value": service.data["value"]}
                 thermostat.set_hvac_dr_setpoint(value)
                 thermostat.schedule_update_ha_state(True)
                 break
