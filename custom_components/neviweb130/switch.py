@@ -20,6 +20,7 @@ model 3150 = VA4220WZ, sedna 2e gen 3/4 inch
 model 3150 = VA4220WF, sedna 2e generation 3/4 inch, wifi
 model 3150 = VA4221WZ, sedna 2e gen 1 inch
 model 3150 = VA4221WF, sedna 2e generation 1 inch, wifi
+
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -74,7 +75,6 @@ from .const import (
     ATTR_DRSTATUS,
     ATTR_MOTOR_POS,
     ATTR_TEMP_ALARM,
-    ATTR_BATTERY_STATUS,
     ATTR_BATT_ALERT,
     ATTR_TEMP_ALERT,
     ATTR_VALVE_CLOSURE,
@@ -289,9 +289,12 @@ async def async_setup_platform(
         schema=SET_CONTROL_ONOFF_SCHEMA,
     )
 
-def voltage_to_percentage(voltage):
+def voltage_to_percentage(voltage, type):
     """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage * 100) / 6.37)
+    if type == 1:
+        return int((voltage * 100) / 6.37)
+    else:
+        return int((voltage * 100) /3.6)
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -481,7 +484,7 @@ class Neviweb130Switch(SwitchEntity):
 
     @property
     def current_temperature(self):
-        """Return the current valve or temperature."""
+        """Return the current valve or controler temperature."""
         if self._is_zb_control or self._is_sedna_control:
             return self._room_temp
         else:
@@ -502,20 +505,20 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature_alert': self._temp_alert,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage),
+                   'Battery_level': voltage_to_percentage(self._battery_voltage, 1),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Valve_closure_source': self._valve_closure,
                    'Battery_alert': self._battery_alert}
         elif self._is_zb_valve:
             data = {'Valve_status': self._valve_status,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage),
+                   'Battery_level': voltage_to_percentage(self._battery_voltage, 1),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Battery_alert': self._battery_alert,
                    'Temperature_alert': self._temp_alert}
         elif self._is_zb_control or self._is_sedna_control:
-            data = {'Battery_level': voltage_to_percentage(self._battery_voltage),
+            data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Extern_temperature': self._ext_temp,
@@ -534,7 +537,11 @@ class Neviweb130Switch(SwitchEntity):
     @property
     def battery_voltage(self):
         """Return the current battery voltage of the valve in %."""
-        return voltage_to_percentage(self._battery_voltage)
+        if self._is_zb_control or self._is_sedna_control:
+            type = 2
+        else:
+            type = 1
+        return voltage_to_percentage(self._battery_voltage, type)
 
     @property
     def current_power_w(self):
