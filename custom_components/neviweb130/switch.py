@@ -1,9 +1,18 @@
 """
-Need to be changed
+Support for Neviweb switch connected via GT130 ZigBee.
+Multi-Controller
+model 2180 = controller for sedna valve MC3100ZB connected to GT130
+model 2181 = controller for sedna valve MC3100ZB connected sedna valve
+
+load controler
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
+model xxxx = load controller for water heater, RM3500ZB 50A
+model xxxx = load controller for water heater, RM3500WF 50A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
+
+Water valves
 model 3150 = VA4201WZ, sedna valve 1 inch
 model 3150 = VA4200WZ, sedna valve 3/4 inch via wifi
 model 3151 = VA4200ZB, sedna valve 3/4 inch via GT130, zigbee
@@ -55,9 +64,11 @@ from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (
     DOMAIN,
     ATTR_ONOFF,
+    ATTR_ONOFF2,
     ATTR_WATTAGE_INSTANT,
     ATTR_WATTAGE,
     ATTR_BATTERY_VOLTAGE,
+    ATTR_BATTERY_STATUS,
     ATTR_TIMER,
     ATTR_KEYPAD,
     ATTR_DRSTATUS,
@@ -69,6 +80,12 @@ from .const import (
     ATTR_VALVE_CLOSURE,
     ATTR_DRACTIVE,
     ATTR_OPTOUT,
+    ATTR_INPUT_STATUS,
+    ATTR_INPUT2_STATUS,
+    ATTR_EXT_TEMP,
+    ATTR_REL_HUMIDITY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_STATUS,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -79,6 +96,7 @@ from .const import (
     SERVICE_SET_VALVE_ALERT,
     SERVICE_SET_VALVE_TEMP_ALERT,
     SERVICE_SET_LOAD_DR_OPTIONS,
+    SERVICE_SET_CONTROL_ONOFF,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -87,11 +105,13 @@ DEFAULT_NAME = 'neviweb130 switch'
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
+IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
+IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
 IMPLEMENTED_WIFI_VALVE_MODEL = [3150]
 IMPLEMENTED_ZB_VALVE_MODEL = [3151]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
-IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_WIFI_VALVE_MODEL + IMPLEMENTED_ZB_VALVE_MODEL
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_WIFI_VALVE_MODEL + IMPLEMENTED_ZB_VALVE_MODEL + IMPLEMENTED_ZB_DEVICE_CONTROL + IMPLEMENTED_SED_DEVICE_CONTROL
 
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
@@ -129,6 +149,15 @@ SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
          vol.Required(ATTR_DRACTIVE): cv.string,
          vol.Required(ATTR_OPTOUT): cv.string,
          vol.Required(ATTR_ONOFF): cv.string,
+    }
+)
+
+SET_CONTROL_ONOFF_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required("onOff_num"): vol.All(
+             vol.Coerce(int), vol.Range(min=1, max=2)
+         vol.Required(ATTR_STATUS): cv.string,
     }
 )
 
@@ -206,6 +235,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_control_onOff_service(service):
+        """ Set status of both onoff controler water valve """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "onOff_num": service.data["onOff_num"], "status": service.data[ATTR_STATUS]}
+                switch.set_control_onOff(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -241,6 +281,13 @@ async def async_setup_platform(
         schema=SET_LOAD_DR_OPTIONS_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_CONTROL_ONOFF,
+        set_control_onOff_service,
+        schema=SET_CONTROL_ONOFF_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage):
     """Convert voltage level from absolute 0..3.25 to percentage."""
     return int((voltage * 100) / 6.37)
@@ -256,6 +303,7 @@ class Neviweb130Switch(SwitchEntity):
         self._current_power_w = None
         self._today_energy_kwh = None
         self._onOff = None
+        self._onOff2 = None
         self._is_wall = device_info["signature"]["model"] in \
             IMPLEMENTED_WALL_DEVICES
         self._is_load = device_info["signature"]["model"] in \
@@ -264,6 +312,10 @@ class Neviweb130Switch(SwitchEntity):
             IMPLEMENTED_WIFI_VALVE_MODEL
         self._is_zb_valve = device_info["signature"]["model"] in \
             IMPLEMENTED_ZB_VALVE_MODEL
+        self._is_zb_control = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_DEVICE_CONTROL
+        self._is_sedna_control = device_info["signature"]["model"] in \
+            IMPLEMENTED_SED_DEVICE_CONTROL
         self._valve_status = None
         self._cur_temp = None
         self._battery_voltage = 0
@@ -276,9 +328,16 @@ class Neviweb130Switch(SwitchEntity):
         self._drstatus_onoff = "off"
         self._battery_alert = None
         self._temp_alert = None
+        self._humidity = None
+        self._ext_temp = None
+        self._room_temp = None
+        self._input_status = None
+        self._input2_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if self._is_zb_control or self._is_sedna_control:
+            LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE]
         if self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
         elif self._is_wifi_valve:
@@ -331,6 +390,16 @@ class Neviweb130Switch(SwitchEntity):
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                elif self._is_zb_control or self._is_sedna_control:
+                    self._onOff = device_data[ATTR_ONOFF]
+                    self._onOff2 = device_data[ATTR_ONOFF2]
+                    self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                    self._input_status = device_data[ATTR_INPUT_STATUS]
+                    self._input2_status = device_data[ATTR_INPUT2_STATUS]
+                    self._humidity = device_data[ATTR_REL_HUMIDITY]
+                    self._room_temp = device_data[ATTR_ROOM_TEMPERATURE]
+                    self._ext_temp = device_data[ATTR_EXT_TEMP]
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
@@ -364,15 +433,18 @@ class Neviweb130Switch(SwitchEntity):
     @property
     def device_class(self):
         """Return the device class of this entity."""
-        if self._is_load or self._is_wall:
-            return SensorDeviceClass.POWER
-        else:
+        if self._is_wifi_valve or self._is_zb_valve:
             return BinarySensorDeviceClass.MOISTURE
+        else:
+            return SensorDeviceClass.POWER
 
     @property  
     def is_on(self):
         """Return current operation i.e. ON, OFF """
-        return self._onOff != MODE_OFF
+        if self._onOff != MODE_OFF or self._onOff2 != MODE_OFF:
+            return True
+        else:
+            return False
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
@@ -408,8 +480,11 @@ class Neviweb130Switch(SwitchEntity):
 
     @property
     def current_temperature(self):
-        """Return the current valve temperature."""
-        return self._cur_temp
+        """Return the current valve or temperature."""
+        if self._is_zb_control or self._is_sedna_control:
+            return self._room_temp
+        else:
+            return self._cur_temp
 
     @property
     def extra_state_attributes(self):
@@ -438,6 +513,17 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_status': self._battery_status,
                    'Battery_alert': self._battery_alert,
                    'Temperature_alert': self._temp_alert}
+        elif self._is_zb_control or self._is_sedna_control:
+            data = {'Battery_level': voltage_to_percentage(self._battery_voltage),
+                   'Battery_voltage': self._battery_voltage,
+                   'Battery_status': self._battery_status,
+                   'Extern_temperature': self._ext_temp,
+                   'Room_humidity': self._humidity,
+                   'Input1_status': self._input_status,
+                   'Input2_status': self._input2_status,
+                   'onOff': self._onOff,
+                   'onOff2': self._onOff2,
+                   'Room_temperature': self._room_temp}
         else:
             data = {'onOff': self._onOff,
                    'Wattage': self._current_power_w}
@@ -463,6 +549,18 @@ class Neviweb130Switch(SwitchEntity):
     def is_standby(self):
         """Return true if device is in standby."""
         return self._current_power_w == 0
+
+    def set_control_onOff(self, value):
+        """Set onOff or onOff2 to on or off"""
+        entity = value["id"]
+        onoff_no = value["onOff_num"]
+        status = value["status"]
+        self._client.set_control_onOff(
+            entity, onoff_no, status)
+        if onoff_no == 1:
+            self._onOff = status
+        else:
+            self._onOff2 = status
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
