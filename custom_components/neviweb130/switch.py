@@ -422,9 +422,17 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-#        self._today_energy_kwh = device_daily_stats[0] / 1000
-        _LOGGER.warning("Switch Stats received: %s",device_daily_stats)
+        if self._is_load or self._is_wall:
+            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            self._today_energy_kwh = device_daily_stats[0]["counter"] / 1000
+            _LOGGER.warning("Switch Stats received: %s",device_daily_stats)
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            self._hour_energy_kwh = device_hourly_stats[0]["counter"] / 1000
+            _LOGGER.warning("Climate hourly stats received: %s",device_hourly_stats)
+            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+            self._month_energy_kwh = device_monthly_stats[0]["counter"] / 1000
+            _LOGGER.warning("Climate hourly stats received: %s",device_monthly_stats)
+
 
     @property
     def unique_id(self):
@@ -499,6 +507,9 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_load:
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
+                   'hourly_kwh_sum': self._hour_energy_kwh,
+                   'daily_kwh_sum': self._today_energy_kwh,
+                   'monthly_kwh_sum': self._month_energy_kwh,
                    'Keypad': self._keypad,
                    'Timer': self._timer,
                    'eco_status': self._drstatus_active,
@@ -532,7 +543,10 @@ class Neviweb130Switch(SwitchEntity):
                    'Room_temperature': self._room_temp}
         else:
             data = {'onOff': self._onOff,
-                   'Wattage': self._current_power_w}
+                   'Wattage': self._current_power_w,
+                   'hourly_kwh_sum': self._hour_energy_kwh,
+                   'daily_kwh_sum': self._today_energy_kwh,
+                   'monthly_kwh_sum': self._month_energy_kwh}
         data.update({'id': self._id})
         return data
 
