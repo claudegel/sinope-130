@@ -291,6 +291,7 @@ class Neviweb130Light(LightEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -313,6 +314,7 @@ class Neviweb130Light(LightEntity):
                 self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+            self._today_energy_kwh = device_daily_stats[0] / 1000
             return
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
