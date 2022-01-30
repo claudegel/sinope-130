@@ -266,15 +266,14 @@ class Neviweb130Client(object):
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                     "/energy/monthly", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
-            _LOGGER.debug("Cannot get devices monthly stat: %s", raw_res.json())
         except OSError:
             raise PyNeviweb130Error("Cannot get device monthly stats")
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        if "values" in data:
-            return data["values"]
+        if "history" in data:
+            return data["history"]
         return []
 
     def get_device_daily_stats(self, device_id):
@@ -293,8 +292,8 @@ class Neviweb130Client(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        if "values" in data:
-            return data["values"]
+        if "history" in data:
+            return data["history"]
         return []
 
     def get_device_hourly_stats(self, device_id):
@@ -312,8 +311,8 @@ class Neviweb130Client(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        if "values" in data:
-            return data["values"]
+        if "history" in data:
+            return data["history"]
         return []
 
     def set_brightness(self, device_id, brightness):
