@@ -61,7 +61,7 @@ from .const import (
     MODE_HOME,
 )
 
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -256,6 +256,26 @@ class Neviweb130Client(object):
                 "than 10 minutes, otherwise the session will end.")
                 #raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
+
+    def get_device_monthly_stats(self, device_id):
+        """Get device power consumption (in Wh) for the last 24 months."""
+        # Prepare return
+        data = {}
+        # Http request
+        try:
+            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
+                    "/energy/monthly", headers=self._headers,
+                    cookies=self._cookies, timeout=self._timeout)
+            _LOGGER.debug("Cannot get devices monthly stat: %s", raw_res.json())
+        except OSError:
+            raise PyNeviweb130Error("Cannot get device monthly stats")
+        # Update cookies
+        self._cookies.update(raw_res.cookies)
+        # Prepare data
+        data = raw_res.json()
+        if "values" in data:
+            return data["values"]
+        return []
 
     def get_device_daily_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 30 days."""
