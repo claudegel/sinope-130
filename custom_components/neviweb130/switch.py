@@ -305,7 +305,9 @@ class Neviweb130Switch(SwitchEntity):
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._current_power_w = None
+        self._hour_energy_kwh = None
         self._today_energy_kwh = None
+        self._month_energy_kwh = None
         self._onOff = None
         self._onOff2 = None
         self._is_wall = device_info["signature"]["model"] in \
@@ -354,7 +356,6 @@ class Neviweb130Switch(SwitchEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -407,11 +408,9 @@ class Neviweb130Switch(SwitchEntity):
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
-                return
-            _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-            self._today_energy_kwh = device_daily_stats[0] / 1000
-            return
-        if device_data["error"]["code"] == "USRSESSEXP":
+            else:
+                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+        elif device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
         elif device_data["error"]["code"] == "ACCSESSEXC":
@@ -423,6 +422,9 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+#        self._today_energy_kwh = device_daily_stats[0] / 1000
+        _LOGGER.warning("Switch Stats received: %s",device_daily_stats)
 
     @property
     def unique_id(self):
