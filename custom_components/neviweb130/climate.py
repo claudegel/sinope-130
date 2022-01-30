@@ -701,11 +701,15 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-#        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-#        self._hour_energy_kwh = device_hourly_stats[0] /1000
         device_daily_stats = self._client.get_device_daily_stats(self._id)
-#        self._today_energy_kwh = device_daily_stats[0] / 1000
-        _LOGGER.warning("Climate Stats received: %s",device_daily_stats)
+        self._today_energy_kwh = device_daily_stats[0]["counter"] / 1000
+        _LOGGER.warning("Climate daily stats received: %s",device_daily_stats)
+        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+        self._hour_energy_kwh = device_hourly_stats[0]["counter"] / 1000
+        _LOGGER.warning("Climate hourly stats received: %s",device_hourly_stats)
+        device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+        self._month_energy_kwh = device_monthly_stats[0]["counter"] / 1000
+        _LOGGER.warning("Climate hourly stats received: %s",device_monthly_stats)
         
     @property
     def unique_id(self):
@@ -786,6 +790,9 @@ class Neviweb130Thermostat(ClimateEntity):
                      'eco_power_absolute': self._drstatus_abs,
                      'eco_setpoint_status': self._drsetpoint_status,
                      'eco_setpoint_value': self._drsetpoint_value,
+                     'hourly_kwh_sum': self._hour_energy_kwh,
+                     'daily_kwh_sum': self._today_energy_kwh,
+                     'monthly_kwh_sum': self._month_energy_kwh,
                      'rssi': self._rssi,
                      'id': self._id})
         return data
