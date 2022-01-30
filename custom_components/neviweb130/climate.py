@@ -514,7 +514,9 @@ class Neviweb130Thermostat(ClimateEntity):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._hour_energy_kwh = None
         self._today_energy_kwh = None
+        self._month_energy_kwh = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -599,7 +601,6 @@ class Neviweb130Thermostat(ClimateEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE)
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -686,12 +687,9 @@ class Neviweb130Thermostat(ClimateEntity):
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                return
-            _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-            self._today_energy_kwh = device_daily_stats[0] / 1000
-            return
-        self._today_energy_kwh = device_daily_stats[0] / 1000
-        if device_data["error"]["code"] == "USRSESSEXP":
+            else:    
+                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+        elif device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
         elif device_data["error"]["code"] == "ACCSESSEXC":
@@ -703,7 +701,11 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-
+#        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+#        self._hour_energy_kwh = device_hourly_stats[0] /1000
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+#        self._today_energy_kwh = device_daily_stats[0] / 1000
+        
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb130 device ID."""
