@@ -705,6 +705,7 @@ class Neviweb130Thermostat(ClimateEntity):
 #        self._hour_energy_kwh = device_hourly_stats[0] /1000
         device_daily_stats = self._client.get_device_daily_stats(self._id)
 #        self._today_energy_kwh = device_daily_stats[0] / 1000
+        _LOGGER.warning("Climate Stats received: %s",device_daily_stats)
         
     @property
     def unique_id(self):
