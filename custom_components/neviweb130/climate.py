@@ -514,6 +514,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._current_power_w = None
+        self._today_energy_kwh = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -598,6 +600,7 @@ class Neviweb130Thermostat(ClimateEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -686,6 +689,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+            self._today_energy_kwh = device_daily_stats[0] / 1000
             return
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
