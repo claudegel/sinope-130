@@ -407,9 +407,9 @@ class Neviweb130Switch(SwitchEntity):
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
-                self._today_energy_kwh = device_daily_stats[0] / 1000
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+            self._today_energy_kwh = device_daily_stats[0] / 1000
             return
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
