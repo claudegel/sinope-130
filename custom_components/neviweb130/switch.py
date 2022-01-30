@@ -354,7 +354,7 @@ class Neviweb130Switch(SwitchEntity):
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
-#        device_daily_stats = self._client.get_device_daily_stats(self._id)
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -407,7 +407,7 @@ class Neviweb130Switch(SwitchEntity):
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
-#                self._today_energy_kwh = device_daily_stats[0] / 1000
+                self._today_energy_kwh = device_daily_stats[0] / 1000
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
