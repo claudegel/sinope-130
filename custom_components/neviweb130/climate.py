@@ -514,7 +514,6 @@ class Neviweb130Thermostat(ClimateEntity):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
-        self._current_power_w = None
         self._today_energy_kwh = None
         self._wattage = 0
         self._min_temp = 0
@@ -691,6 +690,7 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             self._today_energy_kwh = device_daily_stats[0] / 1000
             return
+        self._today_energy_kwh = device_daily_stats[0] / 1000
         if device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
