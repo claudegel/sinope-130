@@ -329,8 +329,14 @@ class Neviweb130Light(LightEntity):
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
         device_daily_stats = self._client.get_device_daily_stats(self._id)
-#        self._today_energy_kwh = device_daily_stats[0] / 1000
-        _LOGGER.warning("Light Stats received: %s",device_daily_stats)
+        self._today_energy_kwh = device_daily_stats[0]["counter"] / 1000
+        _LOGGER.warning("Climate daily stats received: %s",device_daily_stats)
+        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+        self._hour_energy_kwh = device_hourly_stats[0]["counter"] / 1000
+        _LOGGER.warning("Climate hourly stats received: %s",device_hourly_stats)
+        device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+        self._month_energy_kwh = device_monthly_stats[0]["counter"] / 1000
+        _LOGGER.warning("Climate hourly stats received: %s",device_monthly_stats)
 
     @property
     def supported_features(self):
@@ -370,6 +376,9 @@ class Neviweb130Light(LightEntity):
                      'timer': self._timer,
                      'led_on': self._led_on,
                      'led_off': self._led_off,
+                     'hourly_kwh_sum': self._hour_energy_kwh,
+                     'daily_kwh_sum': self._today_energy_kwh,
+                     'monthly_kwh_sum': self._month_energy_kwh,
                      'id': self._id})
         return data
 
