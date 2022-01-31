@@ -305,9 +305,12 @@ class Neviweb130Switch(SwitchEntity):
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._current_power_w = None
-        self._hour_energy_kwh = None
-        self._today_energy_kwh = None
-        self._month_energy_kwh = None
+        self._hour_energy_kwh_count = None
+        self._today_energy_kwh_count = None
+        self._month_energy_kwh_count = None
+        self._hour_kwh = None
+        self._today_kwh = None
+        self._month_kwh = None
         self._onOff = None
         self._onOff2 = None
         self._is_wall = device_info["signature"]["model"] in \
@@ -424,14 +427,14 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
         if self._is_load or self._is_wall:
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            self._today_energy_kwh = device_daily_stats[0]["counter"] / 1000
-            _LOGGER.warning("Switch Stats received: %s",device_daily_stats)
+            self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+            self._today_kwh = device_daily_stats[0]["period"] / 1000
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            self._hour_energy_kwh = device_hourly_stats[0]["counter"] / 1000
-            _LOGGER.warning("Climate hourly stats received: %s",device_hourly_stats)
+            self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
+            self._hour_kwh = device_hourly_stats[0]["period"] / 1000
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-            self._month_energy_kwh = device_monthly_stats[0]["counter"] / 1000
-            _LOGGER.warning("Climate hourly stats received: %s",device_monthly_stats)
+            self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+            self._month_kwh = device_monthly_stats[0]["period"] / 1000
 
 
     @property
@@ -507,9 +510,12 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_load:
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
-                   'hourly_kwh_sum': self._hour_energy_kwh,
-                   'daily_kwh_sum': self._today_energy_kwh,
-                   'monthly_kwh_sum': self._month_energy_kwh,
+                   'hourly_kwh_count': self._hour_energy_kwh_count,
+                   'daily_kwh_count': self._today_energy_kwh_count,
+                   'monthly_kwh_count': self._month_energy_kwh_count,
+                   'hourly_kwh': self._hour_kwh,
+                   'daily_kwh': self._today_kwh,
+                   'monthly_kwh': self._month_kwh,
                    'Keypad': self._keypad,
                    'Timer': self._timer,
                    'eco_status': self._drstatus_active,
@@ -544,9 +550,12 @@ class Neviweb130Switch(SwitchEntity):
         else:
             data = {'onOff': self._onOff,
                    'Wattage': self._current_power_w,
-                   'hourly_kwh_sum': self._hour_energy_kwh,
-                   'daily_kwh_sum': self._today_energy_kwh,
-                   'monthly_kwh_sum': self._month_energy_kwh}
+                   'hourly_kwh_count': self._hour_energy_kwh_count,
+                   'daily_kwh_count': self._today_energy_kwh_count,
+                   'monthly_kwh_count': self._month_energy_kwh_count,
+                   'hourly_kwh': self._hour_kwh,
+                   'daily_kwh': self._today_kwh,
+                   'monthly_kwh': self._month_kwh}
         data.update({'id': self._id})
         return data
 
@@ -566,8 +575,8 @@ class Neviweb130Switch(SwitchEntity):
 
     @property
     def today_energy_kwh(self):
-        """Return the today total energy usage in kWh."""
-        return self._today_energy_kwh
+        """Return the today energy usage in kWh."""
+        return self._today_kwh
 
     @property
     def is_standby(self):
