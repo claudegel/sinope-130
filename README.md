@@ -155,6 +155,15 @@ If you have at least on thermostat or one load controler registered with Éco Si
 
 It is then possible to make an automation to set all devices ready for peak period.
 
+## Statistic for energy
+Six attributes are added to track energy usage for devices:
+- hourly_kwh_count: total count of kwh hourly usage
+- daily_kwh_count: total count of kwh daily usage
+- monthly_kwh_count: total count of kwh monthly usage
+- hourly_kwh: kwh used for last hour
+- daily_kwh: kwh used for last day
+- monthly_kwh: kwh used for last month
+
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
 

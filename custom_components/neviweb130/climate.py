@@ -514,6 +514,12 @@ class Neviweb130Thermostat(ClimateEntity):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._hour_energy_kwh_count = None
+        self._today_energy_kwh_count = None
+        self._month_energy_kwh_count = None
+        self._hour_kwh = None
+        self._today_kwh = None
+        self._month_kwh = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -684,10 +690,9 @@ class Neviweb130Thermostat(ClimateEntity):
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                return
-            _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-            return
-        if device_data["error"]["code"] == "USRSESSEXP":
+            else:    
+                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+        elif device_data["error"]["code"] == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
         elif device_data["error"]["code"] == "ACCSESSEXC":
@@ -699,7 +704,16 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-
+        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+        self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
+        self._hour_kwh = device_hourly_stats[0]["period"] / 1000
+        device_daily_stats = self._client.get_device_daily_stats(self._id)
+        self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+        self._today_kwh = device_daily_stats[0]["period"] / 1000
+        device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+        self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+        self._month_kwh = device_monthly_stats[0]["period"] / 1000
+        
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb130 device ID."""
@@ -779,6 +793,12 @@ class Neviweb130Thermostat(ClimateEntity):
                      'eco_power_absolute': self._drstatus_abs,
                      'eco_setpoint_status': self._drsetpoint_status,
                      'eco_setpoint_value': self._drsetpoint_value,
+                     'hourly_kwh_count': self._hour_energy_kwh_count,
+                     'daily_kwh_count': self._today_energy_kwh_count,
+                     'monthly_kwh_count': self._month_energy_kwh_count,
+                     'hourly_kwh': self._hour_kwh,
+                     'daily_kwh': self._today_kwh,
+                     'monthly_kwh': self._month_kwh,
                      'rssi': self._rssi,
                      'id': self._id})
         return data
