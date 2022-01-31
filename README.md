@@ -164,6 +164,19 @@ Six attributes are added to track energy usage for devices:
 - daily_kwh: kwh used for last day
 - monthly_kwh: kwh used for last month
 
+### Track energy consumption in HA Energy dashboard
+When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/)
+```yaml
+template:
+  - sensor:
+    - name: Basement energy usage
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      state: >
+        {{ state_attr("climate.th1124zb_basement","hourly_kwh_count") }}
+```
+
 ## Troubleshooting
 if you see your device in the log but it do not apear in entity list you need to add the device model number in the code. Or you can send the model number to me so I can add it in the code.
 
