@@ -267,9 +267,12 @@ class Neviweb130Light(LightEntity):
         self._name = name
         self._client = data.neviweb130_client
         self._id = device_info["id"]
-        self._hour_energy_kwh = None
-        self._today_energy_kwh = None
-        self._month_energy_kwh = None
+        self._hour_energy_kwh_count = None
+        self._today_energy_kwh_count = None
+        self._month_energy_kwh_count = None
+        self._hour_kwh = None
+        self._today_kwh = None
+        self._month_kwh = None
         self._brightness_pct = 0
         self._keypad = "Unlocked"
         self._timer = 0
@@ -329,14 +332,14 @@ class Neviweb130Light(LightEntity):
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
         device_daily_stats = self._client.get_device_daily_stats(self._id)
-        self._today_energy_kwh = device_daily_stats[0]["counter"] / 1000
-        _LOGGER.warning("Climate daily stats received: %s",device_daily_stats)
+        self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+        self._today_kwh = device_daily_stats[0]["period"] / 1000
         device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        self._hour_energy_kwh = device_hourly_stats[0]["counter"] / 1000
-        _LOGGER.warning("Climate hourly stats received: %s",device_hourly_stats)
+        self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
+        self._hour_kwh = device_hourly_stats[0]["period"] / 1000
         device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-        self._month_energy_kwh = device_monthly_stats[0]["counter"] / 1000
-        _LOGGER.warning("Climate hourly stats received: %s",device_monthly_stats)
+        self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+        self._month_kwh = device_monthly_stats[0]["period"] / 1000
 
     @property
     def supported_features(self):
@@ -376,9 +379,12 @@ class Neviweb130Light(LightEntity):
                      'timer': self._timer,
                      'led_on': self._led_on,
                      'led_off': self._led_off,
-                     'hourly_kwh_sum': self._hour_energy_kwh,
-                     'daily_kwh_sum': self._today_energy_kwh,
-                     'monthly_kwh_sum': self._month_energy_kwh,
+                     'hourly_kwh_count': self._hour_energy_kwh_count,
+                     'daily_kwh_count': self._today_energy_kwh_count,
+                     'monthly_kwh_count': self._month_energy_kwh_count,
+                     'hourly_kwh': self._hour_kwh,
+                     'daily_kwh': self._today_kwh,
+                     'monthly_kwh': self._month_kwh,
                      'id': self._id})
         return data
 
