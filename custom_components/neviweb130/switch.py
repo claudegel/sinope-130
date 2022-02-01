@@ -458,10 +458,13 @@ class Neviweb130Switch(SwitchEntity):
     @property  
     def is_on(self):
         """Return current operation i.e. ON, OFF """
-        if self._onOff != MODE_OFF or self._onOff2 != MODE_OFF:
-            return True
+        if self._is_zb_control:
+            if self._onOff != MODE_OFF or self._onOff2 != MODE_OFF:
+                return True
+            else:
+                return False
         else:
-            return False
+            return self._onOff != MODE_OFF
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
