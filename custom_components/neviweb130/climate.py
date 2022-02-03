@@ -109,7 +109,6 @@ from .const import (
     ATTR_SETPOINT,
     ATTR_STATUS,
     MODE_AUTO_BYPASS,
-    MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT,
@@ -145,8 +144,7 @@ UPDATE_ATTRIBUTES = [
 SUPPORTED_HVAC_WIFI_MODES = [
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
-    MODE_MANUAL,
-    MODE_AUTO_BYPASS,
+    HVAC_MODE_HEAT,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -1024,8 +1022,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set new hvac mode."""
         if hvac_mode == HVAC_MODE_OFF:
             self._client.set_setpoint_mode(self._id, HVAC_MODE_OFF)
-        elif hvac_mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
-            self._client.set_setpoint_mode(self._id, hvac_mode)
+        elif hvac_mode == HVAC_MODE_HEAT:
+            self._client.set_setpoint_mode(self._id, HVAC_MODE_HEAT)
         elif hvac_mode == HVAC_MODE_AUTO:
             self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO)
         elif hvac_mode == MODE_AUTO_BYPASS:
