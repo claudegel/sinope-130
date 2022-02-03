@@ -274,6 +274,7 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
+        _LOGGER.debug("Monthly_stats data: %s", data) 
         return []
 
     def get_device_daily_stats(self, device_id):
@@ -293,6 +294,7 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
+        _LOGGER.debug("Daily_stats data: %s", data)
         return []
 
     def get_device_hourly_stats(self, device_id):
@@ -312,6 +314,7 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
+        _LOGGER.debug("Hourly_stats data: %s", data)
         return []
 
     def set_brightness(self, device_id, brightness):
