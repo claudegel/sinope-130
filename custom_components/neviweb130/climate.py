@@ -763,11 +763,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     'load_watt': self._wattage})
         if self._is_wifi_floor or self._is_low_wifi:
             data.update({'floor_limit_high': self._floor_max,
-                         'floor_limit_high_status': self._floor_max_status,
-                         'floor_limit_low': self._floor_min,
-                         'floor_limit_low_status': self._floor_min_status,
-                         'max_air_limit': self._floor_air_limit,
-                         'max_air_limit_status': self._floor_air_limit_status})
+                    'floor_limit_high_status': self._floor_max_status,
+                    'floor_limit_low': self._floor_min,
+                    'floor_limit_low_status': self._floor_min_status,
+                    'max_air_limit': self._floor_air_limit,
+                    'max_air_limit_status': self._floor_air_limit_status})
         if self._is_wifi and not self._is_low_wifi:
             data.update({'occupancy': self._occupancy})
         if self._is_wifi_floor:
@@ -781,27 +781,27 @@ class Neviweb130Thermostat(ClimateEntity):
                     'load_watt_1': self._load1,
                     'second_display': self._wifi_display2})
         data.update({'heat_level': self._heat_level,
-                     'keypad': self._keypad,
-                     'backlight': self._backlight,
-                     'time_format': self._time_format,
-                     'temperature_format': self._temperature_format,
-                     'setpoint_max': self._max_temp,
-                     'setpoint_min': self._min_temp,
-                     'eco_status': self._drstatus_active,
-                     'eco_optOut': self._drstatus_optout,
-                     'eco_setpoint': self._drstatus_setpoint,
-                     'eco_power_relative': self._drstatus_rel,
-                     'eco_power_absolute': self._drstatus_abs,
-                     'eco_setpoint_status': self._drsetpoint_status,
-                     'eco_setpoint_value': self._drsetpoint_value,
-                     'hourly_kwh_count': self._hour_energy_kwh_count,
-                     'daily_kwh_count': self._today_energy_kwh_count,
-                     'monthly_kwh_count': self._month_energy_kwh_count,
-                     'hourly_kwh': self._hour_kwh,
-                     'daily_kwh': self._today_kwh,
-                     'monthly_kwh': self._month_kwh,
-                     'rssi': self._rssi,
-                     'id': self._id})
+                    'keypad': self._keypad,
+                    'backlight': self._backlight,
+                    'time_format': self._time_format,
+                    'temperature_format': self._temperature_format,
+                    'setpoint_max': self._max_temp,
+                    'setpoint_min': self._min_temp,
+                    'eco_status': self._drstatus_active,
+                    'eco_optOut': self._drstatus_optout,
+                    'eco_setpoint': self._drstatus_setpoint,
+                    'eco_power_relative': self._drstatus_rel,
+                    'eco_power_absolute': self._drstatus_abs,
+                    'eco_setpoint_status': self._drsetpoint_status,
+                    'eco_setpoint_value': self._drsetpoint_value,
+                    'hourly_kwh_count': self._hour_energy_kwh_count,
+                    'daily_kwh_count': self._today_energy_kwh_count,
+                    'monthly_kwh_count': self._month_energy_kwh_count,
+                    'hourly_kwh': self._hour_kwh,
+                    'daily_kwh': self._today_kwh,
+                    'monthly_kwh': self._month_kwh,
+                    'rssi': self._rssi,
+                    'id': self._id})
         return data
 
     @property
