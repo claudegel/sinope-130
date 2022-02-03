@@ -275,7 +275,7 @@ class Neviweb130Client(object):
         if "history" in data:
             return data["history"]
         _LOGGER.debug("Monthly_stats data: %s", data) 
-        return []
+        return None
 
     def get_device_daily_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 30 days."""
@@ -295,7 +295,7 @@ class Neviweb130Client(object):
         if "history" in data:
             return data["history"]
         _LOGGER.debug("Daily_stats data: %s", data)
-        return []
+        return None
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
@@ -315,7 +315,7 @@ class Neviweb130Client(object):
         if "history" in data:
             return data["history"]
         _LOGGER.debug("Hourly_stats data: %s", data)
-        return []
+        return None
 
     def set_brightness(self, device_id, brightness):
         """Set device brightness."""
