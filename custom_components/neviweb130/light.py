@@ -281,6 +281,7 @@ class Neviweb130Light(LightEntity):
         self._phase_control = None
         self._intensity_min = 600
         self._wattage = None
+        self._energy_stat_time = 0
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
@@ -331,24 +332,27 @@ class Neviweb130Light(LightEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        if device_hourly_stats is not None:
-            self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
-            self._hour_kwh = device_hourly_stats[0]["period"] / 1000
-        else:
-            _LOGGER.warning("Got None for device_hourly_stats")
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        if device_daily_stats is not None:
-            self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-            self._today_kwh = device_daily_stats[0]["period"] / 1000
-        else:
-            _LOGGER.warning("Got None for device_daily_stats")
-        device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-        if device_monthly_stats is not None:
-            self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-            self._month_kwh = device_monthly_stats[0]["period"] / 1000
-        else:
-            _LOGGER.warning("Got None for device_monthly_stats")
+        if start - self._energy_stat_time > 1800:
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            if device_hourly_stats is not None:
+                self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
+                self._hour_kwh = device_hourly_stats[0]["period"] / 1000
+            else:
+                _LOGGER.warning("Got None for device_hourly_stats")
+            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            if device_daily_stats is not None:
+                self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+                self._today_kwh = device_daily_stats[0]["period"] / 1000
+            else:
+                _LOGGER.warning("Got None for device_daily_stats")
+            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+            if device_monthly_stats is not None:
+                self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+                self._month_kwh = device_monthly_stats[0]["period"] / 1000
+            else:
+                _LOGGER.warning("Got None for device_monthly_stats")
+            self._energy_stat_time = time.time()
+#            _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
     @property
     def supported_features(self):
         """Return the list of supported features."""
