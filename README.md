@@ -163,6 +163,7 @@ Six attributes are added to track energy usage for devices:
 - hourly_kwh: kwh used for last hour
 - daily_kwh: kwh used for last day
 - monthly_kwh: kwh used for last month
+
 They are polled from Neviweb every 30 minutes.
 
 ### Track energy consumption in HA Energy dashboard
