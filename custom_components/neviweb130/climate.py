@@ -15,7 +15,7 @@ model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 
 Support for Flextherm wifi thermostat
-model 738 = Thermostat concerto connect FLP55 (wifi floor)
+model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -284,7 +284,8 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            entities.append(Neviweb130Thermostat(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
@@ -507,9 +508,10 @@ async def async_setup_platform(
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._hour_energy_kwh_count = None
@@ -702,18 +704,25 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        if len(device_hourly_stats) > 0:
-            self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
-            self._hour_kwh = device_hourly_stats[0]["period"] / 1000
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        if len(device_daily_stats) > 0:
-            self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-            self._today_kwh = device_daily_stats[0]["period"] / 1000
-        device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-        if len(device_monthly_stats) > 0:
-            self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-            self._month_kwh = device_monthly_stats[0]["period"] / 1000
+        if self._sku != "FLP55":
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            if device_hourly_stats is not None:
+                self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
+                self._hour_kwh = device_hourly_stats[0]["period"] / 1000
+            else:
+                _LOGGER.warning("Got None for device_hourly_stats")
+            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            if device_daily_stats is not None:
+                self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+                self._today_kwh = device_daily_stats[0]["period"] / 1000
+            else:
+                _LOGGER.warning("Got None for device_daily_stats")
+            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+            if device_monthly_stats is not None:
+                self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+                self._month_kwh = device_monthly_stats[0]["period"] / 1000
+            else:
+                _LOGGER.warning("Got None for device_monthly_stats")
         
     @property
     def unique_id(self):
@@ -801,6 +810,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'daily_kwh': self._today_kwh,
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
+                    'sku': self._sku,
                     'id': self._id})
         return data
 
