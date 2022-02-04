@@ -427,7 +427,7 @@ class Neviweb130Switch(SwitchEntity):
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
         if self._is_load or self._is_wall:
-            if start - self._energy_stat_time > 1800:
+            if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
@@ -446,8 +446,8 @@ class Neviweb130Switch(SwitchEntity):
                     self._month_kwh = device_monthly_stats[0]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_monthly_stats")
-                self._energy_stat_time = time.time()
-#                _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
+            self._energy_stat_time = time.time()
+#            _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
 
     @property
     def unique_id(self):
