@@ -61,7 +61,7 @@ from .const import (
     MODE_HOME,
 )
 
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -274,7 +274,8 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
-        return []
+        _LOGGER.debug("Monthly_stats data: %s", data) 
+        return None
 
     def get_device_daily_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 30 days."""
@@ -293,7 +294,8 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
-        return []
+        _LOGGER.debug("Daily_stats data: %s", data)
+        return None
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
@@ -312,7 +314,8 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
-        return []
+        _LOGGER.debug("Hourly_stats data: %s", data)
+        return None
 
     def set_brightness(self, device_id, brightness):
         """Set device brightness."""

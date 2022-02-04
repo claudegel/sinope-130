@@ -15,7 +15,7 @@ model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 
 Support for Flextherm wifi thermostat
-model 738 = Thermostat concerto connect FLP55 (wifi floor)
+model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -284,7 +284,8 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            entities.append(Neviweb130Thermostat(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
@@ -507,9 +508,10 @@ async def async_setup_platform(
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._hour_energy_kwh_count = None
@@ -565,6 +567,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
         self._drsetpoint_value = None
+        self._energy_stat_time = 0
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -702,15 +705,28 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-        self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
-        self._hour_kwh = device_hourly_stats[0]["period"] / 1000
-        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-        self._today_kwh = device_daily_stats[0]["period"] / 1000
-        device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-        self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-        self._month_kwh = device_monthly_stats[0]["period"] / 1000
+        if self._sku != "FLP55":
+            if start - self._energy_stat_time > 1800:
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                if device_hourly_stats is not None:
+                    self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
+                    self._hour_kwh = device_hourly_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_hourly_stats")
+                device_daily_stats = self._client.get_device_daily_stats(self._id)
+                if device_daily_stats is not None:
+                    self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+                    self._today_kwh = device_daily_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_daily_stats")
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                if device_monthly_stats is not None:
+                    self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+                    self._month_kwh = device_monthly_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_monthly_stats")
+                self._energy_stat_time = time.time()
+#                _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
         
     @property
     def unique_id(self):
@@ -760,11 +776,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     'load_watt': self._wattage})
         if self._is_wifi_floor or self._is_low_wifi:
             data.update({'floor_limit_high': self._floor_max,
-                         'floor_limit_high_status': self._floor_max_status,
-                         'floor_limit_low': self._floor_min,
-                         'floor_limit_low_status': self._floor_min_status,
-                         'max_air_limit': self._floor_air_limit,
-                         'max_air_limit_status': self._floor_air_limit_status})
+                    'floor_limit_high_status': self._floor_max_status,
+                    'floor_limit_low': self._floor_min,
+                    'floor_limit_low_status': self._floor_min_status,
+                    'max_air_limit': self._floor_air_limit,
+                    'max_air_limit_status': self._floor_air_limit_status})
         if self._is_wifi and not self._is_low_wifi:
             data.update({'occupancy': self._occupancy})
         if self._is_wifi_floor:
@@ -778,27 +794,28 @@ class Neviweb130Thermostat(ClimateEntity):
                     'load_watt_1': self._load1,
                     'second_display': self._wifi_display2})
         data.update({'heat_level': self._heat_level,
-                     'keypad': self._keypad,
-                     'backlight': self._backlight,
-                     'time_format': self._time_format,
-                     'temperature_format': self._temperature_format,
-                     'setpoint_max': self._max_temp,
-                     'setpoint_min': self._min_temp,
-                     'eco_status': self._drstatus_active,
-                     'eco_optOut': self._drstatus_optout,
-                     'eco_setpoint': self._drstatus_setpoint,
-                     'eco_power_relative': self._drstatus_rel,
-                     'eco_power_absolute': self._drstatus_abs,
-                     'eco_setpoint_status': self._drsetpoint_status,
-                     'eco_setpoint_value': self._drsetpoint_value,
-                     'hourly_kwh_count': self._hour_energy_kwh_count,
-                     'daily_kwh_count': self._today_energy_kwh_count,
-                     'monthly_kwh_count': self._month_energy_kwh_count,
-                     'hourly_kwh': self._hour_kwh,
-                     'daily_kwh': self._today_kwh,
-                     'monthly_kwh': self._month_kwh,
-                     'rssi': self._rssi,
-                     'id': self._id})
+                    'keypad': self._keypad,
+                    'backlight': self._backlight,
+                    'time_format': self._time_format,
+                    'temperature_format': self._temperature_format,
+                    'setpoint_max': self._max_temp,
+                    'setpoint_min': self._min_temp,
+                    'eco_status': self._drstatus_active,
+                    'eco_optOut': self._drstatus_optout,
+                    'eco_setpoint': self._drstatus_setpoint,
+                    'eco_power_relative': self._drstatus_rel,
+                    'eco_power_absolute': self._drstatus_abs,
+                    'eco_setpoint_status': self._drsetpoint_status,
+                    'eco_setpoint_value': self._drsetpoint_value,
+                    'hourly_kwh_count': self._hour_energy_kwh_count,
+                    'daily_kwh_count': self._today_energy_kwh_count,
+                    'monthly_kwh_count': self._month_energy_kwh_count,
+                    'hourly_kwh': self._hour_kwh,
+                    'daily_kwh': self._today_kwh,
+                    'monthly_kwh': self._month_kwh,
+                    'rssi': self._rssi,
+                    'sku': self._sku,
+                    'id': self._id})
         return data
 
     @property

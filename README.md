@@ -23,7 +23,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
-  - Flextherm concerto connect FLP55 floor thermostat 
+  - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
 - Zigbee lighting
   - Sinopé SW2500ZB Light switch
   - Sinopé DM2500ZB Dimmer
@@ -163,6 +163,8 @@ Six attributes are added to track energy usage for devices:
 - hourly_kwh: kwh used for last hour
 - daily_kwh: kwh used for last day
 - monthly_kwh: kwh used for last month
+
+They are polled from Neviweb every 30 minutes.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/)
