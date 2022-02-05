@@ -725,8 +725,9 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._month_kwh = device_monthly_stats[0]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_monthly_stats")
-            self._energy_stat_time = time.time()
-#            _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
+                self._energy_stat_time = time.time()
+            if self._energy_stat_time == 0:
+                self._energy_stat_time = start
         
     @property
     def unique_id(self):
