@@ -354,7 +354,6 @@ class Neviweb130Light(LightEntity):
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
-#        _LOGGER.warning("Done energy polling %s", self._energy_stat_time)
 
     @property
     def supported_features(self):
