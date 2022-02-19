@@ -890,8 +890,6 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return current HVAC action."""
         if self._operation_mode == HVAC_MODE_OFF:
             return CURRENT_HVAC_OFF
-        elif self._operation_mode == MODE_AUTO_BYPASS:
-            return MODE_AUTO_BYPASS
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
         else:
