@@ -23,6 +23,7 @@ from homeassistant.components.climate.const import (
 from .const import (
     DOMAIN,
     CONF_NETWORK,
+    CONF_HOMEKIT_MODE,
     ATTR_INTENSITY,
     ATTR_ONOFF,
     ATTR_ONOFF2,
@@ -61,11 +62,12 @@ from .const import (
     MODE_HOME,
 )
 
-VERSION = '1.1.5'
+VERSION = '1.2.0'
 
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=540)
+HOMEKIT_MODE = False
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -81,6 +83,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_NETWORK): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period,
+        vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
+            cv.boolean,
     })
 },
     extra=vol.ALLOW_EXTRA,
@@ -94,6 +98,10 @@ def setup(hass, hass_config):
     global SCAN_INTERVAL 
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
+
+    global HOMEKIT_MODE
+    HOMEKIT_MODE = hass_config[DOMAIN].get(CONF_HOMEKIT_MODE)
+    _LOGGER.debug("Setting Homekit mode to: %s", HOMEKIT_MODE)
 
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
