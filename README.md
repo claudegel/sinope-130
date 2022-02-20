@@ -98,6 +98,7 @@ neviweb130:
   password: '<your Neviweb password>'
   network: '<your gt130 location name in Neviweb>' (gt130 emplacement dans Neviweb)
   scan_interval: 360
+  homekit_mode: False
 ```
 Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130.
 
@@ -109,6 +110,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **password** | yes |  | Your Neviweb password.
 | **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
+| **homekit_mode** | no | False | Add support for Homekit specific values.
 
 ## Sedna valve
 For Sedna valve there is two way to connect it to Neviweb:
