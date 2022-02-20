@@ -27,7 +27,7 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL)
+from . import (SCAN_INTERVAL, HOMEKIT_MODE)
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
@@ -890,8 +890,9 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return current HVAC action."""
         if self._operation_mode == HVAC_MODE_OFF:
             return CURRENT_HVAC_OFF
-        elif self._operation_mode == MODE_AUTO_BYPASS:
-            return MODE_AUTO_BYPASS
+        elif not HOMEKIT_MODE:
+            if self._operation_mode == MODE_AUTO_BYPASS:
+                return MODE_AUTO_BYPASS
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
         else:
