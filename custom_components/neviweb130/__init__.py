@@ -345,14 +345,15 @@ class Neviweb130Client(object):
         data = {ATTR_POWER_MODE: mode}
         self.set_device_attributes(device_id, data)
 
-    def set_setpoint_mode(self, device_id, mode):
+    def set_setpoint_mode(self, device_id, mode, wifi):
         """Set thermostat operation mode."""
+        """ Work differently for wifi and zigbee devices. """
         if mode in [PRESET_AWAY, PRESET_HOME]:
             data = {ATTR_OCCUPANCY: mode}
-        elif mode in [HVAC_MODE_OFF, HVAC_MODE_HEAT]:
-            data = {ATTR_SYSTEM_MODE: mode}
-        else:
+        elif wifi:
             data = {ATTR_SETPOINT_MODE: mode}
+        else:
+            data = {ATTR_SYSTEM_MODE: mode}
         self.set_device_attributes(device_id, data)
 
     def set_temperature(self, device_id, temperature):
