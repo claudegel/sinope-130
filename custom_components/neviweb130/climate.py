@@ -109,6 +109,7 @@ from .const import (
     ATTR_SETPOINT,
     ATTR_STATUS,
     MODE_AUTO_BYPASS,
+    MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_BACKLIGHT,
@@ -144,7 +145,7 @@ UPDATE_ATTRIBUTES = [
 SUPPORTED_HVAC_WIFI_MODES = [
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
+    MODE_MANUAL,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -845,9 +846,15 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._operation_mode == HVAC_MODE_OFF:
             return HVAC_MODE_OFF
         elif self._operation_mode in [HVAC_MODE_AUTO, MODE_AUTO_BYPASS]:
-            return HVAC_MODE_AUTO
+            if self._is_wifi:
+                return self._operation_mode
+            else:
+                return HVAC_MODE_AUTO
         else:
-            return HVAC_MODE_HEAT
+            if self._is_wifi:
+                return MODE_MANUAL
+            else:
+                return HVAC_MODE_HEAT
 
     @property
     def hvac_modes(self):
@@ -896,7 +903,10 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
         else:
-            return CURRENT_HVAC_HEAT
+            if self._is_wifi:
+                return MODE_MANUAL
+            else:
+                return CURRENT_HVAC_HEAT
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -1041,8 +1051,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set new hvac mode."""
         if hvac_mode == HVAC_MODE_OFF:
             self._client.set_setpoint_mode(self._id, HVAC_MODE_OFF, self._is_wifi)
-        elif hvac_mode == HVAC_MODE_HEAT:
-            self._client.set_setpoint_mode(self._id, HVAC_MODE_HEAT, self._is_wifi)
+        elif hvac_mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi)
         elif hvac_mode == HVAC_MODE_AUTO:
             self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO, self._is_wifi)
         elif hvac_mode == MODE_AUTO_BYPASS:
