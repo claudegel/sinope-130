@@ -108,7 +108,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | --- | --- | --- | ---
 | **username** | yes |  | Your email address used to log in Neviweb.
 | **password** | yes |  | Your Neviweb password.
-| **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.|Network name is the location name in Neviweb written on top center of first page in Neviweb where your wifi or zigbee devices are registered.
+| **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.|Network name is the location name in Neviweb written on top center of first page, where your wifi or zigbee devices are registered.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 | **homekit_mode** | no | False | Add support for Homekit specific values.
 
