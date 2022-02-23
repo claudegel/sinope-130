@@ -1040,14 +1040,14 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
         if hvac_mode == HVAC_MODE_OFF:
-            self._client.set_setpoint_mode(self._id, HVAC_MODE_OFF)
+            self._client.set_setpoint_mode(self._id, HVAC_MODE_OFF, self._is_wifi)
         elif hvac_mode == HVAC_MODE_HEAT:
-            self._client.set_setpoint_mode(self._id, HVAC_MODE_HEAT)
+            self._client.set_setpoint_mode(self._id, HVAC_MODE_HEAT, self._is_wifi)
         elif hvac_mode == HVAC_MODE_AUTO:
-            self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO)
+            self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO, self._is_wifi)
         elif hvac_mode == MODE_AUTO_BYPASS:
             if self._operation_mode == HVAC_MODE_AUTO:
-                self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS)
+                self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS, self._is_wifi)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
         self._operation_mode = hvac_mode
@@ -1057,9 +1057,9 @@ class Neviweb130Thermostat(ClimateEntity):
         if preset_mode == self.preset_mode:
             return
         if preset_mode == PRESET_AWAY:
-            self._client.set_setpoint_mode(self._id, PRESET_AWAY)
+            self._client.set_setpoint_mode(self._id, PRESET_AWAY, self._is_wifi)
         elif preset_mode == PRESET_HOME:
-            self._client.set_setpoint_mode(self._id, PRESET_HOME)
+            self._client.set_setpoint_mode(self._id, PRESET_HOME, self._is_wifi)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
