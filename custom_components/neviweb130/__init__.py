@@ -60,6 +60,7 @@ from .const import (
     ATTR_DRSTATUS,
     MODE_AWAY,
     MODE_HOME,
+    MODE_MANUAL,
 )
 
 VERSION = '1.2.0'
@@ -351,6 +352,8 @@ class Neviweb130Client(object):
         if mode in [PRESET_AWAY, PRESET_HOME]:
             data = {ATTR_OCCUPANCY: mode}
         elif wifi:
+            if mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+                mode = MODE_MANUAL
             data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
