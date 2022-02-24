@@ -145,7 +145,7 @@ UPDATE_ATTRIBUTES = [
 SUPPORTED_HVAC_WIFI_MODES = [
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
-    MODE_MANUAL,
+    HVAC_MODE_HEAT,
 ]
 
 SUPPORTED_HVAC_MODES = [
@@ -851,10 +851,7 @@ class Neviweb130Thermostat(ClimateEntity):
             else:
                 return HVAC_MODE_AUTO
         else:
-            if self._is_wifi:
-                return MODE_MANUAL
-            else:
-                return HVAC_MODE_HEAT
+            return HVAC_MODE_HEAT
 
     @property
     def hvac_modes(self):
@@ -903,10 +900,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._heat_level == 0:
             return CURRENT_HVAC_IDLE
         else:
-            if self._is_wifi:
-                return MODE_MANUAL
-            else:
-                return CURRENT_HVAC_HEAT
+            return CURRENT_HVAC_HEAT
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
