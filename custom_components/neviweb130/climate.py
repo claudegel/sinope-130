@@ -846,10 +846,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._operation_mode == HVAC_MODE_OFF:
             return HVAC_MODE_OFF
         elif self._operation_mode in [HVAC_MODE_AUTO, MODE_AUTO_BYPASS]:
-            if self._is_wifi:
-                return self._operation_mode
-            else:
-                return HVAC_MODE_AUTO
+            return HVAC_MODE_AUTO
         else:
             return HVAC_MODE_HEAT
 
