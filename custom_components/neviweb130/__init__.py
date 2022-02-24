@@ -23,6 +23,7 @@ from homeassistant.components.climate.const import (
 from .const import (
     DOMAIN,
     CONF_NETWORK,
+    CONF_HOMEKIT_MODE,
     ATTR_INTENSITY,
     ATTR_ONOFF,
     ATTR_ONOFF2,
@@ -59,13 +60,15 @@ from .const import (
     ATTR_DRSTATUS,
     MODE_AWAY,
     MODE_HOME,
+    MODE_MANUAL,
 )
 
-VERSION = '1.1.5'
+VERSION = '1.2.0'
 
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=540)
+HOMEKIT_MODE = False
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -81,6 +84,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_NETWORK): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period,
+        vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
+            cv.boolean,
     })
 },
     extra=vol.ALLOW_EXTRA,
@@ -94,6 +99,10 @@ def setup(hass, hass_config):
     global SCAN_INTERVAL 
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
+
+    global HOMEKIT_MODE
+    HOMEKIT_MODE = hass_config[DOMAIN].get(CONF_HOMEKIT_MODE)
+    _LOGGER.debug("Setting Homekit mode to: %s", HOMEKIT_MODE)
 
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
@@ -337,14 +346,17 @@ class Neviweb130Client(object):
         data = {ATTR_POWER_MODE: mode}
         self.set_device_attributes(device_id, data)
 
-    def set_setpoint_mode(self, device_id, mode):
+    def set_setpoint_mode(self, device_id, mode, wifi):
         """Set thermostat operation mode."""
+        """ Work differently for wifi and zigbee devices. """
         if mode in [PRESET_AWAY, PRESET_HOME]:
             data = {ATTR_OCCUPANCY: mode}
-        elif mode in [HVAC_MODE_OFF, HVAC_MODE_HEAT]:
-            data = {ATTR_SYSTEM_MODE: mode}
-        else:
+        elif wifi:
+            if mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+                mode = MODE_MANUAL
             data = {ATTR_SETPOINT_MODE: mode}
+        else:
+            data = {ATTR_SYSTEM_MODE: mode}
         self.set_device_attributes(device_id, data)
 
     def set_temperature(self, device_id, temperature):
