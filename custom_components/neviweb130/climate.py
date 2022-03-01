@@ -665,8 +665,9 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                         self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
                         self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
-                        self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                        self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                        if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
+                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
+                            self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         if ATTR_FLOOR_AIR_LIMIT in device_data:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                             self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
