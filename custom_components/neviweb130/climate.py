@@ -35,6 +35,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE,
+    SUPPORT_AUX_HEAT,
     PRESET_AWAY,
     PRESET_NONE,
     PRESET_HOME,
@@ -127,6 +128,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
+SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
 
 DEFAULT_NAME = "neviweb130 climate"
 
@@ -824,7 +826,10 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        return SUPPORT_FLAGS
+        if self._is_low_voltage or self._is_floor or self._is_low_wifi or self._is_wifi_floor:
+            return SUPPORT_AUX_FLAGS
+        else:
+            return SUPPORT_FLAGS
 
     @property
     def min_temp(self):
