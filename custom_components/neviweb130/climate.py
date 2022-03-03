@@ -890,15 +890,22 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if self._operation_mode == HVAC_MODE_OFF:
-            return CURRENT_HVAC_OFF
-        elif not HOMEKIT_MODE:
-            if self._operation_mode == MODE_AUTO_BYPASS:
-                return MODE_AUTO_BYPASS
-        elif self._heat_level == 0:
-            return CURRENT_HVAC_IDLE
+        if HOMEKIT_MODE:
+            if self._operation_mode == HVAC_MODE_OFF:
+                return CURRENT_HVAC_OFF
+            elif self._heat_level == 0:
+                return CURRENT_HVAC_IDLE
+            else:
+                return CURRENT_HVAC_HEAT
         else:
-            return CURRENT_HVAC_HEAT
+            if self._operation_mode == HVAC_MODE_OFF:
+                return CURRENT_HVAC_OFF
+            elif self._operation_mode == MODE_AUTO_BYPASS:
+                return MODE_AUTO_BYPASS
+            elif self._heat_level == 0:
+                return CURRENT_HVAC_IDLE
+            else:
+                return CURRENT_HVAC_HEAT
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
