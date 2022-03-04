@@ -430,7 +430,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "value": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
                 thermostat.set_hvac_dr_setpoint(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -441,7 +441,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "value": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
                 thermostat.set_slave_load(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -1080,7 +1080,7 @@ class Neviweb130Thermostat(ClimateEntity):
         """ set thermostat DR setpoint values for Eco Sinope. """
         entity = value["id"]
         status = value["status"]
-        val = value["value"]
+        val = value["val"]
         self._client.set_hvac_dr_setpoint(
             entity, status, val)
         self._drsetpoint_status = status
@@ -1132,7 +1132,7 @@ class Neviweb130Thermostat(ClimateEntity):
         """ set thermostat slave status and load. """
         entity = value["id"]
         status = value["status"]
-        val = value["value"]
+        val = value["val"]
         self._client.set_slave_load(
             entity, status, val)
         self._load2_status = status
