@@ -281,7 +281,7 @@ set_control_onOff:
       example: 1
 
 set_slave_load:
-  description: Set floor and low voltage thermostats auxilary heat load in watt.
+  description: Set floor and low voltage zigbee thermostats auxilary heat load in watt.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
