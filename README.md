@@ -132,6 +132,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_temperature_format to disply temperature in celsius or fahrenheit format on thermostats.
 - neviweb130.set_backlight to set bakclight intensity in state «on» or «off» for thermostats.
 - neviweb130.set_wattage to set wattageOverload for light devices.
+- neviweb130.set_slave_load to set status and load of the auxilary heating.
 - neviweb130.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve.
