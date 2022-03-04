@@ -855,7 +855,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        if self._is_low_voltage or self._is_floor or self._is_low_wifi or self._is_wifi_floor:
+        if self._is_floor or self._is_wifi_floor:
             return SUPPORT_AUX_FLAGS
         else:
             return SUPPORT_FLAGS
