@@ -445,7 +445,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_aux_heat(self, device_id, heat):
-        """Set floor and low voltage thermostats aux heat slave/off."""
+        """Set floor and wifi floor thermostats auxiliary heating, slave/off."""
         data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("aux_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
