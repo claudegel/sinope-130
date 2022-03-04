@@ -35,6 +35,7 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE,
+    SUPPORT_AUX_HEAT,
     PRESET_AWAY,
     PRESET_NONE,
     PRESET_HOME,
@@ -122,11 +123,13 @@ from .const import (
     SERVICE_SET_AIR_FLOOR_MODE,
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
+    SERVICE_SET_SLAVE_LOAD,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
+SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
 
 DEFAULT_NAME = "neviweb130 climate"
 
@@ -266,6 +269,16 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
          vol.Required(ATTR_STATUS): cv.string,
          vol.Required("value"): vol.All(
              vol.Coerce(float), vol.Range(min=-10, max=0)
+         ),
+    }
+)
+
+SET_SLAVE_LOAD_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATUS): cv.string,
+         vol.Required("value"): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=4000)
          ),
     }
 )
@@ -417,8 +430,19 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "value": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
                 thermostat.set_hvac_dr_setpoint(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_slave_load_service(service):
+        """ Set options for auxilary heating """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
+                thermostat.set_slave_load(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -504,6 +528,13 @@ async def async_setup_platform(
         SERVICE_SET_HVAC_DR_SETPOINT,
         set_hvac_dr_setpoint_service,
         schema=SET_HVAC_DR_SETPOINT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SLAVE_LOAD,
+        set_slave_load_service,
+        schema=SET_SLAVE_LOAD_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -824,7 +855,15 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        return SUPPORT_FLAGS
+        if self._is_floor or self._is_wifi_floor:
+            return SUPPORT_AUX_FLAGS
+        else:
+            return SUPPORT_FLAGS
+
+    @property
+    def is_aux_heat(self):
+        """Return the min temperature."""
+        return self._aux_heat == "slave"
 
     @property
     def min_temp(self):
@@ -998,7 +1037,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._max_temp = temp
 
     def set_setpoint_min(self, value):
-        """set minimum setpoint temperature"""
+        """ set minimum setpoint temperature. """
         temp = value["temp"]
         entity = value["id"]
         self._client.set_setpoint_min(
@@ -1006,7 +1045,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._min_temp = temp
 
     def set_floor_air_limit(self, value):
-        """ set maximum temperature air limit for floor thermostat """
+        """ set maximum temperature air limit for floor thermostat. """
         temp = value["temp"]
         entity = value["id"]
         if temp == 0:
@@ -1018,7 +1057,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._floor_air_limit = temp
 
     def set_early_start(self, value):
-        """ set early heating on/off for wifi thermostat """
+        """ set early heating on/off for wifi thermostat. """
         start = value["start"]
         entity = value["id"]
         self._client.set_early_start(
@@ -1026,7 +1065,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._early_start = start
 
     def set_hvac_dr_options(self, value):
-        """ set thermostat DR options for Eco Sinope """
+        """ set thermostat DR options for Eco Sinope. """
+        entity = value["id"]
         dr = value["dractive"]
         optout = value["optout"]
         setpoint = value["setpoint"]
@@ -1037,10 +1077,10 @@ class Neviweb130Thermostat(ClimateEntity):
         self._drstatus_setpoint = setpoint
 
     def set_hvac_dr_setpoint(self, value):
-        """ set thermostat DR setpoint values for Eco Sinope """
+        """ set thermostat DR setpoint values for Eco Sinope. """
+        entity = value["id"]
         status = value["status"]
-        val = value["value"]
-        setpoint = value["setpoint"]
+        val = value["val"]
         self._client.set_hvac_dr_setpoint(
             entity, status, val)
         self._drsetpoint_status = status
@@ -1075,3 +1115,25 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
         self._operation_mode = preset_mode
+
+    def turn_aux_heat_on(self):
+        """Turn auxiliary heater on/off."""
+        self._client.set_aux_heat(
+            self._id, "slave")
+        self._aux_heat = "slave"
+
+    def turn_aux_heat_off(self):
+        """Turn auxiliary heater on/off."""
+        self._client.set_aux_heat(
+            self._id, "off")
+        self._aux_heat = "off"
+
+    def set_slave_load(self, value):
+        """ set thermostat slave status and load. """
+        entity = value["id"]
+        status = value["status"]
+        val = value["val"]
+        self._client.set_slave_load(
+            entity, status, val)
+        self._load2_status = status
+        self._load2 = val

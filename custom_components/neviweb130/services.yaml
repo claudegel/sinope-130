@@ -279,3 +279,16 @@ set_control_onOff:
     onOff_num:
       description: Select the output1, (1) or output2, (2) of the controller.
       example: 1
+
+set_slave_load:
+  description: Set floor and low voltage zigbee thermostats auxilary heat load in watt.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat.
+      example: "climate.neviweb130_climate_kitchen"
+    status:
+      description: Set to «on» or «off» to change status of load watt.
+      example: "on"
+    value:
+      description: Load in watt.
+      example: 2500

@@ -58,12 +58,14 @@ from .const import (
     ATTR_SYSTEM_MODE,
     ATTR_DRSETPOINT,
     ATTR_DRSTATUS,
+    ATTR_FLOOR_AUX,
+    ATTR_FLOOR_OUTPUT2,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.2.2'
+VERSION = '1.2.5'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -442,6 +444,12 @@ class Neviweb130Client(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_aux_heat(self, device_id, heat):
+        """Set floor and low voltage thermostats aux heat slave/off."""
+        data = {ATTR_FLOOR_AUX: heat}
+        _LOGGER.debug("aux_heat.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
         """Set devive led indicator intensity and color for on and off state"""
         if state == 1:
@@ -461,6 +469,12 @@ class Neviweb130Client(object):
         """Set light and dimmer watt load."""
         data = {ATTR_LIGHT_WATTAGE:{"status":"on","value":watt}}
         _LOGGER.debug("wattage.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_slave_load(self, device_id, status, load):
+        """ Set device maximum air temperature limit. """
+        data = {ATTR_FLOOR_OUTPUT2:{"status":status,"value":load}}
+        _LOGGER.debug("slave_load.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_valve_alert(self, device_id, batt):
