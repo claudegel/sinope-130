@@ -724,6 +724,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+            elif device_data["errorCode"] == "ReadTimeout":
+                _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
             else:    
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
         elif device_data["error"]["code"] == "USRSESSEXP":
@@ -736,6 +738,8 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Device action not supported... Report to maintainer.")
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
+        elif device_data["error"]["code"] == "DVCUNVLB":
+            _LOGGER.warning("Device %s unavailable, check your network...". self._name, device_data)
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
         if self._sku != "FLP55":
