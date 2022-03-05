@@ -221,8 +221,9 @@ In you log you can get those messages from Neviweb:
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
 - USRSESSEXP: User session expired. Reduce your scan_intervall below 6 minutes or your session will be terminated.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many time and/or you also have an open session on Neviweb. 
-- DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device.
+- DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly wifi devices.
 - SVCERR: Service error. Device cannot send daily stat. Try later.
+- ReadTimeout: Request was sent to the device but no answer came back. Network problem.
 
 ## Customization
 Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
