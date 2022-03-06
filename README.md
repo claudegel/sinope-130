@@ -222,7 +222,7 @@ In you log you can get those messages from Neviweb:
 - USRSESSEXP: User session expired. Reduce your scan_intervall below 6 minutes or your session will be terminated.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many time and/or you also have an open session on Neviweb. 
 - DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly wifi devices.
-- SVCERR: Service error. Device cannot send daily stat. Try later.
+- SVCERR: Service error. Service unavailable. Try later.
 - ReadTimeout: Request was sent to the device but no answer came back. Network problem.
 
 ## Customization
