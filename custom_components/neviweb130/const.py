@@ -68,6 +68,7 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
+ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" #status on/off, value=xx
 ATTR_PUMP_PROTEC = "pumpProtection" #status on/off, duration, frequency
 ATTR_TYPE = "type"
 ATTR_PHASE_CONTROL = "phaseControl"
