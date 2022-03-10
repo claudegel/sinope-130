@@ -68,7 +68,7 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
-ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" #status on/off, value=xx
+ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" #status on/off, value (second)
 ATTR_PUMP_PROTEC = "pumpProtection" #status on/off, duration, frequency
 ATTR_TYPE = "type"
 ATTR_PHASE_CONTROL = "phaseControl"
@@ -119,3 +119,4 @@ SERVICE_SET_HVAC_DR_SETPOINT = "set_hvac_dr_setpoint"
 SERVICE_SET_LOAD_DR_OPTIONS = "set_load_dr_options"
 SERVICE_SET_CONTROL_ONOFF = "set_control_onOff"
 SERVICE_SET_SLAVE_LOAD = "set_slave_load"
+SERVICE_SET_AUX_CYCLE_OUTPUT = "set_aux_cycle_output"
