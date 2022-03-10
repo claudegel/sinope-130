@@ -125,6 +125,7 @@ from .const import (
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
     SERVICE_SET_SLAVE_LOAD,
+    SERVICE_SET_AUX_CYCLE_OUTPUT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -275,6 +276,16 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
 )
 
 SET_SLAVE_LOAD_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_STATUS): cv.string,
+         vol.Required("value"): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=4000)
+         ),
+    }
+)
+
+SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_STATUS): cv.string,
@@ -447,6 +458,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_aux_cycle_output_service(service):
+        """ Set options for auxilary cycle length for low voltage wifi thermostats """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
+                thermostat.set_aux_cycle_output(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -536,6 +558,13 @@ async def async_setup_platform(
         SERVICE_SET_SLAVE_LOAD,
         set_slave_load_service,
         schema=SET_SLAVE_LOAD_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AUX_CYCLE_OUTPUT,
+        set_aux_cycle_output_service,
+        schema=SET_AUX_CYCLE_OUTPUT_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -1160,3 +1189,13 @@ class Neviweb130Thermostat(ClimateEntity):
             entity, status, val)
         self._load2_status = status
         self._load2 = val
+
+    def set_aux_cycle_output(self, value):
+        """ set thermostat slave status and load. """
+        entity = value["id"]
+        status = value["status"]
+        val = value["val"]
+        self._client.set_aux_cycle_output(
+            entity, status, val)
+        self._cycle_length_output2_status = status
+        self._cycle_length_output2_value = val
