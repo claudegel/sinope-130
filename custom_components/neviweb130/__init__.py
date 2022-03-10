@@ -445,8 +445,14 @@ class Neviweb130Client(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_aux_cycle_output(self, device_id, status, val):
+        """set low voltage wifi thermostat aux cycle status and length."""
+        data = {ATTR_CYCLE_OUTPUT2:{"status":status,"value":val}}
+        _LOGGER.debug("Cycleoutput.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_aux_heat(self, device_id, heat, wifi, sec):
-        """Set floor, wifi floor and low wifi thermostats auxiliary heating, slave/off or on/off."""
+        """Set floor, wifi floor and low wifi thermostats auxiliary heat slave/off or on/off."""
         if wifi:
             data = {ATTR_CYCLE_OUTPUT2:{"status":heat,"value":sec}}
         else:
