@@ -292,3 +292,16 @@ set_slave_load:
     value:
       description: Load in watt.
       example: 2500
+
+set_aux_cycle_output:
+  description: Set low voltage wifi thermostats auxiliary cycle time in seconds.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat.
+      example: "climate.neviweb130_climate_kitchen"
+    status:
+      description: Set to «on» or «off» to change status of auxilary cycle length.
+      example: "on"
+    value:
+      description: cycle lencht in seconds.
+      example: 300
