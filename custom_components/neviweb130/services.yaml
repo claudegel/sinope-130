@@ -48,6 +48,16 @@ set_switch_timer:
       description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
       example: 10
 
+set_switch_timer2:
+  description: Set switch multi controller device timer2, 0 = off, 1 to 10800 = timer length in seconds. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 switch device to set multi controller timer2.
+      example: "switch.neviweb130_switch_office"
+    powerTimer2:
+      description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
+      example: 10
+
 set_time_format:
   description: Set device time format 12h or 24h.
   fields:
