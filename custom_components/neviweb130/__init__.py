@@ -46,6 +46,7 @@ from .const import (
     ATTR_LIGHT_WATTAGE,
     ATTR_LEAK_ALERT,
     ATTR_BATT_ALERT,
+    ATTR_BATTERY_TYPE,
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
     ATTR_MOTOR_TARGET,
@@ -497,6 +498,12 @@ class Neviweb130Client(object):
         """Set Sedna valve temperature alert on/off."""
         data = {ATTR_TEMP_ALERT: temp}
         _LOGGER.debug("valve.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_battery_type(self, device_id, batt):
+        """Set water leak sensor battery type, lithium or alkaline."""
+        data = {ATTR_BATTERY_TYPE: batt}
+        _LOGGER.debug("battery_type.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_sensor_alert(self, device_id, leak, batt, temp, close):
