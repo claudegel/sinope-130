@@ -145,6 +145,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
 - neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
 - neviweb130.set_control_onOff set change status of output 1 and 2 on alarm multi-controller for sedna valve.
+- neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
