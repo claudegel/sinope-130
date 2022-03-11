@@ -37,6 +37,7 @@ from .const import (
     ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_WIFI_DISPLAY2,
     ATTR_TIMER,
+    ATTR_TIMER2,
     ATTR_TIME,
     ATTR_TEMP,
     ATTR_LED_ON_INTENSITY,
@@ -397,9 +398,15 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):
-        """Set device auto off timer."""
+        """Set device auto off for timer on switch and multi controller."""
         data = {ATTR_TIMER: time}
         _LOGGER.debug("timer.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_timer2(self, device_id, time):
+        """Set device auto off for timer2 on multi controller."""
+        data = {ATTR_TIMER2: time}
+        _LOGGER.debug("timer2.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_time_format(self, device_id, time):
