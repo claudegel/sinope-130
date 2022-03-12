@@ -662,13 +662,17 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE]
         if self._is_low_wifi:
-            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_CYCLE_OUTPUT2]
+            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
         else:
             LOW_WIFI_ATTRIBUTE = []
+        if self._is_low_voltage:
+            LOW_VOLTAGE_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_CYCLE_OUTPUT2]
+        else:
+            LOW_VOLTAGE_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -700,6 +704,22 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._rssi = None
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
+                    else:
+                        self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                        self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                        self._cycle_length = device_data[ATTR_CYCLE]
+                        self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
+                        self._cycle_length_output2_value = device_data[ATTR_CYCLE_OUTPUT2]["value"]
+                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                        self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
+                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                        self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
+                        self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
+                        if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
+                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
+                            self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                        self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                     self._system_mode = device_data[ATTR_SYSTEM_MODE]
                 else:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
@@ -721,8 +741,6 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                         self._aux_cycle_length = device_data[ATTR_AUX_CYCLE]
                         self._cycle_length = device_data[ATTR_CYCLE]
-                        self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
-                        self._cycle_length_output2_value = device_data[ATTR_CYCLE_OUTPUT2]["value"]
                         self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                         self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
@@ -824,16 +842,29 @@ class Neviweb130Thermostat(ClimateEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if not self._is_low_voltage:
-            data = {'wattage': self._wattage}
+        if not self._is_low_voltage and not self._is_low_wifi:
+            data.update({'wattage': self._wattage})
+        if self._is_low_voltage:
+            data.update({'sensor_mode': self._floor_mode,
+                    'cycle_length': self._cycle_length,
+                    'cycle_output2_status': self._cycle_length_output2_status,
+                    'cycle_output2_value': self._cycle_length_output2_value,
+                    'floor_limit_high': self._floor_max,
+                    'floor_limit_high_status': self._floor_max_status,
+                    'floor_limit_low': self._floor_min,
+                    'floor_limit_low_status': self._floor_min_status,
+                    'max_air_limit': self._floor_air_limit,
+                    'max_air_limit_status': self._floor_air_limit_status,
+                    'floor_sensor_type': self._floor_sensor_type,
+                    'pump_protection_status': self._pump_protec_status,
+                    'pump_protection_duration': self._pump_protec_duration,
+                    'pump_protection_frequency': self._pump_protec_freq})
         if self._is_low_wifi:
             data.update({'sensor_mode': self._floor_mode,
                     'floor_sensor_type': self._floor_sensor_type,
                     'load_watt': self._wattage,
                     'aux_cycle_length': self._aux_cycle_length,
                     'cycle_length': self._cycle_length,
-                    'cycle_output2_status': self._cycle_length_output2_status,
-                    'cycle_output2_value': self._cycle_length_output2_value,
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
                     'pump_protection_frequency': self._pump_protec_freq})
@@ -1158,27 +1189,40 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on/off."""
-        if self._is_low_wifi:
+        if self._is_low_voltage:
             value = "on"
+            low = "voltage"
+            sec = self._cycle_length_output2_value
+            self._cycle_length_output2_status = "on"
+        elif self._is_low_wifi:
+            value = "on"
+            low = "wifi"
             sec = self._cycle_length_output2_value
             self._cycle_length_output2_status = "on"
         else:
             value = "slave"
             sec = 0
+            low = "zigbee"
             self._aux_heat = "slave"
         self._client.set_aux_heat(
-            self._id, value, self._is_low_wifi, sec)
+            self._id, value, low, sec)
 
     def turn_aux_heat_off(self):
         """Turn auxiliary heater on/off."""
-        if self._is_low_wifi:
+        if self._is_low_voltage:
+            low = "voltage"
             self._cycle_length_output2_status = "off"
             sec = self._cycle_length_output2_value
+        elif self._is_low_wifi:
+            low = "wifi"
+            self._aux_cycle_length = "off"
+            sec = 0
         else:
+            low = "zigbee"
             self._aux_heat = "off"
             sec = 0
         self._client.set_aux_heat(
-            self._id, "off", self._is_low_wifi, sec)
+            self._id, "off", low, sec)
 
     def set_slave_load(self, value):
         """ set thermostat slave status and load. """
@@ -1191,7 +1235,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._load2 = val
 
     def set_aux_cycle_output(self, value):
-        """ set thermostat slave status and load. """
+        """ set low voltage thermostats aux cycle status and length. """
         entity = value["id"]
         status = value["status"]
         val = value["val"]
