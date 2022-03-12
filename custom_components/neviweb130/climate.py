@@ -933,7 +933,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def is_aux_heat(self):
         """Return the min temperature."""
-        return self._aux_heat == "slave" or self._cycle_length_output2_status == "on"
+        return self._aux_heat == "slave" or self._cycle_length_output2_status == "on" or self._aux_cycle_length != 0
 
     @property
     def min_temp(self):
@@ -1194,10 +1194,9 @@ class Neviweb130Thermostat(ClimateEntity):
             sec = self._cycle_length_output2_value
             self._cycle_length_output2_status = "on"
         elif self._is_low_wifi:
-            value = "on"
+            value = self._aux_cycle_length
             low = "wifi"
-            sec = self._cycle_length_output2_value
-            self._cycle_length_output2_status = "on"
+            sec = self._aux_cycle_length
         else:
             value = "slave"
             sec = 0
@@ -1214,7 +1213,7 @@ class Neviweb130Thermostat(ClimateEntity):
             sec = self._cycle_length_output2_value
         elif self._is_low_wifi:
             low = "wifi"
-            self._aux_cycle_length = "off"
+            self._aux_cycle_length = 0
             sec = 0
         else:
             low = "zigbee"
