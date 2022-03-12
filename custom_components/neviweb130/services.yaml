@@ -179,7 +179,7 @@ set_sensor_alert:
       description: Set to 1, send alert or 0, do nothing.
       example: 1
     cfgValveClosure:
-      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection.
+      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection. You will need to catch that allert and do an automation to close the valve.
       example: "on"
 
 set_valve_alert:
@@ -315,3 +315,13 @@ set_aux_cycle_output:
     value:
       description: cycle lencht in seconds.
       example: 300
+
+set_battery_type:
+  description: Set leak sensor battery type, alkaline or lithium .
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 leak sensor.
+      example: "sensor.neviweb130_sensor_water_tank"
+    batteryType:
+      description: Set to «alkaline» or to «lithium». Original battery ar lithium type.
+      example: "lithium"
