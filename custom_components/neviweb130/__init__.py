@@ -63,6 +63,7 @@ from .const import (
     ATTR_FLOOR_AUX,
     ATTR_FLOOR_OUTPUT2,
     ATTR_CYCLE_OUTPUT2,
+    ATTR_AUX_CYCLE,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -459,10 +460,12 @@ class Neviweb130Client(object):
         _LOGGER.debug("Cycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat, wifi, sec):
-        """Set floor, wifi floor and low wifi thermostats auxiliary heat slave/off or on/off."""
-        if wifi:
+    def set_aux_heat(self, device_id, heat, low, sec):
+        """Set floor, low voltage, wifi floor and low voltage wifi thermostats auxiliary heat slave/off or on/off."""
+        if low == "voltage":
             data = {ATTR_CYCLE_OUTPUT2:{"status":heat,"value":sec}}
+        elif low == "wifi":
+            data = {ATTR_AUX_CYCLE: heat}
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("aux_heat.data = %s", data)
