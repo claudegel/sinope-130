@@ -165,8 +165,8 @@ PRESET_WIFI_MODES = [
 ]
 
 PRESET_MODES = [
-    PRESET_NONE,
     PRESET_AWAY,
+    PRESET_NONE,
 ]
 
 DEVICE_MODEL_LOW = [7372]
@@ -623,7 +623,6 @@ class Neviweb130Thermostat(ClimateEntity):
         self._pump_protec_status = None
         self._pump_protec_duration = None
         self._pump_protec_freq = None
-        self._system_mode = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -702,6 +701,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     self._rssi = None
+                    self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
                     else:
@@ -720,7 +720,6 @@ class Neviweb130Thermostat(ClimateEntity):
                             self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
                             self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
-                    self._system_mode = device_data[ATTR_SYSTEM_MODE]
                 else:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
