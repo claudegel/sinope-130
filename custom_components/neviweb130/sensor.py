@@ -181,7 +181,7 @@ class Neviweb130Sensor(Entity):
         self._battery_voltage = None
         self._battery_status = None
         self._temp_status = None
-        self._battery_type = None
+        self._battery_type = "alkaline"
         self._is_monitor = device_info["signature"]["model"] in \
             IMPLEMENTED_TANK_MONITOR
         self._is_leak = device_info["signature"]["model"] in \
