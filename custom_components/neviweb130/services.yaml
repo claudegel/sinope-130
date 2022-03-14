@@ -323,5 +323,5 @@ set_battery_type:
       description: Name(s) of neviweb130 leak sensor.
       example: "sensor.neviweb130_sensor_water_tank"
     batteryType:
-      description: Set to «alkaline» or to «lithium». Original battery ar lithium type.
+      description: Set to «alkaline» or to «lithium». Original battery ar alkaline type for sensors.
       example: "lithium"
