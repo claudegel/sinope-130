@@ -596,7 +596,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._gfci_alert = None
         self._floor_mode = None
         self._floor_sensor_type = None
-        self._aux_heat = None
+        self._aux_heat = "off"
         self._early_start = "off"
         self._keypad = None
         self._load1 = 0
@@ -617,8 +617,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._temp_display_status = None
         self._temp_display_value = None
         self._cycle_length = None
-        self._aux_cycle_length = None
-        self._cycle_length_output2_status = None
+        self._aux_cycle_length = 0
+        self._cycle_length_output2_status = "off"
         self._cycle_length_output2_value = 0
         self._pump_protec_status = None
         self._pump_protec_duration = None
@@ -932,8 +932,15 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     def is_aux_heat(self):
-        """Return the min temperature."""
-        return self._aux_heat == "slave" or self._cycle_length_output2_status == "on" or self._aux_cycle_length != 0
+        """return auxilary heat state."""
+        if self._aux_heat == "slave":
+            return True
+        elif self._cycle_length_output2_status == "on":
+            return True
+        elif self._aux_cycle_length > 0:
+            return True
+        else:
+            return  False
 
     @property
     def min_temp(self):
