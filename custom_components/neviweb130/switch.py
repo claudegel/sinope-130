@@ -1,8 +1,8 @@
 """
 Support for Neviweb switch connected via GT130 ZigBee.
 Multi-Controller
-model 2180 = controller for sedna valve MC3100ZB connected to GT130
-model 2181 = controller for sedna valve MC3100ZB connected sedna valve
+model 2180 = Multi controller for sedna valve MC3100ZB connected to GT130
+model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
 
 load controler
 Support for Neviweb switch connected via GT130 ZigBee.
@@ -71,6 +71,7 @@ from .const import (
     ATTR_BATTERY_VOLTAGE,
     ATTR_BATTERY_STATUS,
     ATTR_TIMER,
+    ATTR_TIMER2,
     ATTR_KEYPAD,
     ATTR_DRSTATUS,
     ATTR_MOTOR_POS,
@@ -93,6 +94,7 @@ from .const import (
     STATE_KEYPAD_STATUS,
     SERVICE_SET_SWITCH_KEYPAD_LOCK,
     SERVICE_SET_SWITCH_TIMER,
+    SERVICE_SET_SWITCH_TIMER_2,
     SERVICE_SET_VALVE_ALERT,
     SERVICE_SET_VALVE_TEMP_ALERT,
     SERVICE_SET_LOAD_DR_OPTIONS,
@@ -124,6 +126,15 @@ SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
          vol.Required(ATTR_ENTITY_ID): cv.entity_id,
          vol.Required(ATTR_TIMER): vol.All(
+             vol.Coerce(int), vol.Range(min=0, max=255)
+         ),
+    }
+)
+
+SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_TIMER2): vol.All(
              vol.Coerce(int), vol.Range(min=0, max=255)
          ),
     }
@@ -203,6 +214,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_switch_timer2_service(service):
+        """ set timer for switch device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER2]}
+                switch.set_timer2(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     def set_valve_alert_service(service):
         """ Set alert for water valve """
         entity_id = service.data[ATTR_ENTITY_ID]
@@ -259,6 +281,13 @@ async def async_setup_platform(
         SERVICE_SET_SWITCH_TIMER,
         set_switch_timer_service,
         schema=SET_SWITCH_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SWITCH_TIMER_2,
+        set_switch_timer2_service,
+        schema=SET_SWITCH_TIMER_2_SCHEMA,
     )
 
     hass.services.async_register(
@@ -331,6 +360,7 @@ class Neviweb130Switch(SwitchEntity):
         self._battery_status = None
         self._valve_closure = None
         self._timer = 0
+        self._timer2 = 0
         self._keypad = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
@@ -347,7 +377,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def update(self):
         if self._is_zb_control or self._is_sedna_control:
-            LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE]
+            LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2]
         elif self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
         elif self._is_wifi_valve:
@@ -409,6 +439,8 @@ class Neviweb130Switch(SwitchEntity):
                     self._humidity = device_data[ATTR_REL_HUMIDITY]
                     self._room_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     self._ext_temp = device_data[ATTR_EXT_TEMP]
+                    self._timer = device_data[ATTR_TIMER]
+                    self._timer2 = device_data[ATTR_TIMER2]
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
@@ -558,6 +590,8 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_status': self._battery_status,
                    'Extern_temperature': self._ext_temp,
                    'Room_humidity': self._humidity,
+                   'Timer': self._timer,
+                   'Timer2': self._timer2,
                    'Input1_status': self._input_status,
                    'Input2_status': self._input2_status,
                    'onOff': self._onOff,
@@ -630,6 +664,14 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_timer(
             entity, time)
         self._timer = time
+
+    def set_timer2(self, value):
+        """Set device timer 2 for Multi controller, 0 = off, 1 to 255 = timer length"""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_timer2(
+            entity, time)
+        self._timer2 = time
 
     def set_valve_alert(self, value):
         """ Set valve batt alert action"""

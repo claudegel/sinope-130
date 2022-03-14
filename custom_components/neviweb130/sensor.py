@@ -52,6 +52,7 @@ from .const import (
     ATTR_WATER_LEAK_STATUS,
     ATTR_BATTERY_VOLTAGE,
     ATTR_BATTERY_STATUS,
+    ATTR_BATTERY_TYPE,
     ATTR_ROOM_TEMP_ALARM,
     ATTR_LEAK_ALERT,
     ATTR_BATT_ALERT,
@@ -60,13 +61,14 @@ from .const import (
     MODE_OFF,
     STATE_WATER_LEAK,
     SERVICE_SET_SENSOR_ALERT,
+    SERVICE_SET_BATTERY_TYPE,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 sensor'
 
-UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
+UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE]
 
 IMPLEMENTED_TANK_MONITOR = [4110]
 IMPLEMENTED_SENSOR_MODEL = [5051]
@@ -91,6 +93,13 @@ SET_SENSOR_ALERT_SCHEMA = vol.Schema(
              vol.Coerce(int), vol.Range(min=0, max=1)
          ),
          vol.Required(ATTR_CONF_CLOSURE): cv.string,
+    }
+)
+
+SET_BATTERY_TYPE_SCHEMA = vol.Schema(
+    {
+         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+         vol.Required(ATTR_BATTERY_TYPE): cv.string,
     }
 )
 
@@ -129,11 +138,29 @@ async def async_setup_platform(
                 sensor.schedule_update_ha_state(True)
                 break
 
+    def set_battery_type_service(service):
+        """ Set battery type for water leak sensor """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for sensor in entities:
+            if sensor.entity_id == entity_id:
+                value = {"id": sensor.unique_id, "type": service.data[ATTR_BATTERY_TYPE]}
+                sensor.set_battery_type(value)
+                sensor.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SENSOR_ALERT,
         set_sensor_alert_service,
         schema=SET_SENSOR_ALERT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BATTERY_TYPE,
+        set_battery_type_service,
+        schema=SET_BATTERY_TYPE_SCHEMA,
     )
 
 def voltage_to_percentage(voltage):
@@ -154,6 +181,7 @@ class Neviweb130Sensor(Entity):
         self._battery_voltage = None
         self._battery_status = None
         self._temp_status = None
+        self._battery_type = None
         self._is_monitor = device_info["signature"]["model"] in \
             IMPLEMENTED_TANK_MONITOR
         self._is_leak = device_info["signature"]["model"] in \
@@ -202,6 +230,7 @@ class Neviweb130Sensor(Entity):
                     self._level_status = device_data[ATTR_LEVEL_STATUS]
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                 self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                self._battery_type = device_data[ATTR_BATTERY_TYPE]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -287,6 +316,7 @@ class Neviweb130Sensor(Entity):
         data.update({'Battery_level': voltage_to_percentage(self._battery_voltage),
                      'Battery_voltage': self._battery_voltage,
                      'Battery_status': self._battery_status,
+                     'Battery_type': self._battery_type,
                      'Id': self._id})
         return data
 
@@ -317,7 +347,15 @@ class Neviweb130Sensor(Entity):
         entity = value["id"]
         self._client.set_sensor_alert(
             entity, leak, batt, temp, close)
-        self._leak_alert = "true" if leak == 1 else "false"
-        self._temp_alert = "true" if temp == 1 else "false"
-        self._battery_alert = "true" if batt == 1 else "false"
+        self._leak_alert = True if leak == 1 else False
+        self._temp_alert = True if temp == 1 else False
+        self._battery_alert = True if batt == 1 else False
         self._closure_action = close
+
+    def set_battery_type(self, value):
+        """ Set battery type, alkaline or lithium for water leak sensor. """
+        batt = value["type"]
+        entity = value["id"]
+        self._client.set_battery_type(
+            entity, batt)
+        self._battery_type = batt

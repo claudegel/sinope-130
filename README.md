@@ -126,7 +126,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_light_keypad_lock, allow to lock the keypad of the light device.
 - neviweb130.set_switch_keypad_lock, allow to lock the keypad of the switch device.
 - neviweb130.set_light_timer, this is used to set a timer in seconds (0 to 10800) to the light devices to turn_off after that delay.
-- neviweb130.set_switch_timer, this is used to set a timer in seconds (0 to 10800) to the switch devices to turn_off after that delay.
+- neviweb130.set_switch_timer, this is used to set a timer in seconds (0 to 10800) to the switch devices and multi controller device to turn_off after that delay.
+- neviweb130.set_switch_timer2, this is used to set the timer2 in seconds (0 to 10800) to the switch multi controller device to turn_off after that delay.
 - neviweb130.set_led_indicator, this allow to change led indicator color and intensity on light devices for «on» and «off» state. you can send any color in the RGB list via the three color parameters red, green and blue and you can set intensity of the led indicator.
 - neviweb130.set_time_format to display time in 12h or 24h on thermostats.
 - neviweb130.set_temperature_format to disply temperature in celsius or fahrenheit format on thermostats.
@@ -145,6 +146,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
 - neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
 - neviweb130.set_control_onOff set change status of output 1 and 2 on alarm multi-controller for sedna valve.
+- neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
@@ -170,7 +172,7 @@ Six attributes are added to track energy usage for devices:
 They are polled from Neviweb every 30 minutes.
 
 ### Track energy consumption in HA Energy dashboard
-When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/)
+When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/):
 ```yaml
 template:
   - sensor:
@@ -180,6 +182,17 @@ template:
       state_class: total_increasing
       state: >
         {{ state_attr("climate.th1124zb_basement","hourly_kwh_count") }}
+```
+or:
+```yaml
+template:
+  - sensor:
+    - name: Basement energy usage
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total
+      state: >
+        {{ state_attr("climate.th1124zb_basement","hourly_kwh") }}
 ```
 
 ## Troubleshooting

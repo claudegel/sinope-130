@@ -37,6 +37,7 @@ from .const import (
     ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_WIFI_DISPLAY2,
     ATTR_TIMER,
+    ATTR_TIMER2,
     ATTR_TIME,
     ATTR_TEMP,
     ATTR_LED_ON_INTENSITY,
@@ -46,6 +47,7 @@ from .const import (
     ATTR_LIGHT_WATTAGE,
     ATTR_LEAK_ALERT,
     ATTR_BATT_ALERT,
+    ATTR_BATTERY_TYPE,
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
     ATTR_MOTOR_TARGET,
@@ -60,12 +62,14 @@ from .const import (
     ATTR_DRSTATUS,
     ATTR_FLOOR_AUX,
     ATTR_FLOOR_OUTPUT2,
+    ATTR_CYCLE_OUTPUT2,
+    ATTR_AUX_CYCLE,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.2.5'
+VERSION = '1.2.6'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -395,9 +399,15 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):
-        """Set device auto off timer."""
+        """Set device auto off for timer on switch and multi controller."""
         data = {ATTR_TIMER: time}
         _LOGGER.debug("timer.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_timer2(self, device_id, time):
+        """Set device auto off for timer2 on multi controller."""
+        data = {ATTR_TIMER2: time}
+        _LOGGER.debug("timer2.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_time_format(self, device_id, time):
@@ -444,9 +454,20 @@ class Neviweb130Client(object):
         _LOGGER.debug("setpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat):
-        """Set floor and wifi floor thermostats auxiliary heating, slave/off."""
-        data = {ATTR_FLOOR_AUX: heat}
+    def set_aux_cycle_output(self, device_id, status, val):
+        """set low voltage wifi thermostat aux cycle status and length."""
+        data = {ATTR_CYCLE_OUTPUT2:{"status":status,"value":val}}
+        _LOGGER.debug("Cycleoutput.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heat(self, device_id, heat, low, sec):
+        """Set floor, low voltage, wifi floor and low voltage wifi thermostats auxiliary heat slave/off or on/off."""
+        if low == "voltage":
+            data = {ATTR_CYCLE_OUTPUT2:{"status":heat,"value":sec}}
+        elif low == "wifi":
+            data = {ATTR_AUX_CYCLE: heat}
+        else:
+            data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("aux_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -487,6 +508,12 @@ class Neviweb130Client(object):
         """Set Sedna valve temperature alert on/off."""
         data = {ATTR_TEMP_ALERT: temp}
         _LOGGER.debug("valve.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_battery_type(self, device_id, batt):
+        """Set water leak sensor battery type, lithium or alkaline."""
+        data = {ATTR_BATTERY_TYPE: batt}
+        _LOGGER.debug("battery_type.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_sensor_alert(self, device_id, leak, batt, temp, close):

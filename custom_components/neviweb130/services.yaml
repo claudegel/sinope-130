@@ -48,6 +48,16 @@ set_switch_timer:
       description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
       example: 10
 
+set_switch_timer2:
+  description: Set switch multi controller device timer2, 0 = off, 1 to 10800 = timer length in seconds. Devices will turn_off after that delay.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 switch device to set multi controller timer2.
+      example: "switch.neviweb130_switch_office"
+    powerTimer2:
+      description: Time to set, 0 = no timer, 1 to 10800 = timer length in seconds.
+      example: 10
+
 set_time_format:
   description: Set device time format 12h or 24h.
   fields:
@@ -169,7 +179,7 @@ set_sensor_alert:
       description: Set to 1, send alert or 0, do nothing.
       example: 1
     cfgValveClosure:
-      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection.
+      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection. You will need to catch that allert and do an automation to close the valve.
       example: "on"
 
 set_valve_alert:
@@ -292,3 +302,26 @@ set_slave_load:
     value:
       description: Load in watt.
       example: 2500
+
+set_aux_cycle_output:
+  description: Set low voltage wifi thermostats auxiliary cycle time in seconds.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat.
+      example: "climate.neviweb130_climate_kitchen"
+    status:
+      description: Set to «on» or «off» to change status of auxilary cycle length.
+      example: "on"
+    value:
+      description: cycle lencht in seconds.
+      example: 300
+
+set_battery_type:
+  description: Set leak sensor battery type, alkaline or lithium .
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 leak sensor.
+      example: "sensor.neviweb130_sensor_water_tank"
+    batteryType:
+      description: Set to «alkaline» or to «lithium». Original battery ar lithium type.
+      example: "lithium"
