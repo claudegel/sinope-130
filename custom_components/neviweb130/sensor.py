@@ -82,24 +82,24 @@ SENSOR_TYPES = {
 
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_LEAK_ALERT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_BATT_ALERT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_TEMP_ALERT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_CONF_CLOSURE): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LEAK_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_BATT_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_TEMP_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_CONF_CLOSURE): vol.In(["on", "off"]),
     }
 )
 
 SET_BATTERY_TYPE_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_BATTERY_TYPE): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BATTERY_TYPE): vol.In(["alkaline", "lithium"]),
     }
 )
 
