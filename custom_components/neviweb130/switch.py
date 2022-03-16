@@ -117,59 +117,61 @@ IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES +
 
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
     }
 )
 
 SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TIMER): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIMER): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
     }
 )
 
 SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TIMER2): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIMER2): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
     }
 )
 
 SET_VALVE_ALERT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_BATT_ALERT): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BATT_ALERT): vol.In(["true", "false"]),
     }
 )
 
 SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TEMP_ALERT): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TEMP_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
     }
 )
 
 SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_DRACTIVE): cv.string,
-         vol.Required(ATTR_OPTOUT): cv.string,
-         vol.Required(ATTR_ONOFF): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DRACTIVE): vol.In(["on", "off"]),
+        vol.Required(ATTR_OPTOUT): vol.In(["on", "off"]),
+        vol.Required(ATTR_ONOFF): vol.In(["on", "off"]),
     }
 )
 
 SET_CONTROL_ONOFF_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_STATUS): cv.string,
-         vol.Required("onOff_num"): vol.All(
-             vol.Coerce(int), vol.Range(min=1, max=2)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
+        vol.Required("onOff_num"): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=2)
+        ),
     }
 )
 
