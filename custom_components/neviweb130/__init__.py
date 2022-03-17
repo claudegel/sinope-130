@@ -515,10 +515,10 @@ class Neviweb130Client(object):
         _LOGGER.debug("wattage.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_slave_load(self, device_id, status, load):
-        """ Set device maximum air temperature limit. """
+    def set_auxiliary_load(self, device_id, status, load):
+        """ Set auxiliary output load in watt. """
         data = {ATTR_FLOOR_OUTPUT2:{"status":status,"value":load}}
-        _LOGGER.debug("slave_load.data = %s", data)
+        _LOGGER.debug("auxiliary_load.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_valve_alert(self, device_id, batt):
