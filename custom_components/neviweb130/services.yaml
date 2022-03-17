@@ -291,7 +291,7 @@ set_control_onOff:
       example: 1
 
 set_auxiliary_load:
-  description: Set floor and low voltage zigbee thermostats auxilary heat load in watt.
+  description: Set floor and low voltage zigbee thermostats auxiliary heat load in watt.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -320,7 +320,7 @@ set_aux_cycle_output:
       description: Name(s) of neviweb130 thermostat.
       example: "climate.neviweb130_climate_kitchen"
     status:
-      description: Set to «on» or «off» to change status of auxilary cycle length.
+      description: Set to «on» or «off» to change status of auxiliary cycle length.
       example: "on"
     value:
       description: cycle lencht in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
