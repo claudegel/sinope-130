@@ -839,7 +839,8 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     if not self._is_wifi_floor:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                        if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
+                            self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
