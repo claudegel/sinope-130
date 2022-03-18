@@ -82,24 +82,24 @@ SENSOR_TYPES = {
 
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_LEAK_ALERT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_BATT_ALERT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_TEMP_ALERT): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_CONF_CLOSURE): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LEAK_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_BATT_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_TEMP_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_CONF_CLOSURE): vol.In(["on", "off"]),
     }
 )
 
 SET_BATTERY_TYPE_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_BATTERY_TYPE): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BATTERY_TYPE): vol.In(["alkaline", "lithium"]),
     }
 )
 
@@ -163,9 +163,12 @@ async def async_setup_platform(
         schema=SET_BATTERY_TYPE_SCHEMA,
     )
 
-def voltage_to_percentage(voltage):
-    """Convert voltage level from absolute 0..3.25 to percentage."""
-    return int((voltage - 2) * 100)
+def voltage_to_percentage(voltage, type):
+    """Convert voltage level from volt to percentage."""
+    if type == "alkaline":
+        return int((min(voltage,3.1)-2.2)/(3.1-2.2) * 100)
+    else:
+        return int((min(voltage,3.0)-2.4)/(3.0-2.4) * 100)
 
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor."""
@@ -313,7 +316,7 @@ class Neviweb130Sensor(Entity):
                              'Temperature_alert': self._temp_alert,
                              'Battery_alert': self._battery_alert,
                              'Closure_action': self._closure_action})
-        data.update({'Battery_level': voltage_to_percentage(self._battery_voltage),
+        data.update({'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
                      'Battery_voltage': self._battery_voltage,
                      'Battery_status': self._battery_status,
                      'Battery_type': self._battery_type,
@@ -323,7 +326,7 @@ class Neviweb130Sensor(Entity):
     @property
     def battery_voltage(self):
         """Return the current battery voltage of the sensor in %."""
-        return voltage_to_percentage(self._battery_voltage)
+        return voltage_to_percentage(self._battery_voltage, self._battery_type)
 
     @property
     def battery_status(self):

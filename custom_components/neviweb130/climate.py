@@ -102,6 +102,8 @@ from .const import (
     ATTR_CYCLE,
     ATTR_CYCLE_OUTPUT2,
     ATTR_PUMP_PROTEC,
+    ATTR_PUMP_PROTEC_DURATION,
+    ATTR_PUMP_PROTEC_PERIOD,
     ATTR_TYPE,
     ATTR_SYSTEM_MODE,
     ATTR_DRSTATUS,
@@ -124,8 +126,10 @@ from .const import (
     SERVICE_SET_AIR_FLOOR_MODE,
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
-    SERVICE_SET_SLAVE_LOAD,
+    SERVICE_SET_AUXILIARY_LOAD,
     SERVICE_SET_AUX_CYCLE_OUTPUT,
+    SERVICE_SET_CYCLE_OUTPUT,
+    SERVICE_SET_PUMP_PROTECTION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,6 +138,18 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
 
 DEFAULT_NAME = "neviweb130 climate"
+
+PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
+
+HA_TO_NEVIWEB_PERIOD = {
+    "15 sec": 15,
+    "5 min": 300,
+    "10 min": 600,
+    "15 min": 900,
+    "20 min": 1200,
+    "25 min": 1500,
+    "30 min": 1800
+}
 
 UPDATE_ATTRIBUTES = [
     ATTR_ROOM_SETPOINT,
@@ -179,119 +195,135 @@ IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_WIFI_DISPLAY2): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_WIFI_DISPLAY2): vol.In(["outsideTemperature", "default"]),
     }
 )
 
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TYPE): cv.string,
-         vol.Required(ATTR_BACKLIGHT): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TYPE): vol.In(["wifi", "zigbee"]),
+        vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on"]),
     }
 )
 
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
     }
 )
 
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TIME): vol.All(
-             vol.Coerce(int), vol.Range(min=12, max=24)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.All(
+            vol.Coerce(int), vol.Range(min=12, max=24)
+        ),
     }
 )
 
 SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TEMP): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TEMP): vol.In(["celcius", "fahrenheit"]),
     }
 )
 
 SET_SETPOINT_MAX_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
-             vol.Coerce(float), vol.Range(min=8, max=36)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
+            vol.Coerce(float), vol.Range(min=8, max=36)
+        ),
     }
 )
 
 SET_SETPOINT_MIN_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
-             vol.Coerce(float), vol.Range(min=5, max=26)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
+            vol.Coerce(float), vol.Range(min=5, max=26)
+        ),
     }
 )
 
 SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(
-             vol.Coerce(float), vol.Range(min=0, max=36)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(
+            vol.Coerce(float), vol.Range(min=0, max=36)
+        ),
     }
 )
 
 SET_EARLY_START_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_EARLY_START): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_EARLY_START): vol.In(["on", "off"]),
     }
 )
 
 SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_FLOOR_MODE): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOOR_MODE): vol.In(["airByFloor", "floor"]),
     }
 )
 
 SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_DRACTIVE): cv.string,
-         vol.Required(ATTR_OPTOUT): cv.string,
-         vol.Required(ATTR_SETPOINT): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DRACTIVE): vol.In(["on", "off"]),
+        vol.Required(ATTR_OPTOUT): vol.In(["on", "off"]),
+        vol.Required(ATTR_SETPOINT): vol.In(["on", "off"]),
     }
 )
 
 SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_STATUS): cv.string,
-         vol.Required("value"): vol.All(
-             vol.Coerce(float), vol.Range(min=-10, max=0)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
+        vol.Required("value"): vol.All(
+            vol.Coerce(float), vol.Range(min=-10, max=0)
+        ),
     }
 )
 
-SET_SLAVE_LOAD_SCHEMA = vol.Schema(
+SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_STATUS): cv.string,
-         vol.Required("value"): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=4000)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
+        vol.Required("value"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=4000)
+        ),
     }
 )
 
 SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_STATUS): cv.string,
-         vol.Required("value"): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=4000)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
+        vol.Required("value"): vol.All(
+            cv.ensure_list, [vol.In(PERIOD_VALUE)]
+        ),
+    }
+)
+
+SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("value"): vol.All(
+            cv.ensure_list, [vol.In(PERIOD_VALUE)]
+        ),
+    }
+)
+
+SET_PUMP_PROTECTION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
     }
 )
 
@@ -447,25 +479,47 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_slave_load_service(service):
+    def set_auxiliary_load_service(service):
         """ Set options for auxilary heating """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
                 value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
-                thermostat.set_slave_load(value)
+                thermostat.set_auxiliary_load(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
     def set_aux_cycle_output_service(service):
-        """ Set options for auxilary cycle length for low voltage wifi thermostats """
+        """ Set options for auxilary cycle length for low voltage thermostats """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
                 value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
                 thermostat.set_aux_cycle_output(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_cycle_output_service(service):
+        """ Set options for main cycle length for low voltage thermostats """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "val": service.data["value"]}
+                thermostat.set_cycle_output(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_pump_protection_service(service):
+        """ Set status of pump protection for low voltage thermostats """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS]}
+                thermostat.set_pump_protection(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -555,9 +609,9 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_SLAVE_LOAD,
-        set_slave_load_service,
-        schema=SET_SLAVE_LOAD_SCHEMA,
+        SERVICE_SET_AUXILIARY_LOAD,
+        set_auxiliary_load_service,
+        schema=SET_AUXILIARY_LOAD_SCHEMA,
     )
 
     hass.services.async_register(
@@ -565,6 +619,20 @@ async def async_setup_platform(
         SERVICE_SET_AUX_CYCLE_OUTPUT,
         set_aux_cycle_output_service,
         schema=SET_AUX_CYCLE_OUTPUT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_CYCLE_OUTPUT,
+        set_cycle_output_service,
+        schema=SET_CYCLE_OUTPUT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_PUMP_PROTECTION,
+        set_pump_protection_service,
+        schema=SET_PUMP_PROTECTION_SCHEMA,
     )
 
 class Neviweb130Thermostat(ClimateEntity):
@@ -616,13 +684,13 @@ class Neviweb130Thermostat(ClimateEntity):
         self._temperature_format = TEMP_CELSIUS
         self._temp_display_status = None
         self._temp_display_value = None
-        self._cycle_length = None
+        self._cycle_length = 0
         self._aux_cycle_length = 0
         self._cycle_length_output2_status = "off"
         self._cycle_length_output2_value = 0
         self._pump_protec_status = None
         self._pump_protec_duration = None
-        self._pump_protec_freq = None
+        self._pump_protec_period = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -665,7 +733,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             LOW_WIFI_ATTRIBUTE = []
         if self._is_low_voltage:
-            LOW_VOLTAGE_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_CYCLE_OUTPUT2]
+            LOW_VOLTAGE_ATTRIBUTE = [ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_CYCLE_OUTPUT2]
         else:
             LOW_VOLTAGE_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
@@ -715,10 +783,10 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
-                        self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
-                        if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
-                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                            self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                        self._pump_protec_status = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
+                        if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
+                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
+                            self._pump_protec_period = device_data[ATTR_PUMP_PROTEC_PERIOD]["value"]
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                 else:
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
@@ -749,7 +817,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
                         if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                             self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                            self._pump_protec_freq = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                            self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         if ATTR_FLOOR_AIR_LIMIT in device_data:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                             self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
@@ -771,7 +839,8 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     if not self._is_wifi_floor:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                        if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
+                            self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
@@ -845,9 +914,9 @@ class Neviweb130Thermostat(ClimateEntity):
             data.update({'wattage': self._wattage})
         if self._is_low_voltage:
             data.update({'sensor_mode': self._floor_mode,
-                    'cycle_length': self._cycle_length,
-                    'cycle_output2_status': self._cycle_length_output2_status,
-                    'cycle_output2_value': self._cycle_length_output2_value,
+                    'cycle_length': neviweb_to_ha(self._cycle_length),
+                    'auxiliary_cycle_status': self._cycle_length_output2_status,
+                    'auxiliary_cycle_value': neviweb_to_ha(self._cycle_length_output2_value),
                     'floor_limit_high': self._floor_max,
                     'floor_limit_high_status': self._floor_max_status,
                     'floor_limit_low': self._floor_min,
@@ -857,16 +926,16 @@ class Neviweb130Thermostat(ClimateEntity):
                     'floor_sensor_type': self._floor_sensor_type,
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
-                    'pump_protection_frequency': self._pump_protec_freq})
+                    'pump_protection_frequency': self._pump_protec_period})
         if self._is_low_wifi:
             data.update({'sensor_mode': self._floor_mode,
                     'floor_sensor_type': self._floor_sensor_type,
                     'load_watt': self._wattage,
                     'auxiliary_cycle_length': self._aux_cycle_length,
-                    'cycle_length': self._cycle_length,
+                    'cycle_length': neviweb_to_ha(self._cycle_length),
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
-                    'pump_protection_frequency': self._pump_protec_freq})
+                    'pump_protection_frequency': self._pump_protec_period})
         if self._is_floor or self._is_wifi_floor:
             data.update({'gfci_status': self._gfci_status,
                     'sensor_mode': self._floor_mode,
@@ -1207,7 +1276,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             value = "slave"
             sec = 0
-            low = "zigbee"
+            low = "floor"
             self._aux_heat = "slave"
         self._client.set_aux_heat(
             self._id, value, low, sec)
@@ -1223,28 +1292,55 @@ class Neviweb130Thermostat(ClimateEntity):
             self._aux_cycle_length = 0
             sec = 0
         else:
-            low = "zigbee"
+            low = "floor"
             self._aux_heat = "off"
             sec = 0
         self._client.set_aux_heat(
             self._id, "off", low, sec)
 
-    def set_slave_load(self, value):
-        """ set thermostat slave status and load. """
+    def set_auxiliary_load(self, value):
+        """ set thermostat auxiliary output status and load. """
         entity = value["id"]
         status = value["status"]
         val = value["val"]
-        self._client.set_slave_load(
+        self._client.set_auxiliary_load(
             entity, status, val)
         self._load2_status = status
         self._load2 = val
 
     def set_aux_cycle_output(self, value):
-        """ set low voltage thermostats aux cycle status and length. """
+        """ set low voltage thermostats auxiliary cycle status and length. """
         entity = value["id"]
         status = value["status"]
         val = value["val"]
+        if val in HA_TO_NEVIWEB_PERIOD:
+            length = HA_TO_NEVIWEB_PERIOD[val]
         self._client.set_aux_cycle_output(
-            entity, status, val)
+            entity, status, length)
         self._cycle_length_output2_status = status
         self._cycle_length_output2_value = val
+
+    def set_cycle_output(self, value):
+        """ set low voltage thermostats main cycle output length. """
+        entity = value["id"]
+        val = value["val"]
+        if val in HA_TO_NEVIWEB_PERIOD:
+            length = HA_TO_NEVIWEB_PERIOD[val]
+        self._client.set_aux_cycle_output(
+            entity, val)
+        self._cycle_length = val
+
+    def set_pump_protection(self, value):
+        entity = value["id"]
+        status = value["status"]
+        self._client.set_pump_protection(
+            entity, status, self._is_low_wifi)
+        self._pump_protec_status = status
+        self._pump_protec_duration = 60
+        self._pump_protec_period = 1
+
+    def neviweb_to_ha(self, value):
+        keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
+        if keys:
+            return keys[0]
+        return None

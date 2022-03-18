@@ -133,7 +133,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_temperature_format to disply temperature in celsius or fahrenheit format on thermostats.
 - neviweb130.set_backlight to set bakclight intensity in state «on» or «off» for thermostats.
 - neviweb130.set_wattage to set wattageOverload for light devices.
-- neviweb130.set_slave_load to set status and load of the auxilary heating.
+- neviweb130.set_auxiliary_load to set status and load of the auxilary heating.
 - neviweb130.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve.
@@ -141,11 +141,14 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve.
 - neviweb130.set_early_start to set early heating on/off for wifi thermostats.
 - neviweb130.set_air_floor_mode to switch between floor or ambiant temperature sensor to control room temperature.
+- neviweb130.set_floor_air_limit to set floor thermostat max air limit temperature.
 - neviweb130.set_phase_control to set phase control mode for DM2550ZB dimmer (reverse or forward).
 - neviweb130.set_hvac_dr_options to set or reset DR period option in Neviweb for thermostats.
 - neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
 - neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
-- neviweb130.set_control_onOff set change status of output 1 and 2 on alarm multi-controller for sedna valve.
+- neviweb130.set_cycle_output to set main cycle length of low voltage thermostat in minutes.
+- neviweb130.set_aux_cycle_output to set auxiliary cycle length of low voltage thermostats in minutes.
+- neviweb130.set_control_onOff change status of output 1 and 2 on alarm multi-controller for sedna valve.
 - neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor
 
 ## Catch Éco Sinopé signal for peak period

@@ -89,54 +89,54 @@ IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER + DEVICE_MOD
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_KEYPAD): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
     }
 )
 
 SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_TIMER): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIMER): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
     }
 )
 
 SET_LED_INDICATOR_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_STATE): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1)
-         ),
-         vol.Required(ATTR_INTENSITY): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=100)
-         ),
-         vol.Required(ATTR_RED): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
-         ),
-         vol.Required(ATTR_GREEN): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
-         ),
-         vol.Required(ATTR_BLUE): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=255)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_STATE): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_INTENSITY): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+        vol.Required(ATTR_RED): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(ATTR_GREEN): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(ATTR_BLUE): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
     }
 )
 
 SET_WATTAGE_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_LIGHT_WATTAGE): vol.All(
-             vol.Coerce(int), vol.Range(min=0, max=1800)
-         ),
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LIGHT_WATTAGE): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1800)
+        ),
     }
 )
 
 SET_PHASE_CONTROL_SCHEMA = vol.Schema(
     {
-         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-         vol.Required(ATTR_PHASE_CONTROL): cv.string,
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_KEYPAD): vol.In(["reverse", "forward"]),
     }
 )
 

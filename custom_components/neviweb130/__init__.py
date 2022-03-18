@@ -64,12 +64,16 @@ from .const import (
     ATTR_FLOOR_OUTPUT2,
     ATTR_CYCLE_OUTPUT2,
     ATTR_AUX_CYCLE,
+    ATTR_CYCLE,
+    ATTR_PUMP_PROTEC,
+    ATTR_PUMP_PROTEC_DURATION,
+    ATTR_PUMP_PROTEC_PERIOD,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.2.7'
+VERSION = '1.3.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -455,8 +459,14 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_aux_cycle_output(self, device_id, status, val):
-        """set low voltage wifi thermostat aux cycle status and length."""
+        """set low voltage thermostat aux cycle status and length."""
         data = {ATTR_CYCLE_OUTPUT2:{"status":status,"value":val}}
+        _LOGGER.debug("auxCycleoutput.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cycle_output(self, device_id, val):
+        """set low voltage thermostat main cycle length."""
+        data = {ATTR_CYCLE:val}
         _LOGGER.debug("Cycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -469,6 +479,19 @@ class Neviweb130Client(object):
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("aux_heat.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_pump_protection(self, device_id, status, wifi):
+        """Set low voltage thermostat pump protection status."""
+        """ Work differently for wifi and zigbee devices. """
+        if wifi:
+            data = {ATTR_PUMP_PROTEC: status}
+        else:
+            if status == "on":
+                data = {ATTR_PUMP_PROTEC_DURATION:{"status": "on", "value": 60}, ATTR_PUMP_PROTEC_PERIOD:{"status": "on", "value": 1}}
+            else:
+                data = {ATTR_PUMP_PROTEC_DURATION:{"status": "off"}, ATTR_PUMP_PROTEC_PERIOD:{"status": "off"}}
+        _LOGGER.debug("pump.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
@@ -492,10 +515,10 @@ class Neviweb130Client(object):
         _LOGGER.debug("wattage.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_slave_load(self, device_id, status, load):
-        """ Set device maximum air temperature limit. """
+    def set_auxiliary_load(self, device_id, status, load):
+        """ Set auxiliary output load in watt. """
         data = {ATTR_FLOOR_OUTPUT2:{"status":status,"value":load}}
-        _LOGGER.debug("slave_load.data = %s", data)
+        _LOGGER.debug("auxiliary_load.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_valve_alert(self, device_id, batt):
