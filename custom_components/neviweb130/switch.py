@@ -320,12 +320,12 @@ async def async_setup_platform(
         schema=SET_CONTROL_ONOFF_SCHEMA,
     )
 
-def voltage_to_percentage(voltage, type):
-    """Convert voltage level from absolute 0..3.25 to percentage."""
-    if type == 1:
-        return int((voltage * 100) / 6.37)
+def voltage_to_percentage(voltage, num):
+    """Convert voltage level from volt to percentage."""
+    if num == 2:
+        return int((min(voltage,3.0)-2.4)/(3.0-2.4) * 100)
     else:
-        return int((voltage * 100) /3.6)
+        return int((min(voltage,6.0)-4.8)/(6.0-4.8) * 100)
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -574,14 +574,14 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature_alert': self._temp_alert,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage, 1),
+                   'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Valve_closure_source': self._valve_closure,
                    'Battery_alert': self._battery_alert}
         elif self._is_zb_valve:
             data = {'Valve_status': self._valve_status,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage, 1),
+                   'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Battery_alert': self._battery_alert,
@@ -617,7 +617,7 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_zb_control or self._is_sedna_control:
             type = 2
         else:
-            type = 1
+            type = 4
         return voltage_to_percentage(self._battery_voltage, type)
 
     @property
