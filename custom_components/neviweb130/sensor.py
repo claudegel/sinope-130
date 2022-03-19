@@ -166,9 +166,9 @@ async def async_setup_platform(
 def voltage_to_percentage(voltage, type):
     """Convert voltage level from volt to percentage."""
     if type == "alkaline":
-        return int((min(voltage,3.1)-2.2)/(3.1-2.2) * 100)
+        return int((min(voltage,3.0)-2.0)/(3.0-2.0) * 100)
     else:
-        return int((min(voltage,3.0)-2.4)/(3.0-2.4) * 100)
+        return int((min(voltage,3.0)-2.2)/(3.0-2.2) * 100)
 
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor."""
