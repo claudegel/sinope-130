@@ -635,6 +635,12 @@ async def async_setup_platform(
         schema=SET_PUMP_PROTECTION_SCHEMA,
     )
 
+def neviweb_to_ha(self, value):
+    keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
+    if keys:
+        return keys[0]
+    return None
+
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
@@ -1338,9 +1344,3 @@ class Neviweb130Thermostat(ClimateEntity):
         self._pump_protec_status = status
         self._pump_protec_duration = 60
         self._pump_protec_period = 1
-
-    def neviweb_to_ha(self, value):
-        keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
-        if keys:
-            return keys[0]
-        return None
