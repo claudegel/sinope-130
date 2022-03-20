@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.3.0'
+VERSION = '1.3.1'
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -280,10 +280,10 @@ battery_spa:
 sensor.battery_spa:
   templates:
     entity_picture: >
-      if (entity.state < 20) return '/local/battery-1.png';
-      if (entity.state < 40) return '/local/battery-2.png';
-      if (entity.state < 60) return '/local/battery-3.png';
-      if (entity.state < 80) return '/local/battery-4.png';
+      if (entity.state < 10) return '/local/battery-1.png';
+      if (entity.state < 30) return '/local/battery-2.png';
+      if (entity.state < 50) return '/local/battery-3.png';
+      if (entity.state < 70) return '/local/battery-4.png';
       return '/local/battery-5.png';
 sensor.neviweb130_sensor_spa:    
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';

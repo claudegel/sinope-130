@@ -323,9 +323,9 @@ async def async_setup_platform(
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
-        return int((min(voltage,3.0)-2.4)/(3.0-2.4) * 100)
+        return int((min(voltage,3.0)-2.2)/(3.0-2.2) * 100)
     else:
-        return int((min(voltage,6.0)-4.8)/(6.0-4.8) * 100)
+        return int((min(voltage,6.0)-4.4)/(6.0-4.4) * 100)
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
