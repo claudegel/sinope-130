@@ -1323,7 +1323,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_aux_cycle_output(
             entity, status, length)
         self._cycle_length_output2_status = status
-        self._cycle_length_output2_value = val
+        self._cycle_length_output2_value = length
 
     def set_cycle_output(self, value):
         """ set low voltage thermostats main cycle output length. """
@@ -1332,7 +1332,7 @@ class Neviweb130Thermostat(ClimateEntity):
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val]
         self._client.set_aux_cycle_output(
             entity, length)
-        self._cycle_length = val
+        self._cycle_length = length
 
     def set_pump_protection(self, value):
         entity = value["id"]
