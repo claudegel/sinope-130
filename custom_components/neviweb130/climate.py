@@ -496,7 +496,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"][0]}
                 thermostat.set_aux_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -507,7 +507,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "val": service.data["value"]}
+                value = {"id": thermostat.unique_id, "val": service.data["value"][0]}
                 thermostat.set_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
