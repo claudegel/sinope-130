@@ -496,7 +496,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"][0]}
                 thermostat.set_aux_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -507,7 +507,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "val": service.data["value"]}
+                value = {"id": thermostat.unique_id, "val": service.data["value"][0]}
                 thermostat.set_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -1319,22 +1319,20 @@ class Neviweb130Thermostat(ClimateEntity):
         entity = value["id"]
         status = value["status"]
         val = value["val"]
-        if val in HA_TO_NEVIWEB_PERIOD:
-            length = HA_TO_NEVIWEB_PERIOD[val]
+        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         self._client.set_aux_cycle_output(
             entity, status, length)
         self._cycle_length_output2_status = status
-        self._cycle_length_output2_value = val
+        self._cycle_length_output2_value = length
 
     def set_cycle_output(self, value):
         """ set low voltage thermostats main cycle output length. """
         entity = value["id"]
         val = value["val"]
-        if val in HA_TO_NEVIWEB_PERIOD:
-            length = HA_TO_NEVIWEB_PERIOD[val]
+        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         self._client.set_aux_cycle_output(
-            entity, val)
-        self._cycle_length = val
+            entity, length)
+        self._cycle_length = length
 
     def set_pump_protection(self, value):
         entity = value["id"]
