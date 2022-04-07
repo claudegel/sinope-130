@@ -33,8 +33,6 @@ import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL)
 from homeassistant.components.switch import (
     SwitchEntity,
-    ATTR_TODAY_ENERGY_KWH,
-    ATTR_CURRENT_POWER_W,
 )
 
 from homeassistant.const import (
