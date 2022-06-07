@@ -336,6 +336,26 @@ class Neviweb130Client(object):
         _LOGGER.debug("Hourly_stats data: %s", data)
         return None
 
+    def get_device_sensor_error(self, device_id):
+        """Get device error code status."""
+        # Prepare return
+        data = {}
+        # Http request
+        try:
+            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
+                "/attribute?attributes=errorCodeSet1", headers=self._headers,
+                cookies=self._cookies, timeout=self._timeout)
+        except OSError:
+            raise PyNeviweb130Error("Cannot get device error code status")
+        # Update cookies
+        self._cookies.update(raw_res.cookies)
+        # Prepare data
+        data = raw_res.json()
+        if "errorCodeSet1" in data:
+            return data["errorCodeSet1"]
+        _LOGGER.debug("Error code status data: %s", data)
+        return None
+
     def set_brightness(self, device_id, brightness):
         """Set device brightness."""
         data = {ATTR_INTENSITY: brightness}
