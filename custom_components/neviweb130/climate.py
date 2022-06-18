@@ -705,6 +705,16 @@ class Neviweb130Thermostat(ClimateEntity):
         self._drsetpoint_status = "off"
         self._drsetpoint_value = None
         self._energy_stat_time = 0
+        self._code_reference_sensor = None
+        self._code_compensation_sensor = None
+        self._code_air_sensor = None
+        self._code_floor_sensor = None
+        self._code_wire_sensor = None
+        self._code_current_overload = None
+        self._code_thermal_overload = None
+        self._code_load_error = None
+        self._code_gfcibase = None
+        self._code_end_of_life = None
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
         self._is_wifi_floor = device_info["signature"]["model"] in \
@@ -888,6 +898,22 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._month_kwh = device_monthly_stats[0]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_monthly_stats")
+                device_error_code = self._client.get_device_sensor_error(self._id)
+                _LOGGER.warning("Updating error code: %s",device_error_code)
+                if not self._is_wifi:
+                    if device_error_code is not None:
+                        self._code_compensation_sensor = device_error_code["compensationSensor"]
+                        self._code_air_sensor = device_error_code["airSensor"]
+                        self._code_thermal_overload = device_error_code["thermalOverload"]
+                        if self._is_floor and not self._is_wifi:
+                            self._code_floor_sensor = device_error_code["floorSensor"]
+                            self._code_gfcibase = device_error_code["gfciBase"]
+                        else:
+                            self._code_reference_sensor = device_error_code["referenceSensor"]
+                            self._code_wire_sensor = device_error_code["wireSensor"]
+                            self._code_current_overload = device_error_code["currentOverload"]
+                            self._code_load_error = device_error_code["loadError"]
+                            self._code_end_of_life = device_error_code["endOfLife"]
                 self._energy_stat_time = time.time()
             if self._energy_stat_time == 0:
                 self._energy_stat_time = start
@@ -972,6 +998,21 @@ class Neviweb130Thermostat(ClimateEntity):
                     'setpoint_away': self._target_temp_away,
                     'load_watt_1': self._load1,
                     'second_display': self._wifi_display2})
+        if not self._is_wifi:
+            if self._is_floor:
+                data.update({'status compensation sensor': self._code_compensation_sensor,
+                    'status floor sensor': self._code_floor_sensor,
+                    'status thermal overload': self._code_thermal_overload,
+                    'status gfci base': self._code_gfcibase})
+            elif not self._is_low_voltage:
+                data.update({'status reference sensor': self._code_reference_sensor,
+                    'status compensation sensor': self._code_compensation_sensor,
+                    'status wire sensor': self._code_wire_sensor,
+                    'status current sensor': self._code_current_overload,
+                    'status thermal sensor': self._code_thermal_overload,
+                    'status load sensor': self._code_load_error,
+                    'status end of life sensor': self._code_end_of_life})
+            data.update({'status air sensor': self._code_air_sensor})
         data.update({'heat_level': self._heat_level,
                     'keypad': self._keypad,
                     'backlight': self._backlight,
