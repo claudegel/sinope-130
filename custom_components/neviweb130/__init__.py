@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.4.0'
+VERSION = '1.4.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -293,7 +293,7 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
-        _LOGGER.debug("Monthly_stats data: %s", data) 
+        #_LOGGER.debug("Monthly_stats data: %s", data) 
         return None
 
     def get_device_daily_stats(self, device_id):
@@ -313,7 +313,7 @@ class Neviweb130Client(object):
         data = raw_res.json()
         if "history" in data:
             return data["history"]
-        _LOGGER.debug("Daily_stats data: %s", data)
+        #_LOGGER.debug("Daily_stats data: %s", data)
         return None
 
     def get_device_hourly_stats(self, device_id):
