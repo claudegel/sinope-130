@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.4.1'
+VERSION = '1.4.5'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ HOMEKIT_MODE = False
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
 LOGIN_URL = "{}/api/login".format(HOST)
-LOCATIONS_URL = "{}/api/locations".format(HOST)
+LOCATIONS_URL = "{}/api/locations?account$id=".format(HOST)
 GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
 DEVICE_DATA_URL = "{}/api/device/".format(HOST)
 
@@ -151,6 +151,7 @@ class Neviweb130Client(object):
         self._gateway_id = None
         self.gateway_data = {}
         self._headers = None
+        self._account = None
         self._cookies = None
         self._timeout = timeout
         self.user = None
@@ -193,17 +194,19 @@ class Neviweb130Client(object):
         else:
             self.user = data["user"]
             self._headers = {"Session-Id": data["session"]}
-            _LOGGER.debug("Successfully logged in")
+            self._account = str(data["account"]["id"])
+            _LOGGER.debug("Successfully logged in to: %s", self._account)
             return True
 
     def __get_network(self):
         """Get gateway id associated to the desired network."""
         # Http request
         try:
-            raw_res = requests.get(LOCATIONS_URL, headers=self._headers, 
+            raw_res = requests.get(LOCATIONS_URL + self._account, headers=self._headers, 
                 cookies=self._cookies, timeout=self._timeout)
             networks = raw_res.json()
             _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
+            _LOGGER.debug("networks: %s", networks)
             if self._network_name == None: # Use 1st network found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
@@ -291,9 +294,9 @@ class Neviweb130Client(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
+        #_LOGGER.debug("Monthly_stats data: %s", data)
         if "history" in data:
             return data["history"]
-        #_LOGGER.debug("Monthly_stats data: %s", data) 
         return None
 
     def get_device_daily_stats(self, device_id):
@@ -311,9 +314,9 @@ class Neviweb130Client(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
+        #_LOGGER.debug("Daily_stats data: %s", data)
         if "history" in data:
             return data["history"]
-        #_LOGGER.debug("Daily_stats data: %s", data)
         return None
 
     def get_device_hourly_stats(self, device_id):
@@ -331,9 +334,9 @@ class Neviweb130Client(object):
         self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
+        #_LOGGER.debug("Hourly_stats data: %s", data)
         if "history" in data:
             return data["history"]
-        _LOGGER.debug("Hourly_stats data: %s", data)
         return None
 
     def get_device_sensor_error(self, device_id):
