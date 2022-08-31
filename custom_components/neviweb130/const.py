@@ -36,6 +36,7 @@ ATTR_FLOOR_OUTPUT1 = "loadWattOutput1" #status on/off, value=xx
 ATTR_LIGHT_WATTAGE = "loadWattOutput1" #status on/off, value=xx
 ATTR_WIFI_WATTAGE = "loadWatt"
 ATTR_WIFI = "wifiRssi"
+ATTR_RSSI = "rssi"
 ATTR_WIFI_DISPLAY2 = "config2ndDisplay"
 ATTR_WIFI_KEYPAD = "keyboardLock"
 ATTR_TIMER = "powerTimer"
@@ -86,6 +87,7 @@ ATTR_INPUT2_STATUS = "input2Status"
 ATTR_EXT_TEMP = "externalTemperature"
 ATTR_REL_HUMIDITY = "relativeHumidity"
 ATTR_STATUS = "status"
+ATTR_ERROR_CODE_SET1 = "errorCodeSet1"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
