@@ -85,6 +85,8 @@ from .const import (
     ATTR_REL_HUMIDITY,
     ATTR_ROOM_TEMPERATURE,
     ATTR_STATUS,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_RSSI,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -372,6 +374,9 @@ class Neviweb130Switch(SwitchEntity):
         self._room_temp = None
         self._input_status = None
         self._input2_status = None
+        self._relayK1 = None
+        self._relayK2 = None
+        self._rssi = None
         self._energy_stat_time = 0
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -379,7 +384,7 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_zb_control or self._is_sedna_control:
             LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2]
         elif self._is_load:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS]
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
         elif self._is_wifi_valve:
             LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_TEMP_ALARM, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT]
         elif self._is_zb_valve:
@@ -429,6 +434,11 @@ class Neviweb130Switch(SwitchEntity):
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                    if ATTR_ERROR_CODE_SET1 in device_data:
+                        self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
+                        self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
+                    if ATTR_RSSI in device_data:
+                        self._rssi = device_data[ATTR_RSSI]
                 elif self._is_zb_control or self._is_sedna_control:
                     self._onOff = device_data[ATTR_ONOFF]
                     self._onOff2 = device_data[ATTR_ONOFF2]
@@ -462,8 +472,8 @@ class Neviweb130Switch(SwitchEntity):
             if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 if device_hourly_stats is not None:
-                    self._hour_energy_kwh_count = device_hourly_stats[0]["counter"] / 1000
-                    self._hour_kwh = device_hourly_stats[0]["period"] / 1000
+                    self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
+                    self._hour_kwh = device_hourly_stats[1]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
@@ -558,6 +568,7 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_load:
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
+                   'Wattage_instant': self._current_power_w,
                    'hourly_kwh_count': self._hour_energy_kwh_count,
                    'daily_kwh_count': self._today_energy_kwh_count,
                    'monthly_kwh_count': self._month_energy_kwh_count,
@@ -568,7 +579,10 @@ class Neviweb130Switch(SwitchEntity):
                    'Timer': self._timer,
                    'eco_status': self._drstatus_active,
                    'eco_optOut': self._drstatus_optout,
-                   'eco_onoff': self._drstatus_onoff}
+                   'eco_onoff': self._drstatus_onoff,
+                   'relayK1': self._relayK1,
+                   'relayK2': self._relayK2,
+                   'rssi': self._rssi}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature_alert': self._temp_alert,
