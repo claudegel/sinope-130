@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.5.0'
+VERSION = '1.6.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -270,6 +270,31 @@ class Neviweb130Client(object):
             raise PyNeviweb130Error("Cannot get device attributes", e)
         # Update cookies
         self._cookies.update(raw_res.cookies)
+        # Prepare data
+        data = raw_res.json()
+        if "error" in data:
+            if data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.error("Session expired. Set a scan_interval less" +
+                "than 10 minutes, otherwise the session will end.")
+                #raise PyNeviweb130Error("Session expired... reconnecting...")
+        return data
+
+    def get_device_status(self, device_id):
+        """Get device status for the GT130."""
+        # Prepare return
+        data = {}
+        # Http request
+        try:
+            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
+                "/status", headers=self._headers, cookies=self._cookies,
+                timeout=self._timeout)
+            _LOGGER.debug("Received devices status: %s", raw_res.json())
+        except requests.exceptions.ReadTimeout:
+            return {"errorCode": "ReadTimeout"}
+        except Exception as e:
+            raise PyNeviweb130Error("Cannot get device status", e)
+        # Update cookies
+        #self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "error" in data:
