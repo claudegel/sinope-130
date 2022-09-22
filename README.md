@@ -50,6 +50,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé WL4200ZB, water leak detector
 - Tank level monitor
   - Sinopé LM4110-ZB, level monitor
+- Gateway
+  - GT130
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
@@ -115,9 +117,12 @@ Networks names are the names found on top of first page after loging into Neviwe
 ## Sedna valve
 For Sedna valve there is two way to connect it to Neviweb:
 - Via wifi direct connection. This way leak sensor are connected directly to the Sedna valve which will close if leak is detected.
-- via GT130 in zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is passed to the valve. You'll need to set some automation rule to have the Sedna valve close if leak is detected by sensor.
+- via GT130 in zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is passed to the valve. You'll need to set some automation rule in Neviweb or HA, to have the Sedna valve close if leak is detected by sensor.
 
 Both mode are supported by this custom component. 
+
+## Gateway GT130
+It is now possible to know if your GT130 is still online of offline with Neviweb via the gateway_status attribute. The GT130 is detected as sensor.neviweb130_sensor_gt130
 
 ## Custom services
 Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via neviweb130, it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
