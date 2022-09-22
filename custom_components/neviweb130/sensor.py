@@ -1,6 +1,6 @@
 """
 Support for Neviweb sensors connected via GT130 ZigBee.
-model 5051 = WL4200ZB, and WL4200S water leak detector not connected to Sedna valve
+model 5051 = WL4200ZB, and WL4200S water leak detector connected to GT130
 model 5053 = WL4200S, and WL4200C, perimeter cable water leak detector connected to GT130
 model 5050 = WL4200ZB, and WL4200S, water leak detector connected to Sedna valve
 model 5052 = WL4200S, and WL4200C, perimeter cable water leak detector connected to sedna 2 gen.
@@ -60,6 +60,7 @@ from .const import (
     ATTR_BATT_ALERT,
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
+    ATTR_STATUS,
     MODE_OFF,
     STATE_WATER_LEAK,
     SERVICE_SET_SENSOR_ALERT,
@@ -188,6 +189,8 @@ class Neviweb130Sensor(Entity):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
+        self._is_gateway = device_info["signature"]["model"] in \
+            IMPLEMENTED_GATEWAY
         self._is_monitor = device_info["signature"]["model"] in \
             IMPLEMENTED_TANK_MONITOR
         self._is_leak = device_info["signature"]["model"] in \
@@ -196,6 +199,7 @@ class Neviweb130Sensor(Entity):
             IMPLEMENTED_CONNECTED_SENSOR
         self._level_status = None
         self._leak_status = None
+        self._gateway_status = None
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
@@ -213,14 +217,24 @@ class Neviweb130Sensor(Entity):
             MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
-        device_data = self._client.get_device_attributes(self._id,
+        if self._is_gateway:
+            device_status = self._client.get_device_status(self._id)
+        else:
+            device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE + CONNECTED_ATTRIBUTE)
 #        device_daily_stats = self._client.get_device_daily_stats(self._id)
         end = time.time()
         elapsed = round(end - start, 3)
-        _LOGGER.debug("Updating %s (%s sec): %s",
-            self._name, elapsed, device_data)
-        if "error" not in device_data:
+        if self._is_gateway:
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                self._name, elapsed, device_status)
+        else:
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                self._name, elapsed, device_data)
+        if self._is_gateway:
+            self._gateway_status = device_status[ATTR_STATUS]
+            return
+        if "error" not in device_data or device_data is not None:
             if "errorCode" not in device_data:
                 if self._is_leak:
                     self._leak_status = STATE_WATER_LEAK if \
@@ -299,6 +313,11 @@ class Neviweb130Sensor(Entity):
         return self._leak_status != None
 
     @property  
+    def gateway_status(self):
+        """Return current gateway status: 'online' or 'offline' """
+        return self._gateway_status != None
+
+    @property  
     def level_status(self):
         """Return current sensor liquid level status in % """
         return self._level_status != None
@@ -308,22 +327,27 @@ class Neviweb130Sensor(Entity):
         """Return the state attributes."""
         data = {}
         if self._is_monitor:
-            data = {'Level': self._level_status}
+            data = {'Level': self._level_status,
+                    'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
+                    'Battery_voltage': self._battery_voltage,
+                    'Battery_status': self._battery_status,
+                    'Battery_type': self._battery_type}
         elif self._is_leak:
             data = {'Leak_status': self._leak_status,
-                   'Temperature': self._cur_temp,
-                   'leak_alert': self._leak_alert,
-                   }
+                    'Temperature': self._cur_temp,
+                    'leak_alert': self._leak_alert,
+                    'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
+                    'Battery_voltage': self._battery_voltage,
+                    'Battery_status': self._battery_status,
+                    'Battery_type': self._battery_type}
             if self._is_connected:
                 data.update({'Temp_alarm': self._temp_status,
                              'Temperature_alert': self._temp_alert,
                              'Battery_alert': self._battery_alert,
                              'Closure_action': self._closure_action})
-        data.update({'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
-                     'Battery_voltage': self._battery_voltage,
-                     'Battery_status': self._battery_status,
-                     'Battery_type': self._battery_type,
-                     'Id': self._id})
+        elif self._is_gateway:
+            data = {'Gateway_status': self._gateway_status}
+        data.update({'Id': self._id})
         return data
 
     @property
@@ -343,6 +367,8 @@ class Neviweb130Sensor(Entity):
             return self._level_status
         elif self._is_leak:
             return self._leak_status
+        elif self._is_gateway:
+            return self._gateway_status
 
     def set_sensor_alert(self, value):
         """ Set water leak sensor alert and action """
