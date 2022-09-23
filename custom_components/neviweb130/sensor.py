@@ -82,6 +82,7 @@ IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR +
 SENSOR_TYPES = {
     "leak": ["", None, BinarySensorDeviceClass.MOISTURE],
     "level": ["%", None, SensorStateClass.MEASUREMENT],
+    "gateway": ["", None, BinarySensorDeviceClass.CONNECTIVITY],
 }
 
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
@@ -127,6 +128,8 @@ async def async_setup_platform(
                 device_type = "leak"
             elif  device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
                 device_type = "level"
+            else:
+                device_type = "gateway"
             entities.append(Neviweb130Sensor(data, device_info, device_name, device_type))
 
     async_add_entities(entities, True)
