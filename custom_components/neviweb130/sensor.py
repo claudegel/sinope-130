@@ -4,6 +4,7 @@ model 5051 = WL4200ZB, and WL4200S water leak detector connected to GT130
 model 5053 = WL4200S, and WL4200C, perimeter cable water leak detector connected to GT130
 model 5050 = WL4200ZB, and WL4200S, water leak detector connected to Sedna valve
 model 5052 = WL4200S, and WL4200C, perimeter cable water leak detector connected to sedna 2 gen.
+model xxxx = FS4220 and FS4221, flow sensor
 model 4110 = LM4110-ZB, level monitor
 model 130 = gateway GT130
 For more details about this platform, please refer to the documentation at  
@@ -73,11 +74,12 @@ DEFAULT_NAME = 'neviweb130 sensor'
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE]
 
+IMPLEMENTED_FLOW_MODEL = []
 IMPLEMENTED_GATEWAY = [130]
 IMPLEMENTED_TANK_MONITOR = [4110]
 IMPLEMENTED_SENSOR_MODEL = [5051, 5053]
 IMPLEMENTED_CONNECTED_SENSOR = [5050, 5052]
-IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR + IMPLEMENTED_GATEWAY
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR + IMPLEMENTED_GATEWAY + IMPLEMENTED_FLOW_MODEL
 
 SENSOR_TYPES = {
     "leak": ["", None, BinarySensorDeviceClass.MOISTURE],
