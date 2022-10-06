@@ -20,6 +20,8 @@ model 3150 = VA4220WZ, sedna 2e gen 3/4 inch
 model 3150 = VA4220WF, sedna 2e generation 3/4 inch, wifi
 model 3150 = VA4221WZ, sedna 2e gen 1 inch
 model 3150 = VA4221WF, sedna 2e generation 1 inch, wifi
+model 3155 = ACT4220WF-M, sedna multi-residential master valve, mesh wifi
+model 31532 = ACT4220ZB-M, sedna multi-residential slave valve, zigbee
 
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
@@ -109,8 +111,8 @@ UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
-IMPLEMENTED_WIFI_VALVE_MODEL = [3150]
-IMPLEMENTED_ZB_VALVE_MODEL = [3151]
+IMPLEMENTED_WIFI_VALVE_MODEL = [3150, 3155]
+IMPLEMENTED_ZB_VALVE_MODEL = [3151, 31532]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_WIFI_VALVE_MODEL + IMPLEMENTED_ZB_VALVE_MODEL + IMPLEMENTED_ZB_DEVICE_CONTROL + IMPLEMENTED_SED_DEVICE_CONTROL
