@@ -4,6 +4,7 @@ DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
 CONF_HOMEKIT_MODE = 'homekit_mode'
 
+ATTR_ALERT = "alert"
 ATTR_SIGNATURE = "signature"
 ATTR_POWER_MODE = "powerMode"
 ATTR_ONOFF = "onOff"
