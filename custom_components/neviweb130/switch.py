@@ -458,6 +458,7 @@ class Neviweb130Switch(SwitchEntity):
                 elif self._is_wifi_mesh_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    self._onOff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
                     self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     if ATTR_VALVE_INFO in device_data:
@@ -479,6 +480,7 @@ class Neviweb130Switch(SwitchEntity):
                 elif self._is_zb_mesh_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
+                    self._onOff = device_data[ATTR_ONOFF]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
