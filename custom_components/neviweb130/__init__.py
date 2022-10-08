@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.6.1'
+VERSION = '1.6.5'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -322,7 +322,9 @@ class Neviweb130Client(object):
         #_LOGGER.debug("Monthly_stats data: %s", data)
         if "history" in data:
             return data["history"]
-        return None
+        else:
+            _LOGGER.debug("Monthly stat error: %s", data)
+            return None
 
     def get_device_daily_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 30 days."""
@@ -342,7 +344,9 @@ class Neviweb130Client(object):
         #_LOGGER.debug("Daily_stats data: %s", data)
         if "history" in data:
             return data["history"]
-        return None
+        else:
+            _LOGGER.debug("Daily stat error: %s", data)
+            return None
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
@@ -362,7 +366,9 @@ class Neviweb130Client(object):
         #_LOGGER.debug("Hourly_stats data: %s", data)
         if "history" in data:
             return data["history"]
-        return None
+        else:
+            _LOGGER.debug("Hourly stat error: %s", data)
+            return None
 
     def get_device_sensor_error(self, device_id):
         """Get device error code status."""

@@ -4,6 +4,7 @@ DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
 CONF_HOMEKIT_MODE = 'homekit_mode'
 
+ATTR_ALERT = "alert"
 ATTR_SIGNATURE = "signature"
 ATTR_POWER_MODE = "powerMode"
 ATTR_ONOFF = "onOff"
@@ -88,6 +89,12 @@ ATTR_EXT_TEMP = "externalTemperature"
 ATTR_REL_HUMIDITY = "relativeHumidity"
 ATTR_STATUS = "status"
 ATTR_ERROR_CODE_SET1 = "errorCodeSet1"
+ATTR_FLOW_METER_CONFIG = "flowMeterMeasurementConfig"
+ATTR_VALVE_INFO = "valveInfo"
+ATTR_STM8_ERROR = "stm8Error"
+ATTR_TANK_SIZE = "tankSize"
+ATTR_CONTROLED_DEVICE = "controlledDevice"
+ATTR_COLD_LOAD_PICKUP = "coldLoadPickupStatus"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"

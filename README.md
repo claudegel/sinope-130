@@ -48,6 +48,10 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé WL4200S,  water leak detector with sensor
   - Sinopé WL4200C,  perimeter cable water leak detector
   - Sinopé WL4200ZB, water leak detector
+  - Sinopé ACT4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
+  - Sinopé ACT4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
+  - Sinopé ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
+  - Sinopé ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
 - Tank level monitor
   - Sinopé LM4110-ZB, level monitor
 - Gateway
