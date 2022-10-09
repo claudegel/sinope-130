@@ -95,6 +95,7 @@ ATTR_STM8_ERROR = "stm8Error"
 ATTR_TANK_SIZE = "tankSize"
 ATTR_CONTROLED_DEVICE = "controlledDevice"
 ATTR_COLD_LOAD_PICKUP = "coldLoadPickupStatus"
+ATTR_KEY_DOUBLE_UP = "configKeyDoubleUp"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
