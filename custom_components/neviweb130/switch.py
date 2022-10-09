@@ -344,6 +344,21 @@ def voltage_to_percentage(voltage, num):
     else:
         return int((min(voltage,6.0)-4.4)/(6.0-4.4) * 100)
 
+def alert_to_text(alert, value):
+    """Convert numeric alert to text"""
+    if alert == 1:
+        match value:
+            case "bat":
+                return "Low battery"
+            case "temp":
+                return "Freezing temperature"
+    else:
+        match value:
+            case "bat":
+                return "Battery ok"
+            case "temp":
+                return "Temperature ok"
+
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
@@ -425,7 +440,7 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_wifi_valve:
             LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_TEMP_ALARM, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT]
         elif self._is_zb_valve:
-            LOAD_ATTRIBUTE = [ATTR_ALERT, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
+            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_RSSI]
         elif self._is_wifi_mesh_valve:
             LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS]
         elif self._is_zb_mesh_valve:
@@ -440,6 +455,9 @@ class Neviweb130Switch(SwitchEntity):
             UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
+        if self._is_zb_valve:
+            device_alert = self._client.get_device_alert(self._id)
+            _LOGGER.debug("Updating alert for %s (%s sec): %s",self._name, elapsed, device_alert)
         _LOGGER.debug("Updating %s (%s sec): %s",
             self._name, elapsed, device_data)
         if "error" not in device_data:
@@ -462,9 +480,8 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                    if ATTR_ALERT in device_data:
-                        self._battery_alert = device_data[ATTR_ALERT][ATTR_BATT_ALERT]
-                        self._temp_alert = device_data[ATTR_ALERT][ATTR_TEMP_ALERT]
+                    self._battery_alert = device_alert[ATTR_BATT_ALERT]
+                    self._temp_alert = device_alert[ATTR_TEMP_ALERT]
                 elif self._is_wifi_mesh_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_MOTOR_POS] == 100 else "closed"
@@ -700,8 +717,8 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
-                   'Battery_alert': self._battery_alert,
-                   'Temperature_alert': self._temp_alert}
+                   'Battery_alert': alert_to_text(self._battery_alert, "bat"),
+                   'Temperature_alert': alert_to_text(self._temp_alert, "temp")}
         elif self._is_wifi_mesh_valve:
             data = {'Valve_status': self._valve_status,
                    'Motor_target_position': self._motor_target,
