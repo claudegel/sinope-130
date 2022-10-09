@@ -62,6 +62,7 @@ from .const import (
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
     ATTR_STATUS,
+    ATTR_RSSI,
     MODE_OFF,
     STATE_WATER_LEAK,
     SERVICE_SET_SENSOR_ALERT,
@@ -208,6 +209,7 @@ class Neviweb130Sensor(Entity):
         self._temp_alert = None
         self._battery_alert = None
         self._closure_action = None
+        self._rssi = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -218,7 +220,7 @@ class Neviweb130Sensor(Entity):
                 CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
             else:
                 CONNECTED_ATTRIBUTE = []
-            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT]
+            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_RSSI]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         if self._is_gateway:
@@ -255,6 +257,8 @@ class Neviweb130Sensor(Entity):
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                 self._battery_status = device_data[ATTR_BATTERY_STATUS]
                 self._battery_type = device_data[ATTR_BATTERY_TYPE]
+                if ATTR_RSSI in device_data:
+                        self._rssi = device_data[ATTR_RSSI]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -343,7 +347,8 @@ class Neviweb130Sensor(Entity):
                     'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
                     'Battery_voltage': self._battery_voltage,
                     'Battery_status': self._battery_status,
-                    'Battery_type': self._battery_type}
+                    'Battery_type': self._battery_type,
+                    'Rssi': self._rssi}
             if self._is_connected:
                 data.update({'Temp_alarm': self._temp_status,
                              'Temperature_alert': self._temp_alert,
