@@ -4,7 +4,7 @@ model 5051 = WL4200ZB, and WL4200S water leak detector connected to GT130
 model 5053 = WL4200S, and WL4200C, perimeter cable water leak detector connected to GT130
 model 5050 = WL4200ZB, and WL4200S, water leak detector connected to Sedna valve
 model 5052 = WL4200S, and WL4200C, perimeter cable water leak detector connected to sedna 2 gen.
-model 4110 = LM4110-ZB, level monitor
+model 5056 = LM4110-ZB, level monitor
 model 130 = gateway GT130
 model xxx = gateway GT4220WF-M for mesh valve network
 For more details about this platform, please refer to the documentation at  
@@ -50,7 +50,6 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (
     DOMAIN,
-    ATTR_LEVEL_STATUS,
     ATTR_ROOM_TEMPERATURE,
     ATTR_WATER_LEAK_STATUS,
     ATTR_BATTERY_VOLTAGE,
@@ -62,6 +61,11 @@ from .const import (
     ATTR_TEMP_ALERT,
     ATTR_CONF_CLOSURE,
     ATTR_STATUS,
+    ATTR_RSSI,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_ANGLE,
+    ATTR_TANK_TYPE,
+    ATTR_TANK_HEIGHT,
     MODE_OFF,
     STATE_WATER_LEAK,
     SERVICE_SET_SENSOR_ALERT,
@@ -75,7 +79,7 @@ DEFAULT_NAME = 'neviweb130 sensor'
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE]
 
 IMPLEMENTED_GATEWAY = [130]
-IMPLEMENTED_TANK_MONITOR = [4110]
+IMPLEMENTED_TANK_MONITOR = [5056, 5055]
 IMPLEMENTED_SENSOR_MODEL = [5051, 5053]
 IMPLEMENTED_CONNECTED_SENSOR = [5050, 5052]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR + IMPLEMENTED_GATEWAY
@@ -201,24 +205,29 @@ class Neviweb130Sensor(Entity):
             IMPLEMENTED_SENSOR_MODEL or device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
         self._is_connected = device_info["signature"]["model"] in \
             IMPLEMENTED_CONNECTED_SENSOR
-        self._level_status = None
         self._leak_status = None
         self._gateway_status = None
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
         self._closure_action = None
+        self._rssi = None
+        self._angle = None
+        self._tank_type = None
+        self._tank_height = None
+        self._relayK1 = None
+        self._relayK2 = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_monitor:
-            MONITOR_ATTRIBUTE = [ATTR_LEVEL_STATUS]
+            MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_TYPE, ATTR_TANK_HEIGHT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
         else:
             if self._is_connected:
                 CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
             else:
                 CONNECTED_ATTRIBUTE = []
-            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT]
+            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_RSSI]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         if self._is_gateway:
@@ -251,10 +260,18 @@ class Neviweb130Sensor(Entity):
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
                         self._closure_action = device_data[ATTR_CONF_CLOSURE]
                 else:
-                    self._level_status = device_data[ATTR_LEVEL_STATUS]
+                    self._angle = device_data[ATTR_ANGLE]
+                    self._tank_type = device_data[ATTR_TANK_TYPE]
+                    self._tank_height = device_data[ATTR_TANK_HEIGHT]
+                    if ATTR_ERROR_CODE_SET1 in device_data:
+                        self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
+                        self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                self._battery_type = device_data[ATTR_BATTERY_TYPE]
+                if ATTR_BATTERY_STATUS in device_data:
+                    self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._battery_type = device_data[ATTR_BATTERY_TYPE]
+                if ATTR_RSSI in device_data:
+                        self._rssi = device_data[ATTR_RSSI]
                 return
             _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             return
@@ -331,11 +348,15 @@ class Neviweb130Sensor(Entity):
         """Return the state attributes."""
         data = {}
         if self._is_monitor:
-            data = {'Level': self._level_status,
+            data = {'Angle': self._angle,
                     'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
                     'Battery_voltage': self._battery_voltage,
-                    'Battery_status': self._battery_status,
-                    'Battery_type': self._battery_type}
+                    'Battery_type': self._battery_type,
+                    'Tank_type': self._tank_type,
+                    'Tank_height': self._tank_height,
+                    'RelayK1': self._relayK1,
+                    'RelayK2': self._relayK2,
+                    'Rssi': self._rssi}
         elif self._is_leak:
             data = {'Leak_status': self._leak_status,
                     'Temperature': self._cur_temp,
@@ -343,7 +364,8 @@ class Neviweb130Sensor(Entity):
                     'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
                     'Battery_voltage': self._battery_voltage,
                     'Battery_status': self._battery_status,
-                    'Battery_type': self._battery_type}
+                    'Battery_type': self._battery_type,
+                    'Rssi': self._rssi}
             if self._is_connected:
                 data.update({'Temp_alarm': self._temp_status,
                              'Temperature_alert': self._temp_alert,

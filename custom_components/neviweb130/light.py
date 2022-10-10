@@ -56,6 +56,7 @@ from .const import (
     ATTR_GREEN,
     ATTR_BLUE,
     ATTR_PHASE_CONTROL,
+    ATTR_KEY_DOUBLE_UP,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -281,6 +282,7 @@ class Neviweb130Light(LightEntity):
         self._phase_control = None
         self._intensity_min = 600
         self._wattage = None
+        self._double_up = None
         self._energy_stat_time = 0
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
@@ -294,7 +296,7 @@ class Neviweb130Light(LightEntity):
         if not self._is_new_dimmable:
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE]
         else:
-            WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL]
+            WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP]
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
@@ -311,6 +313,8 @@ class Neviweb130Light(LightEntity):
                     self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                     if ATTR_PHASE_CONTROL in device_data:
                         self._phase_control = device_data[ATTR_PHASE_CONTROL]
+                    if ATTR_KEY_DOUBLE_UP in device_data:
+                        self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
                 self._onOff = device_data[ATTR_ONOFF]
                 if not self._is_new_dimmable:
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
@@ -385,7 +389,8 @@ class Neviweb130Light(LightEntity):
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                     'minimum_intensity': self._intensity_min}
         if self._is_new_dimmable:
-            data.update({'phase_control': self._phase_control})
+            data.update({'phase_control': self._phase_control,
+                        'Double_up_Action': self._double_up})
         else:
             data.update({'wattage': self._wattage})
         data.update({'onOff': self._onOff,

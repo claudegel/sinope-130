@@ -345,19 +345,19 @@ def voltage_to_percentage(voltage, num):
         return int((min(voltage,6.0)-4.4)/(6.0-4.4) * 100)
 
 def alert_to_text(alert, value):
-    """Convert numeric alert to text"""
+    """Convert numeric alert activation to text"""
     if alert == 1:
         match value:
             case "bat":
-                return "Low battery"
+                return "Activ"
             case "temp":
-                return "Freezing temperature"
+                return "Activ"
     else:
         match value:
             case "bat":
-                return "Battery ok"
+                return "Off"
             case "temp":
-                return "Temperature ok"
+                return "Off"
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -434,7 +434,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def update(self):
         if self._is_zb_control or self._is_sedna_control:
-            LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2]
+            LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
         elif self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLED_DEVICE]
         elif self._is_wifi_valve:
@@ -563,6 +563,8 @@ class Neviweb130Switch(SwitchEntity):
                     self._ext_temp = device_data[ATTR_EXT_TEMP]
                     self._timer = device_data[ATTR_TIMER]
                     self._timer2 = device_data[ATTR_TIMER2]
+                    if ATTR_RSSI in device_data:
+                        self._rssi = device_data[ATTR_RSSI]
                 else: #for is_wall
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onOff = device_data[ATTR_ONOFF]
@@ -693,9 +695,9 @@ class Neviweb130Switch(SwitchEntity):
                    'eco_status': self._drstatus_active,
                    'eco_optOut': self._drstatus_optout,
                    'eco_onoff': self._drstatus_onoff,
-                   'relayK1': self._relayK1,
-                   'relayK2': self._relayK2,
-                   'rssi': self._rssi}
+                   'RelayK1': self._relayK1,
+                   'RelayK2': self._relayK2,
+                   'Rssi': self._rssi}
         elif self._is_tank_load:
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
@@ -703,9 +705,9 @@ class Neviweb130Switch(SwitchEntity):
                    'Room_temperature': self._room_temp,
                    'Cold_load_pickup_status': self._cold_load_status,
                    'Tank_size': self._tank_size,
-                   'relayK1': self._relayK1,
-                   'relayK2': self._relayK2,
-                   'rssi': self._rssi}
+                   'RelayK1': self._relayK1,
+                   'RelayK2': self._relayK2,
+                   'Rssi': self._rssi}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
                    'Temperature_alert': self._temp_alert,
@@ -762,7 +764,8 @@ class Neviweb130Switch(SwitchEntity):
                    'Input2_status': self._input2_status,
                    'onOff': self._onOff,
                    'onOff2': self._onOff2,
-                   'Room_temperature': self._room_temp}
+                   'Room_temperature': self._room_temp,
+                   'Rssi': self._rssi}
         else:
             data = {'onOff': self._onOff,
                    'Wattage': self._current_power_w,
