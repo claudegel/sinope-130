@@ -345,19 +345,19 @@ def voltage_to_percentage(voltage, num):
         return int((min(voltage,6.0)-4.4)/(6.0-4.4) * 100)
 
 def alert_to_text(alert, value):
-    """Convert numeric alert to text"""
+    """Convert numeric alert activation to text"""
     if alert == 1:
         match value:
             case "bat":
-                return "Low battery"
+                return "Activ"
             case "temp":
-                return "Freezing temperature"
+                return "Activ"
     else:
         match value:
             case "bat":
-                return "Battery ok"
+                return "Off"
             case "temp":
-                return "Temperature ok"
+                return "Off"
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
