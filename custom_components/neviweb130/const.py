@@ -38,7 +38,7 @@ ATTR_LIGHT_WATTAGE = "loadWattOutput1" #status on/off, value=xx
 ATTR_WIFI_WATTAGE = "loadWatt"
 ATTR_WIFI = "wifiRssi"
 ATTR_RSSI = "rssi"
-ATTR_WIFI_DISPLAY2 = "config2ndDisplay"
+ATTR_DISPLAY2 = "config2ndDisplay"
 ATTR_WIFI_KEYPAD = "keyboardLock"
 ATTR_TIMER = "powerTimer"
 ATTR_TIMER2 = "powerTimer2"
