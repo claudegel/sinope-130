@@ -8,10 +8,12 @@ Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway an
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
 - Zigbee thermostats
-  - Sinopé TH1124ZB 3000W Line voltage thermostat
+  - Sinopé TH1123ZB 3000W Line voltage thermostat
   - Sinopé TH1124ZB 4000W Line voltage thermostat
-  - Sinopé TH1124ZB 3000W Thermostat for public areas
+  - Sinopé TH1123ZB 3000W Thermostat for public areas
   - Sinopé TH1124ZB 4000W Thermostat for public areas
+  - Sinopé TH1123ZB-G2 3000W Thermostat second generation
+  - Sinopé TH1124ZB-G2 4000W Thermostat second generation
   - Sinopé TH1300ZB 3600W Floor heating thermostat
   - Sinopé TH1400ZB Low voltage thermostat
   - Sinopé TH1500ZB 3600W double pole thermostat
