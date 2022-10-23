@@ -802,7 +802,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
-                    self._rssi = device_data[ATTR_RSSI]
+                    if ATTR_RSSI in device_data:
+                        self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
