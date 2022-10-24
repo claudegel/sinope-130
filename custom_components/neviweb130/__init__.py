@@ -35,7 +35,7 @@ from .const import (
     ATTR_KEYPAD,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_AUTO_DIM,
-    ATTR_WIFI_DISPLAY2,
+    ATTR_DISPLAY2,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_TIME,
@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.6.7'
+VERSION = '1.7.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -465,7 +465,7 @@ class Neviweb130Client(object):
 
     def set_second_display(self, device_id, display):
         """Set device second display for outside temperature or setpoint temperature."""
-        data = {ATTR_WIFI_DISPLAY2: display}
+        data = {ATTR_DISPLAY2: display}
         _LOGGER.debug("display.data = %s", data)
         self.set_device_attributes(device_id, data)
 
