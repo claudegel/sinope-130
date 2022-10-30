@@ -73,7 +73,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '1.7.0'
+VERSION = '1.7.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -339,7 +339,8 @@ class Neviweb130Client(object):
                     "/energy/monthly", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
         except OSError:
-            raise PyNeviweb130Error("Cannot get device monthly stats")
+            raise PyNeviweb130Error("Cannot get device monthly stats...")
+            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -361,7 +362,8 @@ class Neviweb130Client(object):
                     "/energy/daily", headers=self._headers,
                     cookies=self._cookies, timeout=self._timeout)
         except OSError:
-            raise PyNeviweb130Error("Cannot get device daily stats")
+            raise PyNeviweb130Error("Cannot get device daily stats...")
+            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -383,7 +385,8 @@ class Neviweb130Client(object):
                 "/energy/hourly", headers=self._headers,
                 cookies=self._cookies, timeout=self._timeout)
         except OSError:
-            raise PyNeviweb130Error("Cannot get device hourly stats")
+            raise PyNeviweb130Error("Cannot get device hourly stats...")
+            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -405,7 +408,8 @@ class Neviweb130Client(object):
                 "/attribute?attributes=errorCodeSet1", headers=self._headers,
                 cookies=self._cookies, timeout=self._timeout)
         except OSError:
-            raise PyNeviweb130Error("Cannot get device error code status")
+            raise PyNeviweb130Error("Cannot get device error code status...")
+            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
