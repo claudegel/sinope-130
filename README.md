@@ -186,27 +186,27 @@ Six attributes are added to track energy usage for devices:
 They are polled from Neviweb every 30 minutes.
 
 ### Track energy consumption in HA Energy dashboard
-When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/):
+When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
 ```yaml
 template:
   - sensor:
-    - name: Basement energy usage
-      unit_of_measurement: kWh
-      device_class: energy
-      state_class: total_increasing
-      state: >
-        {{ state_attr("climate.th1124zb_basement","hourly_kwh_count") }}
+      - name: "Basement energy usage"
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >-
+          {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh_count") }}
 ```
 or:
 ```yaml
 template:
   - sensor:
-    - name: Basement energy usage
-      unit_of_measurement: kWh
-      device_class: energy
-      state_class: total
-      state: >
-        {{ state_attr("climate.th1124zb_basement","hourly_kwh") }}
+      - name: "Basement energy usage"
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total
+        state: >-
+          {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
 ```
 
 ## Troubleshooting
