@@ -190,8 +190,8 @@ When energy attributes are available, it is possible to track energy consumption
 ```yaml
 template:
   - sensor:
-      - name: Basement energy usage
-        unit_of_measurement: kWh
+      - name: "Basement energy usage"
+        unit_of_measurement: "kWh"
         device_class: energy
         state_class: total_increasing
         state: >-
@@ -201,8 +201,8 @@ or:
 ```yaml
 template:
   - sensor:
-      - name: Basement energy usage
-        unit_of_measurement: kWh
+      - name: "Basement energy usage"
+        unit_of_measurement: "kWh"
         device_class: energy
         state_class: total
         state: >-
