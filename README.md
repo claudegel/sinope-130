@@ -186,7 +186,7 @@ Six attributes are added to track energy usage for devices:
 They are polled from Neviweb every 30 minutes.
 
 ### Track energy consumption in HA Energy dashboard
-When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/):
+When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
 ```yaml
 template:
   - sensor:
