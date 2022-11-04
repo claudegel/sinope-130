@@ -925,6 +925,9 @@ class Neviweb130Thermostat(ClimateEntity):
                         if self._is_floor and not self._is_wifi:
                             self._code_floor_sensor = device_error_code["floorSensor"]
                             self._code_gfcibase = device_error_code["gfciBase"]
+                        elif self._is_low_voltage:
+                            self._code_air_sensor = device_error_code["airSensor"]
+                            self._code_floor_sensor = device_error_code["floorSensor"]
                         else:
                             self._code_wire_sensor = device_error_code["wireSensor"]
                             self._code_current_overload = device_error_code["currentOverload"]
@@ -1033,6 +1036,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     'status current sensor': self._code_current_overload,
                     'status thermal sensor': self._code_thermal_overload,
                     'status end of life sensor': self._code_end_of_life})
+            elif self._is_low_voltage:
+                data.update({'status compensation sensor': self._code_compensation_sensor,
+                            'status thermal overload': self._code_thermal_overload,
+                            'status air sensor': self._code_air_sensor,
+                            'status floor sensor': self._code_floor_sensor})
             if not self._is_gen2:
                 data.update({'status air sensor': self._code_air_sensor})
         if self._is_gen2:
