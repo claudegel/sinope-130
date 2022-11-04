@@ -25,6 +25,10 @@ model 3150 = VA4221WF, sedna 2e generation 1 inch, wifi
 model 3155 = ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
 model 31532 = ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
 
+Flow sensors
+FS4220 flow sensor 3/4 inch connected to sedna valve second gen
+FS4221 flow sensor 1 inch connected to sedna valve second gen
+
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
