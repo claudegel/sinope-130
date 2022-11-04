@@ -1048,7 +1048,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'status air bottom': self._air_bottom,
                     'status line error': self._line_error,
                     'status inductive mode': self._inductive_mode})
-        else:
+        elif not self._is_low_voltage:
             data.update({'status reference sensor': self._code_reference_sensor,
                     'status load sensor': self._code_load_error})
         data.update({'heat_level': self._heat_level,
