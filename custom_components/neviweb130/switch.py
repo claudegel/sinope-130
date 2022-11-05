@@ -211,7 +211,8 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            entities.append(Neviweb130Switch(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
@@ -370,9 +371,10 @@ def ml_to_L(mlvalue):
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._current_power_w = None
@@ -384,6 +386,11 @@ class Neviweb130Switch(SwitchEntity):
         self._month_kwh = None
         self._onOff = None
         self._onOff2 = None
+        self._is_flow = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_MESH_VALVE_MODEL or device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_MESH_VALVE_MODEL or device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_VALVE_MODEL or device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_VALVE_MODEL
         self._is_tank_load = device_info["signature"]["model"] in \
             IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._is_wifi_mesh_valve = device_info["signature"]["model"] in \
@@ -590,7 +597,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        if self._is_load or self._is_wall or self._is_wifi_valve:
+        if self._is_load or self._is_wall or self._is_flow:
             if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 if device_hourly_stats is not None:
@@ -789,7 +796,8 @@ class Neviweb130Switch(SwitchEntity):
                    'hourly_kwh': self._hour_kwh,
                    'daily_kwh': self._today_kwh,
                    'monthly_kwh': self._month_kwh}
-        data.update({'id': self._id})
+        data.update({'id': self._id,
+                    'sku': self._sku})
         return data
 
     @property
