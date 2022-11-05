@@ -453,7 +453,7 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLED_DEVICE]
         elif self._is_wifi_valve:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_TEMP_ALARM, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT]
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG]
         elif self._is_zb_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_RSSI]
         elif self._is_wifi_mesh_valve:
@@ -486,8 +486,24 @@ class Neviweb130Switch(SwitchEntity):
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
+                    if ATTR_WATER_LEAK_STATUS in device_data:
+                        self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if ATTR_MOTOR_TARGET in device_data:
+                        self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     if ATTR_VALVE_CLOSURE in device_data:
                         self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
+                    if ATTR_VALVE_INFO in device_data:
+                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
+                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
+                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                    if ATTR_STM8_ERROR in device_data:
+                        self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
+                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
+                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
+                    if ATTR_FLOW_METER_CONFIG in device_data:
+                        self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
+                        self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
+                        self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                 elif self._is_zb_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
@@ -731,6 +747,17 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_status': self._battery_status,
                    'Valve_closure_source': self._valve_closure,
                    'Battery_alert': self._battery_alert,
+                   'Motor_target_position': self._motor_target,
+                   'Water_leak_status': self._water_leak_status,
+                   'Valve_status': self._valve_info_status,
+                   'Valve_cause': self._valve_info_cause,
+                   'Valve_info_id': self._valve_info_id,
+                   'Alert_motor_jam': self._stm8Error_motorJam,
+                   'Alert_motor_position': self._stm8Error_motorPosition,
+                   'Alert_motor_limit': self._stm8Error_motorLimit,
+                   'Flow_meter_multiplier': self._flowmeter_multiplier,
+                   'Flow_meter_offset': self._flowmeter_offset,
+                   'Flow_meter_divisor': self._flowmeter_divisor,
                    'hourly_flow_count': ml_to_L(self._hour_energy_kwh_count),
                    'daily_flow_count': ml_to_L(self._today_energy_kwh_count),
                    'monthly_flow_count': ml_to_L(self._month_energy_kwh_count),
