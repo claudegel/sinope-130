@@ -366,7 +366,10 @@ def alert_to_text(alert, value):
 
 def ml_to_L(mlvalue):
     """Convert ml to L for flow sensor"""
-    return mlvalue/1000
+    if mlvalue is not None:
+        return mlvalue/1000
+    else:
+        return None
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
