@@ -419,29 +419,6 @@ class Neviweb130Client(object):
         _LOGGER.debug("Error code status data: %s", data)
         return None
 
-    def get_device_flow_sensor_data(self, device_id):
-        """Get device power consumption (in Wh) for the last 24 hours."""
-        # Prepare return
-        data = {}
-        # Http request
-        try:
-            raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
-                "/statistics/48hours", headers=self._headers,
-                cookies=self._cookies, timeout=self._timeout)
-        except OSError:
-            raise PyNeviweb130Error("Cannot get device flow sensor data...")
-            return None
-        # Update cookies
-        self._cookies.update(raw_res.cookies)
-        # Prepare data
-        data = raw_res.json()
-        #_LOGGER.debug("Flow sensor data: %s", data)
-        if "history" in data:
-            return data["history"]
-        else:
-            _LOGGER.debug("Flow sensor data error: %s", data)
-            return None
-
     def set_brightness(self, device_id, brightness):
         """Set device brightness."""
         data = {ATTR_INTENSITY: brightness}
