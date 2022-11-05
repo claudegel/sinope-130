@@ -363,6 +363,10 @@ def alert_to_text(alert, value):
             case "temp":
                 return "Off"
 
+def ml_to_L(mlvalue):
+    """Convert ml to L for flow sensor"""
+    return mlvalue/1000
+
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
@@ -720,12 +724,12 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_status': self._battery_status,
                    'Valve_closure_source': self._valve_closure,
                    'Battery_alert': self._battery_alert,
-                   'hourly_flow_count': self._hour_energy_kwh_count,
-                   'daily_flow_count': self._today_energy_kwh_count,
-                   'monthly_flow_count': self._month_energy_kwh_count,
-                   'hourly_flow': self._hour_kwh,
-                   'daily_flow': self._today_kwh,
-                   'monthly_flow': self._month_kwh}
+                   'hourly_flow_count': ml_to_L(self._hour_energy_kwh_count),
+                   'daily_flow_count': ml_to_L(self._today_energy_kwh_count),
+                   'monthly_flow_count': ml_to_L(self._month_energy_kwh_count),
+                   'hourly_flow': ml_to_L(self._hour_kwh),
+                   'daily_flow': ml_to_L(self._today_kwh),
+                   'monthly_flow': ml_to_L(self._month_kwh)}
         elif self._is_zb_valve:
             data = {'Valve_status': self._valve_status,
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
