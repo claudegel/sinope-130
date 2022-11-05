@@ -826,8 +826,8 @@ class Neviweb130Switch(SwitchEntity):
                    'hourly_kwh': self._hour_kwh,
                    'daily_kwh': self._today_kwh,
                    'monthly_kwh': self._month_kwh}
-        data.update({'id': self._id,
-                    'sku': self._sku})
+        data.update({'sku': self._sku,
+                    'id': self._id})
         return data
 
     @property
