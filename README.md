@@ -7,7 +7,7 @@ Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway an
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
-- Zigbee thermostats
+- Zigbee thermostats:
   - Sinopé TH1123ZB 3000W Line voltage thermostat
   - Sinopé TH1124ZB 4000W Line voltage thermostat
   - Sinopé TH1123ZB 3000W Thermostat for public areas
@@ -19,26 +19,26 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1500ZB 3600W double pole thermostat
   - Ouellet OTH3600-GA-ZB Floor thermostat
   - Ouellet OTH4000-ZB 4000W Line voltage thermostat
-- Wifi thermostats (no need for GT130)
+- Wifi thermostats (no need for GT130):
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
-- Zigbee lighting
+- Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé DM2500ZB Dimmer
   - Sinopé DM2550ZB Dimmer
-- Zigbee specialized Control
+- Zigbee specialized Control:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Load controller for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
-- Wifi specialized control
+- Wifi specialized control:
   - Sinopé RM3500WF Load controller for water heater
-- Water leak detector
+- Water leak detector:
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
   - Sinopé VA4200ZB, VA4220ZB, sedna valve 3/4 inch zigbee
@@ -50,14 +50,18 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé WL4200S,  water leak detector with sensor
   - Sinopé WL4200C,  perimeter cable water leak detector
   - Sinopé WL4200ZB, water leak detector
-  - Sinopé ACT4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
-  - Sinopé ACT4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
-  - Sinopé ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
-  - Sinopé ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
-- Tank level monitor
+  - Sinopé ACT4220WF-M, VA4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
+  - Sinopé ACT4220ZB-M, VA4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
+  - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
+  - Sinopé ACT4221ZB-M, VA4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
+- Flow sensor: (supported as attribute for the 2e gen valves)
+  - Sinopé FS4220, 3/4 inch flow sensor
+  - Sinopé FS4221, 1 inch flow sensor
+- Tank level monitor:
   - Sinopé LM4110-ZB, level monitor
 - Gateway
   - GT130
+  - GT4220WF-M, mesh gateway
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
