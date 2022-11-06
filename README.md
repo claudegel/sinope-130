@@ -66,7 +66,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
 
-For wifi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 zigbee devices. Later I'll add support to add them in the GT125 network.
+For wifi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 zigbee devices.
 
 There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT130 gateway:
 - [Neviweb130](https://github.com/claudegel/sinope-130) custom component to manage your devices via neviweb portal
