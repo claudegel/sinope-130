@@ -710,7 +710,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
         self._drsetpoint_value = None
-        self._energy_stat_time = 0
+        self._energy_stat_time = time.time() - 1500
         self._code_reference_sensor = None
         self._code_compensation_sensor = None
         self._code_air_sensor = None
