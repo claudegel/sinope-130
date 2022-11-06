@@ -364,6 +364,13 @@ def alert_to_text(alert, value):
             case "temp":
                 return "Off"
 
+def L_2_sqm(value):
+    """convert liters valuer to cubic meter for water flow stat"""
+    if value is not None:
+        return value/1000
+    else:
+        return None
+
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
@@ -754,12 +761,12 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
-                   'hourly_flow_count': self._hour_energy_kwh_count,
-                   'daily_flow_count': self._today_energy_kwh_count,
-                   'monthly_flow_count': self._month_energy_kwh_count,
-                   'hourly_flow': self._hour_kwh,
-                   'daily_flow': self._today_kwh,
-                   'monthly_flow': self._month_kwh}
+                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+                   'hourly_flow': L_2_sqm(self._hour_kwh),
+                   'daily_flow': L_2_sqm(self._today_kwh),
+                   'monthly_flow': L_2_sqm(self._month_kwh)}
         elif self._is_zb_valve:
             data = {'Valve_status': self._valve_status,
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
