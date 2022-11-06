@@ -214,7 +214,7 @@ template:
 ```
 
 ## Statistic for Sedna flow sensor
-Six attributes are added to track energy usage for devices. They are shown as m³ (cubic meeter) which is what energy module is looking for:
+Six attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what energy module is looking for:
 - hourly_flow_count: total count of kwh hourly usage
 - daily_flow_count: total count of kwh daily usage
 - monthly_flow_count: total count of kwh monthly usage
