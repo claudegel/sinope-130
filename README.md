@@ -72,7 +72,7 @@ There are two custom component giving you the choice to manage your devices via 
 - [Neviweb130](https://github.com/claudegel/sinope-130) custom component to manage your devices via neviweb portal
 - Buy a zigbee gateway like Dresden Conbe II usb dongle and manage directly your zigbee device via ZHA component. I'm adding support for Sinopé zigbee in zha-device-handlers. You can test new Sinopé devices quirks in [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new quirks before they are merged into zha-device-handlers.
 
-You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via Conbe II must be removed from Neviweb.
+You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via Conbe II must be removed from Neviweb as they cannot be on two networks at the same time.
 
 ## Neviweb custom component to manage your device via Neviweb portal:
 ## Installation
