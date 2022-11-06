@@ -158,7 +158,8 @@ async def async_setup_platform(
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
                 "dimmer" if device_info["signature"]["model"] in DEVICE_MODEL_DIMMER 
                 else "light", device_info["name"])
-            entities.append(Neviweb130Light(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Light(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
@@ -263,9 +264,10 @@ def brightness_from_percentage(percent):
 class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._hour_energy_kwh_count = None
@@ -283,7 +285,7 @@ class Neviweb130Light(LightEntity):
         self._intensity_min = 600
         self._wattage = None
         self._double_up = None
-        self._energy_stat_time = 0
+        self._energy_stat_time = time.time() - 1500
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
@@ -404,6 +406,7 @@ class Neviweb130Light(LightEntity):
                      'hourly_kwh': self._hour_kwh,
                      'daily_kwh': self._today_kwh,
                      'monthly_kwh': self._month_kwh,
+                     'sku': self._sku,
                      'id': self._id})
         return data
 

@@ -25,6 +25,10 @@ model 3150 = VA4221WF, sedna 2e generation 1 inch, wifi
 model 3155 = ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
 model 31532 = ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
 
+Flow sensors
+FS4220 flow sensor 3/4 inch connected to sedna valve second gen
+FS4221 flow sensor 1 inch connected to sedna valve second gen
+
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -207,7 +211,8 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
-            entities.append(Neviweb130Switch(data, device_info, device_name))
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku))
 
     async_add_entities(entities, True)
 
@@ -359,12 +364,20 @@ def alert_to_text(alert, value):
             case "temp":
                 return "Off"
 
+def L_2_sqm(value):
+    """convert liters valuer to cubic meter for water flow stat"""
+    if value is not None:
+        return value/1000
+    else:
+        return None
+
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
-    def __init__(self, data, device_info, name):
+    def __init__(self, data, device_info, name, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._current_power_w = None
@@ -376,6 +389,11 @@ class Neviweb130Switch(SwitchEntity):
         self._month_kwh = None
         self._onOff = None
         self._onOff2 = None
+        self._is_flow = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_MESH_VALVE_MODEL or device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_MESH_VALVE_MODEL or device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_VALVE_MODEL or device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_VALVE_MODEL
         self._is_tank_load = device_info["signature"]["model"] in \
             IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._is_wifi_mesh_valve = device_info["signature"]["model"] in \
@@ -429,7 +447,7 @@ class Neviweb130Switch(SwitchEntity):
         self._cold_load_status = None
         self._tank_size = None
         self._controled_device = None
-        self._energy_stat_time = 0
+        self._energy_stat_time = time.time() - 1500
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -438,7 +456,7 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLED_DEVICE]
         elif self._is_wifi_valve:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_TEMP_ALARM, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT]
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG]
         elif self._is_zb_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_RSSI]
         elif self._is_wifi_mesh_valve:
@@ -471,8 +489,24 @@ class Neviweb130Switch(SwitchEntity):
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
+                    if ATTR_WATER_LEAK_STATUS in device_data:
+                        self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if ATTR_MOTOR_TARGET in device_data:
+                        self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     if ATTR_VALVE_CLOSURE in device_data:
                         self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
+                    if ATTR_VALVE_INFO in device_data:
+                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
+                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
+                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                    if ATTR_STM8_ERROR in device_data:
+                        self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
+                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
+                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
+                    if ATTR_FLOW_METER_CONFIG in device_data:
+                        self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
+                        self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
+                        self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                 elif self._is_zb_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
@@ -582,7 +616,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        if self._is_load or self._is_wall:
+        if self._is_load or self._is_wall or self._is_flow:
             if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 if device_hourly_stats is not None:
@@ -715,7 +749,24 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
                    'Valve_closure_source': self._valve_closure,
-                   'Battery_alert': self._battery_alert}
+                   'Battery_alert': self._battery_alert,
+                   'Motor_target_position': self._motor_target,
+                   'Water_leak_status': self._water_leak_status,
+                   'Valve_status': self._valve_info_status,
+                   'Valve_cause': self._valve_info_cause,
+                   'Valve_info_id': self._valve_info_id,
+                   'Alert_motor_jam': self._stm8Error_motorJam,
+                   'Alert_motor_position': self._stm8Error_motorPosition,
+                   'Alert_motor_limit': self._stm8Error_motorLimit,
+                   'Flow_meter_multiplier': self._flowmeter_multiplier,
+                   'Flow_meter_offset': self._flowmeter_offset,
+                   'Flow_meter_divisor': self._flowmeter_divisor,
+                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+                   'hourly_flow': L_2_sqm(self._hour_kwh),
+                   'daily_flow': L_2_sqm(self._today_kwh),
+                   'monthly_flow': L_2_sqm(self._month_kwh)}
         elif self._is_zb_valve:
             data = {'Valve_status': self._valve_status,
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
@@ -775,7 +826,8 @@ class Neviweb130Switch(SwitchEntity):
                    'hourly_kwh': self._hour_kwh,
                    'daily_kwh': self._today_kwh,
                    'monthly_kwh': self._month_kwh}
-        data.update({'id': self._id})
+        data.update({'sku': self._sku,
+                    'id': self._id})
         return data
 
     @property

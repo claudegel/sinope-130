@@ -135,7 +135,8 @@ async def async_setup_platform(
                 device_type = "level"
             else:
                 device_type = "gateway"
-            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type))
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku))
 
     async_add_entities(entities, True)
 
@@ -185,9 +186,10 @@ def voltage_to_percentage(voltage, type):
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor."""
 
-    def __init__(self, data, device_info, name, device_type):
+    def __init__(self, data, device_info, name, device_type, sku):
         """Initialize."""
         self._name = name
+        self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._device_type = device_type
@@ -373,7 +375,8 @@ class Neviweb130Sensor(Entity):
                              'Closure_action': self._closure_action})
         elif self._is_gateway:
             data = {'Gateway_status': self._gateway_status}
-        data.update({'Id': self._id})
+        data.update({'sku': self._sku,
+                    'Id': self._id})
         return data
 
     @property

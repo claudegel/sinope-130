@@ -7,7 +7,7 @@ Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway an
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
-- Zigbee thermostats
+- Zigbee thermostats:
   - Sinopé TH1123ZB 3000W Line voltage thermostat
   - Sinopé TH1124ZB 4000W Line voltage thermostat
   - Sinopé TH1123ZB 3000W Thermostat for public areas
@@ -19,26 +19,26 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1500ZB 3600W double pole thermostat
   - Ouellet OTH3600-GA-ZB Floor thermostat
   - Ouellet OTH4000-ZB 4000W Line voltage thermostat
-- Wifi thermostats (no need for GT130)
+- Wifi thermostats (no need for GT130):
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
-- Zigbee lighting
+- Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé DM2500ZB Dimmer
   - Sinopé DM2550ZB Dimmer
-- Zigbee specialized Control
+- Zigbee specialized Control:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Load controller for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
-- Wifi specialized control
+- Wifi specialized control:
   - Sinopé RM3500WF Load controller for water heater
-- Water leak detector
+- Water leak detector:
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
   - Sinopé VA4200ZB, VA4220ZB, sedna valve 3/4 inch zigbee
@@ -50,25 +50,29 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé WL4200S,  water leak detector with sensor
   - Sinopé WL4200C,  perimeter cable water leak detector
   - Sinopé WL4200ZB, water leak detector
-  - Sinopé ACT4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
-  - Sinopé ACT4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
-  - Sinopé ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
-  - Sinopé ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
-- Tank level monitor
+  - Sinopé ACT4220WF-M, VA4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
+  - Sinopé ACT4220ZB-M, VA4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
+  - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
+  - Sinopé ACT4221ZB-M, VA4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
+- Flow sensor: (supported as attribute for the 2e gen Sedna valves)
+  - Sinopé FS4220, 3/4 inch flow sensor
+  - Sinopé FS4221, 1 inch flow sensor
+- Tank level monitor:
   - Sinopé LM4110-ZB, level monitor
 - Gateway
   - GT130
+  - GT4220WF-M, mesh gateway
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
 
-For wifi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 zigbee devices. Later I'll add support to add them in the GT125 network.
+For wifi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 zigbee devices.
 
 There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via your GT130 gateway:
 - [Neviweb130](https://github.com/claudegel/sinope-130) custom component to manage your devices via neviweb portal
 - Buy a zigbee gateway like Dresden Conbe II usb dongle and manage directly your zigbee device via ZHA component. I'm adding support for Sinopé zigbee in zha-device-handlers. You can test new Sinopé devices quirks in [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new quirks before they are merged into zha-device-handlers.
 
-You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via Conbe II must be removed from Neviweb.
+You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via Conbe II must be removed from Neviweb as they cannot be on two networks at the same time.
 
 ## Neviweb custom component to manage your device via Neviweb portal:
 ## Installation
@@ -183,7 +187,7 @@ Six attributes are added to track energy usage for devices:
 - daily_kwh: kwh used for last day
 - monthly_kwh: kwh used for last month
 
-They are polled from Neviweb every 30 minutes.
+They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
@@ -207,6 +211,41 @@ template:
         state_class: total
         state: >-
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
+```
+
+## Statistic for Sedna flow sensor
+Six attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what energy module is looking for:
+- hourly_flow_count: total count of kwh hourly usage
+- daily_flow_count: total count of kwh daily usage
+- monthly_flow_count: total count of kwh monthly usage
+- hourly_flow: kwh used for last hour
+- daily_flow: kwh used for last day
+- monthly_flow: kwh used for last month
+
+They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
+
+### Track water consumption in HA Energy dashboard
+When flow attributes are available, it is possible to track water consumption of sedna valve in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
+```yaml
+template:
+  - sensor:
+      - name: "Sedna Water Flow"
+        unit_of_measurement: "m³"
+        device_class: water
+        state_class: total_increasing
+        state: >-
+          {{ state_attr("switch.neviweb130_water_valve","hourly_flow_count") }}
+```
+or:
+```yaml
+template:
+  - sensor:
+      - name: "Sedna Water Flow"
+        unit_of_measurement: "m³"
+        device_class: water
+        state_class: total
+        state: >-
+          {{ state_attr("switch.neviweb130_water_valve","hourly_flow") }}
 ```
 
 ## Troubleshooting
