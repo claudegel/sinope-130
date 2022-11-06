@@ -54,7 +54,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé ACT4220ZB-M, VA4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
   - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
   - Sinopé ACT4221ZB-M, VA4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
-- Flow sensor: (supported as attribute for the 2e gen valves)
+- Flow sensor: (supported as attribute for the 2e gen Sedna valves)
   - Sinopé FS4220, 3/4 inch flow sensor
   - Sinopé FS4221, 1 inch flow sensor
 - Tank level monitor:
