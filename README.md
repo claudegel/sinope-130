@@ -187,7 +187,7 @@ Six attributes are added to track energy usage for devices:
 - daily_kwh: kwh used for last day
 - monthly_kwh: kwh used for last month
 
-They are polled from Neviweb every 30 minutes.
+They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
@@ -211,6 +211,41 @@ template:
         state_class: total
         state: >-
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
+```
+
+## Statistic for Sedna flow sensor
+Six attributes are added to track energy usage for devices. They are shown as m³ (cubic meeter) which is what energy module is looking for:
+- hourly_flow_count: total count of kwh hourly usage
+- daily_flow_count: total count of kwh daily usage
+- monthly_flow_count: total count of kwh monthly usage
+- hourly_flow: kwh used for last hour
+- daily_flow: kwh used for last day
+- monthly_flow: kwh used for last month
+
+They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
+
+### Track water consumption in HA Energy dashboard
+When flow attributes are available, it is possible to track water consumption of sedna valve in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
+```yaml
+template:
+  - sensor:
+      - name: "Sedna Water Flow"
+        unit_of_measurement: "m³"
+        device_class: water
+        state_class: total_increasing
+        state: >-
+          {{ state_attr("switch.neviweb130_water_valve","hourly_flow_count") }}
+```
+or:
+```yaml
+template:
+  - sensor:
+      - name: "Sedna Water Flow"
+        unit_of_measurement: "m³"
+        device_class: water
+        state_class: total
+        state: >-
+          {{ state_attr("switch.neviweb130_water_valve","hourly_flow") }}
 ```
 
 ## Troubleshooting
