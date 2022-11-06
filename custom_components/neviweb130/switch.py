@@ -440,7 +440,7 @@ class Neviweb130Switch(SwitchEntity):
         self._cold_load_status = None
         self._tank_size = None
         self._controled_device = None
-        self._energy_stat_time = 0
+        self._energy_stat_time = time.time() - 1500
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
