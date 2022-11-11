@@ -1152,9 +1152,9 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_mode(self):
         """Return current preset mode."""
-        if self._operation_mode == PRESET_HOME:
+        if self._occupancy == PRESET_HOME:
             return PRESET_HOME
-        elif self._operation_mode == PRESET_AWAY:
+        elif self._occupancy == PRESET_AWAY:
             return PRESET_AWAY
         else:
             return PRESET_NONE
