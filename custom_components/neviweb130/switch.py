@@ -29,6 +29,9 @@ Flow sensors
 FS4220 flow sensor 3/4 inch connected to sedna valve second gen
 FS4221 flow sensor 1 inch connected to sedna valve second gen
 
+Door lock
+model 7000 = door lock
+
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -582,8 +585,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
+                    self._rssi = device_data[ATTR_RSSI]
                     self._tank_size = device_data[ATTR_TANK_SIZE]
                 elif self._is_zb_control or self._is_sedna_control:
                     self._onOff = device_data[ATTR_ONOFF]
