@@ -345,3 +345,13 @@ set_pump_protection:
     status:
       description: Set to «on» or «off» to change status of pump protection.
       example: "on"
+
+set_tank_size:
+  description: Set water heater tank size for RM3500ZB Calypso load controler.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 switch.
+      example: "climate.neviweb130_switch_water_heater"
+    value:
+      description: Tank size in gallon. Accepted values are "40 gal", "50 gal", "60 gal", "80 gal".
+      example: "80 gal"
