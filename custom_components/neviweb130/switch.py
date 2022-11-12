@@ -385,9 +385,9 @@ async def async_setup_platform(
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
-        return int((min(voltage,3.0)-2.2)/(3.0-2.2) * 100)
+        return int((min(voltage,2.7)-2.3)/(2.7-2.3) * 100)
     else:
-        return int((min(voltage,6.0)-4.4)/(6.0-4.4) * 100)
+        return int((min(voltage,6.0)-3.0)/(6.0-3.0) * 100)
 
 def alert_to_text(alert, value):
     """Convert numeric alert activation to text"""
