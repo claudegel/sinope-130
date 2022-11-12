@@ -32,7 +32,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé DM2550ZB Dimmer
 - Zigbee specialized Control:
   - Sinopé RM3250ZB Load controller 50A
-  - Sinopé RM3500ZB Load controller for water heater
+  - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
@@ -58,7 +58,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé FS4220, 3/4 inch flow sensor
   - Sinopé FS4221, 1 inch flow sensor
 - Tank level monitor:
-  - Sinopé LM4110-ZB, level monitor
+  - Sinopé LM4110-ZB, Propane tank level monitor
 - Gateway
   - GT130
   - GT4220WF-M, mesh gateway
