@@ -121,6 +121,7 @@ from .const import (
     SERVICE_SET_LOAD_DR_OPTIONS,
     SERVICE_SET_CONTROL_ONOFF,
     SERVICE_SET_TANK_SIZE,
+    SERVICE_SET_CONTROLED_DEVICE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -130,12 +131,20 @@ DEFAULT_NAME = 'neviweb130 switch'
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
+CONTROLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
     "50 gal": 50,
     "60 gal": 60,
     "80 gal": 80
+}
+
+HA_TO_NEVIWEB_CONTROLED = {
+    "Hot water heater": "hotWaterHeater",
+    "Pool pump": "poolPump",
+    "Eletric vehicle charger": "eletricVehicleCharger",
+    "Other": "other"
 }
 
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
@@ -214,6 +223,15 @@ SET_TANK_SIZE_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("value"): vol.All(
             cv.ensure_list, [vol.In(TANK_VALUE)]
+        ),
+    }
+)
+
+SET_CONTROLED_DEVICE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("value"): vol.All(
+            cv.ensure_list, [vol.In(CONTROLED_VALUE)]
         ),
     }
 )
@@ -326,6 +344,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_controled_device_service(service):
+        """ Set controled device type for RM3250ZB """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "val": service.data["value"][0]}
+                switch.set_controled_device(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -382,6 +411,13 @@ async def async_setup_platform(
         schema=SET_TANK_SIZE_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_CONTROLED_DEVICE,
+        set_controled_device_service,
+        schema=SET_CONTROLED_DEVICE_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
@@ -406,6 +442,12 @@ def alert_to_text(alert, value):
 
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_SIZE.items() if v == value]
+    if keys:
+        return keys[0]
+    return None
+
+def neviweb_to_ha_controled(value):
+    keys = [k for k, v in HA_TO_NEVIWEB_CONTROLED.items() if v == value]
     if keys:
         return keys[0]
     return None
@@ -760,7 +802,7 @@ class Neviweb130Switch(SwitchEntity):
         data = {}
         if self._is_load:
             data = {'onOff': self._onOff,
-                   'Controled_device': self._controled_device,
+                   'Controled_device': neviweb_to_ha_controled(self._controled_device),
                    'Wattage': self._wattage,
                    'Wattage_instant': self._current_power_w,
                    'hourly_kwh_count': self._hour_energy_kwh_count,
@@ -970,3 +1012,12 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_tank_size(
             entity, size)
         self._tank_size = size
+
+    def set_controled_device(self, value):
+        """ set device name controled by RM3250ZB load controler. """
+        entity = value["id"]
+        val = value["val"]
+        tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLED.items() if k == val][0]
+        self._client.set_controled_device(
+            entity, tipe)
+        self._controled_device = tipe
