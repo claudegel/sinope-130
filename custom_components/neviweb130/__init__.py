@@ -68,6 +68,7 @@ from .const import (
     ATTR_PUMP_PROTEC,
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
+    ATTR_TANK_SIZE,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -551,6 +552,12 @@ class Neviweb130Client(object):
         """set low voltage thermostat main cycle length."""
         data = {ATTR_CYCLE:val}
         _LOGGER.debug("Cycleoutput.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_tank_size(self, device_id, val):
+        """set water heater tank size for RM3500ZB."""
+        data = {ATTR_TANK_SIZE:val}
+        _LOGGER.debug("TankSize.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_aux_heat(self, device_id, heat, low, sec):
