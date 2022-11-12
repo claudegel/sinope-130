@@ -355,3 +355,13 @@ set_tank_size:
     value:
       description: Tank size in gallon. Accepted values are "40 gal", "50 gal", "60 gal", "80 gal".
       example: "80 gal"
+
+set_controled_device:
+  description: Set device type controled by RM3250ZB load controler.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 switch.
+      example: "climate.neviweb130_switch_load_controler"
+    value:
+      description: Device type name. Accepted values are "Hot water heater", "Pool pump", "Electric vehicle charger", "Other".
+      example: "Pool pump"
