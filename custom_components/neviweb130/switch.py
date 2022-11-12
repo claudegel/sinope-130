@@ -7,8 +7,8 @@ model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
 load controler
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
-model 2151 = load controller for water heater, RM3500ZB 50A
-model xxxx = load controller for water heater, RM3500WF 50A wifi
+model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A
+model xxxx = Calypso load controller for water heater, RM3500WF 20,8A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
