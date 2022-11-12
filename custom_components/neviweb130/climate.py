@@ -3,7 +3,7 @@ Support for Neviweb thermostat connected to GT130 ZigBee.
 model 1123 = thermostat TH1123ZB 3000W
 model 300 = thermostat TH1123ZB-G2 3000W
 model 1124 = thermostat TH1124ZB 4000W
-model xxx = thermostat TH1124ZB-G2 4000W
+model 300 = thermostat TH1124ZB-G2 4000W
 model 737 = thermostat TH1300ZB 3600W (floor)
 model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
