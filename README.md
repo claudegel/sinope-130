@@ -165,6 +165,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_aux_cycle_output to set auxiliary cycle length of low voltage thermostats in minutes.
 - neviweb130.set_control_onOff change status of output 1 and 2 on alarm multi-controller for sedna valve.
 - neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor
+- neviweb130.set_tank_size to set the water heater tank capacity for Calypso RM3500ZB
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
