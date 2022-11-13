@@ -69,7 +69,7 @@ from .const import (
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
     ATTR_TANK_SIZE,
-    ATTR_CONTROLED_DEVICE,
+    ATTR_CONTROLLED_DEVICE,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -561,10 +561,10 @@ class Neviweb130Client(object):
         _LOGGER.debug("TankSize.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_controled_device(self, device_id, val):
-        """set device name controled by RM3250ZB."""
-        data = {ATTR_CONTROLED_DEVICE:val}
-        _LOGGER.debug("ControledDevice.data = %s", data)
+    def set_controlled_device(self, device_id, val):
+        """set device name controlled by RM3250ZB."""
+        data = {ATTR_CONTROLLED_DEVICE:val}
+        _LOGGER.debug("ControlledDevice.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_aux_heat(self, device_id, heat, low, sec):
