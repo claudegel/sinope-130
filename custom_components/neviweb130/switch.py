@@ -105,7 +105,7 @@ from .const import (
     ATTR_STM8_ERROR,
     ATTR_WATER_LEAK_STATUS,
     ATTR_TANK_SIZE,
-    ATTR_CONTROLED_DEVICE,
+    ATTR_CONTROLLED_DEVICE,
     ATTR_COLD_LOAD_PICKUP,
     ATTR_ROOM_TEMPERATURE,
     MODE_AUTO,
@@ -121,7 +121,7 @@ from .const import (
     SERVICE_SET_LOAD_DR_OPTIONS,
     SERVICE_SET_CONTROL_ONOFF,
     SERVICE_SET_TANK_SIZE,
-    SERVICE_SET_CONTROLED_DEVICE,
+    SERVICE_SET_CONTROLLED_DEVICE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ DEFAULT_NAME = 'neviweb130 switch'
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
-CONTROLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
+CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
@@ -140,7 +140,7 @@ HA_TO_NEVIWEB_SIZE = {
     "80 gal": 80
 }
 
-HA_TO_NEVIWEB_CONTROLED = {
+HA_TO_NEVIWEB_CONTROLLED = {
     "Hot water heater": "hotWaterHeater",
     "Pool pump": "poolPump",
     "Eletric vehicle charger": "eletricVehicleCharger",
@@ -227,11 +227,11 @@ SET_TANK_SIZE_SCHEMA = vol.Schema(
     }
 )
 
-SET_CONTROLED_DEVICE_SCHEMA = vol.Schema(
+SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("value"): vol.All(
-            cv.ensure_list, [vol.In(CONTROLED_VALUE)]
+            cv.ensure_list, [vol.In(CONTROLLED_VALUE)]
         ),
     }
 )
@@ -344,14 +344,14 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_controled_device_service(service):
-        """ Set controled device type for RM3250ZB """
+    def set_controlled_device_service(service):
+        """ Set controlled device type for RM3250ZB """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
                 value = {"id": switch.unique_id, "val": service.data["value"][0]}
-                switch.set_controled_device(value)
+                switch.set_controlled_device(value)
                 switch.schedule_update_ha_state(True)
                 break
 
@@ -413,9 +413,9 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_CONTROLED_DEVICE,
-        set_controled_device_service,
-        schema=SET_CONTROLED_DEVICE_SCHEMA,
+        SERVICE_SET_CONTROLLED_DEVICE,
+        set_controlled_device_service,
+        schema=SET_CONTROLLED_DEVICE_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, num):
@@ -446,8 +446,8 @@ def neviweb_to_ha(value):
         return keys[0]
     return None
 
-def neviweb_to_ha_controled(value):
-    keys = [k for k, v in HA_TO_NEVIWEB_CONTROLED.items() if v == value]
+def neviweb_to_ha_controlled(value):
+    keys = [k for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if v == value]
     if keys:
         return keys[0]
     return None
@@ -534,7 +534,7 @@ class Neviweb130Switch(SwitchEntity):
         self._water_leak_status = None
         self._cold_load_status = None
         self._tank_size = None
-        self._controled_device = None
+        self._controlled_device = None
         self._energy_stat_time = time.time() - 1500
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -542,7 +542,7 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_zb_control or self._is_sedna_control:
             LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
         elif self._is_load:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLED_DEVICE]
+            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
         elif self._is_wifi_valve:
             LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG]
         elif self._is_zb_valve:
@@ -660,7 +660,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
-                    self._controled_device = device_data[ATTR_CONTROLED_DEVICE]
+                    self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
                 elif self._is_tank_load:
                     self._onOff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
@@ -802,7 +802,7 @@ class Neviweb130Switch(SwitchEntity):
         data = {}
         if self._is_load:
             data = {'onOff': self._onOff,
-                   'Controled_device': neviweb_to_ha_controled(self._controled_device),
+                   'Controlled_device': neviweb_to_ha_controlled(self._controlled_device),
                    'Wattage': self._wattage,
                    'Wattage_instant': self._current_power_w,
                    'hourly_kwh_count': self._hour_energy_kwh_count,
@@ -1013,11 +1013,11 @@ class Neviweb130Switch(SwitchEntity):
             entity, size)
         self._tank_size = size
 
-    def set_controled_device(self, value):
-        """ set device name controled by RM3250ZB load controler. """
+    def set_controlled_device(self, value):
+        """ set device name controlled by RM3250ZB load controler. """
         entity = value["id"]
         val = value["val"]
-        tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLED.items() if k == val][0]
-        self._client.set_controled_device(
+        tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
+        self._client.set_controlled_device(
             entity, tipe)
-        self._controled_device = tipe
+        self._controlled_device = tipe
