@@ -7,8 +7,8 @@ model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
 load controler
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
-model 2151 = load controller for water heater, RM3500ZB 50A
-model xxxx = load controller for water heater, RM3500WF 50A wifi
+model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A
+model xxxx = Calypso load controller for water heater, RM3500WF 20,8A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
@@ -28,6 +28,9 @@ model 31532 = ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, z
 Flow sensors
 FS4220 flow sensor 3/4 inch connected to sedna valve second gen
 FS4221 flow sensor 1 inch connected to sedna valve second gen
+
+Door lock
+model 7000 = door lock
 
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
@@ -117,6 +120,8 @@ from .const import (
     SERVICE_SET_VALVE_TEMP_ALERT,
     SERVICE_SET_LOAD_DR_OPTIONS,
     SERVICE_SET_CONTROL_ONOFF,
+    SERVICE_SET_TANK_SIZE,
+    SERVICE_SET_CONTROLED_DEVICE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -124,6 +129,23 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = 'neviweb130 switch'
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
+
+TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
+CONTROLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
+
+HA_TO_NEVIWEB_SIZE = {
+    "40 gal": 40,
+    "50 gal": 50,
+    "60 gal": 60,
+    "80 gal": 80
+}
+
+HA_TO_NEVIWEB_CONTROLED = {
+    "Hot water heater": "hotWaterHeater",
+    "Pool pump": "poolPump",
+    "Eletric vehicle charger": "eletricVehicleCharger",
+    "Other": "other"
+}
 
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_WIFI_MESH_VALVE_MODEL = [3155]
@@ -192,6 +214,24 @@ SET_CONTROL_ONOFF_SCHEMA = vol.Schema(
         vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
         vol.Required("onOff_num"): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=2)
+        ),
+    }
+)
+
+SET_TANK_SIZE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("value"): vol.All(
+            cv.ensure_list, [vol.In(TANK_VALUE)]
+        ),
+    }
+)
+
+SET_CONTROLED_DEVICE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("value"): vol.All(
+            cv.ensure_list, [vol.In(CONTROLED_VALUE)]
         ),
     }
 )
@@ -293,6 +333,28 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_tank_size_service(service):
+        """ Set water tank size for RM3500ZB """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "val": service.data["value"][0]}
+                switch.set_tank_size(value)
+                switch.schedule_update_ha_state(True)
+                break
+
+    def set_controled_device_service(service):
+        """ Set controled device type for RM3250ZB """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "val": service.data["value"][0]}
+                switch.set_controled_device(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -342,12 +404,26 @@ async def async_setup_platform(
         schema=SET_CONTROL_ONOFF_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TANK_SIZE,
+        set_tank_size_service,
+        schema=SET_TANK_SIZE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_CONTROLED_DEVICE,
+        set_controled_device_service,
+        schema=SET_CONTROLED_DEVICE_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
-        return int((min(voltage,3.0)-2.2)/(3.0-2.2) * 100)
+        return int((min(voltage,2.7)-2.3)/(2.7-2.3) * 100)
     else:
-        return int((min(voltage,6.0)-4.4)/(6.0-4.4) * 100)
+        return int((min(voltage,6.0)-3.0)/(6.0-3.0) * 100)
 
 def alert_to_text(alert, value):
     """Convert numeric alert activation to text"""
@@ -363,6 +439,18 @@ def alert_to_text(alert, value):
                 return "Off"
             case "temp":
                 return "Off"
+
+def neviweb_to_ha(value):
+    keys = [k for k, v in HA_TO_NEVIWEB_SIZE.items() if v == value]
+    if keys:
+        return keys[0]
+    return None
+
+def neviweb_to_ha_controled(value):
+    keys = [k for k, v in HA_TO_NEVIWEB_CONTROLED.items() if v == value]
+    if keys:
+        return keys[0]
+    return None
 
 def L_2_sqm(value):
     """convert liters valuer to cubic meter for water flow stat"""
@@ -582,8 +670,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
+                    self._rssi = device_data[ATTR_RSSI]
                     self._tank_size = device_data[ATTR_TANK_SIZE]
                 elif self._is_zb_control or self._is_sedna_control:
                     self._onOff = device_data[ATTR_ONOFF]
@@ -715,7 +802,7 @@ class Neviweb130Switch(SwitchEntity):
         data = {}
         if self._is_load:
             data = {'onOff': self._onOff,
-                   'Controled_device': self._controled_device,
+                   'Controled_device': neviweb_to_ha_controled(self._controled_device),
                    'Wattage': self._wattage,
                    'Wattage_instant': self._current_power_w,
                    'hourly_kwh_count': self._hour_energy_kwh_count,
@@ -738,7 +825,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Water_leak_status': self._water_leak_status,
                    'Room_temperature': self._room_temp,
                    'Cold_load_pickup_status': self._cold_load_status,
-                   'Tank_size': self._tank_size,
+                   'Tank_size': neviweb_to_ha(self._tank_size),
                    'RelayK1': self._relayK1,
                    'RelayK2': self._relayK2,
                    'Rssi': self._rssi}
@@ -916,3 +1003,21 @@ class Neviweb130Switch(SwitchEntity):
         self._drstatus_active = dr
         self._drstatus_optout = optout
         self._drstatus_onoff = onoff
+
+    def set_tank_size(self, value):
+        """ set water tank size for RM3500ZB Calypso controler. """
+        entity = value["id"]
+        val = value["val"]
+        size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == val][0]
+        self._client.set_tank_size(
+            entity, size)
+        self._tank_size = size
+
+    def set_controled_device(self, value):
+        """ set device name controled by RM3250ZB load controler. """
+        entity = value["id"]
+        val = value["val"]
+        tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLED.items() if k == val][0]
+        self._client.set_controled_device(
+            entity, tipe)
+        self._controled_device = tipe

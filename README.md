@@ -3,7 +3,7 @@
 Here is a custom components to suport [Neviweb](https://neviweb.com/) in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light switches/dimmers , load controllers, plug and water leak detector etc. 
 
-Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway and the new wifi devices. It is presently in pre-release stage as some information are still missing from Sinopé.
+Neviweb130 will manage the devices connected to Neviweb via the GT130 gateway and the new wifi devices. It is presently almost up to date with Neviweb but some informations are still missing from Sinopé. As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported yet, please open an issue and I'll add it rapidly.
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
@@ -32,7 +32,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé DM2550ZB Dimmer
 - Zigbee specialized Control:
   - Sinopé RM3250ZB Load controller 50A
-  - Sinopé RM3500ZB Load controller for water heater
+  - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
@@ -58,7 +58,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé FS4220, 3/4 inch flow sensor
   - Sinopé FS4221, 1 inch flow sensor
 - Tank level monitor:
-  - Sinopé LM4110-ZB, level monitor
+  - Sinopé LM4110-ZB, Propane tank level monitor
 - Gateway
   - GT130
   - GT4220WF-M, mesh gateway
@@ -165,6 +165,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_aux_cycle_output to set auxiliary cycle length of low voltage thermostats in minutes.
 - neviweb130.set_control_onOff change status of output 1 and 2 on alarm multi-controller for sedna valve.
 - neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor
+- neviweb130.set_tank_size to set the water heater tank capacity for Calypso RM3500ZB
+- neviweb130.set_controled_device to change the name of the device controled by the RM3250ZV load controler
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
