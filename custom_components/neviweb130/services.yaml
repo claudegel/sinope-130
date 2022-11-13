@@ -356,8 +356,8 @@ set_tank_size:
       description: Tank size in gallon. Accepted values are "40 gal", "50 gal", "60 gal", "80 gal".
       example: "80 gal"
 
-set_controled_device:
-  description: Set device type controled by RM3250ZB load controler.
+set_controlled_device:
+  description: Set device type controlled by RM3250ZB load controler.
   fields:
     entity_id:
       description: Name(s) of neviweb130 switch.
