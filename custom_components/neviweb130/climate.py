@@ -139,6 +139,8 @@ from .const import (
     SERVICE_SET_AUX_CYCLE_OUTPUT,
     SERVICE_SET_CYCLE_OUTPUT,
     SERVICE_SET_PUMP_PROTECTION,
+    SERVICE_SET_COOL_SETPOINT_MIN,
+    SERVICE_SET_COOL_SETPOINT_MAX,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -305,6 +307,24 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
         vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
         vol.Required("value"): vol.All(
             vol.Coerce(float), vol.Range(min=-10, max=0)
+        ),
+    }
+)
+
+SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(
+            vol.Coerce(float), vol.Range(min=16, max=30)
+        ),
+    }
+)
+
+SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(
+            vol.Coerce(float), vol.Range(min=16, max=30)
         ),
     }
 )
@@ -541,6 +561,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_cool_setpoint_max_service(service):
+        """ set maximum cooling setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_COOL_SETPOINT_MAX]}
+                thermostat.set_cool_setpoint_max(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_cool_setpoint_min_service(service):
+        """ set minimum cooling setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_COOL_SETPOINT_MIN]}
+                thermostat.set_cool_setpoint_min(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -651,6 +693,20 @@ async def async_setup_platform(
         SERVICE_SET_PUMP_PROTECTION,
         set_pump_protection_service,
         schema=SET_PUMP_PROTECTION_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_SETPOINT_MAX,
+        set_cool_setpoint_max_service,
+        schema=SET_COOL_SETPOINT_MAX_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_SETPOINT_MIN,
+        set_cool_setpoint_min_service,
+        schema=SET_COOL_SETPOINT_MIN_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -1309,6 +1365,22 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_setpoint_min(
             entity, temp)
         self._min_temp = temp
+
+    def set_cool_setpoint_max(self, value):
+        """set maximum cooling setpoint temperature"""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_cool_setpoint_max(
+            entity, temp)
+        self._cool_max = temp
+
+    def set_cool_setpoint_min(self, value):
+        """ set minimum cooling setpoint temperature. """
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_cool_setpoint_min(
+            entity, temp)
+        self._cool_min = temp
 
     def set_floor_air_limit(self, value):
         """ set maximum temperature air limit for floor thermostat. """
