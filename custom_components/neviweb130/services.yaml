@@ -373,7 +373,7 @@ set_cool_setpoint_max:
       description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
       example: "climate.neviweb130_climate_office"
     coolSetpointMax:
-      description: Maximum cooling setpoint temperature to set.
+      description: Maximum cooling setpoint temperature to set. Between 16 and 30 oC.
       example: 26
 
 set_cool_setpoint_min:
@@ -383,5 +383,5 @@ set_cool_setpoint_min:
       description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
       example: "climate.neviweb130_climate_office"
     coolSetpointMin:
-      description: Minimum cooling setpoint temperature to set.
+      description: Minimum cooling setpoint temperature to set. Between 16 and 30 oC.
       example: 22
