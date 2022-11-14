@@ -16,7 +16,7 @@ model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
 model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
-model xxx = thermostat TH1500WF double pole thermostat (wifi)
+model 742 = thermostat TH1500WF double pole thermostat (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
@@ -207,7 +207,7 @@ DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
-DEVICE_MODEL_WIFI = [1510]
+DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_HEAT = [1123, 1124, 7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1134]
