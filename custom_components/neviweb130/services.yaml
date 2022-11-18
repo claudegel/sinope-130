@@ -365,3 +365,23 @@ set_controlled_device:
     value:
       description: Device type name. Accepted values are "Hot water heater", "Pool pump", "Electric vehicle charger", "Other".
       example: "Pool pump"
+
+set_cool_setpoint_max:
+  description: Set climate device room cooling setpoint max temperature for TH1134ZB-HC.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
+      example: "climate.neviweb130_climate_office"
+    coolSetpointMax:
+      description: Maximum cooling setpoint temperature to set. Between 16 and 30 oC.
+      example: 26
+
+set_cool_setpoint_min:
+  description: Set climate device room cooling setpoint min temperature for TH1134ZB-HC.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
+      example: "climate.neviweb130_climate_office"
+    coolSetpointMin:
+      description: Minimum cooling setpoint temperature to set. Between 16 and 30 oC.
+      example: 22

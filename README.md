@@ -14,6 +14,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1124ZB 4000W Thermostat for public areas
   - Sinopé TH1123ZB-G2 3000W Thermostat second generation
   - Sinopé TH1124ZB-G2 4000W Thermostat second generation
+  - Sinopé TH1134ZB-HC for control of heating/cooling interlocking
   - Sinopé TH1300ZB 3600W Floor heating thermostat
   - Sinopé TH1400ZB Low voltage thermostat
   - Sinopé TH1500ZB 3600W double pole thermostat
@@ -25,6 +26,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
+  - Sinopé TH1500WF wifi 3600W double pole thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
@@ -151,6 +153,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_auxiliary_load to set status and load of the auxilary heating.
 - neviweb130.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
+- neviweb130.set_cool_setpoint_min to set minimum cooling setpoint for TH1134ZB-HC.
+- neviweb130.set_cool_setpoint_max to set maximum cooling setpoint for TH1134ZB-HC.
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve.
 - neviweb130.set_valve_alert to set low battery alert status.
 - neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve.

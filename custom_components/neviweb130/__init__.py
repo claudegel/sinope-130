@@ -70,12 +70,14 @@ from .const import (
     ATTR_PUMP_PROTEC_PERIOD,
     ATTR_TANK_SIZE,
     ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_COOL_SETPOINT_MAX,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.7.7'
+VERSION = '1.8.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -541,6 +543,18 @@ class Neviweb130Client(object):
         """Set device setpoint maximum temperature."""
         data = {ATTR_ROOM_SETPOINT_MAX: temp}
         _LOGGER.debug("setpointMax.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_setpoint_min(self, device_id, temp):
+        """Set device cooling setpoint minimum temperature."""
+        data = {ATTR_COOL_SETPOINT_MIN: temp}
+        _LOGGER.debug("CoolsetpointMin.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_setpoint_max(self, device_id, temp):
+        """Set device cooling setpoint maximum temperature."""
+        data = {ATTR_COOL_SETPOINT_MAX: temp}
+        _LOGGER.debug("CoolsetpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_aux_cycle_output(self, device_id, status, val):

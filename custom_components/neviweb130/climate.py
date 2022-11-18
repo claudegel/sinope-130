@@ -9,14 +9,14 @@ model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
 model 1124 = thermostat OTH4000-ZB Ouellet
 model 737 = thermostat OTH3600-GA-ZB Ouellet
-model xxx = Thermostat TH1134ZB-HC for heat pump
+model 1134 = Thermostat TH1134ZB-HC for heat pump
 
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
 model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
-model xxx = thermostat TH1500WF double pole thermostat (wifi)
+model 742 = thermostat TH1500WF double pole thermostat (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
@@ -34,6 +34,7 @@ import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, HOMEKIT_MODE)
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
+    HVAC_MODE_COOL,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
@@ -117,6 +118,9 @@ from .const import (
     ATTR_SETPOINT,
     ATTR_STATUS,
     ATTR_RSSI,
+    ATTR_COOL_SETPOINT,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_COOL_SETPOINT_MAX,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -135,6 +139,8 @@ from .const import (
     SERVICE_SET_AUX_CYCLE_OUTPUT,
     SERVICE_SET_CYCLE_OUTPUT,
     SERVICE_SET_PUMP_PROTECTION,
+    SERVICE_SET_COOL_SETPOINT_MIN,
+    SERVICE_SET_COOL_SETPOINT_MAX,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -180,6 +186,12 @@ SUPPORTED_HVAC_MODES = [
     HVAC_MODE_HEAT,
 ]
 
+SUPPORTED_HVAC_HC_MODES = [
+    HVAC_MODE_OFF,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_COOL,
+]
+
 PRESET_WIFI_MODES = [
     PRESET_AWAY,
     PRESET_HOME,
@@ -195,10 +207,11 @@ DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
-DEVICE_MODEL_WIFI = [1510]
+DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_HEAT = [1123, 1124, 7373]
 DEVICE_MODEL_HEAT_G2 = [300]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2
+DEVICE_MODEL_HC = [1134]
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -294,6 +307,24 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
         vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
         vol.Required("value"): vol.All(
             vol.Coerce(float), vol.Range(min=-10, max=0)
+        ),
+    }
+)
+
+SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(
+            vol.Coerce(float), vol.Range(min=16, max=30)
+        ),
+    }
+)
+
+SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(
+            vol.Coerce(float), vol.Range(min=16, max=30)
         ),
     }
 )
@@ -530,6 +561,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_cool_setpoint_max_service(service):
+        """ set maximum cooling setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_COOL_SETPOINT_MAX]}
+                thermostat.set_cool_setpoint_max(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_cool_setpoint_min_service(service):
+        """ set minimum cooling setpoint for device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_COOL_SETPOINT_MIN]}
+                thermostat.set_cool_setpoint_min(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -642,6 +695,20 @@ async def async_setup_platform(
         schema=SET_PUMP_PROTECTION_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_SETPOINT_MAX,
+        set_cool_setpoint_max_service,
+        schema=SET_COOL_SETPOINT_MAX_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_SETPOINT_MIN,
+        set_cool_setpoint_min_service,
+        schema=SET_COOL_SETPOINT_MIN_SCHEMA,
+    )
+
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
@@ -726,6 +793,11 @@ class Neviweb130Thermostat(ClimateEntity):
         self._air_bottom = None
         self._line_error = None
         self._inductive_mode = None
+        self._target_cool = None
+        self._cool_min = None
+        self._cool_max = None
+        self._is_hc = device_info["signature"]["model"] in \
+            DEVICE_MODEL_HC
         self._is_gen2 = device_info["signature"]["model"] in \
             DEVICE_MODEL_HEAT_G2
         self._is_floor = device_info["signature"]["model"] in \
@@ -769,10 +841,14 @@ class Neviweb130Thermostat(ClimateEntity):
             GEN2_ATTRIBUTE = [ATTR_DISPLAY2]
         else:
             GEN2_ATTRIBUTE = [ATTR_DISPLAY2, ATTR_RSSI]
+        if self._is_hc:
+            HC_ATTRIBUTE = [ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_WATTAGE, ATTR_BACKLIGHT, ATTR_KEYPAD, ATTR_RSSI]
+        else:
+            HC_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
@@ -879,6 +955,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+                if self._is_hc:
+                    self._cycle_length = device_data[ATTR_CYCLE]
+                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                    self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
+                    self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
             elif device_data["errorCode"] == "ReadTimeout":
                 _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
             else:    
@@ -919,7 +1000,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     _LOGGER.warning("Got None for device_monthly_stats")
                 device_error_code = self._client.get_device_sensor_error(self._id)
                 #_LOGGER.warning("Updating error code: %s",device_error_code)
-                if not self._is_wifi:
+                if not self._is_wifi and not self._is_hc:
                     if device_error_code is not None:
                         self._code_compensation_sensor = device_error_code["compensationSensor"]
                         self._code_thermal_overload = device_error_code["thermalOverload"]
@@ -1052,6 +1133,11 @@ class Neviweb130Thermostat(ClimateEntity):
         elif not self._is_low_voltage:
             data.update({'status reference sensor': self._code_reference_sensor,
                     'status load sensor': self._code_load_error})
+        if self._is_hc:
+            data.update({'cool setpoint min': self._cool_min,
+                    'cool setpoint max': self._cool_max,
+                    'cool setpoint': self._target_cool,
+                    'cycle_length': self._cycle_length})
         data.update({'heat_level': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
@@ -1129,6 +1215,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of available operation modes."""
         if self._is_wifi:
             return SUPPORTED_HVAC_WIFI_MODES
+        elif self._is_hc:
+            return SUPPORTED_HVAC_HC_MODES
         else:
             return SUPPORTED_HVAC_MODES
 
@@ -1277,6 +1365,22 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_setpoint_min(
             entity, temp)
         self._min_temp = temp
+
+    def set_cool_setpoint_max(self, value):
+        """set maximum cooling setpoint temperature"""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_cool_setpoint_max(
+            entity, temp)
+        self._cool_max = temp
+
+    def set_cool_setpoint_min(self, value):
+        """ set minimum cooling setpoint temperature. """
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_cool_setpoint_min(
+            entity, temp)
+        self._cool_min = temp
 
     def set_floor_air_limit(self, value):
         """ set maximum temperature air limit for floor thermostat. """
