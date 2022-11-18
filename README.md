@@ -153,6 +153,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_auxiliary_load to set status and load of the auxilary heating.
 - neviweb130.set_setpoint_min to set minimum setpoint temperature for thermostats.
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
+- neviweb130.set_cool_setpoint_min to set minimum cooling setpoint for TH1134ZB-HC.
+- neviweb130.set_cool_setpoint_max to set maximum cooling setpoint for TH1134ZB-HC.
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve.
 - neviweb130.set_valve_alert to set low battery alert status.
 - neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve.
