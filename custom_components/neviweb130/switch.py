@@ -589,8 +589,6 @@ class Neviweb130Switch(SwitchEntity):
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
-                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
-                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
                     if ATTR_FLOW_METER_CONFIG in device_data:
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
@@ -843,8 +841,6 @@ class Neviweb130Switch(SwitchEntity):
                    'Valve_cause': self._valve_info_cause,
                    'Valve_info_id': self._valve_info_id,
                    'Alert_motor_jam': self._stm8Error_motorJam,
-                   'Alert_motor_position': self._stm8Error_motorPosition,
-                   'Alert_motor_limit': self._stm8Error_motorLimit,
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
