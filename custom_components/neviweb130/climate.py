@@ -9,7 +9,7 @@ model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
 model 1124 = thermostat OTH4000-ZB Ouellet
 model 737 = thermostat OTH3600-GA-ZB Ouellet
-model 1134 = Thermostat TH1134ZB-HC for heat/cool interlocking
+model 1134 = Thermostat TH1134ZB-HC for heating/cooling interlocking
 
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
