@@ -57,6 +57,7 @@ from .const import (
     ATTR_BLUE,
     ATTR_PHASE_CONTROL,
     ATTR_KEY_DOUBLE_UP,
+    ATTR_ERROR_CODE_SET1,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -285,6 +286,7 @@ class Neviweb130Light(LightEntity):
         self._intensity_min = 600
         self._wattage = None
         self._double_up = None
+        self._temp_status = None
         self._energy_stat_time = time.time() - 1500
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
@@ -296,7 +298,7 @@ class Neviweb130Light(LightEntity):
     def update(self):
         """Get the latest data from neviweb and update the state."""
         if not self._is_new_dimmable:
-            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE]
+            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
         else:
             WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP]
         start = time.time()
@@ -320,6 +322,7 @@ class Neviweb130Light(LightEntity):
                 self._onOff = device_data[ATTR_ONOFF]
                 if not self._is_new_dimmable:
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                    self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                 self._keypad = device_data[ATTR_KEYPAD]
                 self._timer = device_data[ATTR_TIMER]
                 self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
@@ -389,12 +392,14 @@ class Neviweb130Light(LightEntity):
         data = {}
         if self._is_dimmable:
             data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
-                    'minimum_intensity': self._intensity_min}
+                    'minimum_intensity': self._intensity_min,
+                    'Temperature_status': self._temp_status}
         if self._is_new_dimmable:
             data.update({'phase_control': self._phase_control,
                         'Double_up_Action': self._double_up})
         else:
-            data.update({'wattage': self._wattage})
+            data.update({'wattage': self._wattage,
+                        'Temperature_status': self._temp_status})
         data.update({'onOff': self._onOff,
                      'keypad': self._keypad,
                      'timer': self._timer,
