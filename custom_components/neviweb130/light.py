@@ -284,7 +284,7 @@ class Neviweb130Light(LightEntity):
         self._led_off = "0,0,0,0"
         self._phase_control = None
         self._intensity_min = 600
-        self._wattage = None
+        self._wattage = 0
         self._double_up = None
         self._temp_status = None
         self._energy_stat_time = time.time() - 1500
