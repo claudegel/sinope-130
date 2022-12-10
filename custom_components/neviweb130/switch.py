@@ -468,7 +468,8 @@ class Neviweb130Switch(SwitchEntity):
         self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
-        self._current_power_w = None
+        self._current_power_w = 0
+        self._wattage = 0
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
