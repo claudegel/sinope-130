@@ -108,6 +108,9 @@ from .const import (
     ATTR_CONTROLLED_DEVICE,
     ATTR_COLD_LOAD_PICKUP,
     ATTR_ROOM_TEMPERATURE,
+    ATTR_WATER_TEMP_MIN,
+    ATTR_WATT_TIME_ON,
+    ATTR_WATER_TEMP_TIME,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -517,6 +520,7 @@ class Neviweb130Switch(SwitchEntity):
         self._humidity = None
         self._ext_temp = None
         self._room_temp = None
+        self._water_temp = None
         self._input_status = None
         self._input2_status = None
         self._relayK1 = None
@@ -537,6 +541,11 @@ class Neviweb130Switch(SwitchEntity):
         self._tank_size = None
         self._controlled_device = None
         self._energy_stat_time = time.time() - 1500
+        self._water_temp_min = None
+        self._watt_time_on = None
+        self._water_temp_time = None
+        self._stm_mcu = None
+        self._temp_status = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -553,7 +562,8 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_zb_mesh_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG]
         elif self._is_tank_load:
-            LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_RSSI]
+            LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
+            ATTR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS]
         else:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
         """Get the latest data from Neviweb and update the state."""
@@ -663,14 +673,22 @@ class Neviweb130Switch(SwitchEntity):
                 elif self._is_tank_load:
                     self._onOff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                    self._room_temp = device_data[ATTR_ROOM_TEMPERATURE]
+                    self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data:
-                        self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
-                        self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
+                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
                     self._wattage = device_data[ATTR_WATTAGE]
+                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
                     self._rssi = device_data[ATTR_RSSI]
                     self._tank_size = device_data[ATTR_TANK_SIZE]
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
+                        self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                    self._water_temp_min = device_data[ATTR_WATER_TEMP_MIN]
+                    self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
+                    self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
                 elif self._is_zb_control or self._is_sedna_control:
                     self._onOff = device_data[ATTR_ONOFF]
                     self._onOff2 = device_data[ATTR_ONOFF2]
@@ -821,12 +839,19 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_tank_load:
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
+                   'Wattage_instant': self._current_power_w,
                    'Water_leak_status': self._water_leak_status,
-                   'Room_temperature': self._room_temp,
+                   'Water_temperature': self._water_temp,
                    'Cold_load_pickup_status': self._cold_load_status,
                    'Tank_size': neviweb_to_ha(self._tank_size),
-                   'RelayK1': self._relayK1,
-                   'RelayK2': self._relayK2,
+                   'Temperature_status': self._temp_status,
+                   'Stm_Mcu': self._stm_mcu,
+                   'eco_status': self._drstatus_active,
+                   'eco_optOut': self._drstatus_optout,
+                   'eco_onoff': self._drstatus_onoff,
+                   'Water_temp_min': self._water_temp_min,
+                   'Water_time_on': self._watt_time_on,
+                   'Water_temp_time': self._water_temp_time,
                    'Rssi': self._rssi}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
