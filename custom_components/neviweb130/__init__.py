@@ -72,6 +72,7 @@ from .const import (
     ATTR_CONTROLLED_DEVICE,
     ATTR_COOL_SETPOINT_MIN,
     ATTR_COOL_SETPOINT_MAX,
+    ATTR_WATER_TEMP_MIN,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -573,6 +574,12 @@ class Neviweb130Client(object):
         """set water heater tank size for RM3500ZB."""
         data = {ATTR_TANK_SIZE:val}
         _LOGGER.debug("TankSize.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_low_temp_protection(self, device_id, val):
+        """set water heater temperature protection for RM3500ZB."""
+        data = {ATTR_WATER_TEMP_MIN:val}
+        _LOGGER.debug("Low temp protection.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_controlled_device(self, device_id, val):
