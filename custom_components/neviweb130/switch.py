@@ -720,7 +720,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        if self._is_load or self._is_wall or self._is_flow:
+        if self._is_load or self._is_wall or self._is_flow or self._is_tank_load:
             if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 if device_hourly_stats is not None:
@@ -840,6 +840,12 @@ class Neviweb130Switch(SwitchEntity):
             data = {'onOff': self._onOff,
                    'Wattage': self._wattage,
                    'Wattage_instant': self._current_power_w,
+                   'hourly_kwh_count': self._hour_energy_kwh_count,
+                   'daily_kwh_count': self._today_energy_kwh_count,
+                   'monthly_kwh_count': self._month_energy_kwh_count,
+                   'hourly_kwh': self._hour_kwh,
+                   'daily_kwh': self._today_kwh,
+                   'monthly_kwh': self._month_kwh,
                    'Water_leak_status': self._water_leak_status,
                    'Water_temperature': self._water_temp,
                    'Cold_load_pickup_status': self._cold_load_status,
