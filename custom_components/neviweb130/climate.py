@@ -208,10 +208,11 @@ DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
 DEVICE_MODEL_WIFI = [1510, 742]
-DEVICE_MODEL_HEAT = [1123, 1124, 7373]
+DEVICE_MODEL_HEAT = [1123, 1124]
+DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1134]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -796,6 +797,9 @@ class Neviweb130Thermostat(ClimateEntity):
         self._target_cool = None
         self._cool_min = None
         self._cool_max = None
+        self._base = None
+        self._is_double = device_info["signature"]["model"] in \
+            DEVICE_MODEL_DOUBLE
         self._is_hc = device_info["signature"]["model"] in \
             DEVICE_MODEL_HC
         self._is_gen2 = device_info["signature"]["model"] in \
@@ -999,7 +1003,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 else:
                     _LOGGER.warning("Got None for device_monthly_stats")
                 device_error_code = self._client.get_device_sensor_error(self._id)
-                #_LOGGER.warning("Updating error code: %s",device_error_code)
+                _LOGGER.warning("Updating error code: %s",device_error_code)
                 if not self._is_wifi and not self._is_hc:
                     if device_error_code is not None:
                         self._code_compensation_sensor = device_error_code["compensationSensor"]
@@ -1007,9 +1011,11 @@ class Neviweb130Thermostat(ClimateEntity):
                         if self._is_floor and not self._is_wifi:
                             self._code_floor_sensor = device_error_code["floorSensor"]
                             self._code_gfcibase = device_error_code["gfciBase"]
-                        elif self._is_low_voltage:
+                        elif self._is_low_voltage or self._is_double:
                             self._code_air_sensor = device_error_code["airSensor"]
                             self._code_floor_sensor = device_error_code["floorSensor"]
+                        elif self._is_double:
+                            self._base = device_error_code["base"]
                         else:
                             self._code_wire_sensor = device_error_code["wireSensor"]
                             self._code_current_overload = device_error_code["currentOverload"]
@@ -1112,7 +1118,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'status floor sensor': self._code_floor_sensor,
                     'status thermal overload': self._code_thermal_overload,
                     'status gfci base': self._code_gfcibase})
-            elif not self._is_low_voltage:
+            elif not self._is_low_voltage and not self._is_double:
                 data.update({'status compensation sensor': self._code_compensation_sensor,
                     'status wire sensor': self._code_wire_sensor,
                     'status current sensor': self._code_current_overload,
@@ -1123,6 +1129,12 @@ class Neviweb130Thermostat(ClimateEntity):
                             'status thermal overload': self._code_thermal_overload,
                             'status air sensor': self._code_air_sensor,
                             'status floor sensor': self._code_floor_sensor})
+            elif self._is_double:
+                data.update({'status compensation sensor': self._code_compensation_sensor,
+                            'status thermal overload': self._code_thermal_overload,
+                            'status air sensor': self._code_air_sensor,
+                            'status floor sensor': self._code_floor_sensor,
+                            'status base': self._base})
             if not self._is_gen2:
                 data.update({'status air sensor': self._code_air_sensor})
         if self._is_gen2:
