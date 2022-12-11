@@ -385,3 +385,13 @@ set_cool_setpoint_min:
     coolSetpointMin:
       description: Minimum cooling setpoint temperature to set. Between 16 and 30 oC.
       example: 22
+
+set_low_temp_protection:
+  description: Set Calypso low temperature protection  on / off. If water temperature goes below 45oC , heating will turn on automatically.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 Calypso device (RM3500ZB).
+      example: "switch.neviweb130_switch_hot_water"
+    drConfigWaterTempMin:
+      description: set to 0, turn off protection or to 45, turn on protection.
+      example: 45
