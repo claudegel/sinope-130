@@ -125,6 +125,7 @@ from .const import (
     SERVICE_SET_CONTROL_ONOFF,
     SERVICE_SET_TANK_SIZE,
     SERVICE_SET_CONTROLLED_DEVICE,
+    SERVICE_SET_LOW_TEMP_PROTECTION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -236,6 +237,13 @@ SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema(
         vol.Required("value"): vol.All(
             cv.ensure_list, [vol.In(CONTROLLED_VALUE)]
         ),
+    }
+)
+
+SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_WATER_TEMP_MIN): vol.In([0, 45]),
     }
 )
 
@@ -358,6 +366,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_low_temp_protection_service(service):
+        """ Set water tank temperature protection for RM3500ZB """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "val": service.data[ATTR_WATER_TEMP_MIN]}
+                switch.set_low_temp_protection(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -419,6 +438,13 @@ async def async_setup_platform(
         SERVICE_SET_CONTROLLED_DEVICE,
         set_controlled_device_service,
         schema=SET_CONTROLLED_DEVICE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LOW_TEMP_PROTECTION,
+        set_low_temp_protection_service,
+        schema=SET_LOW_TEMP_PROTECTION_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, num):
@@ -1049,3 +1075,11 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_controlled_device(
             entity, tipe)
         self._controlled_device = tipe
+
+    def set_low_temp_protection(self, value):
+        """ Set water temperature protection for Calypso """
+        temp = value["val"]
+        entity = value["id"]
+        self._client.set_low_temp_protection(
+            entity, temp)
+        self._water_temp_min = temp
