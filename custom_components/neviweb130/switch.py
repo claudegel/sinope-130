@@ -366,7 +366,6 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-
     def set_low_temp_protection_service(service):
         """ Set water tank temperature protection for RM3500ZB """
         entity_id = service.data[ATTR_ENTITY_ID]
