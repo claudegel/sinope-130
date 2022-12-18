@@ -979,9 +979,11 @@ class Neviweb130Thermostat(ClimateEntity):
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         elif device_data["error"]["code"] == "DVCUNVLB":
-            _LOGGER.warning("Device %s unavailable, check your network...". self._name, device_data)
+            _LOGGER.warning("Device %s unavailable, check your network...%s". self._name, device_data)
+        elif device_data["error"]["code"] == "DVCATTRNSPTD":
+            _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)". self._name, device_data, self._sku)
         else:
-            _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
+            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if self._sku != "FLP55":
             if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
