@@ -296,6 +296,7 @@ In you log you can get those messages from Neviweb:
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many time and/or you also have an open session on Neviweb. 
 - DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly wifi devices.
 - SVCERR: Service error. Service unavailable. Try later.
+- DVCATTRNSPTD: Device sttribute not supported, The device you have installed have and older firmware and do not support som attributes. Wait for firmware update in Neviweb and the error should dissapear or file an issue so we can put an exception in the code. 
 - ReadTimeout: Request was sent to the device but no answer came back. Network problem.
 
 ## Customization
