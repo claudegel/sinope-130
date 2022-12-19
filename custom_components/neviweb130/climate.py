@@ -851,6 +851,7 @@ class Neviweb130Thermostat(ClimateEntity):
             HC_ATTRIBUTE = []
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
+        _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
         device_data = self._client.get_device_attributes(self._id,
             UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
         end = time.time()
