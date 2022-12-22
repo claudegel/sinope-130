@@ -960,7 +960,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Rssi': self._rssi}
         else:
             data = {'onOff': self._onOff,
-                   'Wattage': self._current_power_w,
+                   'Wattage_instant': self._current_power_w,
                    'hourly_kwh_count': self._hour_energy_kwh_count,
                    'daily_kwh_count': self._today_energy_kwh_count,
                    'monthly_kwh_count': self._month_energy_kwh_count,
