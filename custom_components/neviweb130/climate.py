@@ -988,6 +988,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._sku != "FLP55":
             if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                #_LOGGER.debug("Energy data for %s: %s", self._sku, device_hourly_stats)
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
