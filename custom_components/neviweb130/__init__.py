@@ -24,6 +24,7 @@ from .const import (
     DOMAIN,
     CONF_NETWORK,
     CONF_HOMEKIT_MODE,
+    CONF_STAT_INTERVAL,
     ATTR_INTENSITY,
     ATTR_ONOFF,
     ATTR_ONOFF2,
@@ -84,6 +85,7 @@ _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
+STAT_INTERVAL = 1800
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -101,6 +103,8 @@ CONFIG_SCHEMA = vol.Schema({
             cv.time_period,
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
             cv.boolean,
+        vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL):
+            vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
     })
 },
     extra=vol.ALLOW_EXTRA,
@@ -118,6 +122,10 @@ def setup(hass, hass_config):
     global HOMEKIT_MODE
     HOMEKIT_MODE = hass_config[DOMAIN].get(CONF_HOMEKIT_MODE)
     _LOGGER.debug("Setting Homekit mode to: %s", HOMEKIT_MODE)
+
+    global STAT_INTERVAL
+    STAT_INTERVAL = hass_config[DOMAIN].get(CONF_STAT_INTERVAL)
+    _LOGGER.debug("Setting stat interval to: %s", STAT_INTERVAL)
 
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
