@@ -3,6 +3,7 @@
 DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
 CONF_HOMEKIT_MODE = 'homekit_mode'
+CONF_STAT_INTERVAL = 'stat_interval'
 
 ATTR_ALERT = "alert"
 ATTR_SIGNATURE = "signature"
