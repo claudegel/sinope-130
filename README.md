@@ -178,9 +178,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
 
-- For thermostats:
-  - As to now there is no attributes available to catch peak period start.
-- For load controler:
+- For thermostats and load controler:
   - eco_status: set to «off» during normal operation, to «on» during peak period.
   - eco_power: set to «off» during normal operation, to «on» during peak period.
   - eco_optout: set to «off» during normal operation during peak period, to «on» if somebody turn on the load controler during peak period.
