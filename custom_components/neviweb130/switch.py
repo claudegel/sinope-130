@@ -138,7 +138,7 @@ TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
 FLOW_ACTION = {"No action", "Close and send", "Close only", "Send only"}
-FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h". "6 h", "12 h", "24 h"}
+FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
