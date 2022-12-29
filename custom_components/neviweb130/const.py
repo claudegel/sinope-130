@@ -3,6 +3,7 @@
 DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
 CONF_HOMEKIT_MODE = 'homekit_mode'
+CONF_STAT_INTERVAL = 'stat_interval'
 
 ATTR_ALERT = "alert"
 ATTR_SIGNATURE = "signature"
@@ -106,6 +107,14 @@ ATTR_COOL_SETPOINT_MAX = "coolSetpointMax"
 ATTR_WATER_TEMP_MIN = "drConfigWaterTempMin"
 ATTR_WATT_TIME_ON = "drWTTimeOn"
 ATTR_WATER_TEMP_TIME = "drConfigWaterTempTime"
+ATTR_FLOW_ALARM1 = "flowMeterAlarm1Config"
+ATTR_AWAY_ACTION = "awayAction"
+ATTR_FLOW_ENABLED = "flowMeterEnabled"
+ATTR_FLOW_ALARM_TIMER = "flowMeterAlarmDisableTimer"
+ATTR_FLOW_THRESHOLD = "alarm1FlowThreshold"
+ATTR_FLOW_ALARM1_LENGHT = "alarm1Length"
+ATTR_FLOW_ALARM1_PERIOD = "alarm1Period"
+ATTR_FLOW_ALARM1_OPTION = "alarm1Options"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"

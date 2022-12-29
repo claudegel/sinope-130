@@ -113,6 +113,7 @@ neviweb130:
   network: '<your gt130 location name in Neviweb>' (gt130 emplacement dans Neviweb)
   scan_interval: 360
   homekit_mode: False
+  stat_interval: 1800
 ```
 Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130.
 
@@ -125,6 +126,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.|Network name is the location name in Neviweb written on top center of first page, where your wifi or zigbee devices are registered.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 | **homekit_mode** | no | False | Add support for Homekit specific values.
+| **stat_interval** | no | 1800 | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.
 
 ## Sedna valve
 For Sedna valve there is two way to connect it to Neviweb:
@@ -176,9 +178,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
 
-- For thermostats:
-  - As to now there is no attributes available to catch peak period start.
-- For load controler:
+- For thermostats and load controler:
   - eco_status: set to «off» during normal operation, to «on» during peak period.
   - eco_power: set to «off» during normal operation, to «on» during peak period.
   - eco_optout: set to «off» during normal operation during peak period, to «on» if somebody turn on the load controler during peak period.

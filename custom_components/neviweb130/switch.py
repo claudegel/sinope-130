@@ -41,7 +41,7 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL)
+from . import (SCAN_INTERVAL, STAT_INTERVAL)
 from homeassistant.components.switch import (
     SwitchEntity,
 )
@@ -136,6 +136,9 @@ UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
+FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
+FLOW_ACTION = {"No action", "Close and send", "Close only", "Send only"}
+FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
@@ -747,7 +750,7 @@ class Neviweb130Switch(SwitchEntity):
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
         if self._is_load or self._is_wall or self._is_flow or self._is_tank_load:
-            if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
+            if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000

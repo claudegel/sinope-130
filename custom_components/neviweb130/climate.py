@@ -31,7 +31,7 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL, HOMEKIT_MODE)
+from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL)
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_COOL,
@@ -986,7 +986,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if self._sku != "FLP55":
-            if start - self._energy_stat_time > 1800 and self._energy_stat_time != 0:
+            if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 #_LOGGER.debug("Energy data for %s: %s", self._sku, device_hourly_stats)
                 if device_hourly_stats is not None:
