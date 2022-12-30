@@ -40,12 +40,13 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
 - Wifi specialized control:
   - Sinopé RM3500WF Load controller for water heater
-- Water leak detector:
+- Water leak detector and valves:
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
-  - Sinopé VA4200ZB, VA4220ZB, sedna valve 3/4 inch zigbee
+  - Sinopé VA4200ZB, sedna valve 3/4 inch zigbee
   - Sinopé VA4220WZ, sedna 2e gen 3/4 inch
   - Sinopé VA4220WF, sedna 2e gen 3/4 inch, wifi
+  - Sinopé VA4220ZB, sedna 2e gen 3/4 inch, zigbee
   - Sinopé VA4221WZ, sedna 2e gen 1 inch
   - Sinopé VA4221WF, sedna 2e gen 1 inch, wifi
   - Sinopé WL4200,   water leak detector
