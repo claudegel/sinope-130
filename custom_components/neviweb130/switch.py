@@ -16,7 +16,7 @@ Water valves
 model 3150 = VA4201WZ, sedna valve 1 inch via wifi
 model 3150 = VA4200WZ, sedna valve 3/4 inch via wifi
 model 3151 = VA4200ZB, sedna valve 3/4 inch via GT130, zigbee
-model 3153 = VA4200ZB, sedna 2e generation 3/4 inch, zigbee
+model 3153 = VA4220ZB, sedna 2e generation 3/4 inch, zigbee
 model 3150 = VA4220WZ, sedna 2e gen 3/4 inch
 model 3155 = ACT4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
 model 31532 = ACT4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
