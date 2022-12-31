@@ -395,3 +395,13 @@ set_low_temp_protection:
     drConfigWaterTempMin:
       description: set to 0, turn off protection or to 45, turn on protection.
       example: 45
+
+set_flow_meter_model:
+  description: Set Sedna 2e gen flow meter model and turn on/off flow meter protection.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 Calypso device (RM3500ZB).
+      example: "switch.neviweb130_switch_VA4220ZB"
+    flowMeterMeasurementConfig:
+      description: set to FS4220, or FS4221 or  No flow meter.
+      example: "No flow meter"
