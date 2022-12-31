@@ -953,7 +953,8 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
-                   'Water_leak_status': self._water_leak_status}
+                   'Water_leak_status': self._water_leak_status,
+                   'Battery_alert': alert_to_text(self._battery_alert, "bat")}
         elif self._is_zb_control or self._is_sedna_control:
             data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
                    'Battery_voltage': self._battery_voltage,
