@@ -678,8 +678,6 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
                     if device_alert[ATTR_BATT_ALERT] in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
-                    if device_alert[ATTR_TEMP_ALERT] in device_alert:
-                        self._temp_alert = device_alert[ATTR_TEMP_ALERT]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
                         self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
