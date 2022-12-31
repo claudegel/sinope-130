@@ -1,6 +1,6 @@
 {
     "neviweb130": {
-        "version": "1.9.5",
+        "version": "1.9.6",
         "local_location": "/custom_components/neviweb130/__init__.py",
         "remote_location": "https://github.com/claudegel/sinope-130/tree/master/custom_components/__init__.py",
         "visit_repo": "https://github.com/claudegel/sinope-130",
