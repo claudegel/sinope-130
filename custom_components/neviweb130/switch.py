@@ -112,6 +112,7 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
     ATTR_WATT_TIME_ON,
     ATTR_WATER_TEMP_TIME,
+    ATTR_FLOW_MODEL_CONFIG,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -127,6 +128,7 @@ from .const import (
     SERVICE_SET_TANK_SIZE,
     SERVICE_SET_CONTROLLED_DEVICE,
     SERVICE_SET_LOW_TEMP_PROTECTION,
+    SERVICE_SET_FLOW_METER_MODEL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -248,6 +250,13 @@ SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_WATER_TEMP_MIN): vol.In([0, 45]),
+    }
+)
+
+SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.In(["FS4220", "FS4221", "No flow meter"]),
     }
 )
 
@@ -381,6 +390,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_flow_meter_model_service(service):
+        """ Set the flow meter model connected to water valve """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "model": service.data[ATTR_FLOW_MODEL_CONFIG]}
+                switch.set_flow_meter_model(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -451,6 +471,13 @@ async def async_setup_platform(
         schema=SET_LOW_TEMP_PROTECTION_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_METER_MODEL,
+        set_flow_meter_model_service,
+        schema=SET_FLOW_METER_MODEL_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
@@ -491,6 +518,14 @@ def L_2_sqm(value):
         return value/1000
     else:
         return None
+
+def model_to_HA(value):
+    if value == 9887:
+        return "FS4221"
+    elif value == 4546:
+        return "FS4220"
+    else:
+        return "No flow meter"
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -556,9 +591,10 @@ class Neviweb130Switch(SwitchEntity):
         self._relayK1 = None
         self._relayK2 = None
         self._rssi = None
-        self._flowmeter_multiplier = None
-        self._flowmeter_offset = None
-        self._flowmeter_divisor = None
+        self._flowmeter_multiplier = 0
+        self._flowmeter_offset = 0
+        self._flowmeter_divisor = 1
+        self._flowmeter_model = None
         self._stm8Error_motorJam = None
         self._stm8Error_motorPosition = None
         self._stm8Error_motorLimit = None
@@ -668,6 +704,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
+                        self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                 elif self._is_zb_mesh_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
@@ -686,6 +723,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
+                        self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                 elif self._is_load: #for is_load
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
@@ -939,6 +977,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
+                   'Flow_meter_model': self._flowmeter_model,
                    'Water_leak_status': self._water_leak_status}
         elif self._is_zb_mesh_valve:
             data = {'Valve_status': self._valve_status,
@@ -951,6 +990,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
+                   'Flow_meter_model': self._flowmeter_model,
                    'Water_leak_status': self._water_leak_status,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat")}
         elif self._is_zb_control or self._is_sedna_control:
@@ -1092,3 +1132,10 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_low_temp_protection(
             entity, temp)
         self._water_temp_min = temp
+
+    def set_flow_meter_model(self, model):
+        """ Set water valve flow meter model connected """
+        model = value["model"]
+        entity = value["id"]
+        self.client.set_flow_meter_model(entity, model)
+        self._flowmeter_model = model
