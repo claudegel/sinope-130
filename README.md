@@ -361,4 +361,4 @@ If you find a bug it's very new release without all the doc from Sinopé.
 ## Buy me a coffee
 If you want to make donation as appreciation of my work, you can do so via PayPal (preferred) or buy me a coffee. Thank you!
 https://www.paypal.me/phytoressources?utm_source=unp&utm_medium=email&utm_campaign=PPC000628&utm_unptid=3b202a84-d120-11e9-a328-441ea14ea960&ppid=PPC000628&cnac=CA&rsta=fr_CA&cust=MCZB33C6E2SUJ&unptid=3b202a84-d120-11e9-a328-441ea14ea960&calc=63e7621dc26ce&unp_tpcid=ppme-social-user-profile-created&page=main:email:PPC000628:::&pgrp=main:email&e=cl&mchn=em&s=ci&mail=sys
-Buy me a coffee(https://www.buymeacoffee.com/claudegel)
+[Buy me a coffee](https://www.buymeacoffee.com/claudegel)
