@@ -74,12 +74,14 @@ from .const import (
     ATTR_COOL_SETPOINT_MIN,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_WATER_TEMP_MIN,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOW_ENABLED,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.9.7'
+VERSION = '1.9.8'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -618,6 +620,17 @@ class Neviweb130Client(object):
             else:
                 data = {ATTR_PUMP_PROTEC_DURATION:{"status": "off"}, ATTR_PUMP_PROTEC_PERIOD:{"status": "off"}}
         _LOGGER.debug("pump.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_meter_model)device_id, model)
+        """ Set flow meter model connected to the Sedna valve 2e gen """
+        if model == "FS4221":
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED:true}
+        elif model == "FS4220":
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":4546,"offset":30600,"divisor":1},ATTR_FLOW_ENABLED:true}
+        else:
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":0,"offset":0,"divisor":1},ATTR_FLOW_ENABLED:false}
+        _LOGGER.debug("model.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
