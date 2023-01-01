@@ -1133,7 +1133,7 @@ class Neviweb130Switch(SwitchEntity):
             entity, temp)
         self._water_temp_min = temp
 
-    def set_flow_meter_model(self, model):
+    def set_flow_meter_model(self, value):
         """ Set water valve flow meter model connected """
         model = value["model"]
         entity = value["id"]
