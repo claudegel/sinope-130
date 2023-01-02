@@ -415,3 +415,16 @@ set_flow_meter_delay:
     alarm1Period:
       description: set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3h, 6h, 12h, and 24h.
       example: "60 min"
+
+set_flow_meter_action:
+  description: Set Sedna 2e gen flow meter action in case of leak detection.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 Sedna 2e gen device (VA4220ZB).
+      example: "switch.neviweb130_switch_VA4220ZB"
+    triggerAlarm:
+      description: send leak alert, on/off.
+      example: "on"
+    closeValve:
+      description: close the valve, on/off.
+      example: "on"
