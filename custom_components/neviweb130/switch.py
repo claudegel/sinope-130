@@ -135,6 +135,7 @@ from .const import (
     SERVICE_SET_LOW_TEMP_PROTECTION,
     SERVICE_SET_FLOW_METER_MODEL,
     SERVICE_SET_FLOW_METER_DELAY,
+    SERVICE_SET_FLOW_METER_ACTION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -286,6 +287,15 @@ SET_FLOW_METER_DELAY_SCHEMA= vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(
             cv.ensure_list, [vol.In(FLOW_DURATION)]
+        ),
+    }
+)
+
+SET_FLOW_METER_ACTION_SCHEMA= vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("triggerAlarm"): vol.In(["on", "off"]),
+        vol.Required("closeValve"): vol.In(["on", "off"]),
         ),
     }
 )
@@ -442,6 +452,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_flow_meter_action_service(service):
+        """ Set the flow meter action when leak is detected """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "alarm": service.data["triggerAlarm"], "close": service.data["closeValve"]}
+                switch.set_flow_meter_action(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -526,6 +547,13 @@ async def async_setup_platform(
         schema=SET_FLOW_METER_DELAY_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_METER_ACTION,
+        set_flow_meter_action_service,
+        schema=SET_FLOW_METER_ACTION_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
@@ -565,6 +593,19 @@ def neviweb_to_ha_delay(value):
     if keys:
         return keys[0]
     return None
+
+def trigger_close(action, alarm):
+    """No action", "Close and send", "Close only", "Send only"""
+    if action:
+        if alarm:
+            return "Close and send"
+        else:
+            return "Close only"
+     else:
+        if alarm:
+            return "Send only"
+        else:
+            return "No action"
 
 def L_2_sqm(value):
     """convert liters valuer to cubic meter for water flow stat"""
@@ -1055,8 +1096,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
-                   'Flowmeter_trigger_alarm': self._flowmeter_opt_alarm,
-                   'Flowmeter_action': self._flowmeter_opt_action,
+                   'Flowmeter_option': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status}
         elif self._is_zb_mesh_valve:
             data = {'Valve_status': self._valve_status,
@@ -1071,8 +1111,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
-                   'Flowmeter_trigger_alarm': self._flowmeter_opt_alarm,
-                   'Flowmeter_action': self._flowmeter_opt_action,
+                   'Flowmeter_option': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat")}
         elif self._is_zb_control or self._is_sedna_control:
@@ -1229,3 +1268,18 @@ class Neviweb130Switch(SwitchEntity):
         entity = value["id"]
         self.client.set_flow_meter_delay(entity, delay)
         self._flowmeter_alert_delay = val
+
+    def set_flow_meter_action(self, value):
+        """ Set water valve flow meter action when leak detected """
+        if value["alarm"] == "on":
+            alarm = True
+        else:
+            alarm = False
+        if value["close"] == "on":
+            action = True
+        else:
+            action = False
+        entity = value["id"]
+        self.client.set_flow_meter_action(entity, alarm, action)
+        self._flowmeter_opt_alarm = alarm
+        self._flowmeter_opt_action = action
