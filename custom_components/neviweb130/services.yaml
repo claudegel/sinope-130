@@ -416,7 +416,7 @@ set_flow_meter_delay:
       description: set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3h, 6h, 12h, and 24h.
       example: "60 min"
 
-set_flow_meter_action:
+set_flow_meter_options:
   description: Set Sedna 2e gen flow meter action in case of leak detection.
   fields:
     entity_id:
