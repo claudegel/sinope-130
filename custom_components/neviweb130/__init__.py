@@ -76,6 +76,7 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
     ATTR_FLOW_METER_CONFIG,
     ATTR_FLOW_ENABLED,
+    ATTR_FLOW_ALARM1_PERIOD,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -622,7 +623,7 @@ class Neviweb130Client(object):
         _LOGGER.debug("pump.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_model)device_id, model)
+    def set_flow_meter_model(device_id, model):
         """ Set flow meter model connected to the Sedna valve 2e gen """
         if model == "FS4221":
             data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED:true}
@@ -630,7 +631,13 @@ class Neviweb130Client(object):
             data = {ATTR_FLOW_METER_CONFIG:{"multiplier":4546,"offset":30600,"divisor":1},ATTR_FLOW_ENABLED:true}
         else:
             data = {ATTR_FLOW_METER_CONFIG:{"multiplier":0,"offset":0,"divisor":1},ATTR_FLOW_ENABLED:false}
-        _LOGGER.debug("model.data = %s", data)
+        _LOGGER.debug("Flowmeter model.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_meter_delay(device_id, delay):
+        """ Set flow meter delay before alarm is activated on Sedna valve 2e gen """
+        data = {ATTR_FLOW_ALARM1_PERIOD:delay}
+        _LOGGER.debug("Flowmeter delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
