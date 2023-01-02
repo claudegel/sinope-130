@@ -452,7 +452,7 @@ async def async_setup_platform(
                 break
 
     def set_flow_meter_options_service(service):
-        """ Set the flow meter action when leak is detected """
+        """ Set the flow meter options when leak is detected """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -1095,7 +1095,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
-                   'Flowmeter_option': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
+                   'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status}
         elif self._is_zb_mesh_valve:
             data = {'Valve_status': self._valve_status,
@@ -1110,7 +1110,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
-                   'Flowmeter_option': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
+                   'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat")}
         elif self._is_zb_control or self._is_sedna_control:
@@ -1269,7 +1269,7 @@ class Neviweb130Switch(SwitchEntity):
         self._flowmeter_alert_delay = val
 
     def set_flow_meter_options(self, value):
-        """ Set water valve flow meter action when leak detected """
+        """ Set water valve flow meter options when leak detected """
         if value["alarm"] == "on":
             alarm = True
         else:
