@@ -77,6 +77,9 @@ from .const import (
     ATTR_FLOW_METER_CONFIG,
     ATTR_FLOW_ENABLED,
     ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_THRESHOLD,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -638,6 +641,12 @@ class Neviweb130Client(object):
         """ Set flow meter delay before alarm is activated on Sedna valve 2e gen """
         data = {ATTR_FLOW_ALARM1_PERIOD:delay}
         _LOGGER.debug("Flowmeter delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_meter_options(device_id, alarm, action, lenght, threshold):
+        """ Set flow meter options when leak alarm is activated on Sedna valve 2e gen """
+        data = {ATTR_FLOW_ALARM1_OPTION:{"triggerAlarm":alarm,"closeValve":action},ATTR_FLOW_ALARM1_LENGHT:lenght,ATTR_FLOW_THRESHOLD:threshold}
+        _LOGGER.debug("Flowmeter options.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
