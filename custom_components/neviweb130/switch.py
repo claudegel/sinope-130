@@ -135,7 +135,7 @@ from .const import (
     SERVICE_SET_LOW_TEMP_PROTECTION,
     SERVICE_SET_FLOW_METER_MODEL,
     SERVICE_SET_FLOW_METER_DELAY,
-    SERVICE_SET_FLOW_METER_ACTION,
+    SERVICE_SET_FLOW_METER_OPTIONS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -147,7 +147,6 @@ UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
-FLOW_ACTION = {"No action", "Close and send", "Close only", "Send only"}
 FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
 
 HA_TO_NEVIWEB_SIZE = {
@@ -291,7 +290,7 @@ SET_FLOW_METER_DELAY_SCHEMA= vol.Schema(
     }
 )
 
-SET_FLOW_METER_ACTION_SCHEMA= vol.Schema(
+SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("triggerAlarm"): vol.In(["on", "off"]),
@@ -452,14 +451,14 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
-    def set_flow_meter_action_service(service):
+    def set_flow_meter_options_service(service):
         """ Set the flow meter action when leak is detected """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
                 value = {"id": switch.unique_id, "alarm": service.data["triggerAlarm"], "close": service.data["closeValve"]}
-                switch.set_flow_meter_action(value)
+                switch.set_flow_meter_options(value)
                 switch.schedule_update_ha_state(True)
                 break
 
@@ -549,9 +548,9 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_FLOW_METER_ACTION,
-        set_flow_meter_action_service,
-        schema=SET_FLOW_METER_ACTION_SCHEMA,
+        SERVICE_SET_FLOW_METER_OPTIONS,
+        set_flow_meter_options_service,
+        schema=SET_FLOW_METER_OPTIONS_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, num):
@@ -1269,7 +1268,7 @@ class Neviweb130Switch(SwitchEntity):
         self.client.set_flow_meter_delay(entity, delay)
         self._flowmeter_alert_delay = val
 
-    def set_flow_meter_action(self, value):
+    def set_flow_meter_options(self, value):
         """ Set water valve flow meter action when leak detected """
         if value["alarm"] == "on":
             alarm = True
@@ -1279,7 +1278,15 @@ class Neviweb130Switch(SwitchEntity):
             action = True
         else:
             action = False
+        if not alarm and not action:
+            lenght = 0
+            threshold = 0
+        else:
+            lenght = 60
+            threshold = 1
         entity = value["id"]
-        self.client.set_flow_meter_action(entity, alarm, action)
+        self.client.set_flow_meter_action(entity, alarm, action, lenght, threshold)
         self._flowmeter_opt_alarm = alarm
         self._flowmeter_opt_action = action
+        self._flowmeter_threshold = threshold
+        self._flowmeter_alarm_lenght = lenght
