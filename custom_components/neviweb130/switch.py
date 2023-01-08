@@ -295,7 +295,6 @@ SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("triggerAlarm"): vol.In(["on", "off"]),
         vol.Required("closeValve"): vol.In(["on", "off"]),
-        ),
     }
 )
 
@@ -600,7 +599,7 @@ def trigger_close(action, alarm):
             return "Close and send"
         else:
             return "Close only"
-     else:
+    else:
         if alarm:
             return "Send only"
         else:
@@ -728,7 +727,7 @@ class Neviweb130Switch(SwitchEntity):
             ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
         elif self._is_zb_mesh_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
-            ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]]
+            ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
         elif self._is_tank_load:
             LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
             ATTR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS]
