@@ -1284,7 +1284,7 @@ class Neviweb130Switch(SwitchEntity):
             lenght = 60
             threshold = 1
         entity = value["id"]
-        self._client.set_flow_meter_action(entity, alarm, action, lenght, threshold)
+        self._client.set_flow_meter_options(entity, alarm, action, lenght, threshold)
         self._flowmeter_opt_alarm = alarm
         self._flowmeter_opt_action = action
         self._flowmeter_threshold = threshold
