@@ -629,11 +629,11 @@ class Neviweb130Client(object):
     def set_flow_meter_model(self, device_id, model):
         """ Set flow meter model connected to the Sedna valve 2e gen """
         if model == "FS4221":
-            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED:true}
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED: True}
         elif model == "FS4220":
-            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":4546,"offset":30600,"divisor":1},ATTR_FLOW_ENABLED:true}
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":4546,"offset":30600,"divisor":1},ATTR_FLOW_ENABLED: True}
         else:
-            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":0,"offset":0,"divisor":1},ATTR_FLOW_ENABLED:false}
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":0,"offset":0,"divisor":1},ATTR_FLOW_ENABLED: False}
         _LOGGER.debug("Flowmeter model.data = %s", data)
         self.set_device_attributes(device_id, data)
 
