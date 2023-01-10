@@ -413,7 +413,7 @@ set_flow_meter_delay:
       description: Name(s) of neviweb130 Sedna 2e gen device (VA4220ZB).
       example: "switch.neviweb130_switch_VA4220ZB"
     alarm1Period:
-      description: set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3h, 6h, 12h, and 24h.
+      description: set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h.
       example: "60 min"
 
 set_flow_meter_options:
