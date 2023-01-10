@@ -1256,7 +1256,7 @@ class Neviweb130Switch(SwitchEntity):
         """ Set water valve flow meter model connected """
         model = value["model"]
         entity = value["id"]
-        self.client.set_flow_meter_model(entity, model)
+        self._client.set_flow_meter_model(entity, model)
         self._flowmeter_model = model
 
     def set_flow_meter_delay(self, value):
@@ -1264,7 +1264,7 @@ class Neviweb130Switch(SwitchEntity):
         val = value["delay"]
         delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
         entity = value["id"]
-        self.client.set_flow_meter_delay(entity, delay)
+        self._client.set_flow_meter_delay(entity, delay)
         self._flowmeter_alert_delay = val
 
     def set_flow_meter_options(self, value):
@@ -1284,7 +1284,7 @@ class Neviweb130Switch(SwitchEntity):
             lenght = 60
             threshold = 1
         entity = value["id"]
-        self.client.set_flow_meter_action(entity, alarm, action, lenght, threshold)
+        self._client.set_flow_meter_action(entity, alarm, action, lenght, threshold)
         self._flowmeter_opt_alarm = alarm
         self._flowmeter_opt_action = action
         self._flowmeter_threshold = threshold
