@@ -626,7 +626,7 @@ class Neviweb130Client(object):
         _LOGGER.debug("pump.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_model(device_id, model):
+    def set_flow_meter_model(self, device_id, model):
         """ Set flow meter model connected to the Sedna valve 2e gen """
         if model == "FS4221":
             data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED:true}
@@ -637,13 +637,13 @@ class Neviweb130Client(object):
         _LOGGER.debug("Flowmeter model.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_delay(device_id, delay):
+    def set_flow_meter_delay(self, device_id, delay):
         """ Set flow meter delay before alarm is activated on Sedna valve 2e gen """
         data = {ATTR_FLOW_ALARM1_PERIOD:delay}
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_options(device_id, alarm, action, lenght, threshold):
+    def set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
         """ Set flow meter options when leak alarm is activated on Sedna valve 2e gen """
         data = {ATTR_FLOW_ALARM1_OPTION:{"triggerAlarm":alarm,"closeValve":action},ATTR_FLOW_ALARM1_LENGHT:lenght,ATTR_FLOW_THRESHOLD:threshold}
         _LOGGER.debug("Flowmeter options.data = %s", data)
