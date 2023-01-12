@@ -295,7 +295,8 @@ SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("triggerAlarm"): vol.In(["on", "off"]),
-        vol.Required("closeValve"): vol.In(["on", "off"]),
+        vol.Required("closeValve"): vol.In(["on", "off"]
+        ),
     }
 )
 
@@ -435,7 +436,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "model": service.data[ATTR_FLOW_MODEL_CONFIG]}
+                value = {"id": switch.unique_id, "model": service.data[ATTR_FLOW_MODEL_CONFIG][0]}
                 switch.set_flow_meter_model(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -446,7 +447,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "delay": service.data[ATTR_FLOW_ALARM1_PERIOD]}
+                value = {"id": switch.unique_id, "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0]}
                 switch.set_flow_meter_delay(value)
                 switch.schedule_update_ha_state(True)
                 break
