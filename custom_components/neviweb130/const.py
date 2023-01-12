@@ -116,6 +116,7 @@ ATTR_FLOW_THRESHOLD = "alarm1FlowThreshold"
 ATTR_FLOW_ALARM1_LENGHT = "alarm1Length"
 ATTR_FLOW_ALARM1_PERIOD = "alarm1Period"
 ATTR_FLOW_ALARM1_OPTION = "alarm1Options"
+ATTR_DR_PROTEC_STATUS = "drProtectionLegStatus"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
