@@ -175,7 +175,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor.
 - neviweb130.set_tank_size to set the water heater tank capacity for Calypso RM3500ZB.
 - neviweb130.set_low_temp_protection to activate or not the water heater protection for water temperature. Below 45 oC heating is auto restarted.
-- neviweb130.set_controlled_device to change the name of the device controled by the RM3250ZV load controler.
+- neviweb130.set_controlled_device to change the name of the device controled by the RM3250ZB load controler.
 - neviweb130.set_flow_meter_model to change the flow meter model connected to sedna valve 2e gen and start/stop leak protection from flow meter.
 - neviweb130.set_flow_meter_delay to set the leak delay before the valve close if a leak is detected by the flow meter. 
 - neviweb130.set_flow_meter_options to set the flow meter action: close the valve (yes/no) and to send alert message (yes/no), or just do nothing.
