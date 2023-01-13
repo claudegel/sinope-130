@@ -112,6 +112,13 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
     ATTR_WATT_TIME_ON,
     ATTR_WATER_TEMP_TIME,
+    ATTR_FLOW_MODEL_CONFIG,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_THRESHOLD,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_DR_PROTEC_STATUS,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -127,6 +134,9 @@ from .const import (
     SERVICE_SET_TANK_SIZE,
     SERVICE_SET_CONTROLLED_DEVICE,
     SERVICE_SET_LOW_TEMP_PROTECTION,
+    SERVICE_SET_FLOW_METER_MODEL,
+    SERVICE_SET_FLOW_METER_DELAY,
+    SERVICE_SET_FLOW_METER_OPTIONS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -138,7 +148,6 @@ UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
-FLOW_ACTION = {"No action", "Close and send", "Close only", "Send only"}
 FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
 
 HA_TO_NEVIWEB_SIZE = {
@@ -146,6 +155,19 @@ HA_TO_NEVIWEB_SIZE = {
     "50 gal": 50,
     "60 gal": 60,
     "80 gal": 80
+}
+
+HA_TO_NEVIWEB_DELAY = {
+    "15 min": 900,
+    "30 min": 1800,
+    "45 min": 2700,
+    "60 min": 3600,
+    "75 min": 4500,
+    "90 min": 5400,
+    "3 h": 10800,
+    "6 h": 21600,
+    "12 h": 43200,
+    "24 h": 86400
 }
 
 HA_TO_NEVIWEB_CONTROLLED = {
@@ -248,6 +270,33 @@ SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_WATER_TEMP_MIN): vol.In([0, 45]),
+    }
+)
+
+SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.All(
+            cv.ensure_list, [vol.In(FLOW_MODEL)]
+        ),
+    }
+)
+
+SET_FLOW_METER_DELAY_SCHEMA= vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(
+            cv.ensure_list, [vol.In(FLOW_DURATION)]
+        ),
+    }
+)
+
+SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("triggerAlarm"): vol.In(["on", "off"]),
+        vol.Required("closeValve"): vol.In(["on", "off"]
+        ),
     }
 )
 
@@ -381,6 +430,39 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_flow_meter_model_service(service):
+        """ Set the flow meter model connected to water valve """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "model": service.data[ATTR_FLOW_MODEL_CONFIG][0]}
+                switch.set_flow_meter_model(value)
+                switch.schedule_update_ha_state(True)
+                break
+
+    def set_flow_meter_delay_service(service):
+        """ Set the flow meter delay before alert is turned on """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0]}
+                switch.set_flow_meter_delay(value)
+                switch.schedule_update_ha_state(True)
+                break
+
+    def set_flow_meter_options_service(service):
+        """ Set the flow meter options when leak is detected """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "alarm": service.data["triggerAlarm"], "close": service.data["closeValve"]}
+                switch.set_flow_meter_options(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -451,6 +533,27 @@ async def async_setup_platform(
         schema=SET_LOW_TEMP_PROTECTION_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_METER_MODEL,
+        set_flow_meter_model_service,
+        schema=SET_FLOW_METER_MODEL_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_METER_DELAY,
+        set_flow_meter_delay_service,
+        schema=SET_FLOW_METER_DELAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_METER_OPTIONS,
+        set_flow_meter_options_service,
+        schema=SET_FLOW_METER_OPTIONS_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
@@ -485,12 +588,39 @@ def neviweb_to_ha_controlled(value):
         return keys[0]
     return None
 
+def neviweb_to_ha_delay(value):
+    keys = [k for k, v in HA_TO_NEVIWEB_DELAY.items() if v == value]
+    if keys:
+        return keys[0]
+    return None
+
+def trigger_close(action, alarm):
+    """No action", "Close and send", "Close only", "Send only"""
+    if action:
+        if alarm:
+            return "Close and send"
+        else:
+            return "Close only"
+    else:
+        if alarm:
+            return "Send only"
+        else:
+            return "No action"
+
 def L_2_sqm(value):
     """convert liters valuer to cubic meter for water flow stat"""
     if value is not None:
         return value/1000
     else:
         return None
+
+def model_to_HA(value):
+    if value == 9887:
+        return "FS4221"
+    elif value == 4546:
+        return "FS4220"
+    else:
+        return "No flow meter"
 
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
@@ -556,9 +686,16 @@ class Neviweb130Switch(SwitchEntity):
         self._relayK1 = None
         self._relayK2 = None
         self._rssi = None
-        self._flowmeter_multiplier = None
-        self._flowmeter_offset = None
-        self._flowmeter_divisor = None
+        self._flowmeter_multiplier = 0
+        self._flowmeter_offset = 0
+        self._flowmeter_divisor = 1
+        self._flowmeter_model = None
+        self._flowmeter_timer = 0
+        self._flowmeter_threshold = 1
+        self._flowmeter_alarm_lenght = 0
+        self._flowmeter_alert_delay = 0
+        self._flowmeter_opt_alarm = None
+        self._flowmeter_opt_action = None
         self._stm8Error_motorJam = None
         self._stm8Error_motorPosition = None
         self._stm8Error_motorLimit = None
@@ -572,6 +709,8 @@ class Neviweb130Switch(SwitchEntity):
         self._controlled_device = None
         self._energy_stat_time = time.time() - 1500
         self._water_temp_min = None
+        self._temperature = None
+        self._consumption = None
         self._watt_time_on = None
         self._water_temp_time = None
         self._stm_mcu = None
@@ -588,12 +727,14 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_zb_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_RSSI]
         elif self._is_wifi_mesh_valve:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS]
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
+            ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
         elif self._is_zb_mesh_valve:
-            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG]
+            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
+            ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
         elif self._is_tank_load:
             LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
-            ATTR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS]
+            ATTR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS, ATTR_DR_PROTEC_STATUS]
         else:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
         """Get the latest data from Neviweb and update the state."""
@@ -668,7 +809,15 @@ class Neviweb130Switch(SwitchEntity):
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
+                        self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if ATTR_FLOW_ALARM_TIMER in device_data:
+                        self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
+                        self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
+                        self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
+                        self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                        self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
+                        self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
                 elif self._is_zb_mesh_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
@@ -686,7 +835,15 @@ class Neviweb130Switch(SwitchEntity):
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
+                        self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if ATTR_FLOW_ALARM_TIMER in device_data:
+                        self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
+                        self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
+                        self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
+                        self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                        self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
+                        self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
                 elif self._is_load: #for is_load
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._wattage = device_data[ATTR_WATTAGE]
@@ -723,6 +880,8 @@ class Neviweb130Switch(SwitchEntity):
                     self._water_temp_min = device_data[ATTR_WATER_TEMP_MIN]
                     self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
+                    self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
+                    self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
                 elif self._is_zb_control or self._is_sedna_control:
                     self._onOff = device_data[ATTR_ONOFF]
                     self._onOff2 = device_data[ATTR_ONOFF2]
@@ -892,6 +1051,8 @@ class Neviweb130Switch(SwitchEntity):
                    'Water_temp_min': self._water_temp_min,
                    'Water_time_on': self._watt_time_on,
                    'Water_temp_time': self._water_temp_time,
+                   'Protection_Temperature': self._temperature,
+                   'Protection_Consumption': self._consumption,
                    'Rssi': self._rssi}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
@@ -939,6 +1100,9 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
+                   'Flow_meter_model': self._flowmeter_model,
+                   'Flow_meter_alert_delay': self._flowmeter_alert_delay,
+                   'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status}
         elif self._is_zb_mesh_valve:
             data = {'Valve_status': self._valve_status,
@@ -951,6 +1115,9 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
+                   'Flow_meter_model': self._flowmeter_model,
+                   'Flow_meter_alert_delay': self._flowmeter_alert_delay,
+                   'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat")}
         elif self._is_zb_control or self._is_sedna_control:
@@ -1092,3 +1259,41 @@ class Neviweb130Switch(SwitchEntity):
         self._client.set_low_temp_protection(
             entity, temp)
         self._water_temp_min = temp
+
+    def set_flow_meter_model(self, value):
+        """ Set water valve flow meter model connected """
+        model = value["model"]
+        entity = value["id"]
+        self._client.set_flow_meter_model(entity, model)
+        self._flowmeter_model = model
+
+    def set_flow_meter_delay(self, value):
+        """ Set water valve flow meter delay befor alert """
+        val = value["delay"]
+        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        entity = value["id"]
+        self._client.set_flow_meter_delay(entity, delay)
+        self._flowmeter_alert_delay = val
+
+    def set_flow_meter_options(self, value):
+        """ Set water valve flow meter options when leak detected """
+        if value["alarm"] == "on":
+            alarm = True
+        else:
+            alarm = False
+        if value["close"] == "on":
+            action = True
+        else:
+            action = False
+        if not alarm and not action:
+            lenght = 0
+            threshold = 0
+        else:
+            lenght = 60
+            threshold = 1
+        entity = value["id"]
+        self._client.set_flow_meter_options(entity, alarm, action, lenght, threshold)
+        self._flowmeter_opt_alarm = alarm
+        self._flowmeter_opt_action = action
+        self._flowmeter_threshold = threshold
+        self._flowmeter_alarm_lenght = lenght

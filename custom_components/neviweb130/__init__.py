@@ -74,12 +74,18 @@ from .const import (
     ATTR_COOL_SETPOINT_MIN,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_WATER_TEMP_MIN,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOW_ENABLED,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_THRESHOLD,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.9.7'
+VERSION = '1.9.8'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -618,6 +624,29 @@ class Neviweb130Client(object):
             else:
                 data = {ATTR_PUMP_PROTEC_DURATION:{"status": "off"}, ATTR_PUMP_PROTEC_PERIOD:{"status": "off"}}
         _LOGGER.debug("pump.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_meter_model(self, device_id, model):
+        """ Set flow meter model connected to the Sedna valve 2e gen """
+        if model == "FS4221":
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED: True}
+        elif model == "FS4220":
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":4546,"offset":30600,"divisor":1},ATTR_FLOW_ENABLED: True}
+        else:
+            data = {ATTR_FLOW_METER_CONFIG:{"multiplier":0,"offset":0,"divisor":1},ATTR_FLOW_ENABLED: False}
+        _LOGGER.debug("Flowmeter model.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_meter_delay(self, device_id, delay):
+        """ Set flow meter delay before alarm is activated on Sedna valve 2e gen """
+        data = {ATTR_FLOW_ALARM1_PERIOD:delay}
+        _LOGGER.debug("Flowmeter delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
+        """ Set flow meter options when leak alarm is activated on Sedna valve 2e gen """
+        data = {ATTR_FLOW_ALARM1_OPTION:{"triggerAlarm":alarm,"closeValve":action},ATTR_FLOW_ALARM1_LENGHT:lenght,ATTR_FLOW_THRESHOLD:threshold}
+        _LOGGER.debug("Flowmeter options.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
