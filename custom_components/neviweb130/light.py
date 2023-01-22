@@ -465,7 +465,7 @@ class Neviweb130Light(LightEntity):
         else:
             lock_name = "Unlocked"
         self._client.set_keypad_lock(
-            entity, lock)
+            entity, lock, False)
         self._keypad = lock_name
 
     def set_timer(self, value):
