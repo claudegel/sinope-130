@@ -80,12 +80,13 @@ from .const import (
     ATTR_FLOW_ALARM1_OPTION,
     ATTR_FLOW_ALARM1_LENGHT,
     ATTR_FLOW_THRESHOLD,
+    ATTR_WIFI_KEYPAD,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
 )
 
-VERSION = '1.9.8'
+VERSION = '1.9.9'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -492,9 +493,12 @@ class Neviweb130Client(object):
         _LOGGER.debug("display.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_keypad_lock(self, device_id, lock):
+    def set_keypad_lock(self, device_id, lock, wifi):
         """Set device keyboard locked/unlocked."""
-        data = {ATTR_KEYPAD: lock}
+        if wifi:
+            data = {ATTR_WIFI_KEYPAD: lock}
+        else:
+            data = {ATTR_KEYPAD: lock}
         _LOGGER.debug("lock.data = %s", data)
         self.set_device_attributes(device_id, data)
 
