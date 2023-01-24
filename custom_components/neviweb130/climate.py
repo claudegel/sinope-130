@@ -50,9 +50,9 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ATTR_TEMPERATURE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
-    ATTR_TEMPERATURE,
 )
 
 from homeassistant.helpers import (
@@ -716,6 +716,12 @@ def neviweb_to_ha(value):
         return keys[0]
     return None
 
+def temp_format_to_ha(value):
+    if value == "celsius":
+        return TEMP_CELSIUS
+    else:
+        return TEMP_FAHRENHEIT
+
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
@@ -1050,7 +1056,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return self._temperature_format
+        return temp_format_to_ha(self._temperature_format)
 
     @property
     def device_class(self):
