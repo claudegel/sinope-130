@@ -1470,15 +1470,15 @@ class Neviweb130Thermostat(ClimateEntity):
         if preset_mode == self.preset_mode:
             return
         if preset_mode == PRESET_AWAY:
-            self._client.set_setpoint_mode(self._id, PRESET_AWAY, self._is_wifi)
+            self._client.set_occupancy_mode(self._id, PRESET_AWAY, self._is_wifi)
         elif preset_mode == PRESET_HOME:
-            self._client.set_setpoint_mode(self._id, PRESET_HOME, self._is_wifi)
+            self._client.set_occupancy_mode(self._id, PRESET_HOME, self._is_wifi)
         elif preset_mode == PRESET_NONE:
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
         else:
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
-        self._operation_mode = preset_mode
+        self._occupancy = preset_mode
 
     def turn_aux_heat_on(self):
         """Turn auxiliary heater on/off."""
