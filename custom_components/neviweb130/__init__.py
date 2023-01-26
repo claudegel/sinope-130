@@ -86,7 +86,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '2.0.0'
+VERSION = '2.0.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -462,12 +462,20 @@ class Neviweb130Client(object):
     def set_setpoint_mode(self, device_id, mode, wifi):
         """Set thermostat operation mode."""
         """ Work differently for wifi and zigbee devices. """
-        if mode in [PRESET_AWAY, PRESET_HOME]:
-            data = {ATTR_OCCUPANCY: mode}
-        elif wifi:
+        if wifi:
             if mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
                 mode = MODE_MANUAL
             data = {ATTR_SETPOINT_MODE: mode}
+        else:
+            data = {ATTR_SYSTEM_MODE: mode}
+        self.set_device_attributes(device_id, data)
+
+    def set_occupancy_mode(self, device_id, mode, wifi):
+        """Set thermostat preset mode."""
+        """ Work differently for wifi and zigbee devices. """
+        if wifi:
+            if mode in [PRESET_AWAY, PRESET_HOME]:
+                data = {ATTR_OCCUPANCY: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
         self.set_device_attributes(device_id, data)
