@@ -242,6 +242,7 @@ When flow attributes are available, it is possible to track water consumption of
 template:
   - sensor:
       - name: "Sedna Water Flow"
+        unique_id: sensor.sedna_water_flow
         unit_of_measurement: "m³"
         device_class: water
         state_class: total_increasing
@@ -253,6 +254,7 @@ or:
 template:
   - sensor:
       - name: "Sedna Water Flow"
+        unique_id: sensor.sedna_water_flow
         unit_of_measurement: "m³"
         device_class: water
         state_class: total
