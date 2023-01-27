@@ -362,6 +362,6 @@ If you find a bug it's very new release without all the doc from Sinopé.
 - when this component will be stable. Merge it with The Neviweb component to poll all devices from only one component.
 
 ## Buy me a coffee
-If you want to make donation as appreciation of my work, you can do so via PayPal (prefered), or Buy me a coffee. Thank you!
+If you want to make donation as appreciation of my work, you can do so via PayPal (preferred), or Buy me a coffee. Thank you!
 - [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
 - <a href="https://www.buymeacoffee.com/claudegel" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
