@@ -916,18 +916,21 @@ class Neviweb130Switch(SwitchEntity):
         if self._is_load or self._is_wall or self._is_flow or self._is_tank_load:
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                _LOGGER.warning("device_hourly_stats = %s", device_hourly_stats)
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
+                _LOGGER.warning("device_daily_stats = %s", device_daily_stats)
                 if device_daily_stats is not None:
                     self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                     self._today_kwh = device_daily_stats[0]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                _LOGGER.warning("device_monthly_stats = %s", device_monthly_stats)
                 if device_monthly_stats is not None:
                     self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
                     self._month_kwh = device_monthly_stats[0]["period"] / 1000
