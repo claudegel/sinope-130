@@ -782,9 +782,9 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                    if device_alert[ATTR_BATT_ALERT] in device_alert:
+                    if ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
-                    if device_alert[ATTR_TEMP_ALERT] in device_alert:
+                    if ATTR_TEMP_ALERT in device_alert:
                         self._temp_alert = device_alert[ATTR_TEMP_ALERT]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
@@ -825,7 +825,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                    if device_alert[ATTR_BATT_ALERT] in device_alert:
+                    if ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
