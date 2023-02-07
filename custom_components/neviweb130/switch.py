@@ -913,7 +913,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        if self._is_load or self._is_wall or self._is_flow or self._is_tank_load:
+        if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 _LOGGER.warning("%s device_hourly_stats = %s", self._sku, device_hourly_stats)
