@@ -1106,7 +1106,13 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_model': self._flowmeter_model,
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
-                   'Water_leak_status': self._water_leak_status}
+                   'Water_leak_status': self._water_leak_status,
+                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+                   'hourly_flow': L_2_sqm(self._hour_kwh),
+                   'daily_flow': L_2_sqm(self._today_kwh),
+                   'monthly_flow': L_2_sqm(self._month_kwh)}
         elif self._is_zb_mesh_valve:
             data = {'Valve_status': self._valve_status,
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
