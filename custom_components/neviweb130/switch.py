@@ -49,8 +49,10 @@ from homeassistant.components.switch import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ENERGY_KILO_WATT_HOUR,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
+    VOLUME_CUBIC_METERS,
 )
 
 from homeassistant.helpers import (
@@ -65,7 +67,10 @@ from homeassistant.helpers import (
 
 from homeassistant.helpers.typing import HomeAssistantType
 
-from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorStateClass,
+)
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
@@ -175,6 +180,13 @@ HA_TO_NEVIWEB_CONTROLLED = {
     "Pool pump": "poolPump",
     "Eletric vehicle charger": "eletricVehicleCharger",
     "Other": "other"
+}
+
+SWITCH_TYPES = {
+    "flow": [VOLUME_CUBIC_METERS, "mdi:water-percent", BinarySensorDeviceClass.MOISTURE],
+    "valve": ["", "mdi:water-pump", BinarySensorDeviceClass.OPENING],
+    "power": [ENERGY_KILO_WATT_HOUR, "mdi:power-plug", SensorStateClass.MEASUREMENT],
+    "sensor": ["", "mdi:alarm", BinarySensorDeviceClass.PROBLEM],
 }
 
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
@@ -316,7 +328,19 @@ async def async_setup_platform(
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku))
+            if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES \
+              or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
+                device_type = "power"
+            elif device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL \
+              or device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL:
+                device_type = "sensor"
+            elif device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
+                device_type = "valve"
+            else:
+                device_type = "flow"
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_type))
 
     async_add_entities(entities, True)
 
@@ -625,12 +649,13 @@ def model_to_HA(value):
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
-    def __init__(self, data, device_info, name, sku):
+    def __init__(self, data, device_info, name, sku, device_type):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_type = device_type
         self._current_power_w = 0
         self._wattage = 0
         self._hour_energy_kwh_count = None
@@ -951,12 +976,25 @@ class Neviweb130Switch(SwitchEntity):
         return self._name
 
     @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        try:
+            return SWITCH_TYPES.get(self._device_type)[1]
+        except TypeError:
+            return None
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        try:
+            return SWITCH_TYPES.get(self._device_type)[0]
+        except TypeError:
+            return None
+
+    @property
     def device_class(self):
         """Return the device class of this entity."""
-        if self._is_wifi_valve or self._is_zb_valve or self._is_wifi_mesh_valve or self._is_zb_mesh_valve:
-            return BinarySensorDeviceClass.MOISTURE
-        else:
-            return SensorDeviceClass.POWER
+        return SWITCH_TYPES.get(self._device_type)[2]
 
     @property  
     def is_on(self):
