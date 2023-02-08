@@ -22,6 +22,7 @@ from . import (SCAN_INTERVAL)
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    PERCENTAGE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     STATE_OK,
@@ -86,7 +87,7 @@ IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR +
 
 SENSOR_TYPES = {
     "leak": ["", None, BinarySensorDeviceClass.MOISTURE],
-    "level": ["%", None, SensorStateClass.MEASUREMENT],
+    "level": [PERCENTAGE, None, SensorStateClass.MEASUREMENT],
     "gateway": ["", None, BinarySensorDeviceClass.CONNECTIVITY],
 }
 
