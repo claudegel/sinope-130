@@ -49,8 +49,10 @@ from homeassistant.components.switch import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ENERGY_KILO_WATT_HOUR,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
+    VOLUME_CUBIC_METERS,
 )
 
 from homeassistant.helpers import (
@@ -65,7 +67,10 @@ from homeassistant.helpers import (
 
 from homeassistant.helpers.typing import HomeAssistantType
 
-from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorStateClass,
+)
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
@@ -175,6 +180,13 @@ HA_TO_NEVIWEB_CONTROLLED = {
     "Pool pump": "poolPump",
     "Eletric vehicle charger": "eletricVehicleCharger",
     "Other": "other"
+}
+
+SWITCH_TYPES = {
+    "flow": [VOLUME_CUBIC_METERS, "mdi:water-percent", BinarySensorDeviceClass.MOISTURE],
+    "valve": ["", "mdi:water-pump", BinarySensorDeviceClass.OPENING],
+    "power": [ENERGY_KILO_WATT_HOUR, "mdi:power-plug", SensorStateClass.MEASUREMENT],
+    "sensor": ["", "mdi:alarm", BinarySensorDeviceClass.PROBLEM],
 }
 
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
@@ -316,7 +328,19 @@ async def async_setup_platform(
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku))
+            if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES \
+              or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
+                device_type = "power"
+            elif device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL \
+              or device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL:
+                device_type = "sensor"
+            elif device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
+                device_type = "valve"
+            else:
+                device_type = "flow"
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_type))
 
     async_add_entities(entities, True)
 
@@ -625,12 +649,13 @@ def model_to_HA(value):
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
-    def __init__(self, data, device_info, name, sku):
+    def __init__(self, data, device_info, name, sku, device_type):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_type = device_type
         self._current_power_w = 0
         self._wattage = 0
         self._hour_energy_kwh_count = None
@@ -782,9 +807,9 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                    if device_alert[ATTR_BATT_ALERT] in device_alert:
+                    if ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
-                    if device_alert[ATTR_TEMP_ALERT] in device_alert:
+                    if ATTR_TEMP_ALERT in device_alert:
                         self._temp_alert = device_alert[ATTR_TEMP_ALERT]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
@@ -825,7 +850,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                    if device_alert[ATTR_BATT_ALERT] in device_alert:
+                    if ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
@@ -913,21 +938,24 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
         else:
             _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
-        if self._is_load or self._is_wall or self._is_flow or self._is_tank_load:
+        if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                _LOGGER.warning("%s device_hourly_stats = %s", self._sku, device_hourly_stats)
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
+                _LOGGER.warning("%s device_daily_stats = %s", self._sku, device_daily_stats)
                 if device_daily_stats is not None:
                     self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                     self._today_kwh = device_daily_stats[0]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                _LOGGER.warning("%s device_monthly_stats = %s", self._sku, device_monthly_stats)
                 if device_monthly_stats is not None:
                     self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
                     self._month_kwh = device_monthly_stats[0]["period"] / 1000
@@ -948,12 +976,25 @@ class Neviweb130Switch(SwitchEntity):
         return self._name
 
     @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        try:
+            return SWITCH_TYPES.get(self._device_type)[1]
+        except TypeError:
+            return None
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        try:
+            return SWITCH_TYPES.get(self._device_type)[0]
+        except TypeError:
+            return None
+
+    @property
     def device_class(self):
         """Return the device class of this entity."""
-        if self._is_wifi_valve or self._is_zb_valve or self._is_wifi_mesh_valve or self._is_zb_mesh_valve:
-            return BinarySensorDeviceClass.MOISTURE
-        else:
-            return SensorDeviceClass.POWER
+        return SWITCH_TYPES.get(self._device_type)[2]
 
     @property  
     def is_on(self):
@@ -1103,7 +1144,13 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_model': self._flowmeter_model,
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
-                   'Water_leak_status': self._water_leak_status}
+                   'Water_leak_status': self._water_leak_status,
+                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+                   'hourly_flow': L_2_sqm(self._hour_kwh),
+                   'daily_flow': L_2_sqm(self._today_kwh),
+                   'monthly_flow': L_2_sqm(self._month_kwh)}
         elif self._is_zb_mesh_valve:
             data = {'Valve_status': self._valve_status,
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
@@ -1119,7 +1166,13 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_alert_delay': self._flowmeter_alert_delay,
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
-                   'Battery_alert': alert_to_text(self._battery_alert, "bat")}
+                   'Battery_alert': alert_to_text(self._battery_alert, "bat"),
+                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+                   'hourly_flow': L_2_sqm(self._hour_kwh),
+                   'daily_flow': L_2_sqm(self._today_kwh),
+                   'monthly_flow': L_2_sqm(self._month_kwh)}
         elif self._is_zb_control or self._is_sedna_control:
             data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
                    'Battery_voltage': self._battery_voltage,

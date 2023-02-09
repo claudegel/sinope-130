@@ -227,12 +227,12 @@ template:
 
 ## Statistic for Sedna flow sensor
 Six attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what energy module is looking for:
-- hourly_flow_count: total count of kwh hourly usage
-- daily_flow_count: total count of kwh daily usage
-- monthly_flow_count: total count of kwh monthly usage
-- hourly_flow: kwh used for last hour
-- daily_flow: kwh used for last day
-- monthly_flow: kwh used for last month
+- hourly_flow_count: total count of water liters hourly usage
+- daily_flow_count: total count of water liters daily usage
+- monthly_flow_count: total count of water liters monthly usage
+- hourly_flow: water liters used for last hour
+- daily_flow: water liters used for last day
+- monthly_flow: water liters used for last month
 
 They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
 
@@ -242,6 +242,7 @@ When flow attributes are available, it is possible to track water consumption of
 template:
   - sensor:
       - name: "Sedna Water Flow"
+        unique_id: sensor.sedna_water_flow
         unit_of_measurement: "m³"
         device_class: water
         state_class: total_increasing
@@ -253,6 +254,7 @@ or:
 template:
   - sensor:
       - name: "Sedna Water Flow"
+        unique_id: sensor.sedna_water_flow
         unit_of_measurement: "m³"
         device_class: water
         state_class: total

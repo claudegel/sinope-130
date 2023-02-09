@@ -22,6 +22,7 @@ from . import (SCAN_INTERVAL)
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    PERCENTAGE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     STATE_OK,
@@ -86,7 +87,7 @@ IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR +
 
 SENSOR_TYPES = {
     "leak": ["", None, BinarySensorDeviceClass.MOISTURE],
-    "level": ["%", None, SensorStateClass.MEASUREMENT],
+    "level": [PERCENTAGE, None, SensorStateClass.MEASUREMENT],
     "gateway": ["", None, BinarySensorDeviceClass.CONNECTIVITY],
 }
 
@@ -225,11 +226,11 @@ class Neviweb130Sensor(Entity):
         if self._is_monitor:
             MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_TYPE, ATTR_TANK_HEIGHT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
         else:
+            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_RSSI]
             if self._is_connected:
                 CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
             else:
                 CONNECTED_ATTRIBUTE = []
-            MONITOR_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_RSSI]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         if self._is_gateway:
@@ -256,8 +257,8 @@ class Neviweb130Sensor(Entity):
                         device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
                     self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     self._leak_alert = device_data[ATTR_LEAK_ALERT]
+                    self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                     if self._is_connected:
-                        self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data[ATTR_TEMP_ALERT]
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
                         self._closure_action = device_data[ATTR_CONF_CLOSURE]
