@@ -982,15 +982,7 @@ class Neviweb130Switch(SwitchEntity):
             return SWITCH_TYPES.get(self._device_type)[1]
         except TypeError:
             return None
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity, if any."""
-        try:
-            return SWITCH_TYPES.get(self._device_type)[0]
-        except TypeError:
-            return None
-
+            
     @property
     def device_class(self):
         """Return the device class of this entity."""
