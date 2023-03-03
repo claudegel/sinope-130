@@ -184,9 +184,9 @@ HA_TO_NEVIWEB_CONTROLLED = {
 
 SWITCH_TYPES = {
     "flow": [VOLUME_CUBIC_METERS, "mdi:water-percent", BinarySensorDeviceClass.MOISTURE],
-    "valve": ["", "mdi:water-pump", BinarySensorDeviceClass.OPENING],
-    "power": [ENERGY_KILO_WATT_HOUR, "mdi:power-plug", SensorStateClass.MEASUREMENT],
-    "sensor": ["", "mdi:alarm", BinarySensorDeviceClass.PROBLEM],
+    "valve": [None, "mdi:water-pump", BinarySensorDeviceClass.OPENING],
+    "power": [None, "mdi:power-plug", BinarySensorDeviceClass.POWER],
+    "sensor": [None, "mdi:alarm", BinarySensorDeviceClass.PROBLEM],
 }
 
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
@@ -1197,6 +1197,7 @@ class Neviweb130Switch(SwitchEntity):
                    'daily_kwh': self._today_kwh,
                    'monthly_kwh': self._month_kwh}
         data.update({'sku': self._sku,
+                    'device_type': self._device_type,
                     'id': self._id})
         return data
 
