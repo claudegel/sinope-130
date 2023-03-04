@@ -44,6 +44,7 @@ import time
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, STAT_INTERVAL)
 from homeassistant.components.switch import (
+    SwitchDeviceClass,
     SwitchEntity,
 )
 
@@ -66,11 +67,6 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
-
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorStateClass,
-)
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
@@ -183,10 +179,11 @@ HA_TO_NEVIWEB_CONTROLLED = {
 }
 
 SWITCH_TYPES = {
-    "flow": [VOLUME_CUBIC_METERS, "mdi:water-percent", BinarySensorDeviceClass.MOISTURE],
-    "valve": ["", "mdi:water-pump", BinarySensorDeviceClass.OPENING],
-    "power": [ENERGY_KILO_WATT_HOUR, "mdi:power-plug", SensorStateClass.MEASUREMENT],
-    "sensor": ["", "mdi:alarm", BinarySensorDeviceClass.PROBLEM],
+    "flow": ["mdi:water-percent", BinarySensorDeviceClass.MOISTURE],
+    "valve": ["mdi:water-pump", BinarySensorDeviceClass.OPENING],
+    "power": ["mdi:switch", SwitchDeviceClass.SWITCH],
+    "outlet": ["mdi:power-plug", SwitchDeviceClass.OUTLET],
+    "sensor": ["mdi:alarm", BinarySensorDeviceClass.PROBLEM],
 }
 
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
@@ -329,9 +326,10 @@ async def async_setup_platform(
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
             if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
-              or device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES \
               or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
                 device_type = "power"
+            elif device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                device_type = "outlet"
             elif device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL \
               or device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL:
                 device_type = "sensor"
@@ -941,21 +939,21 @@ class Neviweb130Switch(SwitchEntity):
         if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-                _LOGGER.warning("%s device_hourly_stats = %s", self._sku, device_hourly_stats)
+#                _LOGGER.warning("%s device_hourly_stats = %s", self._sku, device_hourly_stats)
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
-                _LOGGER.warning("%s device_daily_stats = %s", self._sku, device_daily_stats)
+#                _LOGGER.warning("%s device_daily_stats = %s", self._sku, device_daily_stats)
                 if device_daily_stats is not None:
                     self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                     self._today_kwh = device_daily_stats[0]["period"] / 1000
                 else:
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-                _LOGGER.warning("%s device_monthly_stats = %s", self._sku, device_monthly_stats)
+#                _LOGGER.warning("%s device_monthly_stats = %s", self._sku, device_monthly_stats)
                 if device_monthly_stats is not None:
                     self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
                     self._month_kwh = device_monthly_stats[0]["period"] / 1000
@@ -979,14 +977,6 @@ class Neviweb130Switch(SwitchEntity):
     def icon(self):
         """Return the icon to use in the frontend."""
         try:
-            return SWITCH_TYPES.get(self._device_type)[1]
-        except TypeError:
-            return None
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity, if any."""
-        try:
             return SWITCH_TYPES.get(self._device_type)[0]
         except TypeError:
             return None
@@ -994,7 +984,7 @@ class Neviweb130Switch(SwitchEntity):
     @property
     def device_class(self):
         """Return the device class of this entity."""
-        return SWITCH_TYPES.get(self._device_type)[2]
+        return SWITCH_TYPES.get(self._device_type)[1]
 
     @property  
     def is_on(self):
@@ -1197,6 +1187,7 @@ class Neviweb130Switch(SwitchEntity):
                    'daily_kwh': self._today_kwh,
                    'monthly_kwh': self._month_kwh}
         data.update({'sku': self._sku,
+                    'device_type': self._device_type,
                     'id': self._id})
         return data
 

@@ -86,9 +86,9 @@ IMPLEMENTED_CONNECTED_SENSOR = [5050, 5052]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR + IMPLEMENTED_GATEWAY
 
 SENSOR_TYPES = {
-    "leak": ["", None, BinarySensorDeviceClass.MOISTURE],
+    "leak": [None, None, BinarySensorDeviceClass.MOISTURE],
     "level": [PERCENTAGE, None, SensorStateClass.MEASUREMENT],
-    "gateway": ["", None, BinarySensorDeviceClass.CONNECTIVITY],
+    "gateway": [None, None, BinarySensorDeviceClass.CONNECTIVITY],
 }
 
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
@@ -377,6 +377,7 @@ class Neviweb130Sensor(Entity):
         elif self._is_gateway:
             data = {'Gateway_status': self._gateway_status}
         data.update({'sku': self._sku,
+                    'device_type': self._device_type,
                     'Id': self._id})
         return data
 
