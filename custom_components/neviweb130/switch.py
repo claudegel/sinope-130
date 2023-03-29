@@ -836,6 +836,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
+                    if ATTR_FLOW_THRESHOLD in device_data:
                         self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                         self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
                         self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
@@ -862,6 +863,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
+                    if ATTR_FLOW_THRESHOLD in device_data:
                         self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                         self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
                         self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
