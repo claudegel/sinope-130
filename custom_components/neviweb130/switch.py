@@ -351,7 +351,7 @@ async def async_setup_platform(
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
-            if switch.entity_id == entity_id:flowMeterMeasurementConfig
+            if switch.entity_id == entity_id:
                 value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
                 switch.set_keypad_lock(value)
                 switch.schedule_update_ha_state(True)
