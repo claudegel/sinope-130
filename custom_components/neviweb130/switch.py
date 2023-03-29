@@ -116,10 +116,14 @@ from .const import (
     ATTR_FLOW_MODEL_CONFIG,
     ATTR_FLOW_ALARM_TIMER,
     ATTR_FLOW_THRESHOLD,
+    ATTR_FLOW_ALARM1,
+    ATTR_FLOW_ALARM2,
     ATTR_FLOW_ALARM1_PERIOD,
     ATTR_FLOW_ALARM1_LENGHT,
     ATTR_FLOW_ALARM1_OPTION,
     ATTR_DR_PROTEC_STATUS,
+    ATTR_TEMP_ACTION_LOW,
+    ATTR_BATT_ACTION_LOW,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -347,7 +351,7 @@ async def async_setup_platform(
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
-            if switch.entity_id == entity_id:
+            if switch.entity_id == entity_id:flowMeterMeasurementConfig
                 value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
                 switch.set_keypad_lock(value)
                 switch.schedule_update_ha_state(True)
@@ -738,6 +742,10 @@ class Neviweb130Switch(SwitchEntity):
         self._water_temp_time = None
         self._stm_mcu = None
         self._temp_status = None
+        self._flow_alarm_1 = None
+        self._flow_alarm_2 = None
+        self._temp_action_low = None
+        self._batt_action_low = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -746,12 +754,12 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
         elif self._is_wifi_valve:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG]
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
         elif self._is_zb_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_RSSI]
         elif self._is_wifi_mesh_valve:
             LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
-            ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
+            ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
         elif self._is_zb_mesh_valve:
             LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
             ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
@@ -798,6 +806,14 @@ class Neviweb130Switch(SwitchEntity):
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
+                    if ATTR_FLOW_ALARM1 in device_data:
+                        self._flow_alarm_1 = device_data[ATTR_FLOW_ALARM1]
+                    if ATTR_FLOW_ALARM2 in device_data:
+                        self._flow_alarm_2 = device_data[ATTR_FLOW_ALARM2]
+                    if ATTR_TEMP_ACTION_LOW in device_data:
+                        self._temp_action_low = device_data[ATTR_TEMP_ACTION_LOW]
+                    if ATTR_BATT_ACTION_LOW in device_data:
+                        self._batt_action_low = device_data[ATTR_BATT_ACTION_LOW]
                 elif self._is_zb_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
@@ -842,6 +858,14 @@ class Neviweb130Switch(SwitchEntity):
                             self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
                             self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
                             self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
+                    if ATTR_FLOW_ALARM1 in device_data:
+                        self._flow_alarm_1 = device_data[ATTR_FLOW_ALARM1]
+                    if ATTR_FLOW_ALARM2 in device_data:
+                        self._flow_alarm_2 = device_data[ATTR_FLOW_ALARM2]
+                    if ATTR_TEMP_ACTION_LOW in device_data:
+                        self._temp_action_low = device_data[ATTR_TEMP_ACTION_LOW]
+                    if ATTR_BATT_ACTION_LOW in device_data:
+                        self._batt_action_low = device_data[ATTR_BATT_ACTION_LOW]
                 elif self._is_zb_mesh_valve:
                     self._valve_status = STATE_VALVE_STATUS if \
                         device_data[ATTR_ONOFF] == "on" else "closed"
@@ -1101,6 +1125,10 @@ class Neviweb130Switch(SwitchEntity):
                    'Valve_cause': self._valve_info_cause,
                    'Valve_info_id': self._valve_info_id,
                    'Alert_motor_jam': self._stm8Error_motorJam,
+                   'Flow_alarm1': self._flow_alarm_1,
+                   'Flow_alarm2': self._flow_alarm_2,
+                   'Temp_action_low': self._temp_action_low,
+                   'Batt_action_low': self._batt_action_low,
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
@@ -1130,6 +1158,10 @@ class Neviweb130Switch(SwitchEntity):
                    'Alert_motor_jam': self._stm8Error_motorJam,
                    'Alert_motor_position': self._stm8Error_motorPosition,
                    'Alert_motor_limit': self._stm8Error_motorLimit,
+                   'Flow_alarm1': self._flow_alarm_1,
+                   'Flow_alarm2': self._flow_alarm_2,
+                   'Temp_action_low': self._temp_action_low,
+                   'Batt_action_low': self._batt_action_low,
                    'Flow_meter_multiplier': self._flowmeter_multiplier,
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
