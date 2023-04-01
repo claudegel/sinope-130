@@ -173,7 +173,9 @@ class Neviweb130Client(object):
         self._network_name = network
         self._network_name2 = network2
         self._gateway_id = None
+        self._gateway_id2 = None
         self.gateway_data = {}
+        self.gateway_data2 = {}
         self._headers = None
         self._account = None
         self._cookies = None
