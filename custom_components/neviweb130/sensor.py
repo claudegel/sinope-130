@@ -138,6 +138,20 @@ async def async_setup_platform(
                 device_type = "gateway"
             device_sku = device_info["sku"]
             entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku))
+    for device_info in data.neviweb130_client.gateway_data2:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
+            if device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR:
+                device_type = "leak"
+            elif  device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+                device_type = "level"
+            else:
+                device_type = "gateway"
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku))
 
     async_add_entities(entities, True)
 
