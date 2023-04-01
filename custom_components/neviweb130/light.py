@@ -71,6 +71,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 light'
+DEFAULT_NAME_2 = 'neviweb130 light 2'
 
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
@@ -165,7 +166,7 @@ async def async_setup_platform(
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
-            device_name = '{} {} {}'.format(DEFAULT_NAME, 
+            device_name = '{} {} {}'.format(DEFAULT_NAME_2, 
                 "light" if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT 
                 else "dimmer", device_info["name"])
             device_sku = device_info["sku"]
