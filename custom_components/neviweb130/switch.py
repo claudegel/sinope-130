@@ -147,6 +147,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
+DEFAULT_NAME_2 = 'neviweb130 switch 2'
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
@@ -347,7 +348,7 @@ async def async_setup_platform(
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
-            device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
+            device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
             if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
               or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
