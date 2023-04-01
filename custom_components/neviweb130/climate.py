@@ -149,6 +149,7 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
 
 DEFAULT_NAME = "neviweb130 climate"
+DEFAULT_NAME_2 = "neviweb130 climate 2"
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 
@@ -387,7 +388,7 @@ async def async_setup_platform(
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
-            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
+            device_name = "{} {}".format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
             entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
 
