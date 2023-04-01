@@ -157,8 +157,17 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {} {}'.format(DEFAULT_NAME, 
-                "dimmer" if device_info["signature"]["model"] in DEVICE_MODEL_DIMMER 
-                else "light", device_info["name"])
+                "light" if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT 
+                else "dimmer", device_info["name"])
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Light(data, device_info, device_name, device_sku))
+    for device_info in data.neviweb130_client.gateway_data2:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = '{} {} {}'.format(DEFAULT_NAME, 
+                "light" if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT 
+                else "dimmer", device_info["name"])
             device_sku = device_info["sku"]
             entities.append(Neviweb130Light(data, device_info, device_name, device_sku))
 
