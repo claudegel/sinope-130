@@ -147,6 +147,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
+DEFAULT_NAME_2 = 'neviweb130 switch 2'
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
@@ -328,6 +329,26 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
+            device_sku = device_info["sku"]
+            if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
+                device_type = "power"
+            elif device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                device_type = "outlet"
+            elif device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL \
+              or device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL:
+                device_type = "sensor"
+            elif device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
+                device_type = "valve"
+            else:
+                device_type = "flow"
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_type))
+    for device_info in data.neviweb130_client.gateway_data2:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
             if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
               or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:

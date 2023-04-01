@@ -149,6 +149,7 @@ SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
 
 DEFAULT_NAME = "neviweb130 climate"
+DEFAULT_NAME_2 = "neviweb130 climate 2"
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 
@@ -381,6 +382,13 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
+            device_sku = device_info["sku"]
+            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
+    for device_info in data.neviweb130_client.gateway_data2:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = "{} {}".format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
             entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
 
@@ -731,6 +739,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._model = device_info["signature"]["model"]
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
@@ -1184,6 +1193,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
+                    'model': self._model,
                     'id': self._id})
         return data
 
