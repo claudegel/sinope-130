@@ -87,7 +87,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '2.1.0'
+VERSION = '2.2.0'
 
 _LOGGER = logging.getLogger(__name__)
 
