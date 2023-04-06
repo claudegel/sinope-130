@@ -21,6 +21,10 @@ model 742 = thermostat TH1500WF double pole thermostat (wifi)
 Support for Flextherm wifi thermostat
 model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
 
+Support for Neviweb heat pump
+model 6810 = heat pump
+model 6811 = heat pump
+
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
