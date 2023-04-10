@@ -673,9 +673,9 @@ class Neviweb130Client(object):
     def set_floor_limit(self, device_id, level, low):
         """Set floor thermostat setpoint low and high limit."""
         if low == "low":
-            data = {ATTR_FLOOR_MIN:{"value":level, "status":"on"}}
+            data = {ATTR_FLOOR_MIN:{"status":"on", "value":level}, ATTR_FLOOR_OUTPUT2:{ "status":"off", "value": 0}}
         else:
-            data = {ATTR_FLOOR_MAX:{"value":level, "status":"on"}}
+            data = {ATTR_FLOOR_MAX:{"status":"on", "value":level}, ATTR_FLOOR_OUTPUT2:{ "status":"off", "value": 0}}
         _LOGGER.debug("Floor limit = %s", data)
         self.set_device_attributes(device_id, data)
 
