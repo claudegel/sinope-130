@@ -141,6 +141,8 @@ from .const import (
     SERVICE_SET_PUMP_PROTECTION,
     SERVICE_SET_COOL_SETPOINT_MIN,
     SERVICE_SET_COOL_SETPOINT_MAX,
+    SERVICE_SET_FLOOR_LIMIT_LOW,
+    SERVICE_SET_FLOOR_LIMIT_HIGH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -364,6 +366,24 @@ SET_PUMP_PROTECTION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
+    }
+)
+
+SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOOR_MIN): vol.All(
+            vol.Coerce(float), vol.Range(min=16, max=30)
+        ),
+    }
+)
+
+SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOOR_MAX): vol.All(
+            vol.Coerce(float), vol.Range(min=16, max=30)
+        ),
     }
 )
 
@@ -592,6 +612,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_floor_limit_high_service(service):
+        """ set maximum floor heating limit for floor device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MAX], "limit": "high"}
+                thermostat.set_floor_limit(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_floor_limit_low_service(service):
+        """ set minimum floor heating limit for floor device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MIN], "limit": "low"}
+                thermostat.set_floor_limit(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -716,6 +758,20 @@ async def async_setup_platform(
         SERVICE_SET_COOL_SETPOINT_MIN,
         set_cool_setpoint_min_service,
         schema=SET_COOL_SETPOINT_MIN_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOOR_LIMIT_HIGH,
+        set_floor_limit_high_service,
+        schema=SET_FLOOR_LIMIT_HIGH_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOOR_LIMIT_LOW,
+        set_floor_limit_low_service,
+        schema=SET_FLOOR_LIMIT_LOW_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -1564,3 +1620,17 @@ class Neviweb130Thermostat(ClimateEntity):
         self._pump_protec_status = status
         self._pump_protec_duration = 60
         self._pump_protec_period = 1
+
+    def set_floor_limit(self, value):
+        """set maximum/minimum floor setpoint temperature"""
+        temp = value["level"]
+        entity = value["id"]
+        limit = value["limit"]
+        self._client.set_floor_limit(
+            entity, temp, limit)
+        if limit == "low":
+            self._floor_min = temp
+            self._floor_min_status = "on"
+        else:
+            self._floor_max = temp
+            self._floor_max_status = "on"
