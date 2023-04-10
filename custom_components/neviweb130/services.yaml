@@ -428,3 +428,23 @@ set_flow_meter_options:
     closeValve:
       description: close the valve, on/off.
       example: "on"
+
+set_floor_limit_high:
+  description: Set climate device floor limit max temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1310WF).
+      example: "climate.neviweb130_climate_office_floor"
+    floorLimitHigh:
+      description: Maximum floor heating temperature to set. Between 16 and 30 oC.
+      example: 26
+
+set_floor_limit_low:
+  description: Set climate device floor limit min temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1310WF).
+      example: "climate.neviweb130_climate_office_floor"
+    floorLimitLow:
+      description: Minimum floor heating temperature to set. Between 16 and 30 oC.
+      example: 22
