@@ -294,7 +294,7 @@ SET_EARLY_START_SCHEMA = vol.Schema(
 SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MODE): vol.In(["airByFloor", "floor"]),
+        vol.Required(ATTR_FLOOR_MODE): vol.In(["airByFloor", "roomByFloor", "floor"]),
     }
 )
 
