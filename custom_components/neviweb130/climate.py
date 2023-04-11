@@ -671,7 +671,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MIN], "limit": "low", "wifi": true}
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MIN], "limit": "low", "wifi": True}
                 thermostat.set_floor_limit(value)
                 thermostat.schedule_update_ha_state(True)
                 break
