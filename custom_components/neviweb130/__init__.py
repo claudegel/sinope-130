@@ -679,9 +679,9 @@ class Neviweb130Client(object):
                 data = {ATTR_FLOOR_MAX:{"value": level, "status": "on"}}
         else:
             if low == "low":
-                data = {ATTR_FLOOR_MIN:{"status":"on", "value":level}, ATTR_FLOOR_OUTPUT2:{ "status":"off", "value": 0}}
+                data = {ATTR_FLOOR_MIN:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
             else:
-                data = {ATTR_FLOOR_MAX:{"status":"on", "value":level}, ATTR_FLOOR_OUTPUT2:{ "status":"off", "value": 0}}
+                data = {ATTR_FLOOR_MAX:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
         _LOGGER.debug("Floor limit = %s", data)
         self.set_device_attributes(device_id, data)
 
