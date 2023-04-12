@@ -373,7 +373,7 @@ SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
+            vol.Coerce(float), vol.Range(min=0, max=34)
         ),
     }
 )
@@ -382,7 +382,7 @@ SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
+            vol.Coerce(float), vol.Range(min=0, max=36)
         ),
     }
 )
@@ -1627,6 +1627,12 @@ class Neviweb130Thermostat(ClimateEntity):
         entity = value["id"]
         limit = value["limit"]
         wifi = self._is_wifi_floor
+        if limit == "low":
+            if temp > 0 and temp < 5:
+                temp = 5
+        else:
+            if temp > 0 and temp < 7:
+                temp = 7
         self._client.set_floor_limit(
             entity, temp, limit, wifi)
         if limit == "low":
