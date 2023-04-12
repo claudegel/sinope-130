@@ -987,7 +987,7 @@ class Neviweb130Switch(SwitchEntity):
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
 #                _LOGGER.warning("%s device_hourly_stats = %s", self._sku, device_hourly_stats)
-                if device_hourly_stats is not None:
+                if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
                 else:
