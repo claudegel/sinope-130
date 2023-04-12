@@ -219,7 +219,7 @@ set_air_floor_mode:
       description: Name(s) of neviweb130 floor thermostat.
       example: "climate.neviweb130_climate_kitchen"
     airFloorMode:
-      description: Set to «airByFloor» for ambiant temperature sensor or to «floor» for floor temperature sensor.
+      description: Set to «airByFloor» (zigbee) or «roomByFloor» (wifi) for ambiant temperature sensor or to «floor» for floor temperature sensor.
       example: "floor"
 
 set_phase_control:
@@ -428,3 +428,23 @@ set_flow_meter_options:
     closeValve:
       description: close the valve, on/off.
       example: "on"
+
+set_floor_limit_high:
+  description: Set climate device floor limit max temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1300ZB).
+      example: "climate.neviweb130_climate_office_floor"
+    floorLimitHigh:
+      description: Maximum floor heating temperature to set. Between 7 and 36 oC.
+      example: 26
+
+set_floor_limit_low:
+  description: Set climate device floor limit min temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1300ZB).
+      example: "climate.neviweb130_climate_office_floor"
+    floorLimitLow:
+      description: Minimum floor heating temperature to set. Between 5 and 34 oC.
+      example: 22

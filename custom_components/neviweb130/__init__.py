@@ -64,6 +64,8 @@ from .const import (
     ATTR_DRSTATUS,
     ATTR_FLOOR_AUX,
     ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
     ATTR_CYCLE_OUTPUT2,
     ATTR_AUX_CYCLE,
     ATTR_CYCLE,
@@ -87,7 +89,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '2.1.0'
+VERSION = '2.2.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -666,6 +668,21 @@ class Neviweb130Client(object):
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("aux_heat.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_floor_limit(self, device_id, level, low, wifi):
+        """Set floor setpoint limit low and high for zigbee and wifi thermostats."""
+        if wifi:
+            if low == "low":
+                data = {ATTR_FLOOR_MIN:{"value": level, "status": "on"}}
+            else:
+                data = {ATTR_FLOOR_MAX:{"value": level, "status": "on"}}
+        else:
+            if low == "low":
+                data = {ATTR_FLOOR_MIN:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+            else:
+                data = {ATTR_FLOOR_MAX:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+        _LOGGER.debug("Floor limit = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_pump_protection(self, device_id, status, wifi):
