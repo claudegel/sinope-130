@@ -143,8 +143,6 @@ from .const import (
     SERVICE_SET_COOL_SETPOINT_MAX,
     SERVICE_SET_FLOOR_LIMIT_LOW,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
-    SERVICE_SET_WIFI_FLOOR_LIMIT_LOW,
-    SERVICE_SET_WIFI_FLOOR_LIMIT_HIGH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -385,24 +383,6 @@ SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MAX): vol.All(
             vol.Coerce(float), vol.Range(min=16, max=30)
-        ),
-    }
-)
-
-SET_WIFI_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=5, max=34)
-        ),
-    }
-)
-
-SET_WIFI_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=7, max=36)
         ),
     }
 )
@@ -654,28 +634,6 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_wifi_floor_limit_high_service(service):
-        """ set maximum floor heating limit for wifi floor device"""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MAX], "limit": "high", "wifi": True}
-                thermostat.set_floor_limit(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
-    def set_wifi_floor_limit_low_service(service):
-        """ set minimum floor heating limit for wifi floor device"""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MIN], "limit": "low", "wifi": True}
-                thermostat.set_floor_limit(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -814,20 +772,6 @@ async def async_setup_platform(
         SERVICE_SET_FLOOR_LIMIT_LOW,
         set_floor_limit_low_service,
         schema=SET_FLOOR_LIMIT_LOW_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_WIFI_FLOOR_LIMIT_HIGH,
-        set_wifi_floor_limit_high_service,
-        schema=SET_WIFI_FLOOR_LIMIT_HIGH_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_WIFI_FLOOR_LIMIT_LOW,
-        set_wifi_floor_limit_low_service,
-        schema=SET_WIFI_FLOOR_LIMIT_LOW_SCHEMA,
     )
 
 def neviweb_to_ha(value):
