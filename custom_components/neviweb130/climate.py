@@ -638,7 +638,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MAX], "limit": "high", "wifi": False}
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MAX], "limit": "high"}
                 thermostat.set_floor_limit(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -649,7 +649,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MIN], "limit": "low", "wifi": False}
+                value = {"id": thermostat.unique_id, "level": service.data[ATTR_FLOOR_MIN], "limit": "low"}
                 thermostat.set_floor_limit(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -1115,7 +1115,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._sku != "FLP55":
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-                _LOGGER.debug("Energy data for %s: %s", self._sku, device_hourly_stats)
+                _LOGGER.debug("Energy data for %s: %s, size = %s", self._sku, device_hourly_stats, len(device_hourly_stats))
                 if device_hourly_stats is not None:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
@@ -1682,7 +1682,7 @@ class Neviweb130Thermostat(ClimateEntity):
         temp = value["level"]
         entity = value["id"]
         limit = value["limit"]
-        wifi = value["wifi"]
+        wifi = self._is_wifi_floor
         self._client.set_floor_limit(
             entity, temp, limit, wifi)
         if limit == "low":
