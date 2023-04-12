@@ -448,23 +448,3 @@ set_floor_limit_low:
     floorLimitLow:
       description: Minimum floor heating temperature to set. Between 5 and 34 oC.
       example: 22
-
-set_wifi_floor_limit_high:
-  description: Set climate wifi device floor limit max temperature.
-  fields:
-    entity_id:
-      description: Name(s) of neviweb130 wifi device thermostat (TH1310WF).
-      example: "climate.neviweb130_climate_office_floor"
-    floorLimitHigh:
-      description: Maximum floor heating temperature to set. Between 7 and 36 oC.
-      example: 26
-
-set_wifi_floor_limit_low:
-  description: Set climate wifi device floor limit min temperature.
-  fields:
-    entity_id:
-      description: Name(s) of neviweb130 wifi device thermostat (TH1310WF).
-      example: "climate.neviweb130_climate_office_floor"
-    floorLimitLow:
-      description: Minimum floor heating temperature to set. Between 5 and 34 oC.
-      example: 22
