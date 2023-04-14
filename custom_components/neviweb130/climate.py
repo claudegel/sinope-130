@@ -1082,7 +1082,7 @@ class Neviweb130Thermostat(ClimateEntity):
 #                    _LOGGER.warning("Updating error code: %s",device_error_code)
                     if device_error_code is not None:
                         self._code_compensation_sensor = device_error_code["compensationSensor"]
-                        self._code_thermal_overload = device_error_code["thermalOverload"]
+                        self._code_thermal_overload = device_error_code["thermalOverload"]2
                         if self._is_floor and not self._is_wifi:
                             self._code_floor_sensor = device_error_code["floorSensor"]
                             self._code_gfcibase = device_error_code["gfciBase"]
@@ -1636,8 +1636,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_floor_limit(
             entity, temp, limit, wifi)
         if limit == "low":
-            self._floor_min = temp
+            self._floor_min = temp if temp != 0 else None
             self._floor_min_status = "on"
         else:
-            self._floor_max = temp
+            self._floor_max = temp if temp != 0 else None
             self._floor_max_status = "on"
