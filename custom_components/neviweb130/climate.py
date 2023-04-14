@@ -373,7 +373,7 @@ SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
+            vol.Coerce(float), vol.Range(min=0, max=34)
         ),
     }
 )
@@ -382,7 +382,7 @@ SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
+            vol.Coerce(float), vol.Range(min=0, max=36)
         ),
     }
 )
@@ -1082,7 +1082,7 @@ class Neviweb130Thermostat(ClimateEntity):
 #                    _LOGGER.warning("Updating error code: %s",device_error_code)
                     if device_error_code is not None:
                         self._code_compensation_sensor = device_error_code["compensationSensor"]
-                        self._code_thermal_overload = device_error_code["thermalOverload"]
+                        self._code_thermal_overload = device_error_code["thermalOverload"]2
                         if self._is_floor and not self._is_wifi:
                             self._code_floor_sensor = device_error_code["floorSensor"]
                             self._code_gfcibase = device_error_code["gfciBase"]
@@ -1627,11 +1627,17 @@ class Neviweb130Thermostat(ClimateEntity):
         entity = value["id"]
         limit = value["limit"]
         wifi = self._is_wifi_floor
+        if limit == "low":
+            if temp > 0 and temp < 5:
+                temp = 5
+        else:
+            if temp > 0 and temp < 7:
+                temp = 7
         self._client.set_floor_limit(
             entity, temp, limit, wifi)
         if limit == "low":
-            self._floor_min = temp
+            self._floor_min = temp if temp != 0 else None
             self._floor_min_status = "on"
         else:
-            self._floor_max = temp
+            self._floor_max = temp if temp != 0 else None
             self._floor_max_status = "on"

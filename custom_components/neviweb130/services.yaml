@@ -436,7 +436,7 @@ set_floor_limit_high:
       description: Name(s) of neviweb130 device thermostat (TH1300ZB).
       example: "climate.neviweb130_climate_office_floor"
     floorLimitHigh:
-      description: Maximum floor heating temperature to set. Between 7 and 36 oC.
+      description: Maximum floor heating temperature to set. Between 7 and 36 oC. (0 = off)
       example: 26
 
 set_floor_limit_low:
@@ -446,5 +446,5 @@ set_floor_limit_low:
       description: Name(s) of neviweb130 device thermostat (TH1300ZB).
       example: "climate.neviweb130_climate_office_floor"
     floorLimitLow:
-      description: Minimum floor heating temperature to set. Between 5 and 34 oC.
+      description: Minimum floor heating temperature to set. Between 5 and 34 oC. (0 = off)
       example: 22

@@ -163,8 +163,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
 - neviweb130.set_cool_setpoint_min to set minimum cooling setpoint for TH1134ZB-HC.
 - neviweb130.set_cool_setpoint_max to set maximum cooling setpoint for TH1134ZB-HC.
-- neviweb130.set_floor_limit_low to set minimum setpoint temperature for floor thermostats. (5 to 34 oC)
-- neviweb130.set_floor_limit_high to set maximum setpoint temperature for floor thermostats. (7 to 36 oC)
+- neviweb130.set_floor_limit_low to set minimum setpoint temperature for floor thermostats. (5 to 34 oC), (0 = off)
+- neviweb130.set_floor_limit_high to set maximum setpoint temperature for floor thermostats. (7 to 36 oC), (0 = off)
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action on valve.
 - neviweb130.set_valve_alert to set low battery alert status.
 - neviweb130.set_valve_temp_alert to set low temperature alert on sedna valve.

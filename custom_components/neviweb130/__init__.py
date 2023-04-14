@@ -89,7 +89,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '2.2.0'
+VERSION = '2.2.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -588,7 +588,7 @@ class Neviweb130Client(object):
     def set_floor_air_limit(self, device_id, status, temp):
         """ Set device maximum air temperature limit. """
         if temp == 0:
-            temp = Null
+            temp = None
         data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
         _LOGGER.debug("floorairlimit.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -671,17 +671,29 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_floor_limit(self, device_id, level, low, wifi):
-        """Set floor setpoint limit low and high for zigbee and wifi thermostats."""
-        if wifi:
-            if low == "low":
-                data = {ATTR_FLOOR_MIN:{"value": level, "status": "on"}}
+        """Set floor setpoint limit low and high for zigbee and wifi thermostats. (0 = off)"""
+        if level == 0:
+            if wifi:
+                if low == "low":
+                    data = {ATTR_FLOOR_MIN:{"value": None, "status": "off"}}
+                else:
+                    data = {ATTR_FLOOR_MAX:{"value": None, "status": "off"}}
             else:
-                data = {ATTR_FLOOR_MAX:{"value": level, "status": "on"}}
+                if low == "low":
+                    data = {ATTR_FLOOR_MIN:{"status": "off", "value": None}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+                else:
+                    data = {ATTR_FLOOR_MAX:{"status": "off", "value": None}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
         else:
-            if low == "low":
-                data = {ATTR_FLOOR_MIN:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+            if wifi:
+                if low == "low":
+                    data = {ATTR_FLOOR_MIN:{"value": level, "status": "on"}}
+                else:
+                    data = {ATTR_FLOOR_MAX:{"value": level, "status": "on"}}
             else:
-                data = {ATTR_FLOOR_MAX:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+                if low == "low":
+                    data = {ATTR_FLOOR_MIN:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+                else:
+                    data = {ATTR_FLOOR_MAX:{"status": "on", "value": level}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
         _LOGGER.debug("Floor limit = %s", data)
         self.set_device_attributes(device_id, data)
 
