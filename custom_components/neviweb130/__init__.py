@@ -588,7 +588,7 @@ class Neviweb130Client(object):
     def set_floor_air_limit(self, device_id, status, temp):
         """ Set device maximum air temperature limit. """
         if temp == 0:
-            temp = Null
+            temp = None
         data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
         _LOGGER.debug("floorairlimit.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -675,14 +675,14 @@ class Neviweb130Client(object):
         if level == 0:
             if wifi:
                 if low == "low":
-                    data = {ATTR_FLOOR_MIN:{"value": null, "status": "off"}}
+                    data = {ATTR_FLOOR_MIN:{"value": None, "status": "off"}}
                 else:
-                    data = {ATTR_FLOOR_MAX:{"value": null, "status": "off"}}
+                    data = {ATTR_FLOOR_MAX:{"value": None, "status": "off"}}
             else:
                 if low == "low":
-                    data = {ATTR_FLOOR_MIN:{"status": "off", "value": null}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+                    data = {ATTR_FLOOR_MIN:{"status": "off", "value": None}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
                 else:
-                    data = {ATTR_FLOOR_MAX:{"status": "off", "value": null}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
+                    data = {ATTR_FLOOR_MAX:{"status": "off", "value": None}, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
         else:
             if wifi:
                 if low == "low":
