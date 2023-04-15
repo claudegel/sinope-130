@@ -1059,7 +1059,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._sku != "FLP55":
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-                _LOGGER.debug("Energy data for %s: %s, size = %s", self._sku, device_hourly_stats, len(device_hourly_stats))
+#                _LOGGER.debug("Energy data for %s: %s, size = %s", self._sku, device_hourly_stats, len(device_hourly_stats))
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                     self._hour_kwh = device_hourly_stats[1]["period"] / 1000
@@ -1082,7 +1082,7 @@ class Neviweb130Thermostat(ClimateEntity):
 #                    _LOGGER.warning("Updating error code: %s",device_error_code)
                     if device_error_code is not None:
                         self._code_compensation_sensor = device_error_code["compensationSensor"]
-                        self._code_thermal_overload = device_error_code["thermalOverload"]2
+                        self._code_thermal_overload = device_error_code["thermalOverload"]
                         if self._is_floor and not self._is_wifi:
                             self._code_floor_sensor = device_error_code["floorSensor"]
                             self._code_gfcibase = device_error_code["gfciBase"]
