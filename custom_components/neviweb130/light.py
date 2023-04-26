@@ -359,13 +359,13 @@ class Neviweb130Light(LightEntity):
             else:
                 _LOGGER.warning("Got None for device_hourly_stats")
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            if device_daily_stats is not None:
+            if device_daily_stats is not None and len(device_daily_stats) > 1:
                 self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                 self._today_kwh = device_daily_stats[0]["period"] / 1000
             else:
                 _LOGGER.warning("Got None for device_daily_stats")
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-            if device_monthly_stats is not None:
+            if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
                 self._month_kwh = device_monthly_stats[0]["period"] / 1000
             else:
