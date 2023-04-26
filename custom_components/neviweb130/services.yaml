@@ -79,7 +79,7 @@ set_temperature_format:
       example: "celsius"
 
 set_led_indicator:
-  description: Set led indicator intensity an color for each light state, on/off.
+  description: Set led indicator intensity and color for each light state, on/off.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the led indicator color and intensity.
@@ -91,7 +91,7 @@ set_led_indicator:
       description: 0 = off, 1 to 100 intensity.
       example: 50
     red:
-      description: 0 to 255 RGB reb color indice.
+      description: 0 to 255 RGB red color indice.
       example: 25
     green:
       description: 0 to 255 RGB green color indice.
@@ -179,7 +179,7 @@ set_sensor_alert:
       description: Set to 1, send alert or 0, do nothing.
       example: 1
     cfgValveClosure:
-      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection. You will need to catch that allert and do an automation to close the valve.
+      description: Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection. You will need to catch that alert and do an automation to close the valve.
       example: "on"
 
 set_valve_alert:
@@ -213,13 +213,13 @@ set_early_start:
       example: "on"
 
 set_air_floor_mode:
-  description: Set floor thermostat control mode via Ambiant or Floor temperature sensor.
+  description: Set floor thermostat control mode via Ambient or Floor temperature sensor.
   fields:
     entity_id:
       description: Name(s) of neviweb130 floor thermostat.
       example: "climate.neviweb130_climate_kitchen"
     airFloorMode:
-      description: Set to «airByFloor» (zigbee) or «roomByFloor» (wifi) for ambiant temperature sensor or to «floor» for floor temperature sensor.
+      description: Set to «airByFloor» (zigbee) or «roomByFloor» (wifi) for ambient temperature sensor or to «floor» for floor temperature sensor.
       example: "floor"
 
 set_phase_control:
@@ -262,7 +262,7 @@ set_hvac_dr_setpoint:
       example: -10
 
 set_load_dr_options:
-  description: Set demand response attributes for load controler in Éco Sinopé mode.
+  description: Set demand response attributes for load controller in Éco Sinopé mode.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostats.
@@ -277,7 +277,7 @@ set_load_dr_options:
       description: Set to «on» or «off» to activate Éco Sinopé power on/off control.
       example: "on"
 
-set_control_onOff:
+set_control_onoff:
   description: Set valve controller onOff and onOff2 output status.
   fields:
     entity_id:
@@ -310,7 +310,7 @@ set_cycle_output:
       description: Name(s) of neviweb130 thermostat.
       example: "climate.neviweb130_climate_kitchen"
     value:
-      description: cycle lencht in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_aux_cycle_output:
@@ -323,7 +323,7 @@ set_aux_cycle_output:
       description: Set to «on» or «off» to change status of auxiliary cycle length.
       example: "on"
     value:
-      description: cycle lencht in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_battery_type:
@@ -333,7 +333,7 @@ set_battery_type:
       description: Name(s) of neviweb130 leak sensor.
       example: "sensor.neviweb130_sensor_water_tank"
     batteryType:
-      description: Set to «alkaline» or to «lithium». Original battery type are alkaline for leak sensors.
+      description: Set to «alkaline» or to «lithium». Original battery type is alkaline for leak sensors.
       example: "lithium"
 
 set_pump_protection:
@@ -347,7 +347,7 @@ set_pump_protection:
       example: "on"
 
 set_tank_size:
-  description: Set water heater tank size for RM3500ZB Calypso load controler.
+  description: Set water heater tank size for RM3500ZB Calypso load controller.
   fields:
     entity_id:
       description: Name(s) of neviweb130 switch.
@@ -357,7 +357,7 @@ set_tank_size:
       example: "80 gal"
 
 set_controlled_device:
-  description: Set device type controlled by RM3250ZB load controler.
+  description: Set device type controlled by RM3250ZB load controller.
   fields:
     entity_id:
       description: Name(s) of neviweb130 switch.
@@ -397,30 +397,30 @@ set_low_temp_protection:
       example: 45
 
 set_flow_meter_model:
-  description: Set Sedna 2e gen flow meter model and turn on/off flow meter protection.
+  description: Set Sedna 2nd gen flow meter model and turn on/off flow meter protection.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 Sedna 2e gen device (VA4220ZB).
+      description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
       example: "switch.neviweb130_switch_VA4220ZB"
     FlowModel:
       description: set to FS4220, or FS4221 or  No flow meter.
       example: "No flow meter"
 
 set_flow_meter_delay:
-  description: Set Sedna 2e gen flow meter delay before leak alarm is turned on.
+  description: Set Sedna 2nd gen flow meter delay before leak alarm is turned on.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 Sedna 2e gen device (VA4220ZB).
+      description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
       example: "switch.neviweb130_switch_VA4220ZB"
     alarm1Period:
       description: set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h.
       example: "60 min"
 
 set_flow_meter_options:
-  description: Set Sedna 2e gen flow meter action in case of leak detection.
+  description: Set Sedna 2nd gen flow meter action in case of leak detection.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 Sedna 2e gen device (VA4220ZB).
+      description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
       example: "switch.neviweb130_switch_VA4220ZB"
     triggerAlarm:
       description: send leak alert, on/off.
