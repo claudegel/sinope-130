@@ -1183,7 +1183,8 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_wifi and not self._is_low_wifi:
             data.update({'occupancy': self._occupancy})
         if self._is_wifi_floor:
-            data.update({'gfci_alert': self._gfci_alert})
+            data.update({'gfci_alert': self._gfci_alert,
+                    'floor_temperature': self._floor_temp})
         if self._is_wifi:
             data.update({'temp_display_status': self._temp_display_status,
                     'source_type': self._heat_source_type,
