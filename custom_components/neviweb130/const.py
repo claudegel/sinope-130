@@ -121,6 +121,7 @@ ATTR_FLOW_ALARM1_OPTION = "alarm1Options"
 ATTR_DR_PROTEC_STATUS = "drProtectionLegStatus"
 ATTR_TEMP_ACTION_LOW = "temperatureActionLow"
 ATTR_BATT_ACTION_LOW = "batteryActionLow"
+ATTR_FLOOR_TEMP = "floorTemperature"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
