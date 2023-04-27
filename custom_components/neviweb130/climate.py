@@ -121,6 +121,7 @@ from .const import (
     ATTR_COOL_SETPOINT,
     ATTR_COOL_SETPOINT_MIN,
     ATTR_COOL_SETPOINT_MAX,
+    ATTR_FLOOR_TEMP,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -833,6 +834,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._floor_max_status = "off"
         self._floor_min = None
         self._floor_min_status = "off"
+        self._floor_temp = None
         self._temperature_format = TEMP_CELSIUS
         self._temp_display_status = None
         self._temp_display_value = None
@@ -897,7 +899,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             FLOOR_ATTRIBUTE = []
         if self._is_wifi_floor:
-            WIFI_FLOOR_ATTRIBUTE = [ATTR_GFCI_ALERT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
+            WIFI_FLOOR_ATTRIBUTE = [ATTR_GFCI_ALERT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_TEMP]
         else:
             WIFI_FLOOR_ATTRIBUTE = []
         if self._is_wifi:
@@ -1024,6 +1026,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     if ATTR_FLOOR_MIN in device_data:
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
+                    if ATTR_FLOOR_TEMP in device_data:
+                        self._floor_temp = device_data[ATTR_FLOOR_TEMP]
                     if not self._is_wifi_floor:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
                         if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
