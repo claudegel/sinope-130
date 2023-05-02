@@ -89,7 +89,7 @@ from .const import (
     MODE_MANUAL,
 )
 
-VERSION = '2.2.3'
+VERSION = '2.2.4'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -489,12 +489,12 @@ class Neviweb130Client(object):
         data = {ATTR_INTENSITY: brightness}
         self.set_device_attributes(device_id, data)
 
-    def set_onOff(self, device_id, onoff):
+    def set_onoff(self, device_id, onoff):
         """Set device onOff state."""
         data = {ATTR_ONOFF: onoff}
         self.set_device_attributes(device_id, data)
 
-    def set_valve_onOff(self, device_id, onoff):
+    def set_valve_onoff(self, device_id, onoff):
         """Set sedna valve onOff state."""
         data = {ATTR_MOTOR_TARGET: onoff}
         self.set_device_attributes(device_id, data)
@@ -802,7 +802,7 @@ class Neviweb130Client(object):
         _LOGGER.debug("hvac.DR.setpoint = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_control_onOff(self, device_id, number, status):
+    def set_control_onoff(self, device_id, number, status):
         """Set valve controller onOff or OnOff2 status, on or off."""
         if number == 1:
             data = {ATTR_ONOFF: status}
