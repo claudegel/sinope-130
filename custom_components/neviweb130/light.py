@@ -349,8 +349,12 @@ class Neviweb130Light(LightEntity):
             _LOGGER.warning("Device action not supported... Report to maintainer.")
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
+        elif device_data["error"]["code"] == "SVCERR":
+            _LOGGER.warning("Service error, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif device_data["error"]["code"] == "DVCBUSY":
+            _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
-            _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
+            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
