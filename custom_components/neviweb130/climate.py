@@ -1047,9 +1047,9 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif device_data["error"]["code"] == "DVCACTNSPTD":
-            _LOGGER.warning("Device action not supported... Report to maintainer.")
+            _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
         elif device_data["error"]["code"] == "DVCCOMMTO":
-            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
+            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
         elif device_data["error"]["code"] == "DVCUNVLB":
             _LOGGER.warning("Device %s unavailable, check your network...%s", self._name, device_data)
         elif device_data["error"]["code"] == "DVCATTRNSPTD":
