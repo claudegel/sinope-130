@@ -444,7 +444,7 @@ class Neviweb130Light(LightEntity):
     def turn_on(self, **kwargs):
         """Turn the light on."""
         if not self.is_on:
-            self._client.set_onOff(self._id, "on")
+            self._client.set_onoff(self._id, "on")
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
             brightness_pct = \
                 brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
@@ -454,7 +454,7 @@ class Neviweb130Light(LightEntity):
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        self._client.set_onOff(self._id, "off")
+        self._client.set_onoff(self._id, "off")
         self._brightness_pct = 0
         self._onOff = MODE_OFF
 
