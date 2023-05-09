@@ -350,9 +350,9 @@ class Neviweb130Light(LightEntity):
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
         elif device_data["error"]["code"] == "SVCERR":
-            _LOGGER.warning("Service error, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("Service error, device not available, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif device_data["error"]["code"] == "DVCBUSY":
-            _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
