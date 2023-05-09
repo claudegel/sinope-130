@@ -86,7 +86,7 @@ from .const import (
     ATTR_WIFI_KEYPAD,
     MODE_AWAY,
     MODE_HOME,
-    MODE_MANUAL,
+    MODE_MANUAL
 )
 
 VERSION = '2.2.6'

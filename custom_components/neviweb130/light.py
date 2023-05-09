@@ -302,7 +302,7 @@ class Neviweb130Light(LightEntity):
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_NEW_DIMMER
-        self._onOff = None
+        self._onoff = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -329,7 +329,7 @@ class Neviweb130Light(LightEntity):
                         self._phase_control = device_data[ATTR_PHASE_CONTROL]
                     if ATTR_KEY_DOUBLE_UP in device_data:
                         self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
-                self._onOff = device_data[ATTR_ONOFF]
+                self._onoff = device_data[ATTR_ONOFF]
                 if not self._is_new_dimmable:
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                     self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
@@ -414,7 +414,7 @@ class Neviweb130Light(LightEntity):
         else:
             data.update({'wattage': self._wattage,
                         'Temperature_status': self._temp_status})
-        data.update({'onOff': self._onOff,
+        data.update({'onOff': self._onoff,
                      'keypad': self._keypad,
                      'timer': self._timer,
                      'led_on': self._led_on,
@@ -437,7 +437,7 @@ class Neviweb130Light(LightEntity):
     @property
     def is_on(self): ## need to change this for neviweb130
         """Return true if device is on."""
-        return self._onOff != MODE_OFF
+        return self._onoff != MODE_OFF
 
     # For the turn_on and turn_off functions, we would normally check if the
     # the requested state is different from the actual state to issue the 
@@ -448,19 +448,19 @@ class Neviweb130Light(LightEntity):
     def turn_on(self, **kwargs):
         """Turn the light on."""
         if not self.is_on:
-            self._client.set_onOff(self._id, "on")
+            self._client.set_onoff(self._id, "on")
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
             brightness_pct = \
                 brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
             self._brightness_pct = brightness_pct
-        self._onOff = "on"
+        self._onoff = "on"
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        self._client.set_onOff(self._id, "off")
+        self._client.set_onoff(self._id, "off")
         self._brightness_pct = 0
-        self._onOff = MODE_OFF
+        self._onoff = MODE_OFF
 
     def set_phase_control(self, value):
         """Change phase control parameter, reverse or """
