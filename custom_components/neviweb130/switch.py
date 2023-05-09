@@ -978,11 +978,15 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif device_data["error"]["code"] == "DVCACTNSPTD":
-            _LOGGER.warning("Device action not supported... Report to maintainer.")
+            _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
         elif device_data["error"]["code"] == "DVCCOMMTO":
-            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
+            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+        elif device_data["error"]["code"] == "SVCERR":
+            _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif device_data["error"]["code"] == "DVCBUSY":
+            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
-            _LOGGER.warning("Unknown error for %s: %s... Report to maintainer.", self._name, device_data)
+            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)

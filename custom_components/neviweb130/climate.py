@@ -1047,13 +1047,17 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif device_data["error"]["code"] == "DVCACTNSPTD":
-            _LOGGER.warning("Device action not supported... Report to maintainer.")
+            _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
         elif device_data["error"]["code"] == "DVCCOMMTO":
-            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay.")
+            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
         elif device_data["error"]["code"] == "DVCUNVLB":
             _LOGGER.warning("Device %s unavailable, check your network...%s", self._name, device_data)
         elif device_data["error"]["code"] == "DVCATTRNSPTD":
             _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif device_data["error"]["code"] == "SVCERR":
+            _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif device_data["error"]["code"] == "DVCBUSY":
+            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if self._sku != "FLP55":
