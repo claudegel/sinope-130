@@ -1055,9 +1055,9 @@ class Neviweb130Thermostat(ClimateEntity):
         elif device_data["error"]["code"] == "DVCATTRNSPTD":
             _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif device_data["error"]["code"] == "SVCERR":
-            _LOGGER.warning("Service error, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif device_data["error"]["code"] == "DVCBUSY":
-            _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if self._sku != "FLP55":
