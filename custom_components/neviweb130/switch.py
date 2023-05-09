@@ -982,9 +982,9 @@ class Neviweb130Switch(SwitchEntity):
         elif device_data["error"]["code"] == "DVCCOMMTO":
             _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
         elif device_data["error"]["code"] == "SVCERR":
-            _LOGGER.warning("Service error, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif device_data["error"]["code"] == "DVCBUSY":
-            _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
         if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
