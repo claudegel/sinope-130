@@ -308,6 +308,7 @@ In you log you can get those messages from Neviweb:
 - USRSESSEXP: User session expired. Reduce your scan_intervall below 6 minutes or your session will be terminated.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many time and/or you also have an open session on Neviweb. 
 - DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly wifi devices.
+- DVCBUSY: Neviweb is performing an update and devices are not available. Try later.
 - SVCERR: Service error. Service unavailable. Try later.
 - DVCATTRNSPTD: Device sttribute not supported, The device you have installed have and older firmware and do not support som attributes. Wait for firmware update in Neviweb and the error should dissapear or file an issue so we can put an exception in the code. 
 - USRBADLOGIN: your login and/or password provided in configuration for Neviweb is no good.
