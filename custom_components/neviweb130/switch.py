@@ -763,6 +763,11 @@ class Neviweb130Switch(SwitchEntity):
         self._water_temp_time = None
         self._stm_mcu = None
         self._temp_status = None
+        self._thermal_overload = None
+        self._current_overload = None
+        self._j2connector = None
+        self._j3connector = None
+        self._line_error = None
         self._flow_alarm_1 = None
         self._flow_alarm_2 = None
         self._temp_action_low = None
@@ -938,6 +943,11 @@ class Neviweb130Switch(SwitchEntity):
                     if ATTR_ERROR_CODE_SET1 in device_data:
                         self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
                         self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
+                        self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
+                        self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
+                        self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
+                        self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
+                        self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
@@ -1127,6 +1137,11 @@ class Neviweb130Switch(SwitchEntity):
                    'Tank_size': neviweb_to_ha(self._tank_size),
                    'Temperature_status': self._temp_status,
                    'Stm_Mcu': self._stm_mcu,
+                   'Thermal_overload': self._thermal_overload,
+                   'Current_overload': self._current_overload,
+                   'j2Connector': self._j2connector,
+                   'j3Connector': self._j3connector,
+                   'Line_error': self._line_error,
                    'eco_status': self._drstatus_active,
                    'eco_optOut': self._drstatus_optout,
                    'eco_onoff': self._drstatus_onoff,
