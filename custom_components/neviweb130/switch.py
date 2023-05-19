@@ -723,6 +723,7 @@ class Neviweb130Switch(SwitchEntity):
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_onoff = "off"
+        self._drstatus_optout_reason = "off"
         self._battery_alert = None
         self._temp_alert = None
         self._humidity = None
@@ -759,6 +760,7 @@ class Neviweb130Switch(SwitchEntity):
         self._water_temp_min = None
         self._temperature = None
         self._consumption = None
+        self._consumption_time = None
         self._watt_time_on = None
         self._water_temp_time = None
         self._stm_mcu = None
@@ -957,11 +959,13 @@ class Neviweb130Switch(SwitchEntity):
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                        self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
                     self._water_temp_min = device_data[ATTR_WATER_TEMP_MIN]
                     self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
                     self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
                     self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
+                    self._consumption_time = device_data[ATTR_DR_PROTEC_STATUS]["consumptionOverTime"]
                 elif self._is_zb_control or self._is_sedna_control:
                     self._onoff = device_data[ATTR_ONOFF]
                     self._onoff2 = device_data[ATTR_ONOFF2]
@@ -1145,11 +1149,13 @@ class Neviweb130Switch(SwitchEntity):
                    'eco_status': self._drstatus_active,
                    'eco_optOut': self._drstatus_optout,
                    'eco_onoff': self._drstatus_onoff,
+                   'eco_optout_reason': self._drstatus_optout_reason,
                    'Water_temp_min': self._water_temp_min,
                    'Water_time_on': self._watt_time_on,
                    'Water_temp_time': self._water_temp_time,
                    'Protection_Temperature': self._temperature,
                    'Protection_Consumption': self._consumption,
+                   'Protection_consumption_overtime': self._consumption_time,
                    'Rssi': self._rssi}
         elif self._is_wifi_valve:
             data = {'Valve_status': self._valve_status,
