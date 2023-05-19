@@ -936,7 +936,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
                         self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
