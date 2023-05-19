@@ -955,6 +955,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
+                    if ATTR_CYCLE in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -1202,7 +1204,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     'status wire sensor': self._code_wire_sensor,
                     'status current sensor': self._code_current_overload,
                     'status thermal sensor': self._code_thermal_overload,
-                    'status end of life sensor': self._code_end_of_life})
+                    'status end of life sensor': self._code_end_of_life,
+                    'cycle_length': self._cycle_length})
             elif self._is_low_voltage:
                 data.update({'status compensation sensor': self._code_compensation_sensor,
                             'status thermal overload': self._code_thermal_overload,
