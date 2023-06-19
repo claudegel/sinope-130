@@ -30,8 +30,11 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
+  - Sinopé SW2500ZB-G2 Light switch
   - Sinopé DM2500ZB Dimmer
+  - Sinopé DM2500ZB-G2 Dimmer
   - Sinopé DM2550ZB Dimmer
+  - Sinopé DM2550ZB-G2 Dimmer
 - Zigbee specialized Control:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
