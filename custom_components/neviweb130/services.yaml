@@ -476,7 +476,7 @@ set_low_fuel_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertLowFuelPercent:
-      description: possible value, 0, 10, 20, 30.
+      description: possible value, 0 (off), 10, 20, 30.
       example: 20
 
 set_tank_height:
@@ -486,7 +486,7 @@ set_tank_height:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     tankHeight:
-      description: possible value, 0, 23, 24, 35, 38, 47, 48, 50.
+      description: possible value, 0 (off), 23, 24, 35, 38, 47, 48, 50.
       example: 38
 
 set_fuel_alert:
