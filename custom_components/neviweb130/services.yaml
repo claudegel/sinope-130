@@ -448,3 +448,53 @@ set_floor_limit_low:
     floorLimitLow:
       description: Minimum floor heating temperature to set. Between 5 and 34 oC. (0 = off)
       example: 22
+
+set_tank_type:
+  description: Set tank type for LM4110-ZB.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    tankType:
+      description: possible value, propane or mazout.
+      example: "propane"
+
+set_gauge_type:
+  description: Set gauge type for LM4110-ZB on propane tank.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    gaugeType:
+      description: possible value, 595 or 1080.
+      example: "1080"
+
+set_low_fuel_alert:
+  description: Set low fuel level limit for propane tank.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    alertLowFuelPercent:
+      description: possible value, 0 (off), 10, 20, 30.
+      example: 20
+
+set_tank_height:
+  description: Set tank height for LM4110-ZB on mazout tank.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    tankHeight:
+      description: possible value, 0 (off), 23, 24, 35, 38, 47, 48, 50.
+      example: 38
+
+set_fuel_alert:
+  description: Set fuel alert, on/off for LM4110-ZB.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    alertLowFuel:
+      description: set to "true" to activate alert, or "false".
+      example: "true"

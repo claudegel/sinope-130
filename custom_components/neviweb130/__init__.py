@@ -84,12 +84,17 @@ from .const import (
     ATTR_FLOW_ALARM1_LENGHT,
     ATTR_FLOW_THRESHOLD,
     ATTR_WIFI_KEYPAD,
+    ATTR_TANK_TYPE,
+    ATTR_GAUGE_TYPE,
+    ATTR_FUEL_PERCENT_ALERT,
+    ATTR_TANK_HEIGHT,
+    ATTR_FUEL_ALERT,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL
 )
 
-VERSION = '2.2.7'
+VERSION = '2.3.0'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -809,6 +814,36 @@ class Neviweb130Client(object):
         else:
             data = {ATTR_ONOFF2: status}
         _LOGGER.debug("control.valve.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_tank_type(self, device_id, tank):
+        """Set tank type for LM4110-ZB sensor."""
+        data = {ATTR_TANK_TYPE: tank}
+        _LOGGER.debug("tank_type.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_gauge_type(self, device_id, gauge):
+        """Set gauge type for LM4110-ZB sensor on propane tank."""
+        data = {ATTR_GAUGE_TYPE: gauge}
+        _LOGGER.debug("gauge_type.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_low_fuel_alert(self, device_id, alert):
+        """Set low fuel alert limit for LM4110-ZB sensor."""
+        data = {ATTR_FUEL_PERCENT_ALERT: alert}
+        _LOGGER.debug("low_fuel_alert.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_tank_height(self, device_id, height):
+        """Set low fuel alert limit for LM4110-ZB sensor."""
+        data = {ATTR_TANK_HEIGHT: height}
+        _LOGGER.debug("tank_height.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_fuel_alert(self, device_id, fuel):
+        """Set low fuel alert limit for LM4110-ZB sensor."""
+        data = {ATTR_FUEL_ALERT: fuel}
+        _LOGGER.debug("tank_height.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
