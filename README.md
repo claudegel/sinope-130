@@ -66,9 +66,11 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé FS4221, 1 inch flow sensor
 - Tank level monitor:
   - Sinopé LM4110-ZB, Propane tank level monitor
-- Gateway
+- Gateway:
   - GT130
   - GT4220WF-M, mesh gateway
+- Power supply:
+  - Sinopé ACUPS-01, battery backup for Sedna valve
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to interact with them within Home Assistant. Please refer to the instructions manual of your device or visit [Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).

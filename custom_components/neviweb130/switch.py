@@ -121,6 +121,7 @@ from .const import (
     ATTR_FLOW_ALARM1_PERIOD,
     ATTR_FLOW_ALARM1_LENGHT,
     ATTR_FLOW_ALARM1_OPTION,
+    ATTR_POWER_SUPPLY,
     ATTR_DR_PROTEC_STATUS,
     ATTR_TEMP_ACTION_LOW,
     ATTR_BATT_ACTION_LOW,
@@ -716,6 +717,7 @@ class Neviweb130Switch(SwitchEntity):
         self._cur_temp = None
         self._battery_voltage = 0
         self._battery_status = None
+        self._power_supply = None
         self._valve_closure = None
         self._timer = 0
         self._timer2 = 0
@@ -782,14 +784,14 @@ class Neviweb130Switch(SwitchEntity):
         elif self._is_load:
             LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
         elif self._is_wifi_valve:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
         elif self._is_zb_valve:
-            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_RSSI]
+            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_RSSI]
         elif self._is_wifi_mesh_valve:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
+            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
             ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
         elif self._is_zb_mesh_valve:
-            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
+            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
             ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
         elif self._is_tank_load:
             LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
@@ -817,6 +819,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
@@ -849,6 +852,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     if ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
                     if ATTR_TEMP_ALERT in device_alert:
@@ -866,6 +870,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     if ATTR_STM8_ERROR in device_data:
@@ -901,6 +906,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE] if \
                         device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                    self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     if ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
                     if ATTR_STM8_ERROR in device_data:
@@ -1163,6 +1169,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
+                   'Power_supply': self._power_supply,
                    'Valve_closure_source': self._valve_closure,
                    'Battery_alert': self._battery_alert,
                    'Motor_target_position': self._motor_target,
@@ -1189,6 +1196,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
+                   'Power_supply': self._power_supply,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat"),
                    'Temperature_alert': alert_to_text(self._temp_alert, "temp")}
         elif self._is_wifi_mesh_valve:
@@ -1201,6 +1209,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
+                   'Power_supply': self._power_supply,
                    'Alert_motor_jam': self._stm8Error_motorJam,
                    'Alert_motor_position': self._stm8Error_motorPosition,
                    'Alert_motor_limit': self._stm8Error_motorLimit,
@@ -1226,6 +1235,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
+                   'Power_supply': self._power_supply,
                    'Alert_motor_jam': self._stm8Error_motorJam,
                    'Alert_motor_position': self._stm8Error_motorPosition,
                    'Alert_motor_limit': self._stm8Error_motorLimit,
