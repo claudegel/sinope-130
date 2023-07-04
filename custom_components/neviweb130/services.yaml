@@ -498,3 +498,13 @@ set_fuel_alert:
     alertLowFuel:
       description: set to "true" to activate alert, or "false".
       example: "true"
+
+set_power_supply:
+  description: Set power supply type for Sedna valve.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device Sedna valve.
+      example: "switch.neviweb130_switch_sedna"
+    backupPowerSupply:
+      description: set to "batt" for battery only, "power" for ACUPS-01 power supply only and "both" for battery and power supply together.
+      example: "power"
