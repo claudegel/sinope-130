@@ -315,6 +315,13 @@ SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
     }
 )
 
+SET_POWER_SUPPLY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_POWER_SUPPLY): vol.In(["batt", "power", "both"]),
+    }
+)
+
 async def async_setup_platform(
     hass,
     config,
@@ -511,6 +518,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_power_supply_service(service):
+        """ Set power supply type for water valve """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "supply": service.data[ATTR_POWER_SUPPLY]}
+                switch.set_power_supply(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -600,6 +618,13 @@ async def async_setup_platform(
         SERVICE_SET_FLOW_METER_OPTIONS,
         set_flow_meter_options_service,
         schema=SET_FLOW_METER_OPTIONS_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_POWER_SUPPLY,
+        set_power_supply_service,
+        schema=SET_POWER_SUPPLY_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, num):
@@ -1408,6 +1433,19 @@ class Neviweb130Switch(SwitchEntity):
         entity = value["id"]
         self._client.set_flow_meter_delay(entity, delay)
         self._flowmeter_alert_delay = val
+
+    def set_power_supply(self, value):
+        """ Set water valve power supply type """
+        match value["supply"]:
+            case "batt":
+                sup = "batteries"
+            case "power":
+                sup = "acups-01"
+            case _:
+                sup = "both"
+        entity = value["id"]
+        self._client.set_power_supply(entity, sup)
+        self._power_supply = sup
 
     def set_flow_meter_options(self, value):
         """ Set water valve flow meter options when leak detected """
