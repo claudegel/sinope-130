@@ -143,6 +143,7 @@ from .const import (
     SERVICE_SET_FLOW_METER_MODEL,
     SERVICE_SET_FLOW_METER_DELAY,
     SERVICE_SET_FLOW_METER_OPTIONS,
+    SERVICE_SET_POWER_SUPPLY,
 )
 
 _LOGGER = logging.getLogger(__name__)
