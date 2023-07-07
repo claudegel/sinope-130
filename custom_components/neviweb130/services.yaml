@@ -456,7 +456,7 @@ set_tank_type:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     tankType:
-      description: possible value, propane or mazout.
+      description: possible value, propane or oil.
       example: "propane"
 
 set_gauge_type:
