@@ -131,7 +131,7 @@ SET_BATTERY_TYPE_SCHEMA = vol.Schema(
 SET_TANK_TYPE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TANK_TYPE): vol.In(["propane", "mazout"]),
+        vol.Required(ATTR_TANK_TYPE): vol.In(["propane", "oil"]),
     }
 )
 
