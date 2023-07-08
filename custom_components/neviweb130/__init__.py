@@ -847,6 +847,12 @@ class Neviweb130Client(object):
         _LOGGER.debug("tank_height.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_battery_alert(self, device_id, batt):
+        """Set low fuel alert limit for LM4110-ZB sensor."""
+        data = {ATTR_BATT_ALERT: batt}
+        _LOGGER.debug("battery_alert.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_power_supply(self, device_id, supply):
         """Set power supply for Sedna valve."""
         data = {ATTR_POWER_SUPPLY: supply}
