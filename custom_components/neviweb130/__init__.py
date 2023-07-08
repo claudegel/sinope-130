@@ -30,6 +30,7 @@ from .const import (
     ATTR_ONOFF,
     ATTR_ONOFF2,
     ATTR_POWER_MODE,
+    ATTR_POWER_SUPPLY,
     ATTR_SETPOINT_MODE,
     ATTR_ROOM_SETPOINT,
     ATTR_ROOM_SETPOINT_MIN,
@@ -94,7 +95,7 @@ from .const import (
     MODE_MANUAL
 )
 
-VERSION = '2.3.1'
+VERSION = '2.3.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -844,6 +845,18 @@ class Neviweb130Client(object):
         """Set low fuel alert limit for LM4110-ZB sensor."""
         data = {ATTR_FUEL_ALERT: fuel}
         _LOGGER.debug("tank_height.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_battery_alert(self, device_id, batt):
+        """Set low fuel alert limit for LM4110-ZB sensor."""
+        data = {ATTR_BATT_ALERT: batt}
+        _LOGGER.debug("battery_alert.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_power_supply(self, device_id, supply):
+        """Set power supply for Sedna valve."""
+        data = {ATTR_POWER_SUPPLY: supply}
+        _LOGGER.debug("power_supply.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

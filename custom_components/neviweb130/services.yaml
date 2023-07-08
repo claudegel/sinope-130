@@ -456,7 +456,7 @@ set_tank_type:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     tankType:
-      description: possible value, propane or mazout.
+      description: possible value, propane or oil.
       example: "propane"
 
 set_gauge_type:
@@ -467,7 +467,7 @@ set_gauge_type:
       example: "sensor.neviweb130_sensor_propane"
     gaugeType:
       description: possible value, 595 or 1080.
-      example: "1080"
+      example: 1080
 
 set_low_fuel_alert:
   description: Set low fuel level limit for propane tank.
@@ -480,13 +480,13 @@ set_low_fuel_alert:
       example: 20
 
 set_tank_height:
-  description: Set tank height for LM4110-ZB on mazout tank.
+  description: Set tank height for LM4110-ZB on oil tank. Tank type need to be set to «oil» before.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     tankHeight:
-      description: possible value, 0 (off), 23, 24, 35, 38, 47, 48, 50.
+      description: possible value, 23, 24, 35, 38, 47, 48, 50.
       example: 38
 
 set_fuel_alert:
@@ -496,5 +496,25 @@ set_fuel_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertLowFuel:
-      description: set to "true" to activate alert, or "false".
-      example: "true"
+      description: set to «True» to activate alert, or «False».
+      example: True
+
+set_battery_alert:
+  description: Set battery alert, on/off for LM4110-ZB.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    alertLowBatt:
+      description: set to «True» to activate alert, or «False».
+      example: True
+
+set_power_supply:
+  description: Set power supply type for Sedna valve.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device Sedna valve.
+      example: "switch.neviweb130_switch_sedna"
+    backupPowerSupply:
+      description: set to "batt" for battery only, "power" for ACUPS-01 power supply only and "both" for battery and power supply together.
+      example: "power"

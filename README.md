@@ -190,11 +190,13 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_flow_meter_model to change the flow meter model connected to sedna valve 2e gen and start/stop leak protection from flow meter.
 - neviweb130.set_flow_meter_delay to set the leak delay before the valve close if a leak is detected by the flow meter. 
 - neviweb130.set_flow_meter_options to set the flow meter action: close the valve (yes/no) and to send alert message (yes/no), or just do nothing.
-- neviweb130.set_tank_type to set tank type for LM4110-ZB, propane or mazout.
+- neviweb130.set_tank_type to set tank type for LM4110-ZB, propane or oil.
 - neviweb130.set_gauge_type to set gauge type for LM4110-ZB on propane tank, model 5-95 or 10-80.
 - neviweb130.set_low_fuel_alert to set low fuel level limit for propane tank, 0 (off), 10, 20 or 30%.
 - neviweb130.set_tank_height to set mazout tank height for LM4110-ZB sensor, 0 (off), 23, 24, 35, 38, 47, 48, 50.
 - neviweb130.set_fuel_alert to set fuel alert, on/off for LM4110-ZB.
+- neviweb130.set_power_supply to set power souce for Sedna valve between battery, acups-01 or both.
+- neviweb130.set_battery_alert to set battery alert on/off for LM4110-ZB.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:

@@ -84,6 +84,7 @@ from .const import (
     SERVICE_SET_LOW_FUEL_ALERT,
     SERVICE_SET_TANK_HEIGHT,
     SERVICE_SET_FUEL_ALERT,
+    SERVICE_SET_BATTERY_ALERT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,35 +132,45 @@ SET_BATTERY_TYPE_SCHEMA = vol.Schema(
 SET_TANK_TYPE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TANK_TYPE): vol.In(["propane", "mazout"]),
+        vol.Required(ATTR_TANK_TYPE): vol.In(["propane", "oil"]),
     }
 )
 
 SET_GAUGE_TYPE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_GAUGE_TYPE): vol.In(["595", "1080"]),
+        vol.Required(ATTR_GAUGE_TYPE): vol.All(
+            vol.Coerce(int), vol.In([595, 1080])),
     }
 )
 
 SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.In([0, 10, 20, 30]),
+        vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.All(
+            vol.Coerce(int), vol.In([0, 10, 20, 30])),
     }
 )
 
 SET_TANK_HEIGHT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TANK_HEIGHT): vol.In([0, 23, 24, 35, 38, 47, 48, 50]),
+        vol.Required(ATTR_TANK_HEIGHT): vol.All(
+            vol.Coerce(int), vol.In([23, 24, 35, 38, 47, 48, 50])),
     }
 )
 
 SET_FUEL_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FUEL_ALERT): vol.In(["true", "false"]),
+        vol.Required(ATTR_FUEL_ALERT): vol.In([True, False]),
+    }
+)
+
+SET_BATTERY_ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BATT_ALERT): vol.In([True, False]),
     }
 )
 
@@ -249,7 +260,7 @@ async def async_setup_platform(
                 break
 
     def set_low_fuel_alert_service(service):
-        """ Set low fuel alert on tank, propane or mazout """
+        """ Set low fuel alert on tank, propane or oil """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -260,7 +271,7 @@ async def async_setup_platform(
                 break
 
     def set_tank_height_service(service):
-        """ Set tank height for mazout tank """
+        """ Set tank height for oil tank """
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -278,6 +289,17 @@ async def async_setup_platform(
             if sensor.entity_id == entity_id:
                 value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
                 sensor.set_fuel_alert(value)
+                sensor.schedule_update_ha_state(True)
+                break
+
+    def set_battery_alert_service(service):
+        """ Set battery alert for LM4110-ZB """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for sensor in entities:
+            if sensor.entity_id == entity_id:
+                value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+                sensor.set_battery_alert(value)
                 sensor.schedule_update_ha_state(True)
                 break
 
@@ -328,6 +350,13 @@ async def async_setup_platform(
         SERVICE_SET_FUEL_ALERT,
         set_fuel_alert_service,
         schema=SET_FUEL_ALERT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_BATTERY_ALERT,
+        set_battery_alert_service,
+        schema=SET_BATTERY_ALERT_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, type):
@@ -400,12 +429,13 @@ class Neviweb130Sensor(Entity):
         self._tank_type = None
         self._tank_height = None
         self._tank_percent = None
+        self._gauge_type = None
         self._temperature = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._is_monitor:
-            MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
+            MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_BATT_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
         else:
             MONITOR_ATTRIBUTE = []
         if self._is_leak or self._is_connected:
@@ -460,6 +490,7 @@ class Neviweb130Sensor(Entity):
                     self._gauge_type = device_data[ATTR_GAUGE_TYPE]
                     self._fuel_alert = device_data[ATTR_FUEL_ALERT]
                     self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
+                    self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_ERROR_CODE_SET1 in device_data:
                         self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                 self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
@@ -550,6 +581,7 @@ class Neviweb130Sensor(Entity):
                     'Last_sampling_time': convert(self._sampling),
                     'Battery_level': voltage_to_percentage(self._battery_voltage, "lithium"),
                     'Battery_voltage': self._battery_voltage,
+                    'Battery_alert': self._battery_alert,
                     'Tank_type': self._tank_type,
                     'Tank_height': self._tank_height,
                     'Tank_percent': self._tank_percent,
@@ -632,7 +664,7 @@ class Neviweb130Sensor(Entity):
 
     def set_gauge_type(self, value):
         """ Set gauge type for LM4110-ZB sensor. """
-        gauge = value["gauge"]
+        gauge = str(value["gauge"])
         entity = value["id"]
         self._client.set_gauge_type(
             entity, gauge)
@@ -661,3 +693,11 @@ class Neviweb130Sensor(Entity):
         self._client.set_fuel_alert(
             entity, fuel)
         self._fuel_alert = fuel
+
+    def set_battery_alert(self, value):
+        """ Set low battery alert LM4110-ZB sensor. """
+        batt = value["batt"]
+        entity = value["id"]
+        self._client.set_battery_alert(
+            entity, batt)
+        self._battery_alert = batt
