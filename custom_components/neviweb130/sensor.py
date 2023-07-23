@@ -85,6 +85,7 @@ from .const import (
     SERVICE_SET_TANK_HEIGHT,
     SERVICE_SET_FUEL_ALERT,
     SERVICE_SET_BATTERY_ALERT,
+    SERVICE_SET_ACTIVATION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -171,6 +172,13 @@ SET_BATTERY_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BATT_ALERT): vol.In([True, False]),
+    }
+)
+
+SET_ACTIVATION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("active"): vol.In([True, False]),
     }
 )
 
@@ -303,6 +311,17 @@ async def async_setup_platform(
                 sensor.schedule_update_ha_state(True)
                 break
 
+    def set_activation_service(service):
+        """ Activate or deactivate Neviweb polling for missing device """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "active": service.data["active"]}
+                switch.set_activation(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SENSOR_ALERT,
@@ -357,6 +376,13 @@ async def async_setup_platform(
         SERVICE_SET_BATTERY_ALERT,
         set_battery_alert_service,
         schema=SET_BATTERY_ALERT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ACTIVATION,
+        set_activation_service,
+        schema=SET_ACTIVATION_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, type):
@@ -431,88 +457,95 @@ class Neviweb130Sensor(Entity):
         self._tank_percent = None
         self._gauge_type = None
         self._temperature = None
+        self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._is_monitor:
-            MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_BATT_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
-        else:
-            MONITOR_ATTRIBUTE = []
-        if self._is_leak or self._is_connected:
-            LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_RSSI]
-        else:
-            LEAK_ATTRIBUTE = []
-        if self._is_connected:
-            CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
-        else:
-            CONNECTED_ATTRIBUTE = []
+        if self._activ:
+            if self._is_monitor:
+                MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_BATT_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
+            else:
+                MONITOR_ATTRIBUTE = []
+            if self._is_leak or self._is_connected:
+                LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_RSSI]
+            else:
+                LEAK_ATTRIBUTE = []
+            if self._is_connected:
+                CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
+            else:
+                CONNECTED_ATTRIBUTE = []
 
-        """Get the latest data from Neviweb and update the state."""
-        start = time.time()
-        if self._is_gateway:
-            device_status = self._client.get_device_status(self._id)
-        else:
-            device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE + LEAK_ATTRIBUTE + CONNECTED_ATTRIBUTE)
-#        device_daily_stats = self._client.get_device_daily_stats(self._id)
-        end = time.time()
-        elapsed = round(end - start, 3)
-        if self._is_gateway:
-            _LOGGER.debug("Updating %s (%s sec): %s",
-                self._name, elapsed, device_status)
-        else:
-            _LOGGER.debug("Updating %s (%s sec): %s",
-                self._name, elapsed, device_data)
-        if self._is_gateway:
-            self._gateway_status = device_status[ATTR_STATUS]
-            return
-        if "error" not in device_data or device_data is not None:
-            if "errorCode" not in device_data:
-                if self._is_leak or self._is_connected:
-                    self._leak_status = STATE_WATER_LEAK if \
-                        device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                    self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
-                    self._leak_alert = device_data[ATTR_LEAK_ALERT]
-                    self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
-                    if ATTR_BATTERY_STATUS in device_data:
-                        self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                        self._battery_type = device_data[ATTR_BATTERY_TYPE]
-                    if self._is_connected:
-                        self._temp_alert = device_data[ATTR_TEMP_ALERT]
-                        self._battery_alert = device_data[ATTR_BATT_ALERT]
-                        self._closure_action = device_data[ATTR_CONF_CLOSURE]
-                else:
-                    self._angle = device_data[ATTR_ANGLE]["value"]
-                    self._sampling = device_data[ATTR_ANGLE][ATTR_SAMPLING]
-                    self._tank_percent = device_data[ATTR_TANK_PERCENT]
-                    self._tank_type = device_data[ATTR_TANK_TYPE]
-                    self._tank_height = device_data[ATTR_TANK_HEIGHT]
-                    self._gauge_type = device_data[ATTR_GAUGE_TYPE]
-                    self._fuel_alert = device_data[ATTR_FUEL_ALERT]
-                    self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
-                    self._battery_alert = device_data[ATTR_BATT_ALERT]
-                    if ATTR_ERROR_CODE_SET1 in device_data:
-                        self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
-                self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
+            """Get the latest data from Neviweb and update the state."""
+            start = time.time()
+            if self._is_gateway:
+                device_status = self._client.get_device_status(self._id)
+            else:
+                device_data = self._client.get_device_attributes(self._id,
+                UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE + LEAK_ATTRIBUTE + CONNECTED_ATTRIBUTE)
+#            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            end = time.time()
+            elapsed = round(end - start, 3)
+            if self._is_gateway:
+                _LOGGER.debug("Updating %s (%s sec): %s",
+                    self._name, elapsed, device_status)
+            else:
+                _LOGGER.debug("Updating %s (%s sec): %s",
+                    self._name, elapsed, device_data)
+            if self._is_gateway:
+                self._gateway_status = device_status[ATTR_STATUS]
                 return
-            _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-            return
-        if device_data["error"]["code"] == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
-            self._client.reconnect()
-        elif device_data["error"]["code"] == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections to Neviweb and try again.")
-            self._client.reconnect()
-        elif device_data["error"]["code"] == "DVCACTNSPTD":
-            _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
-        elif device_data["error"]["code"] == "DVCCOMMTO":
-            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
-        elif device_data["error"]["code"] == "DVCBUSY":
-            _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-        else:
-            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
+            if "error" not in device_data or device_data is not None:
+                if "errorCode" not in device_data:
+                    if self._is_leak or self._is_connected:
+                        self._leak_status = STATE_WATER_LEAK if \
+                            device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
+                        self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
+                        self._leak_alert = device_data[ATTR_LEAK_ALERT]
+                        self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
+                        if ATTR_BATTERY_STATUS in device_data:
+                            self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                            self._battery_type = device_data[ATTR_BATTERY_TYPE]
+                        if self._is_connected:
+                            self._temp_alert = device_data[ATTR_TEMP_ALERT]
+                            self._battery_alert = device_data[ATTR_BATT_ALERT]
+                            self._closure_action = device_data[ATTR_CONF_CLOSURE]
+                    else:
+                        self._angle = device_data[ATTR_ANGLE]["value"]
+                        self._sampling = device_data[ATTR_ANGLE][ATTR_SAMPLING]
+                        self._tank_percent = device_data[ATTR_TANK_PERCENT]
+                        self._tank_type = device_data[ATTR_TANK_TYPE]
+                        self._tank_height = device_data[ATTR_TANK_HEIGHT]
+                        self._gauge_type = device_data[ATTR_GAUGE_TYPE]
+                        self._fuel_alert = device_data[ATTR_FUEL_ALERT]
+                        self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
+                        self._battery_alert = device_data[ATTR_BATT_ALERT]
+                        if ATTR_ERROR_CODE_SET1 in device_data:
+                            self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                    self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                    if ATTR_RSSI in device_data:
+                            self._rssi = device_data[ATTR_RSSI]
+                    return
+                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+                return
+            if device_data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.warning("Session expired... reconnecting...")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "ACCSESSEXC":
+                _LOGGER.warning("Maximun session number reached...Close other connections to Neviweb and try again.")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "DVCACTNSPTD":
+                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+            elif device_data["error"]["code"] == "DVCCOMMTO":
+                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+            elif device_data["error"]["code"] == "DVCBUSY":
+                _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            elif device_data["error"]["code"] == "DVCUNVLB":
+                _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
+                _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and neviweb.",self._name)
+                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation.",self._name)
+                self._activ = False
+            else:
+                _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
 
     @property
     def unique_id(self):
@@ -607,6 +640,7 @@ class Neviweb130Sensor(Entity):
         elif self._is_gateway:
             data = {'Gateway_status': self._gateway_status}
         data.update({'sku': self._sku,
+                    'Activation': self._activ,
                     'device_type': self._device_type,
                     'Id': self._id})
         return data
@@ -701,3 +735,8 @@ class Neviweb130Sensor(Entity):
         self._client.set_battery_alert(
             entity, batt)
         self._battery_alert = batt
+
+    def set_activation(self, value):
+        """ Activate or deactivate neviweb polling for a missing device """
+        action = value["active"]
+        self._activ = action
