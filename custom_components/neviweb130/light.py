@@ -69,6 +69,7 @@ from .const import (
     SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
+    SERVICE_SET_ACTIVATION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -143,6 +144,13 @@ SET_PHASE_CONTROL_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEYPAD): vol.In(["reverse", "forward"]),
+    }
+)
+
+SET_ACTIVATION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("active"): vol.In([True, False]),
     }
 )
 
@@ -232,6 +240,17 @@ async def async_setup_platform(
                 light.schedule_update_ha_state(True)
                 break
 
+    def set_activation_service(service):
+        """ Activate or deactivate Neviweb polling for missing device """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "active": service.data["active"]}
+                switch.set_activation(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_LIGHT_KEYPAD_LOCK,
@@ -265,6 +284,13 @@ async def async_setup_platform(
         SERVICE_SET_PHASE_CONTROL,
         set_phase_control_service,
         schema=SET_PHASE_CONTROL_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ACTIVATION,
+        set_activation_service,
+        schema=SET_ACTIVATION_SCHEMA,
     )
 
 def brightness_to_percentage(brightness):
@@ -301,6 +327,7 @@ class Neviweb130Light(LightEntity):
         self._double_up = None
         self._temp_status = None
         self._energy_stat_time = time.time() - 1500
+        self._activ = True
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
@@ -309,77 +336,83 @@ class Neviweb130Light(LightEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        """Get the latest data from neviweb and update the state."""
-        if not self._is_new_dimmable:
-            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
-        else:
-            WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP]
-        start = time.time()
-        device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
-        end = time.time()
-        elapsed = round(end - start, 3)
-        _LOGGER.debug("Updating %s (%s sec): %s",
-            self._name, elapsed, device_data)
-        if "error" not in device_data:
-            if "errorCode" not in device_data:
-                if self._is_dimmable:
-                    if ATTR_INTENSITY in device_data:
-                        self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
-                            device_data[ATTR_INTENSITY] is not None else 0
-                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
-                    if ATTR_PHASE_CONTROL in device_data:
-                        self._phase_control = device_data[ATTR_PHASE_CONTROL]
-                    if ATTR_KEY_DOUBLE_UP in device_data:
-                        self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
-                self._onoff = device_data[ATTR_ONOFF]
-                if not self._is_new_dimmable:
-                    self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
-                    self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
-                self._keypad = device_data[ATTR_KEYPAD]
-                self._timer = device_data[ATTR_TIMER]
-                self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
-                self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
+        if self._activ:
+            """Get the latest data from neviweb and update the state."""
+            if not self._is_new_dimmable:
+                WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             else:
-                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-        elif device_data["error"]["code"] == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
-            self._client.reconnect()
-        elif device_data["error"]["code"] == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
-            self._client.reconnect()
-        elif device_data["error"]["code"] == "DVCACTNSPTD":
-            _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
-        elif device_data["error"]["code"] == "DVCCOMMTO":
-            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
-        elif device_data["error"]["code"] == "SVCERR":
-            _LOGGER.warning("Service error, device not available, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-        elif device_data["error"]["code"] == "DVCBUSY":
-            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-        else:
-            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
-        if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
-                self._hour_kwh = device_hourly_stats[1]["period"] / 1000
+                WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP]
+            start = time.time()
+            device_data = self._client.get_device_attributes(self._id,
+                UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            end = time.time()
+            elapsed = round(end - start, 3)
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                self._name, elapsed, device_data)
+            if "error" not in device_data:
+                if "errorCode" not in device_data:
+                    if self._is_dimmable:
+                        if ATTR_INTENSITY in device_data:
+                            self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
+                                device_data[ATTR_INTENSITY] is not None else 0
+                        self._intensity_min = device_data[ATTR_INTENSITY_MIN]
+                        if ATTR_PHASE_CONTROL in device_data:
+                            self._phase_control = device_data[ATTR_PHASE_CONTROL]
+                        if ATTR_KEY_DOUBLE_UP in device_data:
+                            self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
+                    self._onoff = device_data[ATTR_ONOFF]
+                    if not self._is_new_dimmable:
+                        self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                    self._keypad = device_data[ATTR_KEYPAD]
+                    self._timer = device_data[ATTR_TIMER]
+                    self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
+                    self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
+                else:
+                    _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+            elif device_data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.warning("Session expired... reconnecting...")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "ACCSESSEXC":
+                _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "DVCACTNSPTD":
+                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+            elif device_data["error"]["code"] == "DVCCOMMTO":
+                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+            elif device_data["error"]["code"] == "SVCERR":
+                _LOGGER.warning("Service error, device not available, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            elif device_data["error"]["code"] == "DVCBUSY":
+                _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            elif device_data["error"]["code"] == "DVCUNVLB":
+                _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
+                _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and neviweb.",self._name)
+                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation.",self._name)
+                self._activ = False
             else:
-                _LOGGER.warning("Got None for device_hourly_stats")
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
-            if device_daily_stats is not None and len(device_daily_stats) > 1:
-                self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-                self._today_kwh = device_daily_stats[0]["period"] / 1000
-            else:
-                _LOGGER.warning("Got None for device_daily_stats")
-            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-            if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-                self._month_kwh = device_monthly_stats[0]["period"] / 1000
-            else:
-                _LOGGER.warning("Got None for device_monthly_stats")
-            self._energy_stat_time = time.time()
-        if self._energy_stat_time == 0:
-            self._energy_stat_time = start
+                _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
+            if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                if device_hourly_stats is not None and len(device_hourly_stats) > 1:
+                    self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
+                    self._hour_kwh = device_hourly_stats[1]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_hourly_stats")
+                device_daily_stats = self._client.get_device_daily_stats(self._id)
+                if device_daily_stats is not None and len(device_daily_stats) > 1:
+                    self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+                    self._today_kwh = device_daily_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_daily_stats")
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                if device_monthly_stats is not None and len(device_monthly_stats) > 1:
+                    self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+                    self._month_kwh = device_monthly_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_monthly_stats")
+                self._energy_stat_time = time.time()
+            if self._energy_stat_time == 0:
+                self._energy_stat_time = start
 
     @property
     def supported_features(self):
@@ -429,6 +462,7 @@ class Neviweb130Light(LightEntity):
                      'daily_kwh': self._today_kwh,
                      'monthly_kwh': self._month_kwh,
                      'sku': self._sku,
+                     'Activation': self._activ,
                      'id': self._id})
         return data
 
@@ -515,3 +549,8 @@ class Neviweb130Light(LightEntity):
         self._client.set_wattage(
             entity, watt)
         self._wattage = watt
+
+    def set_activation(self, value):
+        """ Activate or deactivate neviweb polling for a missing device """
+        action = value["active"]
+        self._activ = action

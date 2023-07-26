@@ -90,12 +90,16 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_TANK_HEIGHT,
     ATTR_FUEL_ALERT,
+    ATTR_NAME_1,
+    ATTR_NAME_2,
+    ATTR_OUTPUT_NAME_1,
+    ATTR_OUTPUT_NAME_2,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL
 )
 
-VERSION = '2.3.2'
+VERSION = '2.3.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -857,6 +861,28 @@ class Neviweb130Client(object):
         """Set power supply for Sedna valve."""
         data = {ATTR_POWER_SUPPLY: supply}
         _LOGGER.debug("power_supply.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_input_output_names(self, device_id, in1, in2, out1, out2):
+        """ Set names for input 1 and 2, output 1 and 2 for MC3100ZB device. """
+        data = {}
+        if len(in1) > 0:
+            data.update({ATTR_NAME_1: in1})
+        else:
+            data.update({ATTR_NAME_1: ""})
+        if len(in2) > 0:
+            data.update({ATTR_NAME_2: in2})
+        else:
+            data.update({ATTR_NAME_2: ""})
+        if len(out1) > 0:
+            data.update({ATTR_OUTPUT_NAME_1: out1})
+        else:
+            data.update({ATTR_OUTPUT_NAME_1: ""})
+        if len(out2) > 0:
+            data.update({ATTR_OUTPUT_NAME_2: out2})
+        else:
+            data.update({ATTR_OUTPUT_NAME_2: ""})
+        _LOGGER.debug("in/out names.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

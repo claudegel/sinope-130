@@ -143,6 +143,7 @@ from .const import (
     SERVICE_SET_COOL_SETPOINT_MAX,
     SERVICE_SET_FLOOR_LIMIT_LOW,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
+    SERVICE_SET_ACTIVATION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -384,6 +385,13 @@ SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
         vol.Required(ATTR_FLOOR_MAX): vol.All(
             vol.Coerce(float), vol.Range(min=0, max=36)
         ),
+    }
+)
+
+SET_ACTIVATION_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("active"): vol.In([True, False]),
     }
 )
 
@@ -634,6 +642,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_activation_service(service):
+        """ Activate or deactivate Neviweb polling for missing device """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "active": service.data["active"]}
+                switch.set_activation(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -774,6 +793,13 @@ async def async_setup_platform(
         schema=SET_FLOOR_LIMIT_LOW_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ACTIVATION,
+        set_activation_service,
+        schema=SET_ACTIVATION_SCHEMA,
+    )
+
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
@@ -869,6 +895,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cool_min = None
         self._cool_max = None
         self._base = None
+        self._activ = True
         self._is_double = device_info["signature"]["model"] in \
             DEVICE_MODEL_DOUBLE
         self._is_hc = device_info["signature"]["model"] in \
@@ -888,231 +915,235 @@ class Neviweb130Thermostat(ClimateEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if not self._is_low_voltage and not self._is_wifi_floor:
-            WATT_ATTRIBUTE = [ATTR_WATTAGE]
-        else:
-            WATT_ATTRIBUTE = []
-        if self._is_floor or self._is_wifi_floor:
-            FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SENSOR]
-        else:
-            FLOOR_ATTRIBUTE = []
-        if self._is_wifi_floor:
-            WIFI_FLOOR_ATTRIBUTE = [ATTR_GFCI_ALERT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
-        else:
-            WIFI_FLOOR_ATTRIBUTE = []
-        if self._is_wifi:
-            WIFI_ATTRIBUTE = [ATTR_FLOOR_OUTPUT1, ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY, ATTR_BACKLIGHT_AUTO_DIM, ATTR_EARLY_START, ATTR_ROOM_SETPOINT_AWAY]
-        else:
-            WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE]
-        if self._is_low_wifi:
-            LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
-        else:
-            LOW_WIFI_ATTRIBUTE = []
-        if self._is_low_voltage:
-            LOW_VOLTAGE_ATTRIBUTE = [ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_CYCLE_OUTPUT2]
-        else:
-            LOW_VOLTAGE_ATTRIBUTE = []
-        if self._is_gen2:
-            GEN2_ATTRIBUTE = [ATTR_DISPLAY2]
-        else:
-            GEN2_ATTRIBUTE = [ATTR_DISPLAY2, ATTR_RSSI]
-        if self._is_hc:
-            HC_ATTRIBUTE = [ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_WATTAGE, ATTR_BACKLIGHT, ATTR_KEYPAD, ATTR_RSSI]
-        else:
-            HC_ATTRIBUTE = []
-        """Get the latest data from Neviweb and update the state."""
-        start = time.time()
-        _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
-        device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
-        end = time.time()
-        elapsed = round(end - start, 3)
-        _LOGGER.debug("Updating %s (%s sec): %s",
-            self._name, elapsed, device_data)
+        if self._activ:
+            if not self._is_low_voltage and not self._is_wifi_floor:
+                WATT_ATTRIBUTE = [ATTR_WATTAGE]
+            else:
+                WATT_ATTRIBUTE = []
+            if self._is_floor or self._is_wifi_floor:
+                FLOOR_ATTRIBUTE = [ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SENSOR]
+            else:
+                FLOOR_ATTRIBUTE = []
+            if self._is_wifi_floor:
+                WIFI_FLOOR_ATTRIBUTE = [ATTR_GFCI_ALERT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
+            else:
+                WIFI_FLOOR_ATTRIBUTE = []
+            if self._is_wifi:
+                WIFI_ATTRIBUTE = [ATTR_FLOOR_OUTPUT1, ATTR_WIFI_WATTAGE, ATTR_WIFI, ATTR_WIFI_KEYPAD, ATTR_DISPLAY2, ATTR_SETPOINT_MODE, ATTR_OCCUPANCY, ATTR_BACKLIGHT_AUTO_DIM, ATTR_EARLY_START, ATTR_ROOM_SETPOINT_AWAY]
+            else:
+                WIFI_ATTRIBUTE = [ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE]
+            if self._is_low_wifi:
+                LOW_WIFI_ATTRIBUTE = [ATTR_PUMP_PROTEC, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_AUX_CYCLE, ATTR_CYCLE, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN]
+            else:
+                LOW_WIFI_ATTRIBUTE = []
+            if self._is_low_voltage:
+                LOW_VOLTAGE_ATTRIBUTE = [ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_CYCLE_OUTPUT2]
+            else:
+                LOW_VOLTAGE_ATTRIBUTE = []
+            if self._is_gen2:
+                GEN2_ATTRIBUTE = [ATTR_DISPLAY2]
+            else:
+                GEN2_ATTRIBUTE = [ATTR_DISPLAY2, ATTR_RSSI]
+            if self._is_hc:
+                HC_ATTRIBUTE = [ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_WATTAGE, ATTR_BACKLIGHT, ATTR_KEYPAD, ATTR_RSSI]
+            else:
+                HC_ATTRIBUTE = []
+            """Get the latest data from Neviweb and update the state."""
+            start = time.time()
+            _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id,
+                UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
+            end = time.time()
+            elapsed = round(end - start, 3)
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                self._name, elapsed, device_data)
 
-        if "error" not in device_data:
-            if "errorCode" not in device_data:
-                self._cur_temp_before = self._cur_temp
-                self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
-                    device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
-                self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
-                self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
-                self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                self._temperature_format = device_data[ATTR_TEMP]
-                self._time_format = device_data[ATTR_TIME]
-                self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
-                self._display2 = device_data[ATTR_DISPLAY2]
-                if ATTR_DRSETPOINT in device_data:
-                    self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                    self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
-                if ATTR_DRSTATUS in device_data:
-                    self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
-                    self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
-                    self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
-                    self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
-                    self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                if not self._is_wifi:
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
-                    self._operation_mode = device_data[ATTR_SYSTEM_MODE]
-                    if not self._is_low_voltage:
-                        self._wattage = device_data[ATTR_WATTAGE]
+            if "error" not in device_data:
+                if "errorCode" not in device_data:
+                    self._cur_temp_before = self._cur_temp
+                    self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
+                        device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
+                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
+                    self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
+                    self._temperature_format = device_data[ATTR_TEMP]
+                    self._time_format = device_data[ATTR_TIME]
+                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
+                    self._display2 = device_data[ATTR_DISPLAY2]
+                    if ATTR_DRSETPOINT in device_data:
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
+                        self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
+                        self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
+                        self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
+                    if not self._is_wifi:
+                        self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                        self._keypad = device_data[ATTR_KEYPAD]
+                        self._backlight = device_data[ATTR_BACKLIGHT]
+                        if ATTR_CYCLE in device_data:
+                            self._cycle_length = device_data[ATTR_CYCLE]
+                        if ATTR_RSSI in device_data:
+                            self._rssi = device_data[ATTR_RSSI]
+                        self._operation_mode = device_data[ATTR_SYSTEM_MODE]
+                        if not self._is_low_voltage:
+                            self._wattage = device_data[ATTR_WATTAGE]
+                        else:
+                            self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                            self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                            self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                            self._cycle_length = device_data[ATTR_CYCLE]
+                            self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
+                            self._cycle_length_output2_value = device_data[ATTR_CYCLE_OUTPUT2]["value"]
+                            self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                            self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
+                            self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                            self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
+                            self._pump_protec_status = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
+                            if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
+                                self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
+                                self._pump_protec_period = device_data[ATTR_PUMP_PROTEC_PERIOD]["value"]
+                            self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                     else:
+                        self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                        self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
+                        self._operation_mode = device_data[ATTR_SETPOINT_MODE]
+                        self._occupancy = device_data[ATTR_OCCUPANCY]
+                        self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                        self._rssi = device_data[ATTR_WIFI]
+                        self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                        self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                        self._early_start= device_data[ATTR_EARLY_START]
+                        self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
+                        self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
+                        self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
+                        self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
+                        if self._is_low_wifi:
+                            self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                            self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
+                            self._aux_cycle_length = device_data[ATTR_AUX_CYCLE]
+                            self._cycle_length = device_data[ATTR_CYCLE]
+                            self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                            self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
+                            self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                            self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
+                            self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                            self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                            self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
+                            if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
+                                self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
+                                self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
+                            if ATTR_FLOOR_AIR_LIMIT in device_data:
+                                self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
+                                self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
+                    if self._is_floor or self._is_wifi_floor:
+                        self._gfci_status = device_data[ATTR_GFCI_STATUS]
                         self._floor_mode = device_data[ATTR_FLOOR_MODE]
+                        self._aux_heat = device_data[ATTR_FLOOR_AUX]
                         self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                         self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
-                        self._cycle_length = device_data[ATTR_CYCLE]
-                        self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
-                        self._cycle_length_output2_value = device_data[ATTR_CYCLE_OUTPUT2]["value"]
-                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                        self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
-                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                        self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
-                        self._pump_protec_status = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
-                        if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
-                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
-                            self._pump_protec_period = device_data[ATTR_PUMP_PROTEC_PERIOD]["value"]
                         self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
-                else:
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
-                    self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
-                    self._operation_mode = device_data[ATTR_SETPOINT_MODE]
-                    self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
-                    self._rssi = device_data[ATTR_WIFI]
-                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
-                    self._early_start= device_data[ATTR_EARLY_START]
-                    self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
-                    self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
-                    self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
-                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
-                    if self._is_low_wifi:
-                        self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                        self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
-                        self._aux_cycle_length = device_data[ATTR_AUX_CYCLE]
-                        self._cycle_length = device_data[ATTR_CYCLE]
-                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                        self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
-                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                        self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
-                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                        self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
-                        self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
-                        if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
-                            self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                            self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         if ATTR_FLOOR_AIR_LIMIT in device_data:
                             self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                             self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
-                if self._is_floor or self._is_wifi_floor:
-                    self._gfci_status = device_data[ATTR_GFCI_STATUS]
-                    self._floor_mode = device_data[ATTR_FLOOR_MODE]
-                    self._aux_heat = device_data[ATTR_FLOOR_AUX]
-                    self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                    self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
-                    self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
-                    if ATTR_FLOOR_AIR_LIMIT in device_data:
-                        self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
-                        self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
-                    if ATTR_FLOOR_MAX in device_data:
-                        self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
-                        self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
-                    if ATTR_FLOOR_MIN in device_data:
-                        self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
-                        self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
-                    if not self._is_wifi_floor:
-                        self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                        if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
-                            self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
-                    else:
-                        self._gfci_alert = device_data[ATTR_GFCI_ALERT]
-                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                if self._is_hc:
-                    self._cycle_length = device_data[ATTR_CYCLE]
-                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
-                    self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
-                    self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
-            elif device_data["errorCode"] == "ReadTimeout":
-                _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
-            else:    
-                _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
-        elif device_data["error"]["code"] == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
-            self._client.reconnect()
-        elif device_data["error"]["code"] == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
-            self._client.reconnect()
-        elif device_data["error"]["code"] == "DVCACTNSPTD":
-            _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
-        elif device_data["error"]["code"] == "DVCCOMMTO":
-            _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
-        elif device_data["error"]["code"] == "DVCUNVLB":
-            _LOGGER.warning("Device %s unavailable, check your network...%s", self._name, device_data)
-        elif device_data["error"]["code"] == "DVCATTRNSPTD":
-            _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-        elif device_data["error"]["code"] == "SVCERR":
-            _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-        elif device_data["error"]["code"] == "DVCBUSY":
-            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-        else:
-            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
-        if self._sku != "FLP55":
-            if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
-                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-#                _LOGGER.debug("Energy data for %s: %s, size = %s", self._sku, device_hourly_stats, len(device_hourly_stats))
-                if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                    self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
-                    self._hour_kwh = device_hourly_stats[1]["period"] / 1000
-                else:
-                    _LOGGER.warning("Got None for device_hourly_stats")
-                device_daily_stats = self._client.get_device_daily_stats(self._id)
-                if device_daily_stats is not None and len(device_daily_stats) > 1:
-                    self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-                    self._today_kwh = device_daily_stats[0]["period"] / 1000
-                else:
-                    _LOGGER.warning("Got None for device_daily_stats")
-                device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-                if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                    self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-                    self._month_kwh = device_monthly_stats[0]["period"] / 1000
-                else:
-                    _LOGGER.warning("Got None for device_monthly_stats")
-                if not self._is_wifi and not self._is_hc:
-                    device_error_code = self._client.get_device_sensor_error(self._id)
-#                    _LOGGER.warning("Updating error code: %s",device_error_code)
-                    if device_error_code is not None:
-                        self._code_compensation_sensor = device_error_code["compensationSensor"]
-                        self._code_thermal_overload = device_error_code["thermalOverload"]
-                        if self._is_floor and not self._is_wifi:
-                            self._code_floor_sensor = device_error_code["floorSensor"]
-                            self._code_gfcibase = device_error_code["gfciBase"]
-                        elif self._is_low_voltage or self._is_double:
-                            self._code_air_sensor = device_error_code["airSensor"]
-                            self._code_floor_sensor = device_error_code["floorSensor"]
-                        elif self._is_double:
-                            self._base = device_error_code["base"]
+                        if ATTR_FLOOR_MAX in device_data:
+                            self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
+                            self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
+                        if ATTR_FLOOR_MIN in device_data:
+                            self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
+                            self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
+                        if not self._is_wifi_floor:
+                            self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                            if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
+                                self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                         else:
-                            self._code_wire_sensor = device_error_code["wireSensor"]
-                            self._code_current_overload = device_error_code["currentOverload"]
-                            self._code_end_of_life = device_error_code["endOfLife"]
-                            if self._is_gen2:
-                                self._air_top = device_error_code["airTopSensor"]
-                                self._air_bottom = device_error_code["airBottomSensor"]
-                                self._line_error = device_error_code["lineError"]
-                                self._inductive_mode = device_error_code["inductiveMode"]
-                            else:
+                            self._gfci_alert = device_data[ATTR_GFCI_ALERT]
+                            self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+                    if self._is_hc:
+                        self._cycle_length = device_data[ATTR_CYCLE]
+                        self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                        self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
+                        self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
+                elif device_data["errorCode"] == "ReadTimeout":
+                    _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
+                else:    
+                    _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
+            elif device_data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.warning("Session expired... reconnecting...")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "ACCSESSEXC":
+                _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+                self._client.reconnect()
+            elif device_data["error"]["code"] == "DVCACTNSPTD":
+                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+            elif device_data["error"]["code"] == "DVCCOMMTO":
+                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+            elif device_data["error"]["code"] == "DVCUNVLB":
+                _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
+                _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and neviweb.",self._name)
+                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation.",self._name)
+                self._activ = False
+            elif device_data["error"]["code"] == "DVCATTRNSPTD":
+                _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            elif device_data["error"]["code"] == "SVCERR":
+                _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            elif device_data["error"]["code"] == "DVCBUSY":
+                _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+            else:
+                _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
+            if self._sku != "FLP55":
+                if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
+                    device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+#                    _LOGGER.debug("Energy data for %s: %s, size = %s", self._sku, device_hourly_stats, len(device_hourly_stats))
+                    if device_hourly_stats is not None and len(device_hourly_stats) > 1:
+                        self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
+                        self._hour_kwh = device_hourly_stats[1]["period"] / 1000
+                    else:
+                        _LOGGER.warning("Got None for device_hourly_stats")
+                    device_daily_stats = self._client.get_device_daily_stats(self._id)
+                    if device_daily_stats is not None and len(device_daily_stats) > 1:
+                        self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+                        self._today_kwh = device_daily_stats[0]["period"] / 1000
+                    else:
+                        _LOGGER.warning("Got None for device_daily_stats")
+                    device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                    if device_monthly_stats is not None and len(device_monthly_stats) > 1:
+                        self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+                        self._month_kwh = device_monthly_stats[0]["period"] / 1000
+                    else:
+                        _LOGGER.warning("Got None for device_monthly_stats")
+                    if not self._is_wifi and not self._is_hc:
+                        device_error_code = self._client.get_device_sensor_error(self._id)
+#                        _LOGGER.warning("Updating error code: %s",device_error_code)
+                        if device_error_code is not None:
+                            self._code_compensation_sensor = device_error_code["compensationSensor"]
+                            self._code_thermal_overload = device_error_code["thermalOverload"]
+                            if self._is_floor and not self._is_wifi:
+                                self._code_floor_sensor = device_error_code["floorSensor"]
+                                self._code_gfcibase = device_error_code["gfciBase"]
+                            elif self._is_low_voltage or self._is_double:
                                 self._code_air_sensor = device_error_code["airSensor"]
-                                self._code_load_error = device_error_code["loadError"]
-                                self._code_reference_sensor = device_error_code["referenceSensor"]
-                self._energy_stat_time = time.time()
-            if self._energy_stat_time == 0:
-                self._energy_stat_time = start
+                                self._code_floor_sensor = device_error_code["floorSensor"]
+                            elif self._is_double:
+                                self._base = device_error_code["base"]
+                            else:
+                                self._code_wire_sensor = device_error_code["wireSensor"]
+                                self._code_current_overload = device_error_code["currentOverload"]
+                                self._code_end_of_life = device_error_code["endOfLife"]
+                                if self._is_gen2:
+                                    self._air_top = device_error_code["airTopSensor"]
+                                    self._air_bottom = device_error_code["airBottomSensor"]
+                                    self._line_error = device_error_code["lineError"]
+                                    self._inductive_mode = device_error_code["inductiveMode"]
+                                else:
+                                    self._code_air_sensor = device_error_code["airSensor"]
+                                    self._code_load_error = device_error_code["loadError"]
+                                    self._code_reference_sensor = device_error_code["referenceSensor"]
+                    self._energy_stat_time = time.time()
+                if self._energy_stat_time == 0:
+                    self._energy_stat_time = start
         
     @property
     def unique_id(self):
@@ -1256,6 +1287,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
+                    'Activation': self._activ,
                     'model': self._model,
                     'id': self._id})
         return data
@@ -1648,3 +1680,8 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             self._floor_max = temp if temp != 0 else None
             self._floor_max_status = "on"
+
+    def set_activation(self, value):
+        """ Activate or deactivate neviweb polling for a missing device """
+        action = value["active"]
+        self._activ = action

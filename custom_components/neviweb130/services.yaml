@@ -518,3 +518,32 @@ set_power_supply:
     backupPowerSupply:
       description: set to "batt" for battery only, "power" for ACUPS-01 power supply only and "both" for battery and power supply together.
       example: "power"
+
+set_input_output_names:
+  description: Set names for input 1 and 2 and output 1 and 2 for multi controller MC3100ZB. You can leave blank unwanted fields.
+  fields:
+    entity_id:
+      description: Name(s) of MC3100ZB device.
+      example: "switch.neviweb130_switch_MC3100ZB"
+    input1name:
+      description: set the name for input 1. Max length 10 characters.
+      example: "alarm signal"
+    input2name:
+      description: set the name for input 2. Max length 10 characters.
+      example: "alarm_signal_2"
+    output1name:
+      description: set the name for output 1. Max length 10 characters.
+      example: "water_leak"
+    output2name:
+      description: set the name for output 2. Max length 10 characters.
+      example: "Power_out"
+
+set_activation:
+  description: Activate or deactivate devices which are no longer connected or are reconnected to prevent neviweb polling for unavailable device.
+  fields:
+    entity_id:
+      description: Name(s) of Neviweb device.
+      example: "switch.neviweb130_switch_office_light"
+    active:
+      description: activate «True» or deactivate device «False».
+      example: False
