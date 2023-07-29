@@ -467,11 +467,11 @@ class Neviweb130Sensor(Entity):
             else:
                 MONITOR_ATTRIBUTE = []
             if self._is_leak or self._is_connected:
-                LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_RSSI]
+                LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_RSSI]
             else:
                 LEAK_ATTRIBUTE = []
             if self._is_connected:
-                CONNECTED_ATTRIBUTE = [ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_CONF_CLOSURE]
+                CONNECTED_ATTRIBUTE = [ATTR_CONF_CLOSURE]
             else:
                 CONNECTED_ATTRIBUTE = []
 
@@ -502,12 +502,12 @@ class Neviweb130Sensor(Entity):
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
+                        self._temp_alert = device_data[ATTR_TEMP_ALERT]
+                        self._battery_alert = device_data[ATTR_BATT_ALERT]
                         if ATTR_BATTERY_STATUS in device_data:
                             self._battery_status = device_data[ATTR_BATTERY_STATUS]
                             self._battery_type = device_data[ATTR_BATTERY_TYPE]
                         if self._is_connected:
-                            self._temp_alert = device_data[ATTR_TEMP_ALERT]
-                            self._battery_alert = device_data[ATTR_BATT_ALERT]
                             self._closure_action = device_data[ATTR_CONF_CLOSURE]
                     else:
                         self._angle = device_data[ATTR_ANGLE]["value"]
@@ -626,17 +626,17 @@ class Neviweb130Sensor(Entity):
         elif self._is_leak:
             data = {'Leak_status': self._leak_status,
                     'Temperature': self._cur_temp,
+                    'Temp_alarm': self._temp_status,
+                    'Temperature_alert': self._temp_alert,
                     'leak_alert': self._leak_alert,
                     'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
                     'Battery_voltage': self._battery_voltage,
                     'Battery_status': self._battery_status,
+                    'Battery_alert': self._battery_alert,
                     'Battery_type': self._battery_type,
                     'Rssi': self._rssi}
             if self._is_connected:
-                data.update({'Temp_alarm': self._temp_status,
-                             'Temperature_alert': self._temp_alert,
-                             'Battery_alert': self._battery_alert,
-                             'Closure_action': self._closure_action})
+                data.update({'Closure_action': self._closure_action})
         elif self._is_gateway:
             data = {'Gateway_status': self._gateway_status}
         data.update({'sku': self._sku,
