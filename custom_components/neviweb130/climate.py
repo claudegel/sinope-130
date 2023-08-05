@@ -24,6 +24,7 @@ model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no ene
 Support for Neviweb heat pump
 model 6810 = heat pump
 model 6811 = heat pump
+model 1512 = heat pump wifi
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -208,6 +209,8 @@ PRESET_MODES = [
     PRESET_NONE,
 ]
 
+DEVICE_MODEL_HEAT_PUMP = [6810, 6811]
+DEVICE_MODEL_WIFI_HEAT_PUMP = [1512]
 DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
@@ -217,7 +220,7 @@ DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1134]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE
+IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE + DEVICE_MODEL_WIFI_HEAT_PUMP + DEVICE_MODEL_HEAT_PUMP
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -821,6 +824,8 @@ class Neviweb130Thermostat(ClimateEntity):
             DEVICE_MODEL_DOUBLE
         self._is_hc = device_info["signature"]["model"] in \
             DEVICE_MODEL_HC
+        self._is_hp = device_info["signature"]["model"] in \
+            DEVICE_MODEL_WIFI_HEAT_PUMP or device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
         self._is_gen2 = device_info["signature"]["model"] in \
             DEVICE_MODEL_HEAT_G2
         self._is_floor = device_info["signature"]["model"] in \
@@ -836,6 +841,10 @@ class Neviweb130Thermostat(ClimateEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
+        if self._is_hp:
+            HP_ATTRIBUTE = []
+        else:
+            HP_ATTRIBUTE = []
         if not self._is_low_voltage and not self._is_wifi_floor:
             WATT_ATTRIBUTE = [ATTR_WATTAGE]
         else:
@@ -872,7 +881,7 @@ class Neviweb130Thermostat(ClimateEntity):
         start = time.time()
         _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTE + WATT_ATTRIBUTE + WIFI_FLOOR_ATTRIBUTE + WIFI_ATTRIBUTE + LOW_WIFI_ATTRIBUTE + LOW_VOLTAGE_ATTRIBUTE + GEN2_ATTRIBUTE + HC_ATTRIBUTE + HP_ATTRIBUTE)
         end = time.time()
         elapsed = round(end - start, 3)
         _LOGGER.debug("Updating %s (%s sec): %s",
