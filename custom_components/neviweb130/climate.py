@@ -38,13 +38,17 @@ import time
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL)
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import (
+from homeassistant.components.climate.const import (HVAC_MODE_DRY
     HVAC_MODE_COOL,
+    HVAC_MODE_DRY,
+    HVAC_MODE_FAN_ONLY,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
+    SUPPORT_FAN_MODE,
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_PRESET_MODE,
+    SUPPORT_SWING_MODE,
     SUPPORT_AUX_HEAT,
     PRESET_AWAY,
     PRESET_NONE,
@@ -152,11 +156,13 @@ _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
 SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
+SUPPORT_HP_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE | SUPPORT_FAN_MODE | SUPPORT_SWING_MODE)
 
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
+FANSPEED = {"high", "medium", "low", "auto", "off"}
 
 HA_TO_NEVIWEB_PERIOD = {
     "15 sec": 15,
@@ -196,6 +202,14 @@ SUPPORTED_HVAC_HC_MODES = [
     HVAC_MODE_OFF,
     HVAC_MODE_HEAT,
     HVAC_MODE_COOL,
+]
+
+SUPPORTED_HVAC_HP_MODES = [
+    HVAC_MODE_OFF,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_COOL,
+    HVAC_MODE_DRY,
+    HVAC_MODE_FAN_ONLY,
 ]
 
 PRESET_WIFI_MODES = [
@@ -842,7 +856,8 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def update(self):
         if self._is_hp:
-            HP_ATTRIBUTE = []
+            HP_ATTRIBUTE = [ATTR_SYSTEM_MODE, ATTR_COOL_SETPOINT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_ERROR_CODE_SET1, ATTR_AVAIL_MODE, ATTR_FAN_SPEED, ATTR_FAN_CAP, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ,
+            ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_DISPLAY_CONF, ATTR_KEYPAD, ATTR_RSSI]
         else:
             HP_ATTRIBUTE = []
         if not self._is_low_voltage and not self._is_wifi_floor:
@@ -1215,6 +1230,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of supported features."""
         if self._is_floor or self._is_wifi_floor or self._is_low_wifi:
             return SUPPORT_AUX_FLAGS
+        elif self._is_hp or self._is_hc:
+            return SUPPORT_HP_FLAGS
         else:
             return SUPPORT_FLAGS
 
@@ -1260,7 +1277,9 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of available operation modes."""
         if self._is_wifi:
             return SUPPORTED_HVAC_WIFI_MODES
-        elif self._is_hc:
+        elif self._is_hp:
+            return SUPPORTED_HVAC_HP_MODES
+        elif elf._is_hc:
             return SUPPORTED_HVAC_HC_MODES
         else:
             return SUPPORTED_HVAC_MODES
