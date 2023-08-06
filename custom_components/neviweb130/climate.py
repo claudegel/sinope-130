@@ -849,6 +849,21 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cool_min = None
         self._cool_max = None
         self._base = None
+        self._heat_lock = None
+        self._cool_lock = None
+        self._error_code_set1 = None
+        self._avail_mode = None
+        self._fan_speed = None
+        self._fan_cap = None
+        self._fan_swing_vert = None
+        self._fan_swing_horiz = None
+        self._fan_swing_cap = None
+        self._fan_swing_cap_horiz = None
+        self._fan_swing_cap_vert = None
+        self._display_conf = None
+        self._hc_dev = None
+        self._language = None
+        self._balance_point = None
         self._is_double = device_info["signature"]["model"] in \
             DEVICE_MODEL_DOUBLE
         self._is_hc = device_info["signature"]["model"] in \
@@ -1019,11 +1034,28 @@ class Neviweb130Thermostat(ClimateEntity):
                     else:
                         self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                         self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                if self._is_hc:
-                    self._cycle_length = device_data[ATTR_CYCLE]
+                if self._is_hc or self._is_hp:
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
+                    self._heat_lock = device_data[ATTR_HEAT_LOCK_TEMP]
+                    self._cool_lock = device_data[ATTR_COOL_LOCK_TEMP]
+                    self._error_code_set1 = device_data[ATTR_ERROR_CODE_SET1]
+                    self._avail_mode = device_data[ATTR_AVAIL_MODE]
+                    self._fan_speed = device_data[ATTR_FAN_SPEED]
+                    self._fan_cap = device_data[ATTR_FAN_CAP]
+                    self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
+                    self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
+                    self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
+                    self._display_conf = device_data[ATTR_DISPLAY_CONF]
+                elif self._is_hc:
+                    self._cycle_length = device_data[ATTR_CYCLE]
+                    self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
+                    self._hc_dev = device_data[ATTR_HC_DEV]
+                    self._language = device_data[ATTR_LANGUAGE]
+                    self._balance_point = device_data[ATTR_BALANCE_PT]
+                else:
+                    self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
             elif device_data["errorCode"] == "ReadTimeout":
                 _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
             else:    
@@ -1212,7 +1244,37 @@ class Neviweb130Thermostat(ClimateEntity):
             data.update({'cool setpoint min': self._cool_min,
                     'cool setpoint max': self._cool_max,
                     'cool setpoint': self._target_cool,
-                    'cycle_length': self._cycle_length})
+                    'cycle_length': self._cycle_length,
+                    'heat_lockout_temp': self._heat_lock,
+                    'cool_lockout_temp': self._cool_lock,
+                    'error_code_set1': self._error_code_set1,
+                    'available_mode': self._avail_mode,
+                    'fan_speed': self._fan_speed,
+                    'fan_capability': self._fan_cap,
+                    'fan_swing_vertical': self._fan_swing_vert,
+                    'fan_swing_capability': self._fan_swing_cap,
+                    'fan_swing_capability_horiz': self._fan_swing_cap_horiz,
+                    'display_config': self._display_conf,
+                    'fan_swing_vertical_capability': self._fan_swing_cap_vert,
+                    'hc_device': self._hc_dev,
+                    'language': self._language,
+                    'balance_point': self._balance_point})
+        if self._is_hp:
+            data.update({'cool setpoint min': self._cool_min,
+                    'cool setpoint max': self._cool_max,
+                    'cool setpoint': self._target_cool,
+                    'cycle_length': self._cycle_length,
+                    'heat_lockout_temp': self._heat_lock,
+                    'cool_lockout_temp': self._cool_lock,
+                    'error_code_set1': self._error_code_set1,
+                    'available_mode': self._avail_mode,
+                    'fan_speed': self._fan_speed,
+                    'fan_capability': self._fan_cap,
+                    'fan_swing_vertical': self._fan_swing_vert,
+                    'fan_swing_capability': self._fan_swing_cap,
+                    'fan_swing_capability_horiz': self._fan_swing_cap_horiz,
+                    'display_config': self._display_conf,
+                    'fan_swing_horizontal': self._fan_swing_horiz})
         data.update({'heat_level': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
