@@ -124,6 +124,16 @@ from .const import (
     ATTR_DR_PROTEC_STATUS,
     ATTR_TEMP_ACTION_LOW,
     ATTR_BATT_ACTION_LOW,
+    ATTR_LOCK_STATUS,
+    ATTR_DOOR_STATE,
+    ATTR_RELOCK_TIME,
+    ATTR_WRONG_CODE,
+    ATTR_DISABLE_TIME,
+    ATTR_LANGUAGE,
+    ATTR_SOUND,
+    ATTR_USER,
+    ATTR_MAX_PIN,
+    ATTR_MIN_PIN,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -191,6 +201,7 @@ SWITCH_TYPES = {
     "sensor": ["mdi:alarm", BinarySensorDeviceClass.PROBLEM],
 }
 
+IMPLEMENTED_DOOR_LOCK = [7000]
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_WIFI_MESH_VALVE_MODEL = [3155]
 IMPLEMENTED_ZB_MESH_VALVE_MODEL = [31532, 3153]
@@ -200,7 +211,7 @@ IMPLEMENTED_WIFI_VALVE_MODEL = [3150]
 IMPLEMENTED_ZB_VALVE_MODEL = [3151]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
-IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_WIFI_VALVE_MODEL + IMPLEMENTED_ZB_VALVE_MODEL + IMPLEMENTED_ZB_DEVICE_CONTROL + IMPLEMENTED_SED_DEVICE_CONTROL + IMPLEMENTED_WIFI_MESH_VALVE_MODEL + IMPLEMENTED_ZB_MESH_VALVE_MODEL + IMPLEMENTED_WATER_HEATER_LOAD_MODEL
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_WIFI_VALVE_MODEL + IMPLEMENTED_ZB_VALVE_MODEL + IMPLEMENTED_ZB_DEVICE_CONTROL + IMPLEMENTED_SED_DEVICE_CONTROL + IMPLEMENTED_WIFI_MESH_VALVE_MODEL + IMPLEMENTED_ZB_MESH_VALVE_MODEL + IMPLEMENTED_WATER_HEATER_LOAD_MODEL + IMPLEMENTED_DOOR_LOCK
 
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
@@ -712,6 +723,8 @@ class Neviweb130Switch(SwitchEntity):
             IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in \
             IMPLEMENTED_SED_DEVICE_CONTROL
+        self._is_door = device_info["signature"]["model"] in \
+            IMPLEMENTED_DOOR_LOCK
         self._valve_status = None
         self._cur_temp = None
         self._battery_voltage = 0
@@ -767,6 +780,16 @@ class Neviweb130Switch(SwitchEntity):
         self._flow_alarm_2 = None
         self._temp_action_low = None
         self._batt_action_low = None
+        self._lock_status = None
+        self._door_state = None
+        self._relock_time = None
+        self._wrong_code = None
+        self._disable_time = None
+        self._language = "fr"
+        self._sound = None
+        self._user = None
+        self._max_pin = None
+        self._min_pin = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
