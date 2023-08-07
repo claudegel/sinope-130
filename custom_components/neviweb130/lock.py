@@ -61,6 +61,8 @@ from .const import (
     MODE_OFF,
     STATE_KEYPAD_STATUS,
     STATE_FORCED,
+    STATE_UNDEFINED,
+    STATE_UNSPECIFIED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -264,13 +266,10 @@ class Neviweb130Lock(LockEntity):
         """Return the door state."""
         if self.is_jammed:
             return STATE_JAMMED
-        if self.is_locking:
-            return STATE_LOCKING
-        if self.is_unlocking:
-            return STATE_UNLOCKING
-        if (locked := self.is_locked) is None:
-            return None
-        return STATE_LOCKED if locked else STATE_UNLOCKED
+        if self.is_locked:
+            return STATE_LOCKED
+        else:
+            return STATE_UNLOCKED
 
 
     @property
