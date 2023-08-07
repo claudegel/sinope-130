@@ -60,6 +60,7 @@ from .const import (
     MODE_MANUAL,
     MODE_OFF,
     STATE_KEYPAD_STATUS,
+    STATE_FORCED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,23 +68,15 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = 'neviweb130 lock'
 DEFAULT_NAME_2 = 'neviweb130 lock 2'
 
-UPDATE_ATTRIBUTES = []
+UPDATE_ATTRIBUTES = [ATTR_BATTERY_STATUS]
 
-HA_TO_NEVIWEB_DELAY = {
-    "15 min": 900,
-    "30 min": 1800,
-    "45 min": 2700,
-    "60 min": 3600,
-    "75 min": 4500,
-    "90 min": 5400,
-    "3 h": 10800,
-    "6 h": 21600,
-    "12 h": 43200,
-    "24 h": 86400
-}
+DOOR_ALERT = {"jammed", "forced open", "unspecified error", "undefined"}
+RELOCK_TIME = {0, 30, 60, 90, 120, 150, 180}
+WRONG_CODE_LIMIT = {3, 4, 5, 6, 7, 8, 9, 10}
+TEMPORARY_DISABLE = {10, 30, 60, 90, 120, 150, 180}
 
 SWITCH_TYPES = {
-    "sensor": ["mdi:alarm", BinarySensorDeviceClass.PROBLEM],
+    "sensor": ["mdi:door_open", BinarySensorDeviceClass.DOOR],
 }
 
 IMPLEMENTED_DOOR_LOCK = [7000]
@@ -123,21 +116,6 @@ def voltage_to_percentage(voltage, num):
     else:
         return int((min(voltage,6.0)-3.0)/(6.0-3.0) * 100)
 
-def alert_to_text(alert, value):
-    """Convert numeric alert activation to text"""
-    if alert == 1:
-        match value:
-            case "bat":
-                return "Activ"
-            case "temp":
-                return "Activ"
-    else:
-        match value:
-            case "bat":
-                return "Off"
-            case "temp":
-                return "Off"
-
 def neviweb_to_ha_delay(value):
     keys = [k for k, v in HA_TO_NEVIWEB_DELAY.items() if v == value]
     if keys:
@@ -175,7 +153,8 @@ class Neviweb130Lock(LockEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        DOOR_ATTRIBUTE = []
+        DOOR_ATTRIBUTE = [ATTR_LOCK_STATUS, ATTR_DOOR_STATE, ATTR_RELOCK_TIME, ATTR_WRONG_CODE, ATTR_DISABLE_TIME, ATTR_LANGUAGE,
+                         ATTR_SOUND, ATTR_USER, ATTR_MAX_PIN, ATTR_MIN_PIN]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
@@ -185,7 +164,16 @@ class Neviweb130Lock(LockEntity):
         if "error" not in device_data:
             if "errorCode" not in device_data:
                 if self._is_door:
-  
+                    self._lock_status = device_data[ATTR_DRSTATUS][ATTR_LOCK_STATUS]
+                    self._door_state = device_data[ATTR_DRSTATUS][ATTR_DOOR_STATE]
+                    self._relock_time = device_data[ATTR_DRSTATUS][ATTR_RELOCK_TIME]
+                    self._wrong_code = device_data[ATTR_DRSTATUS][ATTR_WRONG_CODE]
+                    self._disable_time = device_data[ATTR_DRSTATUS][ATTR_DISABLE_TIME]
+                    self._language = device_data[ATTR_DRSTATUS][ATTR_LANGUAGE]
+                    self._sound = device_data[ATTR_DRSTATUS][ATTR_SOUND]
+                    self._user = device_data[ATTR_DRSTATUS][ATTR_USER]
+                    self._max_pin = device_data[ATTR_DRSTATUS][ATTR_MAX_PIN]
+                    self._min_pin = device_data[ATTR_DRSTATUS][ATTR_MIN_PIN]
             else:
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
         elif device_data["error"]["code"] == "USRSESSEXP":
@@ -224,86 +212,69 @@ class Neviweb130Lock(LockEntity):
         """Return the device class of this entity."""
         return SWITCH_TYPES.get(self._device_type)[1]
 
-    @property  
-    def is_on(self):
-        """Return current operation i.e. ON, OFF """
-        if self._is_zb_control:
-            if self._onOff != MODE_OFF or self._onOff2 != MODE_OFF:
-                return True
-            else:
-                return False
+    @property
+    def is_jammed(self) -> bool | None:
+        """Return true if the lock is jammed (incomplete locking)."""
+        if self._lock_status == STATE_JAMMED:
+            return True
         else:
-            return self._onOff != MODE_OFF
-
-    def turn_on(self, **kwargs):
-        """Turn the device on."""
-        if self._is_wifi_valve or self._is_wifi_mesh_valve:
-            self._client.set_valve_onOff(self._id, 100)
-            self._valve_status = "open"
-        else:
-            self._client.set_onOff(self._id, "on")
-            if self._is_zb_valve or self._is_zb_mesh_valve:
-                self._valve_status = "open"
-        self._onOff = "on"
-
-    def turn_off(self, **kwargs):
-        """Turn the device off."""
-        if self._is_wifi_valve or self._is_wifi_mesh_valve:
-            self._client.set_valve_onOff(self._id, 0)
-            self._valve_status = "closed"
-        else:
-            self._client.set_onOff(self._id, "off")
-            if self._is_zb_valve or self._is_zb_mesh_valve:
-                self._valve_status = "closed"
-        self._onOff = MODE_OFF
-
+            return False
+        
     @property  
-    def valve_status(self):
-        """Return current valve status, open or closed"""
-        return self._valve_status != None
+    def is_locked(self):
+        """Return current door status i.e. locked, unlocked """
+        if self._lock_status == STATE_LOCKED:
+            return True
+        else:
+            return False
 
-    @property  
-    def keypad_status(self):
-        """Return current keypad status, unlocked or locked"""
-        return self._keypad_status != None
+    def unlock(self, **kwargs):
+        """ Unlock the door."""
+        self._client.set_lock(self._id, "on")
+        self._lock_status = STATE_UNLOCKED
+
+    def lock(self, **kwargs):
+        """ Lock the door."""
+        self._client.set_lock(self._id, "off")
+        self._lock_status = STATE_LOCKED
 
     @property
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
         if self._is_door:
-            data = {'onOff': self._onOff,
-                   }
+            data = {'lock_status': self._lock_status,
+                    'door_state': self._door_state,
+                    'relock_time': self._relock_time,
+                    'wrong_code': self._wrong_code,
+                    'disable_time': self._disable_time,
+                    'language': self._language,
+                    'sound': self._sound,
+                    'users': self._user,
+                    'max_pin': self._max_pin,
+                    'min_pin': self._min_pin}
         data.update({'sku': self._sku,
                     'device_type': self._device_type,
                     'id': self._id})
         return data
 
+    @final
+    @property
+    def state(self) -> str | None:
+        """Return the door state."""
+        if self.is_jammed:
+            return STATE_JAMMED
+        if self.is_locking:
+            return STATE_LOCKING
+        if self.is_unlocking:
+            return STATE_UNLOCKING
+        if (locked := self.is_locked) is None:
+            return None
+        return STATE_LOCKED if locked else STATE_UNLOCKED
+
+
     @property
     def battery_voltage(self):
-        """Return the current battery voltage of the valve in %."""
-        if self._is_zb_control or self._is_sedna_control:
-            type = 2
-        else:
-            type = 4
+        """Return the current battery voltage of the door lock in %."""
+        type = 2
         return voltage_to_percentage(self._battery_voltage, type)
-
-    def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
-        lock = value["lock"]
-        entity = value["id"]
-        if lock == "locked":
-            lock_name = "Locked"
-        else:
-            lock_name = "Unlocked"
-        self._client.set_keypad_lock(
-            entity, lock, False)
-        self._keypad = lock_name
-
-    def set_timer(self, value):
-        """Set device timer, 0 = off, 1 to 255 = timer length"""
-        time = value["time"]
-        entity = value["id"]
-        self._client.set_timer(
-            entity, time)
-        self._timer = time
