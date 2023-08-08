@@ -543,7 +543,7 @@ set_activation:
   fields:
     entity_id:
       description: Name(s) of Neviweb device.
-      example: "switch.neviweb130_switch_office_light"
+      example: "switch.neviweb130_switch_RM3500ZB"
     active:
       description: activate «True» or deactivate device «False».
       example: False
