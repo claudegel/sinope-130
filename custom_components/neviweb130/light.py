@@ -386,8 +386,8 @@ class Neviweb130Light(LightEntity):
                 _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
-                _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and neviweb.",self._name)
-                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation.",self._name)
+                _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
+                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation, or just restart HA.",self._name)
                 self._activ = False
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
