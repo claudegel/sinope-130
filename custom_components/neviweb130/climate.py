@@ -1118,29 +1118,29 @@ class Neviweb130Thermostat(ClimateEntity):
                         device_error_code = self._client.get_device_sensor_error(self._id)
 #                        _LOGGER.warning("Updating error code: %s",device_error_code)
                         if device_error_code is not None:
-                            self._code_compensation_sensor = device_error_code["compensationSensor"]
-                            self._code_thermal_overload = device_error_code["thermalOverload"]
-                            if self._is_floor and not self._is_wifi:
-                                self._code_floor_sensor = device_error_code["floorSensor"]
-                                self._code_gfcibase = device_error_code["gfciBase"]
+#                            self._code_compensation_sensor = device_error_code["compensationSensor"]
+#                            self._code_thermal_overload = device_error_code["thermalOverload"]
+#                            if self._is_floor and not self._is_wifi:
+#                                self._code_floor_sensor = device_error_code["floorSensor"]
+#                                self._code_gfcibase = device_error_code["gfciBase"]
                             elif self._is_low_voltage or self._is_double:
                                 self._code_air_sensor = device_error_code["airSensor"]
                                 self._code_floor_sensor = device_error_code["floorSensor"]
                             elif self._is_double:
                                 self._base = device_error_code["base"]
                             else:
-                                self._code_wire_sensor = device_error_code["wireSensor"]
-                                self._code_current_overload = device_error_code["currentOverload"]
-                                self._code_end_of_life = device_error_code["endOfLife"]
+#                                self._code_wire_sensor = device_error_code["wireSensor"]
+#                                self._code_current_overload = device_error_code["currentOverload"]
+#                                self._code_end_of_life = device_error_code["endOfLife"]
                                 if self._is_gen2:
                                     self._air_top = device_error_code["airTopSensor"]
                                     self._air_bottom = device_error_code["airBottomSensor"]
                                     self._line_error = device_error_code["lineError"]
                                     self._inductive_mode = device_error_code["inductiveMode"]
-                                else:
-                                    self._code_air_sensor = device_error_code["airSensor"]
-                                    self._code_load_error = device_error_code["loadError"]
-                                    self._code_reference_sensor = device_error_code["referenceSensor"]
+#                                else:
+#                                    self._code_air_sensor = device_error_code["airSensor"]
+#                                    self._code_load_error = device_error_code["loadError"]
+#                                    self._code_reference_sensor = device_error_code["referenceSensor"]
                     self._energy_stat_time = time.time()
                 if self._energy_stat_time == 0:
                     self._energy_stat_time = start
