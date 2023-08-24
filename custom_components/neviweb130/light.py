@@ -363,7 +363,7 @@ class Neviweb130Light(LightEntity):
                     self._onoff = device_data[ATTR_ONOFF]
                     if not self._is_new_dimmable:
                         self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+#                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._timer = device_data[ATTR_TIMER]
                     self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
