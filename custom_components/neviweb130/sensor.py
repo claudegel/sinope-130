@@ -519,8 +519,8 @@ class Neviweb130Sensor(Entity):
                         self._fuel_alert = device_data[ATTR_FUEL_ALERT]
                         self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
-                        if ATTR_ERROR_CODE_SET1 in device_data:
-                            self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+#                        if ATTR_ERROR_CODE_SET1 in device_data:
+#                            self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
