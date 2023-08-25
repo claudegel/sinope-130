@@ -1116,7 +1116,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         _LOGGER.warning("Got None for device_monthly_stats")
                     if not self._is_wifi and not self._is_hc:
                         device_error_code = self._client.get_device_sensor_error(self._id)
-#                        _LOGGER.warning("Updating error code: %s",device_error_code)
+                        _LOGGER.warning("Updating error code: %s",device_error_code)
                         if device_error_code is not None:
 #                            self._code_compensation_sensor = device_error_code["compensationSensor"]
 #                            self._code_thermal_overload = device_error_code["thermalOverload"]
@@ -1126,17 +1126,17 @@ class Neviweb130Thermostat(ClimateEntity):
                             if self._is_low_voltage or self._is_double:
                                 self._code_air_sensor = device_error_code["airSensor"]
                                 self._code_floor_sensor = device_error_code["floorSensor"]
-                            elif self._is_double:
+                            else self._is_double:
                                 self._base = device_error_code["base"]
-                            else:
+#                            else:
 #                                self._code_wire_sensor = device_error_code["wireSensor"]
 #                                self._code_current_overload = device_error_code["currentOverload"]
 #                                self._code_end_of_life = device_error_code["endOfLife"]
-                                if self._is_gen2:
-                                    self._air_top = device_error_code["airTopSensor"]
-                                    self._air_bottom = device_error_code["airBottomSensor"]
-                                    self._line_error = device_error_code["lineError"]
-                                    self._inductive_mode = device_error_code["inductiveMode"]
+#                                if self._is_gen2:
+#                                    self._air_top = device_error_code["airTopSensor"]
+#                                    self._air_bottom = device_error_code["airBottomSensor"]
+#                                    self._line_error = device_error_code["lineError"]
+#                                    self._inductive_mode = device_error_code["inductiveMode"]
 #                                else:
 #                                    self._code_air_sensor = device_error_code["airSensor"]
 #                                    self._code_load_error = device_error_code["loadError"]
