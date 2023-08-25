@@ -1123,7 +1123,7 @@ class Neviweb130Thermostat(ClimateEntity):
 #                            if self._is_floor and not self._is_wifi:
 #                                self._code_floor_sensor = device_error_code["floorSensor"]
 #                                self._code_gfcibase = device_error_code["gfciBase"]
-                            elif self._is_low_voltage or self._is_double:
+                            if self._is_low_voltage or self._is_double:
                                 self._code_air_sensor = device_error_code["airSensor"]
                                 self._code_floor_sensor = device_error_code["floorSensor"]
                             elif self._is_double:
