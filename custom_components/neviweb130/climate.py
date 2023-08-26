@@ -1116,18 +1116,19 @@ class Neviweb130Thermostat(ClimateEntity):
                         _LOGGER.warning("Got None for device_monthly_stats")
                     if not self._is_wifi and not self._is_hc:
                         device_error_code = self._client.get_device_sensor_error(self._id)
-                        _LOGGER.warning("Updating error code: %s",device_error_code)
+#                        _LOGGER.warning("Updating error code: %s",device_error_code)
                         if device_error_code is not None or device_error_code != {}:
+                            _LOGGER.warning("Error code set1 updated: %s",device_error_code)
 #                            self._code_compensation_sensor = device_error_code["compensationSensor"]
 #                            self._code_thermal_overload = device_error_code["thermalOverload"]
 #                            if self._is_floor and not self._is_wifi:
 #                                self._code_floor_sensor = device_error_code["floorSensor"]
 #                                self._code_gfcibase = device_error_code["gfciBase"]
-                            if self._is_low_voltage or self._is_double:
-                                self._code_air_sensor = device_error_code["airSensor"]
-                                self._code_floor_sensor = device_error_code["floorSensor"]
-                            elif self._is_double:
-                                self._base = device_error_code["base"]
+#                            if self._is_low_voltage or self._is_double:
+#                                self._code_air_sensor = device_error_code["airSensor"]
+#                                self._code_floor_sensor = device_error_code["floorSensor"]
+#                            elif self._is_double:
+#                                self._base = device_error_code["base"]
 #                            else:
 #                                self._code_wire_sensor = device_error_code["wireSensor"]
 #                                self._code_current_overload = device_error_code["currentOverload"]
