@@ -1117,7 +1117,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     if not self._is_wifi and not self._is_hc:
                         device_error_code = self._client.get_device_sensor_error(self._id)
 #                        _LOGGER.warning("Updating error code: %s",device_error_code)
-                        if device_error_code is not None or device_error_code != {}:
+                        if device_error_code is not None and device_error_code != {}:
                             _LOGGER.warning("Error code set1 updated: %s",device_error_code)
 #                            self._code_compensation_sensor = device_error_code["compensationSensor"]
 #                            self._code_thermal_overload = device_error_code["thermalOverload"]
