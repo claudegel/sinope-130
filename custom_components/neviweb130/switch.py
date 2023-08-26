@@ -1109,14 +1109,14 @@ class Neviweb130Switch(SwitchEntity):
                         self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
                         self._water_leak_disconected_status = device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
                         self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
-                        if ATTR_ERROR_CODE_SET1 in device_data:
-                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-                            self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-                            self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-                            self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                            self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                            self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                            self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
+#                        if ATTR_ERROR_CODE_SET1 in device_data:
+#                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
+#                            self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
+#                            self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
+#                            self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
+#                            self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
+#                            self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
+#                            self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
                         if ATTR_DRSTATUS in device_data:
                             self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                             self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
