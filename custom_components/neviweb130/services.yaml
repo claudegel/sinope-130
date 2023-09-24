@@ -107,8 +107,8 @@ set_second_display:
       description: Name(s) of neviweb130 device to set the second display.
       example: "climate.neviweb130_climate_office"
     config2ndDisplay:
-      description: «outsideTemperature» = outside temperature display, «default» = setpoint display.
-      example: "outsideTemperature"
+      description: «exteriorTemperature» = outside temperature display, «setpoint» for setpoint value or «default» = automatic display.
+      example: "exteriorTemperature"
 
 set_backlight:
   description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; wifi or zigbee
