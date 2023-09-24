@@ -14,7 +14,7 @@ model 1134 = Thermostat TH1134ZB-HC for heating/cooling interlocking
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
-model 738 = thermostat TH1300WF 3600W and TH1310WF (wifi floor)
+model 738 = thermostat TH1300WF 3600W, TH1325WF and TH1310WF (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
 
