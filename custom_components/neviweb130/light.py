@@ -70,6 +70,7 @@ from .const import (
     SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
     SERVICE_SET_ACTIVATION,
+    SERVICE_SET_KEY_DOUBLE_UP,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER + DEVICE_MOD
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
     }
 )
 
@@ -151,6 +152,13 @@ SET_ACTIVATION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("active"): vol.In([True, False]),
+    }
+)
+
+SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_KEY_DOUBLE_UP): vol.In(["On", "Off"]),
     }
 )
 
@@ -251,6 +259,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_key_double_up_service(service):
+        """ Change key double up action for dimmer device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {"id": light.unique_id, "double": service.data[ATTR_KEY_DOUBLE_UP]}
+                light.set_key_double_up(value)
+                light.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_LIGHT_KEYPAD_LOCK,
@@ -291,6 +310,13 @@ async def async_setup_platform(
         SERVICE_SET_ACTIVATION,
         set_activation_service,
         schema=SET_ACTIVATION_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_KEY_DOUBLE_UP,
+        set_key_double_up_service,
+        schema=SET_KEY_DOUBLE_UP_SCHEMA,
     )
 
 def brightness_to_percentage(brightness):
@@ -341,7 +367,7 @@ class Neviweb130Light(LightEntity):
             if not self._is_new_dimmable:
                 WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             else:
-                WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP]
+                WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP, ATTR_ERROR_CODE_SET1]
             start = time.time()
             device_data = self._client.get_device_attributes(self._id,
                 UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
@@ -500,7 +526,7 @@ class Neviweb130Light(LightEntity):
         self._onoff = MODE_OFF
 
     def set_phase_control(self, value):
-        """Change phase control parameter, reverse or """
+        """Change phase control parameter, reverse or forward """
         phase = value["phase"]
         entity = value["id"]
         self._client.set_phase(
@@ -511,13 +537,9 @@ class Neviweb130Light(LightEntity):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
         lock = value["lock"]
         entity = value["id"]
-        if lock == "locked":
-            lock_name = "Locked"
-        else:
-            lock_name = "Unlocked"
         self._client.set_keypad_lock(
             entity, lock, False)
-        self._keypad = lock_name
+        self._keypad = lock
 
     def set_timer(self, value):
         """Set device timer, 0 = off, 1 to 255 = timer length"""
@@ -554,3 +576,11 @@ class Neviweb130Light(LightEntity):
         """ Activate or deactivate neviweb polling for a missing device """
         action = value["active"]
         self._activ = action
+
+    def set_key_double_up(self, value):
+        """Change key double up action """
+        double = value["double"]
+        entity = value["id"]
+        self._client.set_double_up(
+            entity, double)
+        self._double_up = double
