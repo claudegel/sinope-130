@@ -547,3 +547,13 @@ set_activation:
     active:
       description: activate «True» or deactivate device «False».
       example: False
+
+set_key_double_up:
+  description: Activate or deactivate double up key press action for DM2550ZB.
+  fields:
+    entity_id:
+      description: Name(s) of Neviweb device.
+      example: "light.neviweb130_light_DN2550ZB"
+    active:
+      description: activate «On» or deactivate action «Off».
+      example: Off
