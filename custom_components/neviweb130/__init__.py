@@ -36,6 +36,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_KEYPAD,
+    ATTR_KEY_DOUBLE_UP,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_DISPLAY2,
@@ -569,6 +570,12 @@ class Neviweb130Client(object):
         """Set device phase control mode."""
         data = {ATTR_PHASE_CONTROL: phase}
         _LOGGER.debug("phase.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_double_up(self, device_id, double):
+        """Set device key double up action."""
+        data = {ATTR_KEY_DOUBLE_UP: double}
+        _LOGGER.debug("double_up.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_timer(self, device_id, time):
