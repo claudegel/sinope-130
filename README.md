@@ -382,8 +382,18 @@ sensor.neviweb130_sensor_spa:
 ```
 Icons are availables from www directory. copy them in config/www
 
+# Device hard reset:
+- Thermostats:
+    - Raise the temperature until the display change.
+    - Push the two button until CLR appear on the screen.
+    - Push once the upper button to get YES on the display.
+    - Push both button simutanously and release immediately. DONE should appear on the screen.
+    - The thermostat will restart with factory setup
 
-If you find a bug it's very new release without all the doc from Sinopé.
+- thermostats G2:
+    - Raise the temperature until the display change.
+    - Push and hold the two button until RST appear on the screen.
+    - Wait until device restart.
 
 ## TO DO
 - when this component will be stable. Merge it with The Neviweb component to poll all devices from only one component.
