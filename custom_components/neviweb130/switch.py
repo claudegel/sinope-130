@@ -382,6 +382,7 @@ async def async_setup_platform(
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
             if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
               or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES \
               or device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL:
@@ -396,13 +397,14 @@ async def async_setup_platform(
                 device_type = "valve"
             else:
                 device_type = "flow"
-            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_type))
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_firmware, device_type))
     for device_info in data.neviweb130_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
             if device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL \
               or device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES \
               or device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL:
@@ -417,7 +419,7 @@ async def async_setup_platform(
                 device_type = "valve"
             else:
                 device_type = "flow"
-            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_type))
+            entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_firmware, device_type))
 
     async_add_entities(entities, True)
 
@@ -780,10 +782,11 @@ def model_to_HA(value):
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch."""
 
-    def __init__(self, data, device_info, name, sku, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
         self._name = name
         self._sku = sku
+        self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._device_type = device_type
@@ -1484,6 +1487,7 @@ class Neviweb130Switch(SwitchEntity):
                    'daily_kwh': self._today_kwh,
                    'monthly_kwh': self._month_kwh}
         data.update({'sku': self._sku,
+                    'firmware': self._firmware,
                     'Activation': self._activ,
                     'device_type': self._device_type,
                     'id': self._id})

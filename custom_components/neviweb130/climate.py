@@ -411,14 +411,16 @@ async def async_setup_platform(
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku, device_firmware))
     for device_info in data.neviweb130_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = "{} {}".format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku))
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku, device_firmware))
 
     async_add_entities(entities, True)
 
@@ -815,10 +817,11 @@ def temp_format_to_ha(value):
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
 
-    def __init__(self, data, device_info, name, sku):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         self._name = name
         self._sku = sku
+        self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._model = device_info["signature"]["model"]
@@ -1288,6 +1291,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
+                    'firmware': self._firmware,
                     'Activation': self._activ,
                     'model': self._model,
                     'id': self._id})

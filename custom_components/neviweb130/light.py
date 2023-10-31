@@ -180,7 +180,8 @@ async def async_setup_platform(
                 "light" if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT 
                 else "dimmer", device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Light(data, device_info, device_name, device_sku))
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            entities.append(Neviweb130Light(data, device_info, device_name, device_sku, device_firmware))
     for device_info in data.neviweb130_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
@@ -189,7 +190,8 @@ async def async_setup_platform(
                 "light" if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT 
                 else "dimmer", device_info["name"])
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Light(data, device_info, device_name, device_sku))
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            entities.append(Neviweb130Light(data, device_info, device_name, device_sku, device_firmware))
 
     async_add_entities(entities, True)
 
@@ -330,10 +332,11 @@ def brightness_from_percentage(percent):
 class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light."""
 
-    def __init__(self, data, device_info, name, sku):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         self._name = name
         self._sku = sku
+        self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._hour_energy_kwh_count = None
@@ -488,6 +491,7 @@ class Neviweb130Light(LightEntity):
                      'daily_kwh': self._today_kwh,
                      'monthly_kwh': self._month_kwh,
                      'sku': self._sku,
+                     'firmware': self._firmware,
                      'Activation': self._activ,
                      'id': self._id})
         return data
