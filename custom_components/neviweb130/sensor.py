@@ -208,7 +208,8 @@ async def async_setup_platform(
             else:
                 device_type = "gateway"
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku))
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku, device_firmware))
     for device_info in data.neviweb130_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
@@ -223,7 +224,8 @@ async def async_setup_platform(
             else:
                 device_type = "gateway"
             device_sku = device_info["sku"]
-            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku))
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku, device_firmware))
 
     async_add_entities(entities, True)
 
@@ -424,10 +426,11 @@ def convert_to_percent(angle, low, high):
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor."""
 
-    def __init__(self, data, device_info, name, device_type, sku):
+    def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
         self._name = name
         self._sku = sku
+        self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
         self._device_type = device_type
@@ -654,6 +657,7 @@ class Neviweb130Sensor(Entity):
         elif self._is_gateway:
             data = {'Gateway_status': self._gateway_status}
         data.update({'sku': self._sku,
+                    'firmware': self._firmware,
                     'Activation': self._activ,
                     'device_type': self._device_type,
                     'Id': self._id})
