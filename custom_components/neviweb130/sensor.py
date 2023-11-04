@@ -551,9 +551,9 @@ class Neviweb130Sensor(Entity):
                 _LOGGER.warning("Maximun session number reached...Close other connections to Neviweb and try again.")
                 self._client.reconnect()
             elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+                _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCBUSY":
                 _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
