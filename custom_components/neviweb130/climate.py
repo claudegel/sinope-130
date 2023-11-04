@@ -1080,9 +1080,9 @@ class Neviweb130Thermostat(ClimateEntity):
                 _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
                 self._client.reconnect()
             elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+                _LOGGER.warning("Device Communication Timeout... The device %s did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
                 _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
@@ -1099,7 +1099,7 @@ class Neviweb130Thermostat(ClimateEntity):
             if self._sku != "FLP55":
                 if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                     device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-#                    _LOGGER.debug("Energy data for %s: %s, size = %s", self._sku, device_hourly_stats, len(device_hourly_stats))
+#                    _LOGGER.debug("Energy data for %s (SKU: %s): %s, size = %s", self._name, self._sku, device_hourly_stats, len(device_hourly_stats))
                     if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                         self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                         self._hour_kwh = device_hourly_stats[1]["period"] / 1000
