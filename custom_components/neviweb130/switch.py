@@ -1169,9 +1169,9 @@ class Neviweb130Switch(SwitchEntity):
                 _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
                 self._client.reconnect()
             elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+                _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
             elif device_data["error"]["code"] == "SVCERR":
                 _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCBUSY":
@@ -1186,21 +1186,21 @@ class Neviweb130Switch(SwitchEntity):
             if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
                 if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                     device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-#                    _LOGGER.warning("%s device_hourly_stats = %s", self._sku, device_hourly_stats)
+#                    _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                     if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                         self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                         self._hour_kwh = device_hourly_stats[1]["period"] / 1000
                     else:
                         _LOGGER.warning("Got None for device_hourly_stats")
                     device_daily_stats = self._client.get_device_daily_stats(self._id)
-#                    _LOGGER.warning("%s device_daily_stats = %s", self._sku, device_daily_stats)
+#                    _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
                     if device_daily_stats is not None and len(device_daily_stats) > 1:
                         self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                         self._today_kwh = device_daily_stats[0]["period"] / 1000
                     else:
                         _LOGGER.warning("Got None for device_daily_stats")
                     device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-#                    _LOGGER.warning("%s device_monthly_stats = %s", self._sku, device_monthly_stats)
+#                    _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                     if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                         self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
                         self._month_kwh = device_monthly_stats[0]["period"] / 1000
