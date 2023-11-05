@@ -67,9 +67,7 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
