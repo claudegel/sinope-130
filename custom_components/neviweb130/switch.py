@@ -70,6 +70,8 @@ from homeassistant.helpers.typing import HomeAssistantType
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
@@ -1181,6 +1183,9 @@ class Neviweb130Switch(SwitchEntity):
                 _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
                 _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation, or just restart HA.",self._name)
                 self._activ = False
+                self.notify_ha(
+                    f"Warning: Received message from Neviweb, device disconnected... Check you log... " + self._name
+                )
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
             if (self._is_load or self._is_wall or self._is_flow or self._is_tank_load) and not self._is_zb_valve:
@@ -1686,3 +1691,16 @@ class Neviweb130Switch(SwitchEntity):
         self._input_name_2 = in_2
         self._output_name_1 = out_1
         self._output_name_2 = out_2
+
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+        """Notify user via HA web frontend."""
+        self.hass.services.call(
+            PN_DOMAIN,
+            "create",
+            service_data={
+                "title": title,
+                "message": msg,
+            },
+            blocking=False,
+        )
+        return True
