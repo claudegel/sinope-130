@@ -1167,6 +1167,9 @@ class Neviweb130Switch(SwitchEntity):
                 self._client.reconnect()
             elif device_data["error"]["code"] == "ACCSESSEXC":
                 _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+                self.notify_ha(
+                    f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
+                )
                 self._client.reconnect()
             elif device_data["error"]["code"] == "DVCACTNSPTD":
                 _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
