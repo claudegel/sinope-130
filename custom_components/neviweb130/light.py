@@ -39,6 +39,7 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -404,13 +405,16 @@ class Neviweb130Light(LightEntity):
                 self._client.reconnect()
             elif device_data["error"]["code"] == "ACCSESSEXC":
                 _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+                self.notify_ha(
+                    f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
+                )
                 self._client.reconnect()
             elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+                _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
             elif device_data["error"]["code"] == "SVCERR":
-                _LOGGER.warning("Service error, device not available, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+                _LOGGER.warning("Service error, device %s not available, retry later: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCBUSY":
                 _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
@@ -418,6 +422,9 @@ class Neviweb130Light(LightEntity):
                 _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
                 _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation, or just restart HA.",self._name)
                 self._activ = False
+                self.notify_ha(
+                    f"Warning: Received message from Neviweb, device disconnected... Check you log... " + self._name
+                )
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
@@ -588,3 +595,16 @@ class Neviweb130Light(LightEntity):
         self._client.set_double_up(
             entity, double)
         self._double_up = double
+
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+        """Notify user via HA web frontend."""
+        self.hass.services.call(
+            PN_DOMAIN,
+            "create",
+            service_data={
+                "title": title,
+                "message": msg,
+            },
+            blocking=False,
+        )
+        return True

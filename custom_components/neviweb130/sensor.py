@@ -44,10 +44,9 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
-
 from homeassistant.components.sensor import SensorStateClass
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -549,11 +548,14 @@ class Neviweb130Sensor(Entity):
                 self._client.reconnect()
             elif device_data["error"]["code"] == "ACCSESSEXC":
                 _LOGGER.warning("Maximun session number reached...Close other connections to Neviweb and try again.")
+                self.notify_ha(
+                    f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
+                )
                 self._client.reconnect()
             elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported...(SKU: %s) Report to maintainer.", self._sku)
+                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._sku)
+                _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
             elif device_data["error"]["code"] == "DVCBUSY":
                 _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
@@ -561,6 +563,9 @@ class Neviweb130Sensor(Entity):
                 _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
                 _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation, or just restart HA.",self._name)
                 self._activ = False
+                self.notify_ha(
+                    f"Warning: Received message from Neviweb, device disconnected... Check you log... " + self._name
+                )
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
 
@@ -758,3 +763,16 @@ class Neviweb130Sensor(Entity):
         """ Activate or deactivate neviweb polling for a missing device """
         action = value["active"]
         self._activ = action
+
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+        """Notify user via HA web frontend."""
+        self.hass.services.call(
+            PN_DOMAIN,
+            "create",
+            service_data={
+                "title": title,
+                "message": msg,
+            },
+            blocking=False,
+        )
+        return True
