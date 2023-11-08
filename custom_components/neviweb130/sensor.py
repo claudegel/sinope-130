@@ -562,7 +562,7 @@ class Neviweb130Sensor(Entity):
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
                 _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
                 _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation, or just restart HA.",self._name)
-                self._activ = False
+#                self._activ = False
                 self.notify_ha(
                     f"Warning: Received message from Neviweb, device disconnected... Check you log... " + self._name
                 )
