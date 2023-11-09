@@ -153,6 +153,7 @@ SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_A
 
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
+SNOOZE_TIME = 1200
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 
@@ -1157,7 +1158,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 if self._energy_stat_time == 0:
                     self._energy_stat_time = start
         else:
-            if time.time() - self._snooze > 1200:
+            if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
                 self.notify_ha(
                     f"Warning: Neviweb Device polling restarted for " + self._name
