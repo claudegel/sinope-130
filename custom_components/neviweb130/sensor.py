@@ -562,12 +562,12 @@ class Neviweb130Sensor(Entity):
                 _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
-                _LOGGER.warning("This device %s is de-activated and won't be polled for 20 minutes.",self._name)
-                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for polling restart or just restart HA.",self._name)
+                _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
+                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
                 self._activ = False
                 self._snooze = time.time()
                 self.notify_ha(
-                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb polling will be halted for 20 minutes for " + self._name
+                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name
                 )
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
@@ -575,7 +575,7 @@ class Neviweb130Sensor(Entity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
                 self.notify_ha(
-                    f"Warning: Neviweb Device polling restarted for " + self._name
+                    f"Warning: Neviweb Device update restarted for " + self._name
                 )
 
     @property
