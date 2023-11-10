@@ -468,7 +468,7 @@ class Neviweb130Sensor(Entity):
         self._gauge_type = None
         self._temperature = None
         self._activ = True
-        self._snooze = time.time()
+        self._snooze = 0
         self._data = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
