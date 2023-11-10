@@ -563,7 +563,7 @@ class Neviweb130Sensor(Entity):
             elif device_data["error"]["code"] == "DVCUNVLB":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
                 _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
-                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
+                _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
                 self._activ = False
                 self._snooze = time.time()
                 self.notify_ha(
