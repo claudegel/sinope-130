@@ -78,6 +78,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 light'
 DEFAULT_NAME_2 = 'neviweb130 light 2'
+SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
@@ -358,6 +359,7 @@ class Neviweb130Light(LightEntity):
         self._temp_status = None
         self._energy_stat_time = time.time() - 1500
         self._activ = True
+        self._snooze = 0
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
@@ -419,11 +421,12 @@ class Neviweb130Light(LightEntity):
                 _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
             elif device_data["error"]["code"] == "DVCUNVLB":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
-                _LOGGER.warning("This device %s is de-activated and won't be polled until you put it back on HA and Neviweb.",self._name)
-                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation, or just restart HA.",self._name)
-#                self._activ = False
+                _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
+                _LOGGER.warning("Then you will have to re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
+                self._activ = False
+                self._snooze = time.time()
                 self.notify_ha(
-                    f"Warning: Received message from Neviweb, device disconnected... Check you log... " + self._name
+                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name
                 )
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
@@ -449,6 +452,12 @@ class Neviweb130Light(LightEntity):
                 self._energy_stat_time = time.time()
             if self._energy_stat_time == 0:
                 self._energy_stat_time = start
+        else:
+            if time.time() - self._snooze > SNOOZE_TIME:
+                self._activ = True
+                self.notify_ha(
+                    f"Warning: Neviweb Device update restarted for " + self._name
+                )
 
     @property
     def supported_features(self):
