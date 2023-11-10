@@ -874,7 +874,7 @@ class Neviweb130Switch(SwitchEntity):
         self._tank_size = None
         self._controlled_device = None
         self._energy_stat_time = time.time() - 1500
-        self._snooze = time.time()
+        self._snooze = 0
         self._water_temp_min = None
         self._temperature = None
         self._consumption = None
