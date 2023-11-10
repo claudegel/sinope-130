@@ -359,7 +359,7 @@ class Neviweb130Light(LightEntity):
         self._temp_status = None
         self._energy_stat_time = time.time() - 1500
         self._activ = True
-        self._snooze = time.time()
+        self._snooze = 0
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
