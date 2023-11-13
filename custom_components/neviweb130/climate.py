@@ -253,7 +253,7 @@ SET_TIME_FORMAT_SCHEMA = vol.Schema(
 SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP): vol.In(["celcius", "fahrenheit"]),
+        vol.Required(ATTR_TEMP): vol.In(["celsius", "fahrenheit"]),
     }
 )
 
