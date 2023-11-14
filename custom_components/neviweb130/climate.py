@@ -1449,7 +1449,7 @@ class Neviweb130Thermostat(ClimateEntity):
             level_name = "On"
         else:
             if device == "wifi":
-                level_command = "onUserActive"
+                level_command = "onUserAction"
             else:
                 level_command = "onActive"
             level_name = "Auto"
