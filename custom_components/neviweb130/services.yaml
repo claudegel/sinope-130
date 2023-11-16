@@ -557,3 +557,13 @@ set_key_double_up:
     active:
       description: activate «On» or deactivate action «Off».
       example: Off
+
+set_sensor_type:
+  description: Set floor sensor type 10k or 12k.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat (TH1300ZB).
+      example: "climate.neviweb130_climate_office_floor"
+    floorSensorType:
+      description: «10k» or «12k».
+      example: "10k"

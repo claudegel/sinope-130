@@ -88,6 +88,7 @@ from .const import (
     ATTR_FLOOR_AUX,
     ATTR_FLOOR_OUTPUT1,
     ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_SENSOR,
     ATTR_KEYPAD,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_AUTO_DIM,
@@ -102,7 +103,6 @@ from .const import (
     ATTR_FLOOR_MIN,
     ATTR_ROOM_TEMP_DISPLAY,
     ATTR_EARLY_START,
-    ATTR_FLOOR_SENSOR,
     ATTR_AUX_CYCLE,
     ATTR_CYCLE,
     ATTR_CYCLE_OUTPUT2,
@@ -143,6 +143,7 @@ from .const import (
     SERVICE_SET_COOL_SETPOINT_MAX,
     SERVICE_SET_FLOOR_LIMIT_LOW,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
+    SERVICE_SET_SENSOR_TYPE,
     SERVICE_SET_ACTIVATION,
 )
 
@@ -393,6 +394,13 @@ SET_ACTIVATION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("active"): vol.In([True, False]),
+    }
+)
+
+SET_SENSOR_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOOR_SENSOR): vol.In(["10k", "12k"]),
     }
 )
 
@@ -656,6 +664,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_sensor_type_service(service):
+        """ Set floor sensor type """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "type": service.data[ATTR_FLOOR_SENSOR]}
+                thermostat.set_sensor_type(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -801,6 +820,13 @@ async def async_setup_platform(
         SERVICE_SET_ACTIVATION,
         set_activation_service,
         schema=SET_ACTIVATION_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SENSOR_TYPE,
+        set_sensor_type_service,
+        schema=SET_SENSOR_TYPE_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -1449,7 +1475,7 @@ class Neviweb130Thermostat(ClimateEntity):
             level_name = "On"
         else:
             if device == "wifi":
-                level_command = "onUserActive"
+                level_command = "onUserAction"
             else:
                 level_command = "onActive"
             level_name = "Auto"
@@ -1679,6 +1705,13 @@ class Neviweb130Thermostat(ClimateEntity):
         self._pump_protec_status = status
         self._pump_protec_duration = 60
         self._pump_protec_period = 1
+
+    def set_sensor_type(self, value):
+        entity = value["id"]
+        tipe = value["type"]
+        self._client.set_sensor_type(
+            entity, tipe)
+        self._floor_sensor_type = tipe
 
     def set_floor_limit(self, value):
         """set maximum/minimum floor setpoint temperature"""
