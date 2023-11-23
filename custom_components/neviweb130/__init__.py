@@ -101,7 +101,7 @@ from .const import (
     MODE_MANUAL
 )
 
-VERSION = '2.4.7'
+VERSION = '2.4.8'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -312,7 +312,7 @@ class Neviweb130Client(object):
                     timeout=self._timeout)
                 _LOGGER.debug("Received gateway data 2: %s", raw_res2.json())
             except OSError:
-                raise PyNeviwebError("Cannot get gateway data 2")
+                raise PyNeviweb130Error("Cannot get gateway data 2")
             # Prepare data
             self.gateway_data2 = raw_res2.json()
             _LOGGER.debug("Gateway_data2 : %s", self.gateway_data2)

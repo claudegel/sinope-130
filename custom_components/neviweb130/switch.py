@@ -927,7 +927,7 @@ class Neviweb130Switch(SwitchEntity):
                 ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
             elif self._is_tank_load:
                 LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
-                ATTR_DR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS, ATTR_DR_PROTEC_STATUS]
+                ATTR_DR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS, ATTR_DR_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
             elif self._is_wifi_tank_load:
                 LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_ALARM_STATUS, ATTR_WATER_TEMPERATURE, ATTR_WATER_LEAK_DISCONECTED_STATUS, ATTR_ERROR_CODE_SET1, ATTR_WIFI_WATTAGE, ATTR_WIFI_WATT_NOW, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_MIN_WATER_TEMP, ATTR_WATER_TANK_ON,
                 ATTR_WATER_TEMP_TIME, ATTR_WIFI, ATTR_DRSTATUS, ATTR_LEG_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_SYSTEM_MODE, ATTR_COLD_LOAD_PICKUP_TEMP, ATTR_AWAY_ACTION]
@@ -1095,7 +1095,7 @@ class Neviweb130Switch(SwitchEntity):
                         self._wattage = device_data[ATTR_WATTAGE]
                         self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                         self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
-#                        self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
+                        self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
                         self._rssi = device_data[ATTR_RSSI]
                         self._tank_size = device_data[ATTR_TANK_SIZE]
                         if ATTR_DRSTATUS in device_data:
@@ -1335,7 +1335,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Water_leak_status': self._water_leak_status,
                    'Water_temperature': self._water_temp,
                    'Cold_load_pickup_status': self._cold_load_status,
-#                   'Cold_load_remaining_time': self._cold_load_remaining_time,
+                   'Cold_load_remaining_time': self._cold_load_remaining_time,
                    'Tank_size': neviweb_to_ha(self._tank_size),
                    'Temperature_status': self._temp_status,
                    'Stm_Mcu': self._stm_mcu,
