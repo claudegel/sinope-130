@@ -1707,7 +1707,7 @@ class Neviweb130Switch(SwitchEntity):
         self._activ = action
 
     def set_remaining_time(self, value):
-        """ Activate or deactivate calypso for time period."""
+        """ set coldLoadPickupRemainingTime value."""
         time = value["time"]
         entity = value["id"]
         self._client.set_remaining_time(entity, time)
