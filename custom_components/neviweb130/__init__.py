@@ -96,6 +96,7 @@ from .const import (
     ATTR_NAME_2,
     ATTR_OUTPUT_NAME_1,
     ATTR_OUTPUT_NAME_2,
+    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL
@@ -663,6 +664,12 @@ class Neviweb130Client(object):
         """set water heater tank size for RM3500ZB."""
         data = {ATTR_TANK_SIZE:val}
         _LOGGER.debug("TankSize.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_remaining_time(self, device_id, time):
+        """Activate or deactivate calypso for time period."""
+        data = {ATTR_COLD_LOAD_PICKUP_REMAIN_TIME:time}
+        _LOGGER.debug("RemainingTime.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_sensor_type(self, device_id, val):
