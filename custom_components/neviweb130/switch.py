@@ -163,6 +163,7 @@ from .const import (
     SERVICE_SET_POWER_SUPPLY,
     SERVICE_SET_INPUT_OUTPUT_NAMES,
     SERVICE_SET_ACTIVATION,
+    SERVICE_SET_REMAINING_TIME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -364,6 +365,15 @@ SET_ACTIVATION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("active"): vol.In([True, False]),
+    }
+)
+
+SET_REMAINING_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COLD_LOAD_PICKUP_REMAIN_TIME): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=65535)
+        ),
     }
 )
 
@@ -600,6 +610,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_remaining_time_service(service):
+        """ set coldLoadPickupRemainingTime value. """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "time": service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]}
+                switch.set_remaining_time(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -710,6 +731,13 @@ async def async_setup_platform(
         SERVICE_SET_ACTIVATION,
         set_activation_service,
         schema=SET_ACTIVATION_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_REMAINING_TIME,
+        set_remaining_time_service,
+        schema=SET_REMAINING_TIME_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, num):
@@ -1586,8 +1614,9 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_load_dr_options(self, value):
         """ set load controler Éco Sinopé attributes """
+        entity = value["id"]
         onoff = value["onoff"]
-        optout = value["optout"]
+        optout = value["droptout"]
         dr = value["dractive"]
         self._client.set_load_dr_options(
             entity, onoff, optout, dr)
@@ -1676,6 +1705,13 @@ class Neviweb130Switch(SwitchEntity):
         """ Activate or deactivate neviweb polling for a missing device """
         action = value["active"]
         self._activ = action
+
+    def set_remaining_time(self, value):
+        """ set coldLoadPickupRemainingTime value."""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_remaining_time(entity, time)
+        self._cold_load_remaining_time = time
 
     def set_input_output_names(self, value):
         """ Set names for input 1 and 2, output 1 and 2 for MC3100ZB device. """
