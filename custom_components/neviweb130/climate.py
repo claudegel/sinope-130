@@ -1121,7 +1121,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._activ = False
                 self._snooze = time.time()
                 self.notify_ha(
-                    f"Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name
+                    f"Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
                 )
             elif device_data["error"]["code"] == "DVCATTRNSPTD":
                 _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
@@ -1187,7 +1187,7 @@ class Neviweb130Thermostat(ClimateEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
                 self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name
+                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                 )
 
     @property
