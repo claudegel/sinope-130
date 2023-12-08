@@ -567,7 +567,7 @@ class Neviweb130Sensor(Entity):
                 self._activ = False
                 self._snooze = time.time()
                 self.notify_ha(
-                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name
+                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
                 )
             else:
                 _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
@@ -575,7 +575,7 @@ class Neviweb130Sensor(Entity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
                 self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name
+                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                 )
 
     @property
