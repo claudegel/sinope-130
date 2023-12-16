@@ -34,19 +34,21 @@ import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL)
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    HVAC_MODE_AUTO,
-    SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_AUX_HEAT,
-    PRESET_AWAY,
-    PRESET_NONE,
-    PRESET_HOME,
     CURRENT_HVAC_HEAT,
     CURRENT_HVAC_IDLE,
     CURRENT_HVAC_OFF,
+    HVAC_MODE_AUTO,
+    HVAC_MODE_COOL,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
+    PRESET_HOME,
+    PRESET_AWAY,
+    PRESET_NONE,
+    SUPPORT_AUX_HEAT,
+    SUPPORT_FAN_MODE,
+    SUPPORT_PRESET_MODE,
+    SUPPORT_SWING_MODE,
+    SUPPORT_TARGET_TEMPERATURE,
 )
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -57,12 +59,12 @@ from homeassistant.const import (
 
 from homeassistant.helpers import (
     config_validation as cv,
-    discovery,
-    service,
-    entity_platform,
-    entity_component,
-    entity_registry,
     device_registry,
+    discovery,
+    entity_component,
+    entity_platform,
+    entity_registry,
+    service,
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
@@ -73,78 +75,98 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
-    ATTR_SETPOINT_MODE,
-    ATTR_ROOM_SETPOINT,
-    ATTR_OUTPUT_PERCENT_DISPLAY,
-    ATTR_ROOM_TEMPERATURE,
-    ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX,
-    ATTR_ROOM_SETPOINT_AWAY,
-    ATTR_WATTAGE,
-    ATTR_GFCI_STATUS,
-    ATTR_GFCI_ALERT,
-    ATTR_FLOOR_MODE,
-    ATTR_OCCUPANCY,
+    ATTR_AUX_CYCLE,
+    ATTR_AVAIL_MODE,
+    ATTR_BACKLIGHT,
+    ATTR_BACKLIGHT_AUTO_DIM,
+    ATTR_BALANCE_PT,
+    ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_SETPOINT,
+    ATTR_COOL_SETPOINT_MAX, 
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_CYCLE,
+    ATTR_CYCLE_OUTPUT2,
+    ATTR_DISPLAY2,
+    ATTR_DISPLAY_CAP,
+    ATTR_DISPLAY_CONF,
+    ATTR_DRACTIVE,
+    ATTR_DRSTATUS,
+    ATTR_DRSETPOINT,
+    ATTR_EARLY_START,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_FAN_CAP,    
+    ATTR_FAN_SPEED,
+    ATTR_FAN_SWING_CAP,
+    ATTR_FAN_SWING_CAP_HORIZ,
+    ATTR_FAN_SWING_CAP_VERT,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
+    ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_AUX,
+    ATTR_FLOOR_MIN,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MODE,
     ATTR_FLOOR_OUTPUT1,
     ATTR_FLOOR_OUTPUT2,
     ATTR_FLOOR_SENSOR,
+    ATTR_GFCI_ALERT,
+    ATTR_GFCI_STATUS,
+    ATTR_HC_DEV,
+    ATTR_HEAT_LOCK_TEMP,
     ATTR_KEYPAD,
-    ATTR_BACKLIGHT,
-    ATTR_BACKLIGHT_AUTO_DIM,
-    ATTR_TIME,
-    ATTR_TEMP,
-    ATTR_WIFI_WATTAGE,
-    ATTR_WIFI,
-    ATTR_DISPLAY2,
-    ATTR_WIFI_KEYPAD,
-    ATTR_FLOOR_AIR_LIMIT,
-    ATTR_FLOOR_MAX,
-    ATTR_FLOOR_MIN,
-    ATTR_ROOM_TEMP_DISPLAY,
-    ATTR_EARLY_START,
-    ATTR_AUX_CYCLE,
-    ATTR_CYCLE,
-    ATTR_CYCLE_OUTPUT2,
+    ATTR_LANGUAGE,
+    ATTR_MODE,
+    ATTR_MODEL,
+    ATTR_OCCUPANCY,
+    ATTR_OPTOUT,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
     ATTR_PUMP_PROTEC,
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
-    ATTR_TYPE,
-    ATTR_SYSTEM_MODE,
-    ATTR_DRSTATUS,
-    ATTR_DRACTIVE,
-    ATTR_OPTOUT,
-    ATTR_DRSETPOINT,
-    ATTR_SETPOINT,
-    ATTR_STATUS,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_AWAY,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_TEMP_DISPLAY,
+    ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
-    ATTR_COOL_SETPOINT,
-    ATTR_COOL_SETPOINT_MIN,
-    ATTR_COOL_SETPOINT_MAX,
+    ATTR_SETPOINT,
+    ATTR_SETPOINT_MODE,
+    ATTR_SOUND_CAP,
+    ATTR_SOUND_CONF,
+    ATTR_STATUS,
+    ATTR_SYSTEM_MODE,
+    ATTR_TIME,
+    ATTR_TEMP,
+    ATTR_TYPE,
+    ATTR_WATTAGE,
+    ATTR_WIFI,
+    ATTR_WIFI_KEYPAD,
+    ATTR_WIFI_WATTAGE,
     MODE_AUTO_BYPASS,
     MODE_MANUAL,
-    SERVICE_SET_CLIMATE_KEYPAD_LOCK,
-    SERVICE_SET_SECOND_DISPLAY,
-    SERVICE_SET_BACKLIGHT,
-    SERVICE_SET_TIME_FORMAT,
-    SERVICE_SET_TEMPERATURE_FORMAT,
-    SERVICE_SET_SETPOINT_MAX,
-    SERVICE_SET_SETPOINT_MIN,
-    SERVICE_SET_FLOOR_AIR_LIMIT,
-    SERVICE_SET_EARLY_START,
+    SERVICE_SET_ACTIVATION,
     SERVICE_SET_AIR_FLOOR_MODE,
+    SERVICE_SET_AUX_CYCLE_OUTPUT,
+    SERVICE_SET_AUXILIARY_LOAD,
+    SERVICE_SET_BACKLIGHT,
+    SERVICE_SET_CLIMATE_KEYPAD_LOCK,
+    SERVICE_SET_COOL_SETPOINT_MAX,
+    SERVICE_SET_COOL_SETPOINT_MIN,
+    SERVICE_SET_CYCLE_OUTPUT,
+    SERVICE_SET_EARLY_START,
+    SERVICE_SET_FLOOR_AIR_LIMIT,
+    SERVICE_SET_FLOOR_LIMIT_HIGH,
+    SERVICE_SET_FLOOR_LIMIT_LOW,
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
-    SERVICE_SET_AUXILIARY_LOAD,
-    SERVICE_SET_AUX_CYCLE_OUTPUT,
-    SERVICE_SET_CYCLE_OUTPUT,
     SERVICE_SET_PUMP_PROTECTION,
-    SERVICE_SET_COOL_SETPOINT_MIN,
-    SERVICE_SET_COOL_SETPOINT_MAX,
-    SERVICE_SET_FLOOR_LIMIT_LOW,
-    SERVICE_SET_FLOOR_LIMIT_HIGH,
+    SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_SENSOR_TYPE,
-    SERVICE_SET_ACTIVATION,
+    SERVICE_SET_SETPOINT_MAX,
+    SERVICE_SET_SETPOINT_MIN,
+    SERVICE_SET_TEMPERATURE_FORMAT,
+    SERVICE_SET_TIME_FORMAT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -169,33 +191,33 @@ HA_TO_NEVIWEB_PERIOD = {
 }
 
 UPDATE_ATTRIBUTES = [
-    ATTR_ROOM_SETPOINT,
-    ATTR_OUTPUT_PERCENT_DISPLAY,
-    ATTR_ROOM_TEMPERATURE,
-    ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX,
-    ATTR_ROOM_TEMP_DISPLAY,
-    ATTR_TIME,
-    ATTR_TEMP,
-    ATTR_DRSTATUS,
     ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_TEMP_DISPLAY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_TEMP,
+    ATTR_TIME,
 ]
 
 SUPPORTED_HVAC_WIFI_MODES = [
-    HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
 ]
 
 SUPPORTED_HVAC_MODES = [
-    HVAC_MODE_OFF,
     HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
 ]
 
 SUPPORTED_HVAC_HC_MODES = [
-    HVAC_MODE_OFF,
-    HVAC_MODE_HEAT,
     HVAC_MODE_COOL,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
 ]
 
 PRESET_WIFI_MODES = [
@@ -927,6 +949,27 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cool_max = None
         self._base = None
         self._activ = True
+        self._HC_device = None
+        self._language = None
+        self._model = None
+        self._fan_speed = 0
+        self._fan_swing_vert = None
+        self._fan_swing_horiz = None
+        self._fan_cap = None
+        self._fan_swing_cap = None
+        self._fan_swing_cap_vert = None
+        self._fan_swing_cap_horiz = None
+        self._balance_pt = None
+        self._heat_lock_temp = None
+        self._cool_lock_temp = None
+        self._avail_mode = None
+        self._temp_status = None
+        self._stm_mcu = None
+        self._thermal_overload = None
+        self._current_overload = None
+        self._j2connector = None
+        self._j3connector = None
+        self._line_error = None
         self._is_double = device_info["signature"]["model"] in \
             DEVICE_MODEL_DOUBLE
         self._is_hc = device_info["signature"]["model"] in \
@@ -976,7 +1019,8 @@ class Neviweb130Thermostat(ClimateEntity):
             else:
                 GEN2_ATTRIBUTE = [ATTR_DISPLAY2, ATTR_RSSI]
             if self._is_hc:
-                HC_ATTRIBUTE = [ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_WATTAGE, ATTR_BACKLIGHT, ATTR_KEYPAD, ATTR_RSSI]
+                HC_ATTRIBUTE = [ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_WATTAGE, ATTR_BACKLIGHT, ATTR_KEYPAD, ATTR_HC_DEV, ATTR_ERROR_CODE_SET1, ATTR_LANGUAGE, ATTR_MODEL,
+                                ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ, ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE]
             else:
                 HC_ATTRIBUTE = []
             """Get the latest data from Neviweb and update the state."""
@@ -1097,6 +1141,28 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._target_cool = device_data[ATTR_COOL_SETPOINT]
                         self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                         self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
+                        self._HC_device = device_data[ATTR_HC_DEV]
+#                        if ATTR_ERROR_CODE_SET1 in device_data:
+#                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
+#                            self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
+#                            self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
+#                            self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
+#                            self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
+#                            self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
+#                            self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
+                        self._language = device_data[ATTR_LANGUAGE]
+                        self._model = device_data[ATTR_MODEL]
+                        self._fan_speed = device_data[ATTR_FAN_SPEED]
+                        self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
+                        self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
+                        self._fan_cap = device_data[ATTR_FAN_CAP]
+                        self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
+                        self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
+                        self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
+                        self._balance_pt = device_data[ATTR_BALANCE_PT]
+                        self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
+                        self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
+                        self._avail_mode = device_data[ATTR_AVAIL_MODE]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -1121,7 +1187,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._activ = False
                 self._snooze = time.time()
                 self.notify_ha(
-                    f"Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name
+                    f"Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
                 )
             elif device_data["error"]["code"] == "DVCATTRNSPTD":
                 _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
@@ -1187,7 +1253,7 @@ class Neviweb130Thermostat(ClimateEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
                 self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name
+                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                 )
 
     @property
@@ -1307,7 +1373,21 @@ class Neviweb130Thermostat(ClimateEntity):
             data.update({'cool setpoint min': self._cool_min,
                     'cool setpoint max': self._cool_max,
                     'cool setpoint': self._target_cool,
-                    'cycle_length': self._cycle_length})
+                    'cycle_length': self._cycle_length,
+                    'hc_device': self._HC_device,
+                    'language': self._language,
+                    'model':  self._model,
+                    'fan_speed': self._fan_speed,
+                    'fan_swing_vertical': self._fan_swing_vert,
+                    'fan_swing_horizontal': self._fan_swing_horiz,
+                    'fan_capability': self._fan_cap,
+                    'fan_swing_capability': self._fan_swing_cap,
+                    'fan_swing_capability_vertical': self._fan_swing_cap_vert,
+                    'fan_swing_capability_horizontal': self._fan_swing_cap_horiz,
+                    'balance_point': self._balance_pt,
+                    'heat_lock_temp': self._heat_lock_temp,
+                    'cool_lock_temp': self._cool_lock_temp,
+                    'available_mode': self._avail_mode})
         data.update({'heat_level': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
