@@ -141,7 +141,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **homekit_mode** | no | False | Add support for Homekit specific values.
 | **stat_interval** | no | 1800 | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.
 
-If you have a GT125 also connected to Neviweb the network parameter is mandatory or it is possible that during the setup, the GT125 network will be picked up accidentally. If you have only two GT130/wifi network, you can omit there names as during setup, the first two network found will be picked up automatically. If you prefer to add networs names make sure that they are written «exactly» as in Neviweb. (first letter capitalized or not).
+If you have a GT125 also connected to Neviweb the network parameter is mandatory or it is possible that during the setup, the GT125 network will be picked up accidentally. If you have only two GT130/wifi network, you can omit there names as during setup, the first two network found will be picked up automatically. If you prefer to add networs names make sure that they are written «exactly» as in Neviweb. (first letter capitalized or not). Avoid also accented letters as Home Assistant will remove them and location name won't match preventing custom_component loading.
 
 ## Sedna valve
 For Sedna valve there is two way to connect it to Neviweb:
