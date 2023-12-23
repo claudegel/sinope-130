@@ -190,6 +190,7 @@ TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
 FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
+DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", "2 h", "3 h"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
@@ -199,12 +200,19 @@ HA_TO_NEVIWEB_SIZE = {
 }
 
 HA_TO_NEVIWEB_DELAY = {
+    "off": 0,
+    "1 min": 60,
+    "2 min": 120,
+    "5 min": 300,
+    "10 min": 600,
     "15 min": 900,
     "30 min": 1800,
     "45 min": 2700,
     "60 min": 3600,
     "75 min": 4500,
     "90 min": 5400,
+    "1 h": 3600,
+    "2 h": 7200,
     "3 h": 10800,
     "6 h": 21600,
     "12 h": 43200,
@@ -395,7 +403,7 @@ SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema(
         vol.Required("input_number"): vol.In([1, 2]),
         vol.Required("onoff"): vol.In(["on", "off"]),
         vol.Required("delay"): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=10800)
+            cv.ensure_list, [vol.In(DELAY)]
         ),
     }
 )
@@ -650,7 +658,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "input_number": service.data["input_number"], "onoff": service.data["onoff"], "delay": service.data["delay"]}
+                value = {"id": switch.unique_id, "inputnumber": service.data["input_number"], "onoff": service.data["onoff"], "delay": service.data["delay"][0]}
                 switch.set_on_off_input_delay(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -1104,7 +1112,7 @@ class Neviweb130Switch(SwitchEntity):
                             self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                             if self._flowmeter_timer != 0:
                                 self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                                self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
+                                self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                                 self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
                                 self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
                                 self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
@@ -1140,7 +1148,7 @@ class Neviweb130Switch(SwitchEntity):
                             self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                             if self._flowmeter_timer != 0:
                                 self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                                self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
+                                self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                                 self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
                                 self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
                                 self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
@@ -1534,7 +1542,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
-                   'Flow_meter_alert_delay': self._flowmeter_alert_delay,
+                   'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
@@ -1556,7 +1564,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
-                   'Flow_meter_alert_delay': self._flowmeter_alert_delay,
+                   'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat"),
@@ -1581,10 +1589,10 @@ class Neviweb130Switch(SwitchEntity):
                    'Input2_status': self._input2_status,
                    'onOff': self._onoff,
                    'onOff2': self._onoff2,
-                   'Input1_on_delay': self._input_1_on_delay,
-                   'Input2_on_delay': self._input_2_on_delay,
-                   'Input1_off_delay': self._input_1_off_delay,
-                   'Input2_off_delay': self._input_2_off_delay,
+                   'Input1_on_delay': neviweb_to_ha_delay(self._input_1_on_delay),
+                   'Input2_on_delay': neviweb_to_ha_delay(self._input_2_on_delay),
+                   'Input1_off_delay': neviweb_to_ha_delay(self._input_1_off_delay),
+                   'Input2_off_delay': neviweb_to_ha_delay(self._input_2_off_delay),
                    'Input1_name': self._input_name_1,
                    'Input2_name': self._input_name_2,
                    'Output1_name': self._output_name_1,
@@ -1787,11 +1795,12 @@ class Neviweb130Switch(SwitchEntity):
     def set_on_off_input_delay(self, value):
         """ set input 1 or 2 on/off delay in seconds"""
         entity = value["id"]
-        delay = value["delay"]
+        val = value["delay"]
         onoff = value["onoff"]
-        input_number = value["input"]
-        self._client.set_on_off_input_delay(entity, delay, onoff, input_number)
-        if input_number == 1:
+        inputnumber = value["inputnumber"]
+        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        self._client.set_on_off_input_delay(entity, delay, onoff, inputnumber)
+        if inputnumber == 1:
             match value["onoff"]:
                 case "on":
                     self._input_1_on_delay = delay
