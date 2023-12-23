@@ -888,9 +888,9 @@ class Neviweb130Client(object):
         _LOGGER.debug("power_supply.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_on_off_input_delay(entity, delay, onoff, input_number):
+    def set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
         """ set input 1 or 2 on/off delay in seconds"""
-        if input_number == 1:
+        if inputnumber == 1:
             match onoff:
                 case "on":
                     data = {ATTR_INPUT_1_ON_DELAY: delay}
