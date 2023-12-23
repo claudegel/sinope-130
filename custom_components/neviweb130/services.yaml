@@ -577,3 +577,19 @@ set_remaining_time:
     coldLoadPickupRemainingTime:
       description: 10800 for 3 hrs, 14400 for 4 hrs. (0 to 65535)
       example: 10800
+
+set_on_off_input_delay:
+  description: Set input on/off delay in seconds.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 MC3100ZB device.
+      example: "switch.neviweb130_switch_MC3100ZB"
+    input_number:
+      description: choose between input/output 1 or 2
+      example: 1
+    onoff:
+      description: set to «on» or «off»
+      example: on
+    delay:
+      description: set delay in second from 0 = off to 10800 = 3 hrs.
+      example: 10800
