@@ -205,6 +205,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_activation to activate or block neviweb polling for a device.
 - neviweb130.set_sensor_type to set sensor value 10k or 12k.
 - neviweb130.set_remaining_time to set value for coldLoadPickupRemainingTime attribute.
+- neviweb130.set_on_off_input_delay to set the «on» or «off» delay in seconds for input 1 and 2 of MC3100ZB.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:

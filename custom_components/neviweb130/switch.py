@@ -30,6 +30,10 @@ Flow sensors
 FS4220 flow sensor 3/4 inch connected to sedna valve second gen
 FS4221 flow sensor 1 inch connected to sedna valve second gen
 
+Interlock
+model 6000 = HP6000ZB-GE Gree compatible heat pump interface
+model 6000 = HP6000ZB-MA Midea compatible heat pump interface
+
 Door lock
 model 7000 = door lock
 
@@ -142,6 +146,13 @@ from .const import (
     ATTR_WIFI,
     ATTR_WIFI_WATTAGE,
     ATTR_AWAY_ACTION,
+    ATTR_BATT_PERCENT_NORMAL,
+    ATTR_BATT_STATUS_NORMAL,
+    ATTR_BATT_INFO,
+    ATTR_INPUT_1_ON_DELAY,
+    ATTR_INPUT_2_ON_DELAY,
+    ATTR_INPUT_1_OFF_DELAY,
+    ATTR_INPUT_2_OFF_DELAY,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -164,6 +175,7 @@ from .const import (
     SERVICE_SET_INPUT_OUTPUT_NAMES,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_REMAINING_TIME,
+    SERVICE_SET_ON_OFF_INPUT_DELAY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -178,6 +190,7 @@ TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
 FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
+DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", "2 h", "3 h"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
@@ -187,12 +200,19 @@ HA_TO_NEVIWEB_SIZE = {
 }
 
 HA_TO_NEVIWEB_DELAY = {
+    "off": 0,
+    "1 min": 60,
+    "2 min": 120,
+    "5 min": 300,
+    "10 min": 600,
     "15 min": 900,
     "30 min": 1800,
     "45 min": 2700,
     "60 min": 3600,
     "75 min": 4500,
     "90 min": 5400,
+    "1 h": 3600,
+    "2 h": 7200,
     "3 h": 10800,
     "6 h": 21600,
     "12 h": 43200,
@@ -373,6 +393,17 @@ SET_REMAINING_TIME_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COLD_LOAD_PICKUP_REMAIN_TIME): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=65535)
+        ),
+    }
+)
+
+SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required("input_number"): vol.In([1, 2]),
+        vol.Required("onoff"): vol.In(["on", "off"]),
+        vol.Required("delay"): vol.All(
+            cv.ensure_list, [vol.In(DELAY)]
         ),
     }
 )
@@ -621,6 +652,17 @@ async def async_setup_platform(
                 switch.schedule_update_ha_state(True)
                 break
 
+    def set_on_off_input_delay_service(service):
+        """ Set input 1 or 2 on/off delay for MC3100ZB device. """
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for switch in entities:
+            if switch.entity_id == entity_id:
+                value = {"id": switch.unique_id, "inputnumber": service.data["input_number"], "onoff": service.data["onoff"], "delay": service.data["delay"][0]}
+                switch.set_on_off_input_delay(value)
+                switch.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SWITCH_KEYPAD_LOCK,
@@ -738,6 +780,13 @@ async def async_setup_platform(
         SERVICE_SET_REMAINING_TIME,
         set_remaining_time_service,
         schema=SET_REMAINING_TIME_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ON_OFF_INPUT_DELAY,
+        set_on_off_input_delay_service,
+        schema=SET_ON_OFF_INPUT_DELAY_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, num):
@@ -931,6 +980,13 @@ class Neviweb130Switch(SwitchEntity):
         self._water_tank_on = None
         self._water_temp_time = None
         self._activ = True
+        self._batt_percent_normal = None
+        self._batt_status_normal = None
+        self._input_1_on_delay = 0
+        self._input_2_on_delay = 0
+        self._input_1_off_delay = 0
+        self._input_2_off_delay = 0
+        self._batt_info = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -940,13 +996,14 @@ class Neviweb130Switch(SwitchEntity):
             else:
                 NAME_ATTRIBUTE = []
             if self._is_zb_control or self._is_sedna_control:
-                LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
+                LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
+                ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
             elif self._is_load:
                 LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
             elif self._is_wifi_valve:
                 LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
             elif self._is_zb_valve:
-                LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_RSSI]
+                LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_RSSI, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
             elif self._is_wifi_mesh_valve:
                 LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
                 ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
@@ -1023,6 +1080,10 @@ class Neviweb130Switch(SwitchEntity):
                             self._temp_alert = device_alert[ATTR_TEMP_ALERT]
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
+                        if ATTR_BATT_PERCENT_NORMAL in device_data:
+                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
+                        if ATTR_BATT_STATUS_NORMAL in device_data:
+                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                     elif self._is_wifi_mesh_valve:
                         self._valve_status = STATE_VALVE_STATUS if \
                             device_data[ATTR_MOTOR_POS] == 100 else "closed"
@@ -1051,7 +1112,7 @@ class Neviweb130Switch(SwitchEntity):
                             self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                             if self._flowmeter_timer != 0:
                                 self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                                self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
+                                self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                                 self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
                                 self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
                                 self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
@@ -1087,7 +1148,7 @@ class Neviweb130Switch(SwitchEntity):
                             self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                             if self._flowmeter_timer != 0:
                                 self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                                self._flowmeter_alert_delay = neviweb_to_ha_delay(device_data[ATTR_FLOW_ALARM1_PERIOD])
+                                self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                                 self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
                                 self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
                                 self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
@@ -1180,6 +1241,15 @@ class Neviweb130Switch(SwitchEntity):
                         self._ext_temp = device_data[ATTR_EXT_TEMP]
                         self._timer = device_data[ATTR_TIMER]
                         self._timer2 = device_data[ATTR_TIMER2]
+                        self._batt_info = device_data[ATTR_BATT_INFO]
+                        self._input_1_on_delay = device_data[ATTR_INPUT_1_ON_DELAY]
+                        self._input_2_on_delay = device_data[ATTR_INPUT_2_ON_DELAY]
+                        self._input_1_off_delay = device_data[ATTR_INPUT_1_OFF_DELAY]
+                        self._input_2_off_delay = device_data[ATTR_INPUT_2_OFF_DELAY]
+                        if ATTR_BATT_PERCENT_NORMAL in device_data:
+                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
+                        if ATTR_BATT_STATUS_NORMAL in device_data:
+                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
                     else: #for is_wall
@@ -1447,7 +1517,9 @@ class Neviweb130Switch(SwitchEntity):
                    'Battery_status': self._battery_status,
                    'Power_supply': self._power_supply,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat"),
-                   'Temperature_alert': alert_to_text(self._temp_alert, "temp")}
+                   'Temperature_alert': alert_to_text(self._temp_alert, "temp"),
+                   'Battery_percent_normalized': self._batt_percent_normal,
+                   'Battery_status_normalized': self._batt_status_normal}
         elif self._is_wifi_mesh_valve:
             data = {'Valve_status': self._valve_status,
                    'Motor_target_position': self._motor_target,
@@ -1470,7 +1542,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
-                   'Flow_meter_alert_delay': self._flowmeter_alert_delay,
+                   'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
@@ -1492,7 +1564,7 @@ class Neviweb130Switch(SwitchEntity):
                    'Flow_meter_offset': self._flowmeter_offset,
                    'Flow_meter_divisor': self._flowmeter_divisor,
                    'Flow_meter_model': self._flowmeter_model,
-                   'Flow_meter_alert_delay': self._flowmeter_alert_delay,
+                   'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
                    'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                    'Water_leak_status': self._water_leak_status,
                    'Battery_alert': alert_to_text(self._battery_alert, "bat"),
@@ -1504,8 +1576,11 @@ class Neviweb130Switch(SwitchEntity):
                    'monthly_flow': L_2_sqm(self._month_kwh)}
         elif self._is_zb_control or self._is_sedna_control:
             data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
+                   'Battery_display_info': self._batt_info,
                    'Battery_voltage': self._battery_voltage,
                    'Battery_status': self._battery_status,
+                   'Battery_percent_normalized': self._batt_percent_normal,
+                   'Battery_status_normalized': self._batt_status_normal,
                    'Extern_temperature': self._ext_temp,
                    'Room_humidity': self._humidity,
                    'Timer': self._timer,
@@ -1514,10 +1589,14 @@ class Neviweb130Switch(SwitchEntity):
                    'Input2_status': self._input2_status,
                    'onOff': self._onoff,
                    'onOff2': self._onoff2,
-                   'Input_name_1': self._input_name_1,
-                   'Input_name_2': self._input_name_2,
-                   'Output_name_1': self._output_name_1,
-                   'Output_name_2': self._output_name_2,
+                   'Input1_on_delay': neviweb_to_ha_delay(self._input_1_on_delay),
+                   'Input2_on_delay': neviweb_to_ha_delay(self._input_2_on_delay),
+                   'Input1_off_delay': neviweb_to_ha_delay(self._input_1_off_delay),
+                   'Input2_off_delay': neviweb_to_ha_delay(self._input_2_off_delay),
+                   'Input1_name': self._input_name_1,
+                   'Input2_name': self._input_name_2,
+                   'Output1_name': self._output_name_1,
+                   'Output2_name': self._output_name_2,
                    'Room_temperature': self._room_temp,
                    'Rssi': self._rssi}
         else:
@@ -1712,6 +1791,27 @@ class Neviweb130Switch(SwitchEntity):
         entity = value["id"]
         self._client.set_remaining_time(entity, time)
         self._cold_load_remaining_time = time
+
+    def set_on_off_input_delay(self, value):
+        """ set input 1 or 2 on/off delay in seconds"""
+        entity = value["id"]
+        val = value["delay"]
+        onoff = value["onoff"]
+        inputnumber = value["inputnumber"]
+        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        self._client.set_on_off_input_delay(entity, delay, onoff, inputnumber)
+        if inputnumber == 1:
+            match value["onoff"]:
+                case "on":
+                    self._input_1_on_delay = delay
+                case _:
+                    self._input_1_off_delay = delay
+        else:
+            match value["onoff"]:
+                case "on":
+                    self._input_2_on_delay = delay
+                case _:
+                    self._input_2_off_delay = delay
 
     def set_input_output_names(self, value):
         """ Set names for input 1 and 2, output 1 and 2 for MC3100ZB device. """

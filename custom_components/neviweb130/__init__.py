@@ -97,12 +97,16 @@ from .const import (
     ATTR_OUTPUT_NAME_1,
     ATTR_OUTPUT_NAME_2,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+    ATTR_INPUT_1_ON_DELAY,
+    ATTR_INPUT_2_ON_DELAY,
+    ATTR_INPUT_1_OFF_DELAY,
+    ATTR_INPUT_2_OFF_DELAY,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL
 )
 
-VERSION = '2.5.1'
+VERSION = '2.5.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -882,6 +886,23 @@ class Neviweb130Client(object):
         """Set power supply for Sedna valve."""
         data = {ATTR_POWER_SUPPLY: supply}
         _LOGGER.debug("power_supply.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
+        """ set input 1 or 2 on/off delay in seconds"""
+        if inputnumber == 1:
+            match onoff:
+                case "on":
+                    data = {ATTR_INPUT_1_ON_DELAY: delay}
+                case _:
+                    data = {ATTR_INPUT_1_OFF_DELAY: delay}
+        else:
+            match onoff:
+                case "on":
+                    data = {ATTR_INPUT_2_ON_DELAY: delay}
+                case _:
+                    data = {ATTR_INPUT_2_OFF_DELAY: delay}
+        _LOGGER.debug("input_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_input_output_names(self, device_id, in1, in2, out1, out2):
