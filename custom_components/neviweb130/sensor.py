@@ -75,6 +75,9 @@ from .const import (
     ATTR_FUEL_ALERT,
     ATTR_TANK_PERCENT,
     ATTR_FUEL_PERCENT_ALERT,
+    ATTR_BATT_PERCENT_NORMAL,
+    ATTR_BATT_STATUS_NORMAL,
+    ATTR_BATT_INFO,
     MODE_OFF,
     STATE_WATER_LEAK,
     SERVICE_SET_SENSOR_ALERT,
@@ -470,6 +473,8 @@ class Neviweb130Sensor(Entity):
         self._activ = True
         self._snooze = 0
         self._data = None
+        self._batt_percent_normal = None
+        self._batt_status_normal = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -479,11 +484,11 @@ class Neviweb130Sensor(Entity):
             else:
                 MONITOR_ATTRIBUTE = []
             if self._is_leak or self._is_connected:
-                LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_RSSI]
+                LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_RSSI, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
             else:
                 LEAK_ATTRIBUTE = []
             if self._is_new_leak:
-                NEW_LEAK_ATTRIBUTE = [ATTR_ERROR_CODE_SET1]
+                NEW_LEAK_ATTRIBUTE = [ATTR_ERROR_CODE_SET1, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
             else:
                 NEW_LEAK_ATTRIBUTE = []
             if self._is_connected:
@@ -512,7 +517,7 @@ class Neviweb130Sensor(Entity):
                 return
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
-                    if self._is_leak or self._is_connected:
+                    if self._is_leak or self._is_connected or self._is_new_leak:
                         self._leak_status = STATE_WATER_LEAK if \
                             device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
@@ -523,6 +528,9 @@ class Neviweb130Sensor(Entity):
                         if ATTR_BATTERY_STATUS in device_data:
                             self._battery_status = device_data[ATTR_BATTERY_STATUS]
                             self._battery_type = device_data[ATTR_BATTERY_TYPE]
+                        if ATTR_BATT_PERCENT_NORMAL in device_data:
+                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
+                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if self._is_connected:
                             self._closure_action = device_data[ATTR_CONF_CLOSURE]
 #                        if ATTR_ERROR_CODE_SET1 in device_data:
@@ -663,6 +671,8 @@ class Neviweb130Sensor(Entity):
                     'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
                     'Battery_voltage': self._battery_voltage,
                     'Battery_status': self._battery_status,
+                    'Battery_percent_normalized': self._batt_percent_normal,
+                    'Battery_status_normalized': self._batt_status_normal,
                     'Battery_alert': self._battery_alert,
                     'Battery_type': self._battery_type,
                     'Rssi': self._rssi}
