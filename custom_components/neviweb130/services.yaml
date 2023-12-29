@@ -286,7 +286,7 @@ set_control_onoff:
     status:
       description: Set to «on» or «off» to change status of output valve controller.
       example: "on"
-    onoff_num:
+    onOff_num:
       description: Select the output1, (1) or output2, (2) of the controller.
       example: 1
 
@@ -587,7 +587,7 @@ set_on_off_input_delay:
     input_number:
       description: choose between input/output 1 or 2.
       example: 1
-    onoff:
+    onOff:
       description: set to «on», (on delay) or «off» (off delay).
       example: "on"
     delay:
