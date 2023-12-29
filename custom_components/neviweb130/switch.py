@@ -40,13 +40,16 @@ model 7000 = door lock
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
+
+from __future__ import annotations
+
 import logging
 
 import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL, STAT_INTERVAL)
+from . import (SCAN_INTERVAL, STAT_INTERVAL, VERSION)
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,
@@ -79,80 +82,86 @@ from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (
     DOMAIN,
+    ATTR_ACTIVE,
     ATTR_ALERT,
-    ATTR_ONOFF,
-    ATTR_ONOFF2,
-    ATTR_WATTAGE_INSTANT,
-    ATTR_WIFI_WATT_NOW,
-    ATTR_WATTAGE,
-    ATTR_BATTERY_VOLTAGE,
-    ATTR_BATTERY_STATUS,
-    ATTR_TIMER,
-    ATTR_TIMER2,
-    ATTR_KEYPAD,
-    ATTR_DRSTATUS,
-    ATTR_MOTOR_POS,
-    ATTR_MOTOR_TARGET,
-    ATTR_TEMP_ALARM,
+    ATTR_AWAY_ACTION,
+    ATTR_BATT_ACTION_LOW,
     ATTR_BATT_ALERT,
-    ATTR_TEMP_ALERT,
-    ATTR_VALVE_CLOSURE,
-    ATTR_DRACTIVE,
-    ATTR_OPTOUT,
-    ATTR_INPUT_STATUS,
-    ATTR_INPUT2_STATUS,
-    ATTR_EXT_TEMP,
-    ATTR_REL_HUMIDITY,
-    ATTR_ROOM_TEMPERATURE,
-    ATTR_STATUS,
-    ATTR_ERROR_CODE_SET1,
-    ATTR_RSSI,
-    ATTR_FLOW_METER_CONFIG,
-    ATTR_VALVE_INFO,
-    ATTR_STM8_ERROR,
-    ATTR_WATER_LEAK_STATUS,
-    ATTR_WATER_LEAK_ALARM_STATUS,
-    ATTR_WATER_LEAK_DISCONECTED_STATUS,
-    ATTR_TANK_SIZE,
-    ATTR_CONTROLLED_DEVICE,
+    ATTR_BATT_INFO,
+    ATTR_BATT_PERCENT_NORMAL,
+    ATTR_BATT_STATUS_NORMAL,
+    ATTR_BATTERY_STATUS,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_CLOSE_VALVE,
     ATTR_COLD_LOAD_PICKUP,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_COLD_LOAD_PICKUP_TEMP,
-    ATTR_WATER_TEMPERATURE,
-    ATTR_WATER_TEMP_MIN,
-    ATTR_MIN_WATER_TEMP,
-    ATTR_WATT_TIME_ON,
-    ATTR_WATER_TANK_ON,
+    ATTR_CONTROLLED_DEVICE,
+    ATTR_DELAY,
+    ATTR_DR_PROTEC_STATUS,
     ATTR_DR_WATER_TEMP_TIME,
-    ATTR_WATER_TEMP_TIME,
-    ATTR_FLOW_MODEL_CONFIG,
-    ATTR_FLOW_ALARM_TIMER,
-    ATTR_FLOW_THRESHOLD,
+    ATTR_DRACTIVE,
+    ATTR_DRSTATUS,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_EXT_TEMP,
     ATTR_FLOW_ALARM1,
-    ATTR_FLOW_ALARM2,
     ATTR_FLOW_ALARM1_PERIOD,
     ATTR_FLOW_ALARM1_LENGHT,
     ATTR_FLOW_ALARM1_OPTION,
-    ATTR_POWER_SUPPLY,
-    ATTR_DR_PROTEC_STATUS,
-    ATTR_LEG_PROTEC_STATUS,
-    ATTR_TEMP_ACTION_LOW,
-    ATTR_BATT_ACTION_LOW,
-    ATTR_NAME_1,
-    ATTR_NAME_2,
-    ATTR_OUTPUT_NAME_1,
-    ATTR_OUTPUT_NAME_2,
-    ATTR_SYSTEM_MODE,
-    ATTR_WIFI,
-    ATTR_WIFI_WATTAGE,
-    ATTR_AWAY_ACTION,
-    ATTR_BATT_PERCENT_NORMAL,
-    ATTR_BATT_STATUS_NORMAL,
-    ATTR_BATT_INFO,
+    ATTR_FLOW_ALARM2,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOW_MODEL_CONFIG,
+    ATTR_FLOW_THRESHOLD,
+    ATTR_INPUT_STATUS,
     ATTR_INPUT_1_ON_DELAY,
     ATTR_INPUT_2_ON_DELAY,
     ATTR_INPUT_1_OFF_DELAY,
     ATTR_INPUT_2_OFF_DELAY,
+    ATTR_INPUT2_STATUS,
+    ATTR_KEYPAD,
+    ATTR_LEG_PROTEC_STATUS,
+    ATTR_MIN_WATER_TEMP,
+    ATTR_MOTOR_POS,
+    ATTR_MOTOR_TARGET,
+    ATTR_NAME_1,
+    ATTR_NAME_2,
+    ATTR_ONOFF,
+    ATTR_ONOFF2,
+    ATTR_ONOFF_NUM,
+    ATTR_OPTOUT,
+    ATTR_OUTPUT_NAME_1,
+    ATTR_OUTPUT_NAME_2,
+    ATTR_POWER_SUPPLY,
+    ATTR_REL_HUMIDITY,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_RSSI,
+    ATTR_STATUS,
+    ATTR_STM8_ERROR,
+    ATTR_SYSTEM_MODE,
+    ATTR_TANK_SIZE,
+    ATTR_TEMP_ACTION_LOW,
+    ATTR_TEMP_ALARM,
+    ATTR_TEMP_ALERT,
+    ATTR_TIMER,
+    ATTR_TIMER2,
+    ATTR_TRIGGER_ALARM,
+    ATTR_VALUE,
+    ATTR_VALVE_CLOSURE,
+    ATTR_VALVE_INFO,
+    ATTR_WATER_LEAK_ALARM_STATUS,
+    ATTR_WATER_LEAK_DISCONECTED_STATUS,
+    ATTR_WATER_LEAK_STATUS,
+    ATTR_WATER_TANK_ON,
+    ATTR_WATER_TEMP_MIN,
+    ATTR_WATER_TEMP_TIME,
+    ATTR_WATER_TEMPERATURE,
+    ATTR_WATT_TIME_ON,
+    ATTR_WATTAGE,
+    ATTR_WATTAGE_INSTANT,
+    ATTR_WIFI,
+    ATTR_WIFI_WATT_NOW,
+    ATTR_WIFI_WATTAGE,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -178,6 +187,32 @@ from .const import (
     SERVICE_SET_ON_OFF_INPUT_DELAY,
 )
 
+from .schema import (
+    CONTROLLED_VALUE,
+    DELAY,
+    FLOW_MODEL,
+    FLOW_DURATION,
+    TANK_VALUE,
+    SET_SWITCH_KEYPAD_LOCK_SCHEMA,
+    SET_SWITCH_TIMER_SCHEMA,
+    SET_SWITCH_TIMER_2_SCHEMA,
+    SET_VALVE_ALERT_SCHEMA,
+    SET_VALVE_TEMP_ALERT_SCHEMA,
+    SET_LOAD_DR_OPTIONS_SCHEMA,
+    SET_CONTROL_ONOFF_SCHEMA,
+    SET_TANK_SIZE_SCHEMA,
+    SET_CONTROLLED_DEVICE_SCHEMA,
+    SET_LOW_TEMP_PROTECTION_SCHEMA,
+    SET_FLOW_METER_MODEL_SCHEMA,
+    SET_FLOW_METER_DELAY_SCHEMA,
+    SET_FLOW_METER_OPTIONS_SCHEMA,
+    SET_POWER_SUPPLY_SCHEMA,
+    SET_INPUT_OUTPUT_NAMES_SCHEMA,
+    SET_ACTIVATION_SCHEMA,
+    SET_REMAINING_TIME_SCHEMA,
+    SET_ON_OFF_INPUT_DELAY_SCHEMA,
+)
+
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
@@ -185,12 +220,6 @@ DEFAULT_NAME_2 = 'neviweb130 switch 2'
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
-
-TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
-CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
-FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
-FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
-DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", "2 h", "3 h"}
 
 HA_TO_NEVIWEB_SIZE = {
     "40 gal": 40,
@@ -252,161 +281,6 @@ IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_LOAD_DEVICES + IMPLEMENTED_WALL_DEVICES + IMPLEMENTED_WIFI_VALVE_MODEL + IMPLEMENTED_ZB_VALVE_MODEL + IMPLEMENTED_ZB_DEVICE_CONTROL + IMPLEMENTED_SED_DEVICE_CONTROL + IMPLEMENTED_WIFI_MESH_VALVE_MODEL + IMPLEMENTED_ZB_MESH_VALVE_MODEL + IMPLEMENTED_WATER_HEATER_LOAD_MODEL + IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
 
-SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
-    }
-)
-
-SET_SWITCH_TIMER_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-    }
-)
-
-SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER2): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-    }
-)
-
-SET_VALVE_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_BATT_ALERT): vol.In(["true", "false"]),
-    }
-)
-
-SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-    }
-)
-
-SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DRACTIVE): vol.In(["on", "off"]),
-        vol.Required(ATTR_OPTOUT): vol.In(["on", "off"]),
-        vol.Required(ATTR_ONOFF): vol.In(["on", "off"]),
-    }
-)
-
-SET_CONTROL_ONOFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required("onoff_num"): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=2)
-        ),
-    }
-)
-
-SET_TANK_SIZE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("value"): vol.All(
-            cv.ensure_list, [vol.In(TANK_VALUE)]
-        ),
-    }
-)
-
-SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("value"): vol.All(
-            cv.ensure_list, [vol.In(CONTROLLED_VALUE)]
-        ),
-    }
-)
-
-SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_WATER_TEMP_MIN): vol.In([0, 45]),
-    }
-)
-
-SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.All(
-            cv.ensure_list, [vol.In(FLOW_MODEL)]
-        ),
-    }
-)
-
-SET_FLOW_METER_DELAY_SCHEMA= vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(
-            cv.ensure_list, [vol.In(FLOW_DURATION)]
-        ),
-    }
-)
-
-SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("triggerAlarm"): vol.In(["on", "off"]),
-        vol.Required("closeValve"): vol.In(["on", "off"]
-        ),
-    }
-)
-
-SET_POWER_SUPPLY_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_POWER_SUPPLY): vol.In(["batt", "power", "both"]),
-    }
-)
-
-SET_INPUT_OUTPUT_NAMES_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Optional(ATTR_NAME_1, default=None): vol.All(str, vol.Length(min=0, max=10)),
-        vol.Optional(ATTR_NAME_2, default=None): vol.All(str, vol.Length(min=0, max=10)),
-        vol.Optional(ATTR_OUTPUT_NAME_1, default=None): vol.All(str, vol.Length(min=0, max=10)),
-        vol.Optional(ATTR_OUTPUT_NAME_2, default=None): vol.All(str, vol.Length(min=0, max=10)),
-    }
-)
-
-SET_ACTIVATION_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("active"): vol.In([True, False]),
-    }
-)
-
-SET_REMAINING_TIME_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COLD_LOAD_PICKUP_REMAIN_TIME): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=65535)
-        ),
-    }
-)
-
-SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("input_number"): vol.In([1, 2]),
-        vol.Required("onoff"): vol.In(["on", "off"]),
-        vol.Required("delay"): vol.All(
-            cv.ensure_list, [vol.In(DELAY)]
-        ),
-    }
-)
 
 async def async_setup_platform(
     hass,
@@ -537,7 +411,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "onoff_num": service.data["onoff_num"], "status": service.data[ATTR_STATUS]}
+                value = {"id": switch.unique_id, "onoff_num": service.data[ATTR_ONOFF_NUM], "status": service.data[ATTR_STATUS]}
                 switch.set_control_onoff(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -548,7 +422,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "val": service.data["value"][0]}
+                value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
                 switch.set_tank_size(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -559,7 +433,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "val": service.data["value"][0]}
+                value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
                 switch.set_controlled_device(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -603,7 +477,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "alarm": service.data["triggerAlarm"], "close": service.data["closeValve"]}
+                value = {"id": switch.unique_id, "alarm": service.data[ATTR_TRIGGER_ALARM], "close": service.data[ATTR_CLOSE_VALVE]}
                 switch.set_flow_meter_options(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -636,7 +510,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data["active"]}
+                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
                 switch.set_activation(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -658,7 +532,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "inputnumber": service.data["input_number"], "onoff": service.data["onoff"], "delay": service.data["delay"][0]}
+                value = {"id": switch.unique_id, "inputnumber": service.data[ATTR_INPUT_NUMBER], "onoff": service.data[ATTR_ONOFF], "delay": service.data[ATTR_DELAY][0]}
                 switch.set_on_off_input_delay(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -1114,8 +988,8 @@ class Neviweb130Switch(SwitchEntity):
                                 self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                                 self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                                 self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
-                                self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
-                                self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
+                                self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
+                                self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                         if ATTR_FLOW_ALARM1 in device_data:
                             self._flow_alarm_1 = device_data[ATTR_FLOW_ALARM1]
                         if ATTR_FLOW_ALARM2 in device_data:
@@ -1150,8 +1024,8 @@ class Neviweb130Switch(SwitchEntity):
                                 self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                                 self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                                 self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
-                                self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION]["triggerAlarm"]
-                                self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION]["closeValve"]
+                                self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
+                                self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                     elif self._is_load: #for is_load
                         self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                         self._wattage = device_data[ATTR_WATTAGE]
@@ -1160,9 +1034,9 @@ class Neviweb130Switch(SwitchEntity):
                         self._timer = device_data[ATTR_TIMER]
                         self._onoff = device_data[ATTR_ONOFF]
                         if ATTR_DRSTATUS in device_data:
-                            self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
-                            self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
-                            self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                            self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
+                            self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
+                            self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
 #                        if ATTR_ERROR_CODE_SET1 in device_data:
 #                            self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
 #                            self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
@@ -1188,9 +1062,9 @@ class Neviweb130Switch(SwitchEntity):
                         self._rssi = device_data[ATTR_RSSI]
                         self._tank_size = device_data[ATTR_TANK_SIZE]
                         if ATTR_DRSTATUS in device_data:
-                            self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
-                            self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
-                            self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                            self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
+                            self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
+                            self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                             self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
                         self._water_temp_min = device_data[ATTR_WATER_TEMP_MIN]
                         self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
@@ -1212,9 +1086,9 @@ class Neviweb130Switch(SwitchEntity):
 #                            self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
 #                            self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
                         if ATTR_DRSTATUS in device_data:
-                            self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
-                            self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
-                            self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                            self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
+                            self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
+                            self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                             self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
                         self._current_power_w = device_data[ATTR_WIFI_WATT_NOW]
                         self._wattage = device_data[ATTR_WIFI_WATTAGE]
@@ -1838,7 +1712,7 @@ class Neviweb130Switch(SwitchEntity):
         self._output_name_1 = out_1
         self._output_name_2 = out_2
 
-    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration "+VERSION):
         """Notify user via HA web frontend."""
         self.hass.services.call(
             PN_DOMAIN,
