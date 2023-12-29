@@ -13,6 +13,8 @@ For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 
+from __future__ import annotations
+
 import logging
 
 import voluptuous as vol
@@ -21,7 +23,7 @@ import time
 from datetime import datetime
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL)
+from . import (SCAN_INTERVAL, VERSION)
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
@@ -54,30 +56,31 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (
     DOMAIN,
-    ATTR_ROOM_TEMPERATURE,
-    ATTR_WATER_LEAK_STATUS,
-    ATTR_BATTERY_VOLTAGE,
-    ATTR_BATTERY_STATUS,
-    ATTR_BATTERY_TYPE,
-    ATTR_ROOM_TEMP_ALARM,
-    ATTR_LEAK_ALERT,
-    ATTR_BATT_ALERT,
-    ATTR_TEMP_ALERT,
-    ATTR_CONF_CLOSURE,
-    ATTR_STATUS,
-    ATTR_RSSI,
-    ATTR_ERROR_CODE_SET1,
+    ATTR_ACTIVE,
     ATTR_ANGLE,
-    ATTR_SAMPLING,
-    ATTR_TANK_TYPE,
-    ATTR_TANK_HEIGHT,
-    ATTR_GAUGE_TYPE,
-    ATTR_FUEL_ALERT,
-    ATTR_TANK_PERCENT,
-    ATTR_FUEL_PERCENT_ALERT,
-    ATTR_BATT_PERCENT_NORMAL,
-    ATTR_BATT_STATUS_NORMAL,
+    ATTR_BATT_ALERT,
     ATTR_BATT_INFO,
+    ATTR_BATT_PERCENT_NORMAL,
+    ATTR_BATTERY_STATUS,
+    ATTR_BATT_STATUS_NORMAL,
+    ATTR_BATTERY_TYPE,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_CONF_CLOSURE,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_FUEL_ALERT,
+    ATTR_FUEL_PERCENT_ALERT,
+    ATTR_GAUGE_TYPE,
+    ATTR_LEAK_ALERT,
+    ATTR_ROOM_TEMP_ALARM,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_SAMPLING,
+    ATTR_STATUS,
+    ATTR_TANK_HEIGHT,
+    ATTR_TANK_PERCENT,
+    ATTR_TANK_TYPE,
+    ATTR_TEMP_ALERT,
+    ATTR_RSSI,
+    ATTR_WATER_LEAK_STATUS,
     MODE_OFF,
     STATE_WATER_LEAK,
     SERVICE_SET_SENSOR_ALERT,
@@ -89,6 +92,18 @@ from .const import (
     SERVICE_SET_FUEL_ALERT,
     SERVICE_SET_BATTERY_ALERT,
     SERVICE_SET_ACTIVATION,
+)
+
+from .schema import (
+    SET_SENSOR_ALERT_SCHEMA,
+    SET_BATTERY_TYPE_SCHEMA,
+    SET_TANK_TYPE_SCHEMA,
+    SET_GAUGE_TYPE_SCHEMA,
+    SET_LOW_FUEL_ALERT_SCHEMA,
+    SET_TANK_HEIGHT_SCHEMA,
+    SET_FUEL_ALERT_SCHEMA,
+    SET_BATTERY_ALERT_SCHEMA,
+    SET_ACTIVATION_SCHEMA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -112,80 +127,6 @@ SENSOR_TYPES = {
     "gateway": [None, None, BinarySensorDeviceClass.CONNECTIVITY],
 }
 
-SET_SENSOR_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_LEAK_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_BATT_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_TEMP_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_CONF_CLOSURE): vol.In(["on", "off"]),
-    }
-)
-
-SET_BATTERY_TYPE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_BATTERY_TYPE): vol.In(["alkaline", "lithium"]),
-    }
-)
-
-SET_TANK_TYPE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TANK_TYPE): vol.In(["propane", "oil"]),
-    }
-)
-
-SET_GAUGE_TYPE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_GAUGE_TYPE): vol.All(
-            vol.Coerce(int), vol.In([595, 1080])),
-    }
-)
-
-SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.All(
-            vol.Coerce(int), vol.In([0, 10, 20, 30])),
-    }
-)
-
-SET_TANK_HEIGHT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TANK_HEIGHT): vol.All(
-            vol.Coerce(int), vol.In([23, 24, 35, 38, 47, 48, 50])),
-    }
-)
-
-SET_FUEL_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FUEL_ALERT): vol.In([True, False]),
-    }
-)
-
-SET_BATTERY_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_BATT_ALERT): vol.In([True, False]),
-    }
-)
-
-SET_ACTIVATION_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("active"): vol.In([True, False]),
-    }
-)
 
 async def async_setup_platform(
     hass,
@@ -326,7 +267,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data["active"]}
+                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
                 switch.set_activation(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -783,7 +724,7 @@ class Neviweb130Sensor(Entity):
         action = value["active"]
         self._activ = action
 
-    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration "+VERSION):
         """Notify user via HA web frontend."""
         self.hass.services.call(
             PN_DOMAIN,
