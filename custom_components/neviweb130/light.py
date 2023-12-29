@@ -1,5 +1,4 @@
 """
-Need to be changed
 Support for Neviweb light switch/dimmer connected to GT130 ZigBee.
 model 2121 = light switch SW2500ZB
 model 2121 = light switch SW2500ZB-G2
@@ -10,13 +9,16 @@ model 2132 = light dimmer DM2550ZB-G2
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
+
+from __future__ import annotations
+
 import logging
 
 import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL, STAT_INTERVAL)
+from . import (SCAN_INTERVAL, STAT_INTERVAL, VERSION)
 from homeassistant.components.light import (
     LightEntity,
     ATTR_BRIGHTNESS,
@@ -45,23 +47,24 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
+    ATTR_ACTIVE,
+    ATTR_BLUE,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_GREEN,
     ATTR_INTENSITY,
     ATTR_INTENSITY_MIN,
-    ATTR_ONOFF,
-    ATTR_LIGHT_WATTAGE,
+    ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
-    ATTR_TIMER,
-    ATTR_LED_ON_INTENSITY,
+    ATTR_LED_OFF_COLOR,
     ATTR_LED_OFF_INTENSITY,
     ATTR_LED_ON_COLOR,
-    ATTR_LED_OFF_COLOR,
-    ATTR_STATE,
-    ATTR_RED,
-    ATTR_GREEN,
-    ATTR_BLUE,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LIGHT_WATTAGE,
+    ATTR_ONOFF,
     ATTR_PHASE_CONTROL,
-    ATTR_KEY_DOUBLE_UP,
-    ATTR_ERROR_CODE_SET1,
+    ATTR_RED,
+    ATTR_STATE,
+    ATTR_TIMER,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -72,6 +75,16 @@ from .const import (
     SERVICE_SET_WATTAGE,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_KEY_DOUBLE_UP,
+)
+
+from .schema import (
+    SET_LIGHT_KEYPAD_LOCK_SCHEMA,
+    SET_LIGHT_TIMER_SCHEMA,
+    SET_LED_INDICATOR_SCHEMA,
+    SET_WATTAGE_SCHEMA,
+    SET_PHASE_CONTROL_SCHEMA,
+    SET_ACTIVATION_SCHEMA,
+    SET_KEY_DOUBLE_UP_SCHEMA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -97,72 +110,6 @@ DEVICE_MODEL_NEW_DIMMER = [2132]
 DEVICE_MODEL_LIGHT = [2121]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER + DEVICE_MODEL_NEW_DIMMER
 
-SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
-    }
-)
-
-SET_LIGHT_TIMER_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-    }
-)
-
-SET_LED_INDICATOR_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATE): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_INTENSITY): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=100)
-        ),
-        vol.Required(ATTR_RED): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-        vol.Required(ATTR_GREEN): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-        vol.Required(ATTR_BLUE): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-    }
-)
-
-SET_WATTAGE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_LIGHT_WATTAGE): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1800)
-        ),
-    }
-)
-
-SET_PHASE_CONTROL_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["reverse", "forward"]),
-    }
-)
-
-SET_ACTIVATION_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("active"): vol.In([True, False]),
-    }
-)
-
-SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEY_DOUBLE_UP): vol.In(["On", "Off"]),
-    }
-)
 
 async def async_setup_platform(
     hass,
@@ -258,7 +205,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data["active"]}
+                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
                 switch.set_activation(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -605,7 +552,7 @@ class Neviweb130Light(LightEntity):
             entity, double)
         self._double_up = double
 
-    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration "+VERSION):
         """Notify user via HA web frontend."""
         self.hass.services.call(
             PN_DOMAIN,
