@@ -25,13 +25,15 @@ For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 
+from __future__ import annotations
+
 import logging
 
 import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL)
+from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL, VERSION)
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_HEAT,
@@ -75,6 +77,7 @@ from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
 from .const import (
     DOMAIN,
+    ATTR_ACTIVE,
     ATTR_AUX_CYCLE,
     ATTR_AVAIL_MODE,
     ATTR_BACKLIGHT,
@@ -103,8 +106,8 @@ from .const import (
     ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_AUX,
-    ATTR_FLOOR_MIN,
     ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
     ATTR_FLOOR_MODE,
     ATTR_FLOOR_OUTPUT1,
     ATTR_FLOOR_OUTPUT2,
@@ -125,8 +128,8 @@ from .const import (
     ATTR_PUMP_PROTEC_PERIOD,
     ATTR_ROOM_SETPOINT,
     ATTR_ROOM_SETPOINT_AWAY,
-    ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_TEMP_DISPLAY,
     ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
@@ -136,9 +139,10 @@ from .const import (
     ATTR_SOUND_CONF,
     ATTR_STATUS,
     ATTR_SYSTEM_MODE,
-    ATTR_TIME,
     ATTR_TEMP,
+    ATTR_TIME,
     ATTR_TYPE,
+    ATTR_VALUE,
     ATTR_WATTAGE,
     ATTR_WIFI,
     ATTR_WIFI_KEYPAD,
@@ -169,6 +173,32 @@ from .const import (
     SERVICE_SET_TIME_FORMAT,
 )
 
+from .schema import (
+    PERIOD_VALUE,
+    SET_SECOND_DISPLAY_SCHEMA,
+    SET_BACKLIGHT_SCHEMA,
+    SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
+    SET_TIME_FORMAT_SCHEMA,
+    SET_TEMPERATURE_FORMAT_SCHEMA,
+    SET_SETPOINT_MAX_SCHEMA,
+    SET_SETPOINT_MIN_SCHEMA,
+    SET_FLOOR_AIR_LIMIT_SCHEMA,
+    SET_EARLY_START_SCHEMA,
+    SET_AIR_FLOOR_MODE_SCHEMA,
+    SET_HVAC_DR_OPTIONS_SCHEMA,
+    SET_HVAC_DR_SETPOINT_SCHEMA,
+    SET_COOL_SETPOINT_MAX_SCHEMA,
+    SET_COOL_SETPOINT_MIN_SCHEMA,
+    SET_AUXILIARY_LOAD_SCHEMA,
+    SET_AUX_CYCLE_OUTPUT_SCHEMA,
+    SET_CYCLE_OUTPUT_SCHEMA,
+    SET_PUMP_PROTECTION_SCHEMA,
+    SET_FLOOR_LIMIT_LOW_SCHEMA,
+    SET_FLOOR_LIMIT_HIGH_SCHEMA,
+    SET_ACTIVATION_SCHEMA,
+    SET_SENSOR_TYPE_SCHEMA,
+)
+
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
@@ -177,8 +207,6 @@ SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_A
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
 SNOOZE_TIME = 1200
-
-PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 
 HA_TO_NEVIWEB_PERIOD = {
     "15 sec": 15,
@@ -242,189 +270,6 @@ DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1134]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE
 
-SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DISPLAY2): vol.In(["exteriorTemperature", "setpoint", "default"]),
-    }
-)
-
-SET_BACKLIGHT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TYPE): vol.In(["wifi", "zigbee"]),
-        vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on"]),
-    }
-)
-
-SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
-    }
-)
-
-SET_TIME_FORMAT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME): vol.All(
-            vol.Coerce(int), vol.Range(min=12, max=24)
-        ),
-    }
-)
-
-SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP): vol.In(["celsius", "fahrenheit"]),
-    }
-)
-
-SET_SETPOINT_MAX_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=8, max=36)
-        ),
-    }
-)
-
-SET_SETPOINT_MIN_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=5, max=26)
-        ),
-    }
-)
-
-SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(
-            vol.Coerce(float), vol.Range(min=0, max=36)
-        ),
-    }
-)
-
-SET_EARLY_START_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_EARLY_START): vol.In(["on", "off"]),
-    }
-)
-
-SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MODE): vol.In(["airByFloor", "roomByFloor", "floor"]),
-    }
-)
-
-SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DRACTIVE): vol.In(["on", "off"]),
-        vol.Required(ATTR_OPTOUT): vol.In(["on", "off"]),
-        vol.Required(ATTR_SETPOINT): vol.In(["on", "off"]),
-    }
-)
-
-SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required("value"): vol.All(
-            vol.Coerce(float), vol.Range(min=-10, max=0)
-        ),
-    }
-)
-
-SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
-        ),
-    }
-)
-
-SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
-        ),
-    }
-)
-
-SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required("value"): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=4000)
-        ),
-    }
-)
-
-SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required("value"): vol.All(
-            cv.ensure_list, [vol.In(PERIOD_VALUE)]
-        ),
-    }
-)
-
-SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("value"): vol.All(
-            cv.ensure_list, [vol.In(PERIOD_VALUE)]
-        ),
-    }
-)
-
-SET_PUMP_PROTECTION_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-    }
-)
-
-SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=0, max=34)
-        ),
-    }
-)
-
-SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=0, max=36)
-        ),
-    }
-)
-
-SET_ACTIVATION_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required("active"): vol.In([True, False]),
-    }
-)
-
-SET_SENSOR_TYPE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_SENSOR): vol.In(["10k", "12k"]),
-    }
-)
 
 async def async_setup_platform(
     hass,
@@ -582,7 +427,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data[ATTR_VALUE]}
                 thermostat.set_hvac_dr_setpoint(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -593,7 +438,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data[ATTR_VALUE]}
                 thermostat.set_auxiliary_load(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -604,7 +449,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data["value"][0]}
+                value = {"id": thermostat.unique_id, "status": service.data[ATTR_STATUS], "val": service.data[ATTR_VALUE][0]}
                 thermostat.set_aux_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -615,7 +460,7 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "val": service.data["value"][0]}
+                value = {"id": thermostat.unique_id, "val": service.data[ATTR_VALUE][0]}
                 thermostat.set_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -681,7 +526,7 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data["active"]}
+                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
                 switch.set_activation(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -1819,7 +1664,7 @@ class Neviweb130Thermostat(ClimateEntity):
         action = value["active"]
         self._activ = action
 
-    def notify_ha(self, msg: str, title: str = "Neviweb130 integration"):
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration "+VERSION):
         """Notify user via HA web frontend."""
         self.hass.services.call(
             PN_DOMAIN,
