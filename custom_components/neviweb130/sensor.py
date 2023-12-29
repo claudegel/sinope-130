@@ -95,6 +95,7 @@ from .const import (
 )
 
 from .schema import (
+    TANK_HEIGHT,
     SET_SENSOR_ALERT_SCHEMA,
     SET_BATTERY_TYPE_SCHEMA,
     SET_TANK_TYPE_SCHEMA,
