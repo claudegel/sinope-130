@@ -420,12 +420,12 @@ class Neviweb130Sensor(Entity):
 
     def update(self):
         if self._activ:
-            if self._is_leak or self._is_connected:
+            if self._is_leak:
                 LEAK_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_TEMP_ALARM, ATTR_LEAK_ALERT, ATTR_BATTERY_TYPE, ATTR_BATT_ALERT, ATTR_TEMP_ALERT, ATTR_RSSI, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
             else:
                 LEAK_ATTRIBUTE = []
             if self._is_new_leak:
-                NEW_LEAK_ATTRIBUTE = [ATTR_ERROR_CODE_SET1, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+                NEW_LEAK_ATTRIBUTE = [ATTR_ERROR_CODE_SET1]
             else:
                 NEW_LEAK_ATTRIBUTE = []
             if self._is_connected:
