@@ -459,8 +459,9 @@ class Neviweb130Sensor(Entity):
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if self._is_connected:
                             self._closure_action = device_data[ATTR_CONF_CLOSURE]
-#                        if ATTR_ERROR_CODE_SET1 in device_data:
-#                            self._data = device_data[ATTR_ERROR_CODE_SET1]["data"]
+                        if self._is_new_leak:
+#                            if ATTR_ERROR_CODE_SET1 in device_data:
+#                                self._data = device_data[ATTR_ERROR_CODE_SET1]["data"]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
