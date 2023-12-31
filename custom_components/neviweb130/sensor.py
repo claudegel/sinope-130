@@ -460,7 +460,8 @@ class Neviweb130Sensor(Entity):
                         if self._is_connected:
                             self._closure_action = device_data[ATTR_CONF_CLOSURE]
                         if self._is_new_leak:
-#                            if ATTR_ERROR_CODE_SET1 in device_data:
+                            if ATTR_ERROR_CODE_SET1 in device_data:
+                                self._data = None
 #                                self._data = device_data[ATTR_ERROR_CODE_SET1]["data"]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
@@ -468,32 +469,8 @@ class Neviweb130Sensor(Entity):
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
-            if device_data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.warning("Session expired... reconnecting...")
-                self._client.reconnect()
-            elif device_data["error"]["code"] == "ACCSESSEXC":
-                _LOGGER.warning("Maximun session number reached...Close other connections to Neviweb and try again.")
-                self.notify_ha(
-                    f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
-                )
-                self._client.reconnect()
-            elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
-            elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
-            elif device_data["error"]["code"] == "DVCBUSY":
-                _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-            elif device_data["error"]["code"] == "DVCUNVLB":
-                _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
-                _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
-                _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
-                self._activ = False
-                self._snooze = time.time()
-                self.notify_ha(
-                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
-                )
             else:
-                _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
+                self.log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -627,6 +604,37 @@ class Neviweb130Sensor(Entity):
         )
         return True
 
+    def log_error(self, error_data):
+        """ Send error message to LOG """
+        if error_data == "USRSESSEXP":
+            _LOGGER.warning("Session expired... reconnecting...")
+            self._client.reconnect()
+        elif error_data == "ACCSESSEXC":
+            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+            self.notify_ha(
+                f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
+            )
+            self._client.reconnect()
+        elif error_data == "DVCACTNSPTD":
+            _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
+        elif error_data == "DVCCOMMTO":
+            _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
+        elif error_data == "SVCERR":
+            _LOGGER.warning("Service error, device not available retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif error_data == "DVCBUSY":
+            _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif error_data == "DVCUNVLB":
+            _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
+            _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
+            _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
+            self._activ = False
+            self._snooze = time.time()
+            self.notify_ha(
+                f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
+            )
+        else:
+            _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
+
 class Neviweb130TankSensor(Neviweb130Sensor):
     """Implementation of a Neviweb tank level sensor."""
 
@@ -681,32 +689,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
-            if device_data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.warning("Session expired... reconnecting...")
-                self._client.reconnect()
-            elif device_data["error"]["code"] == "ACCSESSEXC":
-                _LOGGER.warning("Maximun session number reached...Close other connections to Neviweb and try again.")
-                self.notify_ha(
-                    f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
-                )
-                self._client.reconnect()
-            elif device_data["error"]["code"] == "DVCACTNSPTD":
-                _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
-            elif device_data["error"]["code"] == "DVCCOMMTO":
-                _LOGGER.warning("Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)", self._name, self._sku)
-            elif device_data["error"]["code"] == "DVCBUSY":
-                _LOGGER.warning("Device busy can't connect, retry later %s: %s...(SKU: %s)", self._name, device_data, self._sku)
-            elif device_data["error"]["code"] == "DVCUNVLB":
-                _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, device_data, self._sku)
-                _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
-                _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
-                self._activ = False
-                self._snooze = time.time()
-                self.notify_ha(
-                    f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
-                )
             else:
-                _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
+                self.log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
