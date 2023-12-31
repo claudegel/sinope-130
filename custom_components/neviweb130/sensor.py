@@ -460,9 +460,8 @@ class Neviweb130Sensor(Entity):
                         if self._is_connected:
                             self._closure_action = device_data[ATTR_CONF_CLOSURE]
                         if self._is_new_leak:
-                            if ATTR_ERROR_CODE_SET1 in device_data:
-                                self._data = None
-#                                self._data = device_data[ATTR_ERROR_CODE_SET1]["data"]
+                            if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                                self._data = device_data[ATTR_ERROR_CODE_SET1]["data"]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
@@ -542,6 +541,8 @@ class Neviweb130Sensor(Entity):
                 'Rssi': self._rssi}
         if self._is_connected:
             data.update({'Closure_action': self._closure_action})
+        if self._is_new_leak:
+            data.update({'Data': self._data})
         data.update({'sku': self._sku,
                     'firmware': self._firmware,
                     'Activation': "Activ" if self._activ else "Inactive",
@@ -658,6 +659,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._fuel_percent_alert = None
         self._battery_alert = None
         self._battery_voltage = None
+        self._temperature = None
         self._rssi = None
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
@@ -681,8 +683,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self._fuel_alert = device_data[ATTR_FUEL_ALERT]
                     self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
-#                    if ATTR_ERROR_CODE_SET1 in device_data:
-#                        self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                        self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
@@ -721,6 +723,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'Gauge_type': self._gauge_type,
                 'Fuel_alert': "OK" if self._fuel_alert else "Low",
                 'Fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
+                'Temperature': self._temperature,
                 'Rssi': self._rssi}
         data.update({'sku': self._sku,
                     'firmware': self._firmware,
