@@ -778,6 +778,24 @@ class Neviweb130Switch(SwitchEntity):
         self._onoff = None
         self._is_wall = device_info["signature"]["model"] in \
             IMPLEMENTED_WALL_DEVICES
+        self._is_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_LOAD_DEVICES
+        self._is_tank_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_WATER_HEATER_LOAD_MODEL
+        self._is_wifi_tank_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
+        self._is_zb_control = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_DEVICE_CONTROL
+        self._is_sedna_control = device_info["signature"]["model"] in \
+            IMPLEMENTED_SED_DEVICE_CONTROL
+        self._is_zb_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_VALVE_MODEL
+        self._is_wifi_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_VALVE_MODEL
+        self._is_zb_mesh_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_MESH_VALVE_MODEL
+        self._is_wifi_mesh_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_MESH_VALVE_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -887,12 +905,12 @@ class Neviweb130Switch(SwitchEntity):
                'monthly_kwh_count': self._month_energy_kwh_count,
                'hourly_kwh': self._hour_kwh,
                'daily_kwh': self._today_kwh,
-               'monthly_kwh': self._month_kwh}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+               'monthly_kwh': self._month_kwh,
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
     @property
@@ -1210,8 +1228,6 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
-        self._is_load = device_info["signature"]["model"] in \
-            IMPLEMENTED_LOAD_DEVICES
         self._timer = 0
         self._keypad = None
         self._drstatus_active = "off"
@@ -1221,6 +1237,8 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._relayK2 = None
         self._rssi = None
         self._controlled_device = None
+        self._is_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_LOAD_DEVICES
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1269,30 +1287,29 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_load:
-            data = {'onOff': self._onoff,
-                   'Controlled_device': neviweb_to_ha_controlled(self._controlled_device),
-                   'Wattage': self._wattage,
-                   'Wattage_instant': self._current_power_w,
-                   'hourly_kwh_count': self._hour_energy_kwh_count,
-                   'daily_kwh_count': self._today_energy_kwh_count,
-                   'monthly_kwh_count': self._month_energy_kwh_count,
-                   'hourly_kwh': self._hour_kwh,
-                   'daily_kwh': self._today_kwh,
-                   'monthly_kwh': self._month_kwh,
-                   'Keypad': self._keypad,
-                   'Timer': self._timer,
-                   'eco_status': self._drstatus_active,
-                   'eco_optOut': self._drstatus_optout,
-                   'eco_onoff': self._drstatus_onoff,
-                   'RelayK1': self._relayK1,
-                   'RelayK2': self._relayK2,
-                   'Rssi': self._rssi}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'onOff': self._onoff,
+               'Controlled_device': neviweb_to_ha_controlled(self._controlled_device),
+               'Wattage': self._wattage,
+               'Wattage_instant': self._current_power_w,
+               'hourly_kwh_count': self._hour_energy_kwh_count,
+               'daily_kwh_count': self._today_energy_kwh_count,
+               'monthly_kwh_count': self._month_energy_kwh_count,
+               'hourly_kwh': self._hour_kwh,
+               'daily_kwh': self._today_kwh,
+               'monthly_kwh': self._month_kwh,
+               'Keypad': self._keypad,
+               'Timer': self._timer,
+               'eco_status': self._drstatus_active,
+               'eco_optOut': self._drstatus_optout,
+               'eco_onoff': self._drstatus_onoff,
+               'RelayK1': self._relayK1,
+               'RelayK2': self._relayK2,
+               'Rssi': self._rssi,
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130TankPowerSwitch(Neviweb130Switch):
@@ -1315,8 +1332,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._onoff = None
         self._current_power_w = 0
         self._wattage = 0
-        self._is_tank_load = device_info["signature"]["model"] in \
-            IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_onoff = "off"
@@ -1340,6 +1355,8 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._j2connector = None
         self._j3connector = None
         self._line_error = None
+        self._is_tank_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1401,44 +1418,43 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_tank_load:
-            data = {'onOff': self._onoff,
-                   'Wattage': self._wattage,
-                   'Wattage_instant': self._current_power_w,
-                   'hourly_kwh_count': self._hour_energy_kwh_count,
-                   'daily_kwh_count': self._today_energy_kwh_count,
-                   'monthly_kwh_count': self._month_energy_kwh_count,
-                   'hourly_kwh': self._hour_kwh,
-                   'daily_kwh': self._today_kwh,
-                   'monthly_kwh': self._month_kwh,
-                   'Water_leak_status': self._water_leak_status,
-                   'Water_temperature': self._water_temp,
-                   'Cold_load_pickup_status': self._cold_load_status,
-                   'Cold_load_remaining_time': self._cold_load_remaining_time,
-                   'Tank_size': neviweb_to_ha(self._tank_size),
-                   'Temperature_status': self._temp_status,
-                   'Stm_Mcu': self._stm_mcu,
-                   'Thermal_overload': self._thermal_overload,
-                   'Current_overload': self._current_overload,
-                   'j2Connector': self._j2connector,
-                   'j3Connector': self._j3connector,
-                   'Line_error': self._line_error,
-                   'eco_status': self._drstatus_active,
-                   'eco_optOut': self._drstatus_optout,
-                   'eco_onoff': self._drstatus_onoff,
-                   'eco_optout_reason': self._drstatus_optout_reason,
-                   'Water_temp_min': self._water_temp_min,
-                   'Water_time_on': self._watt_time_on,
-                   'Water_temp_time': self._water_temp_time,
-                   'Protection_Temperature': self._temperature,
-                   'Protection_Consumption': self._consumption,
-                   'Protection_consumption_overtime': self._consumption_time,
-                   'Rssi': self._rssi}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'onOff': self._onoff,
+               'Wattage': self._wattage,
+               'Wattage_instant': self._current_power_w,
+               'hourly_kwh_count': self._hour_energy_kwh_count,
+               'daily_kwh_count': self._today_energy_kwh_count,
+               'monthly_kwh_count': self._month_energy_kwh_count,
+               'hourly_kwh': self._hour_kwh,
+               'daily_kwh': self._today_kwh,
+               'monthly_kwh': self._month_kwh,
+               'Water_leak_status': self._water_leak_status,
+               'Water_temperature': self._water_temp,
+               'Cold_load_pickup_status': self._cold_load_status,
+               'Cold_load_remaining_time': self._cold_load_remaining_time,
+               'Tank_size': neviweb_to_ha(self._tank_size),
+               'Temperature_status': self._temp_status,
+               'Stm_Mcu': self._stm_mcu,
+               'Thermal_overload': self._thermal_overload,
+               'Current_overload': self._current_overload,
+               'j2Connector': self._j2connector,
+               'j3Connector': self._j3connector,
+               'Line_error': self._line_error,
+               'eco_status': self._drstatus_active,
+               'eco_optOut': self._drstatus_optout,
+               'eco_onoff': self._drstatus_onoff,
+               'eco_optout_reason': self._drstatus_optout_reason,
+               'Water_temp_min': self._water_temp_min,
+               'Water_time_on': self._watt_time_on,
+               'Water_temp_time': self._water_temp_time,
+               'Protection_Temperature': self._temperature,
+               'Protection_Consumption': self._consumption,
+               'Protection_consumption_overtime': self._consumption_time,
+               'Rssi': self._rssi,
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
@@ -1461,8 +1477,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._onoff = None
         self._wattage = 0
         self._current_power_w = 0
-        self._is_wifi_tank_load = device_info["signature"]["model"] in \
-            IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_onoff = "off"
@@ -1488,6 +1502,8 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._leg_status = None
         self._mode = None
         self._away_action = None
+        self._is_wifi_tank_load = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1551,40 +1567,39 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_wifi_tank_load:
-            data = {'onOff': self._onoff,
-                   'Wattage': self._wattage,
-                   'Wattage_instant': self._current_power_w,
-                   'Water_leak_status': self._water_leak_status,
-                   'Water_leak_disconect_status': self._water_leak_disconected_status,
-                   'Water_temperature': self._water_temp,
-                   'Cold_load_pickup_status': self._cold_load_status,
-                   'Cold_load_remaining_time': self._cold_load_remaining_time,
-                   'Cold_load_temperature': self._cold_load_temp,
-                   'Tank_size': neviweb_to_ha(self._tank_size),
-                   'Temperature_status': self._temp_status,
-                   'Stm_Mcu': self._stm_mcu,
-                   'Thermal_overload': self._thermal_overload,
-                   'Current_overload': self._current_overload,
-                   'j2Connector': self._j2connector,
-                   'j3Connector': self._j3connector,
-                   'Line_error': self._line_error,
-                   'eco_status': self._drstatus_active,
-                   'eco_optOut': self._drstatus_optout,
-                   'eco_onoff': self._drstatus_onoff,
-                   'eco_optout_reason': self._drstatus_optout_reason,
-                   'Water_temp_min': self._water_temp_min,
-                   'Water_time_on': self._water_tank_on,
-                   'Water_temp_time': self._water_temp_time,
-                   'Away_action': self._away_action,
-                   'Mode': self._mode,
-                   'Leg_status': self._leg_status,
-                   'Rssi': self._rssi}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'onOff': self._onoff,
+               'Wattage': self._wattage,
+               'Wattage_instant': self._current_power_w,
+               'Water_leak_status': self._water_leak_status,
+               'Water_leak_disconect_status': self._water_leak_disconected_status,
+               'Water_temperature': self._water_temp,
+               'Cold_load_pickup_status': self._cold_load_status,
+               'Cold_load_remaining_time': self._cold_load_remaining_time,
+               'Cold_load_temperature': self._cold_load_temp,
+               'Tank_size': neviweb_to_ha(self._tank_size),
+               'Temperature_status': self._temp_status,
+               'Stm_Mcu': self._stm_mcu,
+               'Thermal_overload': self._thermal_overload,
+               'Current_overload': self._current_overload,
+               'j2Connector': self._j2connector,
+               'j3Connector': self._j3connector,
+               'Line_error': self._line_error,
+               'eco_status': self._drstatus_active,
+               'eco_optOut': self._drstatus_optout,
+               'eco_onoff': self._drstatus_onoff,
+               'eco_optout_reason': self._drstatus_optout_reason,
+               'Water_temp_min': self._water_temp_min,
+               'Water_time_on': self._water_tank_on,
+               'Water_temp_time': self._water_temp_time,
+               'Away_action': self._away_action,
+               'Mode': self._mode,
+               'Leg_status': self._leg_status,
+               'Rssi': self._rssi,
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130ControlerSwitch(Neviweb130Switch):
@@ -1606,10 +1621,6 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._month_kwh = None
         self._onoff = None
         self._onoff2 = None
-        self._is_zb_control = device_info["signature"]["model"] in \
-            IMPLEMENTED_ZB_DEVICE_CONTROL
-        self._is_sedna_control = device_info["signature"]["model"] in \
-            IMPLEMENTED_SED_DEVICE_CONTROL
         self._battery_voltage = 0
         self._battery_status = None
         self._batt_percent_normal = None
@@ -1635,6 +1646,10 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._input_2_on_delay = 0
         self._input_1_off_delay = 0
         self._input_2_off_delay = 0
+        self._is_zb_control = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_DEVICE_CONTROL
+        self._is_sedna_control = device_info["signature"]["model"] in \
+            IMPLEMENTED_SED_DEVICE_CONTROL
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -1699,36 +1714,35 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_zb_control or self._is_sedna_control:
-            data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
-                   'Battery_display_info': self._batt_info,
-                   'Battery_voltage': self._battery_voltage,
-                   'Battery_status': self._battery_status,
-                   'Battery_percent_normalized': self._batt_percent_normal,
-                   'Battery_status_normalized': self._batt_status_normal,
-                   'Extern_temperature': self._ext_temp,
-                   'Room_humidity': self._humidity,
-                   'Timer': self._timer,
-                   'Timer2': self._timer2,
-                   'Input1_status': self._input_status,
-                   'Input2_status': self._input2_status,
-                   'onOff': self._onoff,
-                   'onOff2': self._onoff2,
-                   'Input1_on_delay': neviweb_to_ha_delay(self._input_1_on_delay),
-                   'Input2_on_delay': neviweb_to_ha_delay(self._input_2_on_delay),
-                   'Input1_off_delay': neviweb_to_ha_delay(self._input_1_off_delay),
-                   'Input2_off_delay': neviweb_to_ha_delay(self._input_2_off_delay),
-                   'Input1_name': self._input_name_1,
-                   'Input2_name': self._input_name_2,
-                   'Output1_name': self._output_name_1,
-                   'Output2_name': self._output_name_2,
-                   'Room_temperature': self._room_temp,
-                   'Rssi': self._rssi}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
+               'Battery_display_info': self._batt_info,
+               'Battery_voltage': self._battery_voltage,
+               'Battery_status': self._battery_status,
+               'Battery_percent_normalized': self._batt_percent_normal,
+               'Battery_status_normalized': self._batt_status_normal,
+               'Extern_temperature': self._ext_temp,
+               'Room_humidity': self._humidity,
+               'Timer': self._timer,
+               'Timer2': self._timer2,
+               'Input1_status': self._input_status,
+               'Input2_status': self._input2_status,
+               'onOff': self._onoff,
+               'onOff2': self._onoff2,
+               'Input1_on_delay': neviweb_to_ha_delay(self._input_1_on_delay),
+               'Input2_on_delay': neviweb_to_ha_delay(self._input_2_on_delay),
+               'Input1_off_delay': neviweb_to_ha_delay(self._input_1_off_delay),
+               'Input2_off_delay': neviweb_to_ha_delay(self._input_2_off_delay),
+               'Input1_name': self._input_name_1,
+               'Input2_name': self._input_name_2,
+               'Output1_name': self._output_name_1,
+               'Output2_name': self._output_name_2,
+               'Room_temperature': self._room_temp,
+               'Rssi': self._rssi,
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130ValveSwitch(Neviweb130Switch):
@@ -1743,8 +1757,6 @@ class Neviweb130ValveSwitch(Neviweb130Switch):
         self._id = device_info["id"]
         self._device_type = device_type
         self._onoff = None
-        self._is_zb_valve = device_info["signature"]["model"] in \
-            IMPLEMENTED_ZB_VALVE_MODEL
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
@@ -1754,6 +1766,8 @@ class Neviweb130ValveSwitch(Neviweb130Switch):
         self._power_supply = None
         self._temp_alert = None
         self._rssi = None
+        self._is_zb_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_VALVE_MODEL
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -1805,21 +1819,20 @@ class Neviweb130ValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_zb_valve:
-            data = {'Valve_status': self._valve_status,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
-                   'Battery_voltage': self._battery_voltage,
-                   'Battery_status': self._battery_status,
-                   'Power_supply': self._power_supply,
-                   'Battery_alert': alert_to_text(self._battery_alert, "bat"),
-                   'Temperature_alert': alert_to_text(self._temp_alert, "temp"),
-                   'Battery_percent_normalized': self._batt_percent_normal,
-                   'Battery_status_normalized': self._batt_status_normal}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'Valve_status': self._valve_status,
+               'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
+               'Battery_voltage': self._battery_voltage,
+               'Battery_status': self._battery_status,
+               'Power_supply': self._power_supply,
+               'Battery_alert': alert_to_text(self._battery_alert, "bat"),
+               'Temperature_alert': alert_to_text(self._temp_alert, "temp"),
+               'Battery_percent_normalized': self._batt_percent_normal,
+               'Battery_status_normalized': self._batt_status_normal,
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130WifiValveSwitch(Neviweb130Switch):
@@ -1840,8 +1853,6 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
-        self._is_wifi_valve = device_info["signature"]["model"] in \
-            IMPLEMENTED_WIFI_VALVE_MODEL
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
@@ -1863,6 +1874,8 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
         self._flow_alarm_2 = None
         self._temp_action_low = None
         self._batt_action_low = None
+        self._is_wifi_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_VALVE_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1928,39 +1941,38 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_wifi_valve:
-            data = {'Valve_status': self._valve_status,
-                   'Temperature_alert': self._temp_alert,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
-                   'Battery_voltage': self._battery_voltage,
-                   'Battery_status': self._battery_status,
-                   'Power_supply': self._power_supply,
-                   'Valve_closure_source': self._valve_closure,
-                   'Battery_alert': self._battery_alert,
-                   'Motor_target_position': self._motor_target,
-                   'Water_leak_status': self._water_leak_status,
-                   'Valve_status': self._valve_info_status,
-                   'Valve_cause': self._valve_info_cause,
-                   'Valve_info_id': self._valve_info_id,
-                   'Alert_motor_jam': self._stm8Error_motorJam,
-                   'Flow_alarm1': self._flow_alarm_1,
-                   'Flow_alarm2': self._flow_alarm_2,
-                   'Temp_action_low': self._temp_action_low,
-                   'Batt_action_low': self._batt_action_low,
-                   'Flow_meter_multiplier': self._flowmeter_multiplier,
-                   'Flow_meter_offset': self._flowmeter_offset,
-                   'Flow_meter_divisor': self._flowmeter_divisor,
-                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
-                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
-                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
-                   'hourly_flow': L_2_sqm(self._hour_kwh),
-                   'daily_flow': L_2_sqm(self._today_kwh),
-                   'monthly_flow': L_2_sqm(self._month_kwh)}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'Valve_status': self._valve_status,
+               'Temperature_alert': self._temp_alert,
+               'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
+               'Battery_voltage': self._battery_voltage,
+               'Battery_status': self._battery_status,
+               'Power_supply': self._power_supply,
+               'Valve_closure_source': self._valve_closure,
+               'Battery_alert': self._battery_alert,
+               'Motor_target_position': self._motor_target,
+               'Water_leak_status': self._water_leak_status,
+               'Valve_status': self._valve_info_status,
+               'Valve_cause': self._valve_info_cause,
+               'Valve_info_id': self._valve_info_id,
+               'Alert_motor_jam': self._stm8Error_motorJam,
+               'Flow_alarm1': self._flow_alarm_1,
+               'Flow_alarm2': self._flow_alarm_2,
+               'Temp_action_low': self._temp_action_low,
+               'Batt_action_low': self._batt_action_low,
+               'Flow_meter_multiplier': self._flowmeter_multiplier,
+               'Flow_meter_offset': self._flowmeter_offset,
+               'Flow_meter_divisor': self._flowmeter_divisor,
+               'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+               'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+               'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+               'hourly_flow': L_2_sqm(self._hour_kwh),
+               'daily_flow': L_2_sqm(self._today_kwh),
+               'monthly_flow': L_2_sqm(self._month_kwh),
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130MeshValveSwitch(Neviweb130Switch):
@@ -1981,8 +1993,6 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
-        self._is_zb_mesh_valve = device_info["signature"]["model"] in \
-            IMPLEMENTED_ZB_MESH_VALVE_MODEL
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
@@ -2003,6 +2013,8 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
         self._stm8Error_motorPosition = None
         self._stm8Error_motorLimit = None
         self._water_leak_status = None
+        self._is_zb_mesh_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_ZB_MESH_VALVE_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -2064,34 +2076,33 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_zb_mesh_valve:
-            data = {'Valve_status': self._valve_status,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
-                   'Battery_voltage': self._battery_voltage,
-                   'Battery_status': self._battery_status,
-                   'Power_supply': self._power_supply,
-                   'Alert_motor_jam': self._stm8Error_motorJam,
-                   'Alert_motor_position': self._stm8Error_motorPosition,
-                   'Alert_motor_limit': self._stm8Error_motorLimit,
-                   'Flow_meter_multiplier': self._flowmeter_multiplier,
-                   'Flow_meter_offset': self._flowmeter_offset,
-                   'Flow_meter_divisor': self._flowmeter_divisor,
-                   'Flow_meter_model': self._flowmeter_model,
-                   'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
-                   'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
-                   'Water_leak_status': self._water_leak_status,
-                   'Battery_alert': alert_to_text(self._battery_alert, "bat"),
-                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
-                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
-                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
-                   'hourly_flow': L_2_sqm(self._hour_kwh),
-                   'daily_flow': L_2_sqm(self._today_kwh),
-                   'monthly_flow': L_2_sqm(self._month_kwh)}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'Valve_status': self._valve_status,
+               'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
+               'Battery_voltage': self._battery_voltage,
+               'Battery_status': self._battery_status,
+               'Power_supply': self._power_supply,
+               'Alert_motor_jam': self._stm8Error_motorJam,
+               'Alert_motor_position': self._stm8Error_motorPosition,
+               'Alert_motor_limit': self._stm8Error_motorLimit,
+               'Flow_meter_multiplier': self._flowmeter_multiplier,
+               'Flow_meter_offset': self._flowmeter_offset,
+               'Flow_meter_divisor': self._flowmeter_divisor,
+               'Flow_meter_model': self._flowmeter_model,
+               'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
+               'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
+               'Water_leak_status': self._water_leak_status,
+               'Battery_alert': alert_to_text(self._battery_alert, "bat"),
+               'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+               'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+               'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+               'hourly_flow': L_2_sqm(self._hour_kwh),
+               'daily_flow': L_2_sqm(self._today_kwh),
+               'monthly_flow': L_2_sqm(self._month_kwh),
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
 
 class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
@@ -2112,8 +2123,6 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
-        self._is_wifi_mesh_valve = device_info["signature"]["model"] in \
-            IMPLEMENTED_WIFI_MESH_VALVE_MODEL
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
@@ -2142,6 +2151,8 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
         self._temp_action_low = None
         self._batt_action_low = None
         self._rssi = None
+        self._is_wifi_mesh_valve = device_info["signature"]["model"] in \
+            IMPLEMENTED_WIFI_MESH_VALVE_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -2214,40 +2225,39 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_wifi_mesh_valve:
-            data = {'Valve_status': self._valve_status,
-                   'Motor_target_position': self._motor_target,
-                   'Temperature_alert': self._temp_alert,
-                   'Valve_status': self._valve_info_status,
-                   'Valve_cause': self._valve_info_cause,
-                   'Valve_info_id': self._valve_info_id,
-                   'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
-                   'Battery_voltage': self._battery_voltage,
-                   'Battery_status': self._battery_status,
-                   'Power_supply': self._power_supply,
-                   'Alert_motor_jam': self._stm8Error_motorJam,
-                   'Alert_motor_position': self._stm8Error_motorPosition,
-                   'Alert_motor_limit': self._stm8Error_motorLimit,
-                   'Flow_alarm1': self._flow_alarm_1,
-                   'Flow_alarm2': self._flow_alarm_2,
-                   'Temp_action_low': self._temp_action_low,
-                   'Batt_action_low': self._batt_action_low,
-                   'Flow_meter_multiplier': self._flowmeter_multiplier,
-                   'Flow_meter_offset': self._flowmeter_offset,
-                   'Flow_meter_divisor': self._flowmeter_divisor,
-                   'Flow_meter_model': self._flowmeter_model,
-                   'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
-                   'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
-                   'Water_leak_status': self._water_leak_status,
-                   'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
-                   'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
-                   'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
-                   'hourly_flow': L_2_sqm(self._hour_kwh),
-                   'daily_flow': L_2_sqm(self._today_kwh),
-                   'monthly_flow': L_2_sqm(self._month_kwh)}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': self._activ,
-                    'device_type': self._device_type,
-                    'id': self._id})
+        data = {'Valve_status': self._valve_status,
+               'Motor_target_position': self._motor_target,
+               'Temperature_alert': self._temp_alert,
+               'Valve_status': self._valve_info_status,
+               'Valve_cause': self._valve_info_cause,
+               'Valve_info_id': self._valve_info_id,
+               'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
+               'Battery_voltage': self._battery_voltage,
+               'Battery_status': self._battery_status,
+               'Power_supply': self._power_supply,
+               'Alert_motor_jam': self._stm8Error_motorJam,
+               'Alert_motor_position': self._stm8Error_motorPosition,
+               'Alert_motor_limit': self._stm8Error_motorLimit,
+               'Flow_alarm1': self._flow_alarm_1,
+               'Flow_alarm2': self._flow_alarm_2,
+               'Temp_action_low': self._temp_action_low,
+               'Batt_action_low': self._batt_action_low,
+               'Flow_meter_multiplier': self._flowmeter_multiplier,
+               'Flow_meter_offset': self._flowmeter_offset,
+               'Flow_meter_divisor': self._flowmeter_divisor,
+               'Flow_meter_model': self._flowmeter_model,
+               'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
+               'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
+               'Water_leak_status': self._water_leak_status,
+               'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
+               'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
+               'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
+               'hourly_flow': L_2_sqm(self._hour_kwh),
+               'daily_flow': L_2_sqm(self._today_kwh),
+               'monthly_flow': L_2_sqm(self._month_kwh),
+               'sku': self._sku,
+               'firmware': self._firmware,
+               'Activation': self._activ,
+               'device_type': self._device_type,
+               'id': self._id}
         return data
