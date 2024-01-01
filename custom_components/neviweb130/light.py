@@ -308,56 +308,45 @@ class Neviweb130Light(LightEntity):
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
-        self._phase_control = None
         self._intensity_min = 600
         self._wattage = 0
         self._wattage_status = None
-        self._double_up = None
         self._temp_status = None
         self._rssi = None
-        self._energy_stat_time = time.time() - 1500
-        self._activ = True
-        self._snooze = 0
+        self._onoff = None
+        self._is_light = device_info["signature"]["model"] in \
+            DEVICE_MODEL_LIGHT
         self._is_dimmable = device_info["signature"]["model"] in \
-            DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
+            DEVICE_MODEL_DIMMER or device_info["signature"]["model"] in \
+            DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_NEW_DIMMER
-        self._onoff = None
+        self._energy_stat_time = time.time() - 1500
+        self._snooze = 0
+        self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._activ:
             """Get the latest data from neviweb and update the state."""
-            if not self._is_new_dimmable:
-                WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
-            else:
-                WATT_ATTRIBUTE = [ATTR_PHASE_CONTROL, ATTR_KEY_DOUBLE_UP, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE_INSTANT]
+            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id,
-                UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s",
                 self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    if self._is_dimmable:
-                        if ATTR_INTENSITY in device_data:
-                            self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
-                                device_data[ATTR_INTENSITY] is not None else 0
-                        self._intensity_min = device_data[ATTR_INTENSITY_MIN]
-                        if ATTR_PHASE_CONTROL in device_data:
-                            self._phase_control = device_data[ATTR_PHASE_CONTROL]
-                        if ATTR_KEY_DOUBLE_UP in device_data:
-                            self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
+                    if ATTR_INTENSITY in device_data:
+                        self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
+                            device_data[ATTR_INTENSITY] is not None else 0
+                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                     self._onoff = device_data[ATTR_ONOFF]
-                    if not self._is_new_dimmable:
-                        self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
-                        self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
-                    else:
-                        self._wattage = device_data[ATTR_WATTAGE_INSTANT]
+                    self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                    self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
+                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
@@ -401,34 +390,25 @@ class Neviweb130Light(LightEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        if self._is_dimmable:
-            data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
-                    'minimum_intensity': self._intensity_min,
-                    'Temperature_status': self._temp_status}
-        if self._is_new_dimmable:
-            data.update({'phase_control': self._phase_control,
-                        'Double_up_Action': self._double_up,
-                        'wattage': self._wattage})
-        else:
-            data.update({'wattage': self._wattage,
-                        'wattage_status': self._wattage_status,
-                        'Temperature_status': self._temp_status})
-        data.update({'onOff': self._onoff,
-                     'keypad': self._keypad,
-                     'timer': self._timer,
-                     'led_on': self._led_on,
-                     'led_off': self._led_off,
-                     'hourly_kwh_count': self._hour_energy_kwh_count,
-                     'daily_kwh_count': self._today_energy_kwh_count,
-                     'monthly_kwh_count': self._month_energy_kwh_count,
-                     'hourly_kwh': self._hour_kwh,
-                     'daily_kwh': self._today_kwh,
-                     'monthly_kwh': self._month_kwh,
-                     'sku': self._sku,
-                     'rssi': self._rssi,
-                     'firmware': self._firmware,
-                     'Activation': self._activ,
-                     'id': self._id})
+        data.update({'wattage': self._wattage,
+                    'wattage_status': self._wattage_status,
+                    'Temperature_status': self._temp_status,
+                    'onOff': self._onoff,
+                    'keypad': self._keypad,
+                    'timer': self._timer,
+                    'led_on': self._led_on,
+                    'led_off': self._led_off,
+                    'hourly_kwh_count': self._hour_energy_kwh_count,
+                    'daily_kwh_count': self._today_energy_kwh_count,
+                    'monthly_kwh_count': self._month_energy_kwh_count,
+                    'hourly_kwh': self._hour_kwh,
+                    'daily_kwh': self._today_kwh,
+                    'monthly_kwh': self._month_kwh,
+                    'sku': self._sku,
+                    'rssi': self._rssi,
+                    'firmware': self._firmware,
+                    'Activation': self._activ,
+                    'id': self._id})
         return data
 
     @property
@@ -622,12 +602,12 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._wattage_status = None
         self._temp_status = None
         self._rssi = None
-        self._energy_stat_time = time.time() - 1500
-        self._activ = True
-        self._snooze = 0
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
         self._onoff = None
+        self._energy_stat_time = time.time() - 1500
+        self._snooze = 0
+        self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -722,14 +702,14 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._double_up = None
         self._temp_status = None
         self._rssi = None
-        self._energy_stat_time = time.time() - 1500
-        self._activ = True
-        self._snooze = 0
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_NEW_DIMMER
         self._is_new_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_NEW_DIMMER
         self._onoff = None
+        self._energy_stat_time = time.time() - 1500
+        self._snooze = 0
+        self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
