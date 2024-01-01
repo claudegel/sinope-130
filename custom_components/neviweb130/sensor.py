@@ -389,13 +389,6 @@ class Neviweb130Sensor(Entity):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
-        self._is_leak = device_info["signature"]["model"] in \
-            IMPLEMENTED_SENSOR_MODEL or device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR \
-            or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
-        self._is_connected = device_info["signature"]["model"] in \
-            IMPLEMENTED_CONNECTED_SENSOR
-        self._is_new_leak = device_info["signature"]["model"] in \
-            IMPLEMENTED_NEW_SENSOR_MODEL
         self._leak_status = None
         self._leak_alert = None
         self._temp_alert = None
@@ -411,11 +404,22 @@ class Neviweb130Sensor(Entity):
         self._tank_percent = None
         self._gauge_type = None
         self._temperature = None
-        self._activ = True
-        self._snooze = 0
         self._data = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
+        self._is_leak = device_info["signature"]["model"] in \
+            IMPLEMENTED_SENSOR_MODEL or device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR \
+            or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+        self._is_connected = device_info["signature"]["model"] in \
+            IMPLEMENTED_CONNECTED_SENSOR
+        self._is_new_leak = device_info["signature"]["model"] in \
+            IMPLEMENTED_NEW_SENSOR_MODEL
+        self._is_monitor = device_info["signature"]["model"] in \
+            IMPLEMENTED_TANK_MONITOR
+        self._is_gateway = device_info["signature"]["model"] in \
+            IMPLEMENTED_GATEWAY
+        self._snooze = 0
+        self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -661,6 +665,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._battery_voltage = None
         self._temperature = None
         self._rssi = None
+        self._is_monitor = device_info["signature"]["model"] in \
+            IMPLEMENTED_TANK_MONITOR
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -724,12 +730,12 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'Fuel_alert': "OK" if self._fuel_alert else "Low",
                 'Fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
                 'Temperature': self._temperature,
-                'Rssi': self._rssi}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': "Activ" if self._activ else "Inactive",
-                    'device_type': self._device_type,
-                    'Id': self._id})
+                'Rssi': self._rssi,
+                'sku': self._sku,
+                'firmware': self._firmware,
+                'Activation': "Activ" if self._activ else "Inactive",
+                'device_type': self._device_type,
+                'Id': self._id}
         return data
 
     @property
@@ -801,6 +807,8 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._activ = True
         self._snooze = 0
         self._gateway_status = None
+        self._is_gateway = device_info["signature"]["model"] in \
+            IMPLEMENTED_GATEWAY
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
@@ -828,10 +836,10 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data = {'Gateway_status': self._gateway_status}
-        data.update({'sku': self._sku,
-                    'firmware': self._firmware,
-                    'Activation': "Activ" if self._activ else "Inactive",
-                    'device_type': self._device_type,
-                    'Id': self._id})
+        data = {'Gateway_status': self._gateway_status,
+                'sku': self._sku,
+                'firmware': self._firmware,
+                'Activation': "Activ" if self._activ else "Inactive",
+                'device_type': self._device_type,
+                'Id': self._id}
         return data
