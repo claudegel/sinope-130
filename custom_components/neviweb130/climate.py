@@ -1258,11 +1258,10 @@ class Neviweb130Thermostat(ClimateEntity):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'model': self._device_model,
-                    'model_cfg': self._device_model_cfg,
+                    'device_model': self._device_model,
+                    'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
-                    'model': self._model,
                     'id': self._id})
         return data
 
