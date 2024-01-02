@@ -718,7 +718,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
-        self._model = device_info["signature"]["model"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
@@ -1257,6 +1258,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
+                    'model': self._device_model,
+                    'model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
                     'model': self._model,
