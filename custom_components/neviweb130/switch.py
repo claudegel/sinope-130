@@ -996,8 +996,11 @@ class Neviweb130Switch(SwitchEntity):
             else:
                 NAME_ATTRIBUTE = []
             if self._is_zb_control or self._is_sedna_control:
-                LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
-                ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+                if self._firmware == "0.1.1":
+                    LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
+                    ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+                else:
+                    LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
             elif self._is_load:
                 LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
             elif self._is_wifi_valve:
@@ -1241,11 +1244,13 @@ class Neviweb130Switch(SwitchEntity):
                         self._ext_temp = device_data[ATTR_EXT_TEMP]
                         self._timer = device_data[ATTR_TIMER]
                         self._timer2 = device_data[ATTR_TIMER2]
-                        self._batt_info = device_data[ATTR_BATT_INFO]
-                        self._input_1_on_delay = device_data[ATTR_INPUT_1_ON_DELAY]
-                        self._input_2_on_delay = device_data[ATTR_INPUT_2_ON_DELAY]
-                        self._input_1_off_delay = device_data[ATTR_INPUT_1_OFF_DELAY]
-                        self._input_2_off_delay = device_data[ATTR_INPUT_2_OFF_DELAY]
+                        if ATTR_BATT_INFO in device_data:
+                            self._batt_info = device_data[ATTR_BATT_INFO]
+                        if ATTR_INPUT_1_ON_DELAY in device_data:
+                            self._input_1_on_delay = device_data[ATTR_INPUT_1_ON_DELAY]
+                            self._input_2_on_delay = device_data[ATTR_INPUT_2_ON_DELAY]
+                            self._input_1_off_delay = device_data[ATTR_INPUT_1_OFF_DELAY]
+                            self._input_2_off_delay = device_data[ATTR_INPUT_2_OFF_DELAY]
                         if ATTR_BATT_PERCENT_NORMAL in device_data:
                             self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                         if ATTR_BATT_STATUS_NORMAL in device_data:
