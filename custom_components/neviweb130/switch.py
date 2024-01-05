@@ -54,10 +54,9 @@ from homeassistant.components.switch import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    ENERGY_KILO_WATT_HOUR,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-    VOLUME_CUBIC_METERS,
+    UnitOfEnergy,
+    UnitOfTemperature,
+    UnitOfVolume,
 )
 
 from homeassistant.helpers import (

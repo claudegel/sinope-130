@@ -15,10 +15,9 @@ from homeassistant.const import (
 )
 from homeassistant.util import Throttle
 from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    PRESET_HOME,
+    HVACMode,
     PRESET_AWAY,
+    PRESET_HOME,
     )
 from .const import (
     DOMAIN,
@@ -106,7 +105,7 @@ from .const import (
     MODE_MANUAL
 )
 
-VERSION = '2.5.3'
+VERSION = '2.5.4'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -525,7 +524,7 @@ class Neviweb130Client(object):
         """Set thermostat operation mode."""
         """ Work differently for wifi and zigbee devices. """
         if wifi:
-            if mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+            if mode in [HVACMode.HEAT, MODE_MANUAL]:
                 mode = MODE_MANUAL
             data = {ATTR_SETPOINT_MODE: mode}
         else:
