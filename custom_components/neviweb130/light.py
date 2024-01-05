@@ -18,10 +18,10 @@ import time
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, STAT_INTERVAL)
 from homeassistant.components.light import (
-    LightEntity,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
     ColorMode,
+    LightEntity,
 )
 
 from homeassistant.const import (
