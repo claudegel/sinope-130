@@ -26,11 +26,10 @@ from . import (SCAN_INTERVAL)
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    PERCENTAGE,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-    STATE_OK,
     ATTR_VOLTAGE,
+    PERCENTAGE,
+    UnitOfTemperature,
+    STATE_OK,
 )
 
 from homeassistant.helpers import (
