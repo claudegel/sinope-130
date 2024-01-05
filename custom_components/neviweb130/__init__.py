@@ -524,7 +524,7 @@ class Neviweb130Client(object):
         """Set thermostat operation mode."""
         """ Work differently for wifi and zigbee devices. """
         if wifi:
-            if mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+            if mode in [HVACMode.HEAT, MODE_MANUAL]:
                 mode = MODE_MANUAL
             data = {ATTR_SETPOINT_MODE: mode}
         else:
