@@ -56,7 +56,7 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     UnitOfEnergy,
     UnitOfTemperature,
-    VOLUME_CUBIC_METERS,
+    UnitOfVolume,
 )
 
 from homeassistant.helpers import (
