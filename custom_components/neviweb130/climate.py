@@ -32,29 +32,21 @@ import time
 
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL)
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate import (
+    ClimateEntity,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    CURRENT_HVAC_OFF,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    PRESET_HOME,
     PRESET_AWAY,
+    PRESET_HOME,
     PRESET_NONE,
-    SUPPORT_AUX_HEAT,
-    SUPPORT_FAN_MODE,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_SWING_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
 )
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfTemperature,
 )
 
 from homeassistant.helpers import (
@@ -171,8 +163,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE)
-SUPPORT_AUX_FLAGS = (SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE |SUPPORT_AUX_HEAT)
+SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE)
+SUPPORT_AUX_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.AUX_HEAT)
 
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
@@ -204,20 +196,20 @@ UPDATE_ATTRIBUTES = [
 ]
 
 SUPPORTED_HVAC_WIFI_MODES = [
-    HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+    HVACMode.AUTO,
+    HVACMode.HEAT,
+    HVACMode.OFF,
 ]
 
 SUPPORTED_HVAC_MODES = [
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+    HVACMode.HEAT,
+    HVACMode.OFF,
 ]
 
 SUPPORTED_HVAC_HC_MODES = [
-    HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+    HVACMode.COOL,
+    HVACMode.HEAT,
+    HVACMode.OFF,
 ]
 
 PRESET_WIFI_MODES = [
@@ -859,9 +851,9 @@ def neviweb_to_ha(value):
 
 def temp_format_to_ha(value):
     if value == "celsius":
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
     else:
-        return TEMP_FAHRENHEIT
+        return UnitOfTemperature.FAHRENHEIT
 
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of a Neviweb thermostat."""
@@ -911,7 +903,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._floor_max_status = "off"
         self._floor_min = None
         self._floor_min_status = "off"
-        self._temperature_format = TEMP_CELSIUS
+        self._temperature_format = UnitOfTemperature.CELSIUS
         self._temp_display_status = None
         self._temp_display_value = None
         self._cycle_length = 0
@@ -1451,17 +1443,17 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def hvac_mode(self):
         """Return current operation"""
-        if self._operation_mode == HVAC_MODE_OFF:
-            return HVAC_MODE_OFF
-        elif self._operation_mode in [HVAC_MODE_AUTO, MODE_AUTO_BYPASS]:
-            return HVAC_MODE_AUTO
+        if self._operation_mode == HVACMode.OFF:
+            return HVACMode.OFF
+        elif self._operation_mode in [HVACMode.AUTO, MODE_AUTO_BYPASS]:
+            return HVACMode.AUTO
         else:
-            return HVAC_MODE_HEAT
+            return HVACMode.HEAT
 
     @property
     def hvac_modes(self):
@@ -1505,21 +1497,21 @@ class Neviweb130Thermostat(ClimateEntity):
     def hvac_action(self):
         """Return current HVAC action."""
         if HOMEKIT_MODE:
-            if self._operation_mode == HVAC_MODE_OFF:
-                return CURRENT_HVAC_OFF
+            if self._operation_mode == HVACMode.OFF:
+                return HVACAction.OFF
             elif self._heat_level == 0:
-                return CURRENT_HVAC_IDLE
+                return HVACAction.IDLE
             else:
-                return CURRENT_HVAC_HEAT
+                return HVACAction.HEATING
         else:
-            if self._operation_mode == HVAC_MODE_OFF:
-                return CURRENT_HVAC_OFF
+            if self._operation_mode == HVACMode.OFF:
+                return HVACAction.OFF
             elif self._operation_mode == MODE_AUTO_BYPASS:
                 return MODE_AUTO_BYPASS
             elif self._heat_level == 0:
-                return CURRENT_HVAC_IDLE
+                return HVACAction.IDLE
             else:
-                return CURRENT_HVAC_HEAT
+                return HVACAction.HEATING
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -1683,14 +1675,14 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_hvac_mode(self, hvac_mode):
         """Set new hvac mode."""
-        if hvac_mode == HVAC_MODE_OFF:
-            self._client.set_setpoint_mode(self._id, HVAC_MODE_OFF, self._is_wifi)
-        elif hvac_mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+        if hvac_mode == HVACMode.OFF:
+            self._client.set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi)
+        elif hvac_mode in [HVACMode.HEAT, MODE_MANUAL]:
             self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi)
-        elif hvac_mode == HVAC_MODE_AUTO:
-            self._client.set_setpoint_mode(self._id, HVAC_MODE_AUTO, self._is_wifi)
+        elif hvac_mode == HVACMode.AUTO:
+            self._client.set_setpoint_mode(self._id, HVACMode.AUTO, self._is_wifi)
         elif hvac_mode == MODE_AUTO_BYPASS:
-            if self._operation_mode == HVAC_MODE_AUTO:
+            if self._operation_mode == HVACMode.AUTO:
                 self._client.set_setpoint_mode(self._id, MODE_AUTO_BYPASS, self._is_wifi)
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
