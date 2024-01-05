@@ -21,7 +21,7 @@ from homeassistant.components.light import (
     LightEntity,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
-    SUPPORT_BRIGHTNESS,
+    ColorMode,
 )
 
 from homeassistant.const import (
@@ -460,11 +460,12 @@ class Neviweb130Light(LightEntity):
                 )
 
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
+    def supported_color_modes(self):
+        """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return SUPPORT_BRIGHTNESS
-        return 0
+            return ColorMode.BRIGHTNESS
+        else:
+            return ColorMode.ONOFF
 
     @property
     def unique_id(self):
