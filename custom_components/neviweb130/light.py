@@ -468,6 +468,12 @@ class Neviweb130Light(LightEntity):
             return ColorMode.ONOFF
 
     @property
+    def color_mode(self):
+        if self._is_dimmable:
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
+
+    @property
     def unique_id(self):
         """Return unique ID based on Neviweb device ID."""
         return self._id
