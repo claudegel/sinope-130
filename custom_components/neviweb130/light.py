@@ -463,9 +463,16 @@ class Neviweb130Light(LightEntity):
     def supported_color_modes(self):
         """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return ColorMode.BRIGHTNESS
+            return {ColorMode.BRIGHTNESS}
         else:
-            return ColorMode.ONOFF
+            return {ColorMode.ONOFF}
+
+    @property
+    def color_mode(self):
+        """ Set ColorMode """
+        if self._is_dimmable:
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
 
     @property
     def unique_id(self):
