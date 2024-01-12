@@ -18,9 +18,9 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.util import Throttle
+
 from homeassistant.components.climate.const import (
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
+    HVACMode,
     PRESET_HOME,
     PRESET_AWAY,
     )
@@ -501,6 +501,11 @@ class Neviweb130Client(object):
         data = {ATTR_ONOFF: onoff}
         self.set_device_attributes(device_id, data)
 
+    def set_light_onoff(self, device_id, onoff, brightness):
+        """Set light device onOff state."""
+        data = {ATTR_ONOFF: onoff, ATTR_INTENSITY: brightness}
+        self.set_device_attributes(device_id, data)
+
     def set_valve_onoff(self, device_id, onoff):
         """Set sedna valve onOff state."""
         data = {ATTR_MOTOR_TARGET: onoff}
@@ -515,7 +520,7 @@ class Neviweb130Client(object):
         """Set thermostat operation mode."""
         """ Work differently for wifi and zigbee devices. """
         if wifi:
-            if mode in [HVAC_MODE_HEAT, MODE_MANUAL]:
+            if mode in [HVACMode.HEAT, MODE_MANUAL]:
                 mode = MODE_MANUAL
             data = {ATTR_SETPOINT_MODE: mode}
         else:
