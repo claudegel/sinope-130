@@ -28,6 +28,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1500WF wifi 3600W double pole thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
+  - SRM40 floor thermostat
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
