@@ -8,7 +8,7 @@ model 4210 = WL4210, WL4210S connected to GT130
 model 5056 = LM4110-ZB, level monitor
 model 5055 = LM4110-ZB, level monitor, multiples tanks
 model 130 = gateway GT130
-model xxx = gateway GT4220WF-M for mesh valve network
+model xxx = gateway GT4220WF, GT4220WF-M for mesh valve network
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
@@ -28,11 +28,10 @@ from . import (SCAN_INTERVAL, VERSION)
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    PERCENTAGE,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-    STATE_OK,
     ATTR_VOLTAGE,
+    PERCENTAGE,
+    STATE_OK,
+    UnitOfTemperature,
 )
 
 from homeassistant.helpers import (
@@ -530,7 +529,7 @@ class Neviweb130Sensor(Entity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data = {'Leak_status': self._leak_status,
+        data.update({'Leak_status': self._leak_status,
                 'Temperature': self._cur_temp,
                 'Temp_alarm': self._temp_status,
                 'Temperature_alert': self._temp_alert,
@@ -542,7 +541,7 @@ class Neviweb130Sensor(Entity):
                 'Battery_status_normalized': self._batt_status_normal,
                 'Battery_alert': self._battery_alert,
                 'Battery_type': self._battery_type,
-                'Rssi': self._rssi}
+                'Rssi': self._rssi})
         if self._is_connected:
             data.update({'Closure_action': self._closure_action})
         if self._is_new_leak:
@@ -551,7 +550,7 @@ class Neviweb130Sensor(Entity):
                     'firmware': self._firmware,
                     'Activation': "Activ" if self._activ else "Inactive",
                     'device_type': self._device_type,
-                    'Id': self._id})
+                    'Id': str(self._id)})
         return data
 
     @property
@@ -620,6 +619,8 @@ class Neviweb130Sensor(Entity):
                 f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
             )
             self._client.reconnect()
+        elif error_data == "DVCATTRNSPTD":
+                _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
         elif error_data == "DVCCOMMTO":
@@ -718,7 +719,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data = {'Gauge_angle': self._angle,
+        data.update({'Gauge_angle': self._angle,
                 'Last_sampling_time': convert(self._sampling),
                 'Battery_level': voltage_to_percentage(self._battery_voltage, "lithium"),
                 'Battery_voltage': self._battery_voltage,
@@ -735,7 +736,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'firmware': self._firmware,
                 'Activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
-                'Id': self._id}
+                'Id': str(self._id)})
         return data
 
     @property
@@ -836,10 +837,10 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data = {'Gateway_status': self._gateway_status,
+        data.update({'Gateway_status': self._gateway_status,
                 'sku': self._sku,
                 'firmware': self._firmware,
                 'Activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
-                'Id': self._id}
+                'Id': str(self._id)})
         return data
