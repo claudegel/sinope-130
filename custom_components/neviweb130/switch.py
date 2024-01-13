@@ -57,10 +57,9 @@ from homeassistant.components.switch import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    ENERGY_KILO_WATT_HOUR,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-    VOLUME_CUBIC_METERS,
+    UnitOfEnergy,
+    UnitOfTemperature,
+    UnitOfVolume,
 )
 
 from homeassistant.helpers import (
@@ -93,7 +92,7 @@ from .const import (
     ATTR_BATTERY_STATUS,
     ATTR_BATTERY_VOLTAGE,
     ATTR_CLOSE_VALVE,
-    ATTR_COLD_LOAD_PICKUP,
+    ATTR_COLD_LOAD_PICKUP_STATUS,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_COLD_LOAD_PICKUP_TEMP,
     ATTR_CONTROLLED_DEVICE,
@@ -803,10 +802,10 @@ class Neviweb130Switch(SwitchEntity):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT]
+            LOAD_ATTRIBUTES = [ATTR_WATTAGE_INSTANT]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -898,7 +897,7 @@ class Neviweb130Switch(SwitchEntity):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'onOff': self._onoff,
+        data.update({'onOff': self._onoff,
                'Wattage_instant': self._current_power_w,
                'hourly_kwh_count': self._hour_energy_kwh_count,
                'daily_kwh_count': self._today_energy_kwh_count,
@@ -910,7 +909,7 @@ class Neviweb130Switch(SwitchEntity):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
     @property
@@ -1175,6 +1174,8 @@ class Neviweb130Switch(SwitchEntity):
                 f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
             )
             self._client.reconnect()
+        elif error_data == "DVCATTRNSPTD":
+                _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
         elif error_data == "DVCCOMMTO":
@@ -1239,6 +1240,10 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._controlled_device = None
         self._is_load = device_info["signature"]["model"] in \
             IMPLEMENTED_LOAD_DEVICES
+        self._is_wifi_valve = False
+        self._is_wifi_mesh_valve = False
+        self._is_zb_valve = False
+        self._is_zb_mesh_valve = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1246,10 +1251,10 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_WATTAGE_INSTANT, ATTR_WATTAGE, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_ERROR_CODE_SET1, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
+            LOAD_ATTRIBUTES = [ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_TIMER, ATTR_KEYPAD, ATTR_DRSTATUS, ATTR_RSSI, ATTR_CONTROLLED_DEVICE]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1287,7 +1292,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'onOff': self._onoff,
+        data.update({'onOff': self._onoff,
                'Controlled_device': neviweb_to_ha_controlled(self._controlled_device),
                'Wattage': self._wattage,
                'Wattage_instant': self._current_power_w,
@@ -1309,7 +1314,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130TankPowerSwitch(Neviweb130Switch):
@@ -1357,6 +1362,10 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._line_error = None
         self._is_tank_load = device_info["signature"]["model"] in \
             IMPLEMENTED_WATER_HEATER_LOAD_MODEL
+        self._is_wifi_valve = False
+        self._is_wifi_mesh_valve = False
+        self._is_zb_valve = False
+        self._is_zb_mesh_valve = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1364,11 +1373,11 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
+            LOAD_ATTRIBUTES = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP_STATUS, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
                 ATTR_DR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS, ATTR_DR_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1387,7 +1396,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                         self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
-                    self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
+                    self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
                     self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
                     self._rssi = device_data[ATTR_RSSI]
                     self._tank_size = device_data[ATTR_TANK_SIZE]
@@ -1418,7 +1427,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'onOff': self._onoff,
+        data.update({'onOff': self._onoff,
                'Wattage': self._wattage,
                'Wattage_instant': self._current_power_w,
                'hourly_kwh_count': self._hour_energy_kwh_count,
@@ -1454,7 +1463,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
@@ -1504,6 +1513,10 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._away_action = None
         self._is_wifi_tank_load = device_info["signature"]["model"] in \
             IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
+        self._is_wifi_valve = False
+        self._is_wifi_mesh_valve = False
+        self._is_zb_valve = False
+        self._is_zb_mesh_valve = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1511,11 +1524,11 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_WATER_LEAK_ALARM_STATUS, ATTR_WATER_TEMPERATURE, ATTR_WATER_LEAK_DISCONECTED_STATUS, ATTR_ERROR_CODE_SET1, ATTR_WIFI_WATTAGE, ATTR_WIFI_WATT_NOW, ATTR_COLD_LOAD_PICKUP, ATTR_TANK_SIZE, ATTR_MIN_WATER_TEMP, ATTR_WATER_TANK_ON,
+            LOAD_ATTRIBUTES = [ATTR_WATER_LEAK_ALARM_STATUS, ATTR_WATER_TEMPERATURE, ATTR_WATER_LEAK_DISCONECTED_STATUS, ATTR_ERROR_CODE_SET1, ATTR_WIFI_WATTAGE, ATTR_WIFI_WATT_NOW, ATTR_COLD_LOAD_PICKUP_STATUS, ATTR_TANK_SIZE, ATTR_MIN_WATER_TEMP, ATTR_WATER_TANK_ON,
                 ATTR_WATER_TEMP_TIME, ATTR_WIFI, ATTR_DRSTATUS, ATTR_LEG_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_SYSTEM_MODE, ATTR_COLD_LOAD_PICKUP_TEMP, ATTR_AWAY_ACTION]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1540,7 +1553,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                         self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
                     self._current_power_w = device_data[ATTR_WIFI_WATT_NOW]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP]
+                    self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
                     self._cold_load_temp = device_data[ATTR_COLD_LOAD_PICKUP_TEMP]
                     self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
                     self._rssi = device_data[ATTR_WIFI]
@@ -1567,7 +1580,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'onOff': self._onoff,
+        data.update({'onOff': self._onoff,
                'Wattage': self._wattage,
                'Wattage_instant': self._current_power_w,
                'Water_leak_status': self._water_leak_status,
@@ -1599,7 +1612,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130ControlerSwitch(Neviweb130Switch):
@@ -1650,6 +1663,10 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
             IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in \
             IMPLEMENTED_SED_DEVICE_CONTROL
+        self._is_wifi_valve = False
+        self._is_wifi_mesh_valve = False
+        self._is_zb_valve = False
+        self._is_zb_mesh_valve = False
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -1657,15 +1674,18 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
     def update(self):
         if self._activ:
             if self._is_zb_control:
-                NAME_ATTRIBUTE = [ATTR_NAME_1, ATTR_NAME_2, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2]
+                NAME_ATTRIBUTES = [ATTR_NAME_1, ATTR_NAME_2, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2]
             else:
-                NAME_ATTRIBUTE = []
+                NAME_ATTRIBUTES = []
             if self._is_zb_control or self._is_sedna_control:
-                LOAD_ATTRIBUTE = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
-                ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+                if self._firmware == "0.1.1":
+                    LOAD_ATTRIBUTES = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
+                    ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+                else:
+                    LOAD_ATTRIBUTES = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE + NAME_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES + NAME_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1683,11 +1703,13 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         self._ext_temp = device_data[ATTR_EXT_TEMP]
                         self._timer = device_data[ATTR_TIMER]
                         self._timer2 = device_data[ATTR_TIMER2]
-                        self._batt_info = device_data[ATTR_BATT_INFO]
-                        self._input_1_on_delay = device_data[ATTR_INPUT_1_ON_DELAY]
-                        self._input_2_on_delay = device_data[ATTR_INPUT_2_ON_DELAY]
-                        self._input_1_off_delay = device_data[ATTR_INPUT_1_OFF_DELAY]
-                        self._input_2_off_delay = device_data[ATTR_INPUT_2_OFF_DELAY]
+                        if ATTR_BATT_INFO in device_data:
+                            self._batt_info = device_data[ATTR_BATT_INFO]
+                        if ATTR_INPUT_1_ON_DELAY in device_data:
+                            self._input_1_on_delay = device_data[ATTR_INPUT_1_ON_DELAY]
+                            self._input_2_on_delay = device_data[ATTR_INPUT_2_ON_DELAY]
+                            self._input_1_off_delay = device_data[ATTR_INPUT_1_OFF_DELAY]
+                            self._input_2_off_delay = device_data[ATTR_INPUT_2_OFF_DELAY]
                         if ATTR_BATT_PERCENT_NORMAL in device_data:
                             self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                         if ATTR_BATT_STATUS_NORMAL in device_data:
@@ -1714,13 +1736,14 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
+        data.update({'Battery_level': voltage_to_percentage(self._battery_voltage, 2),
                'Battery_display_info': self._batt_info,
                'Battery_voltage': self._battery_voltage,
                'Battery_status': self._battery_status,
                'Battery_percent_normalized': self._batt_percent_normal,
                'Battery_status_normalized': self._batt_status_normal,
                'Extern_temperature': self._ext_temp,
+               'Room_temperature': self._room_temp,
                'Room_humidity': self._humidity,
                'Timer': self._timer,
                'Timer2': self._timer2,
@@ -1736,13 +1759,12 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                'Input2_name': self._input_name_2,
                'Output1_name': self._output_name_1,
                'Output2_name': self._output_name_2,
-               'Room_temperature': self._room_temp,
                'Rssi': self._rssi,
                'sku': self._sku,
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130ValveSwitch(Neviweb130Switch):
@@ -1768,16 +1790,19 @@ class Neviweb130ValveSwitch(Neviweb130Switch):
         self._rssi = None
         self._is_zb_valve = device_info["signature"]["model"] in \
             IMPLEMENTED_ZB_VALVE_MODEL
+        self._is_wifi_valve = False
+        self._is_wifi_mesh_valve = False
+        self._is_zb_mesh_valve = False
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_RSSI, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+            LOAD_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_RSSI, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             if self._is_zb_valve or self._is_zb_mesh_valve:
@@ -1819,7 +1844,7 @@ class Neviweb130ValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'Valve_status': self._valve_status,
+        data.update({'Valve_status': self._valve_status,
                'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                'Battery_voltage': self._battery_voltage,
                'Battery_status': self._battery_status,
@@ -1832,7 +1857,7 @@ class Neviweb130ValveSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130WifiValveSwitch(Neviweb130Switch):
@@ -1876,6 +1901,9 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
         self._batt_action_low = None
         self._is_wifi_valve = device_info["signature"]["model"] in \
             IMPLEMENTED_WIFI_VALVE_MODEL
+        self._is_wifi_mesh_valve = False
+        self._is_zb_valve = False
+        self._is_zb_mesh_valve = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1883,10 +1911,10 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
+            LOAD_ATTRIBUTES = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_VALVE_CLOSURE, ATTR_BATT_ALERT, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1941,7 +1969,7 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'Valve_status': self._valve_status,
+        data.update({'Valve_status': self._valve_status,
                'Temperature_alert': self._temp_alert,
                'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                'Battery_voltage': self._battery_voltage,
@@ -1972,7 +2000,7 @@ class Neviweb130WifiValveSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130MeshValveSwitch(Neviweb130Switch):
@@ -2015,6 +2043,9 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
         self._water_leak_status = None
         self._is_zb_mesh_valve = device_info["signature"]["model"] in \
             IMPLEMENTED_ZB_MESH_VALVE_MODEL
+        self._is_wifi_valve = False
+        self._is_wifi_mesh_valve = False
+        self._is_zb_valve = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -2022,11 +2053,11 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
+            LOAD_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
                 ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             if self._is_zb_valve or self._is_zb_mesh_valve:
@@ -2076,7 +2107,7 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'Valve_status': self._valve_status,
+        data.update({'Valve_status': self._valve_status,
                'Battery_level': voltage_to_percentage(self._battery_voltage, 4),
                'Battery_voltage': self._battery_voltage,
                'Battery_status': self._battery_status,
@@ -2102,7 +2133,7 @@ class Neviweb130MeshValveSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
@@ -2153,6 +2184,9 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
         self._rssi = None
         self._is_wifi_mesh_valve = device_info["signature"]["model"] in \
             IMPLEMENTED_WIFI_MESH_VALVE_MODEL
+        self._is_wifi_valve = False
+        self._is_zb_valve = False
+        self._is_zb_mesh_valve = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -2160,11 +2194,11 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
 
     def update(self):
         if self._activ:
-            LOAD_ATTRIBUTE = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
+            LOAD_ATTRIBUTES = [ATTR_MOTOR_POS, ATTR_MOTOR_TARGET, ATTR_TEMP_ALARM, ATTR_VALVE_INFO, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_BATTERY_VOLTAGE, ATTR_STM8_ERROR, ATTR_FLOW_METER_CONFIG, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_ALARM_TIMER,
                 ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1, ATTR_FLOW_ALARM2, ATTR_TEMP_ACTION_LOW, ATTR_BATT_ACTION_LOW]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTE)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s",
@@ -2225,7 +2259,7 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data = {'Valve_status': self._valve_status,
+        data.update({'Valve_status': self._valve_status,
                'Motor_target_position': self._motor_target,
                'Temperature_alert': self._temp_alert,
                'Valve_status': self._valve_info_status,
@@ -2259,5 +2293,5 @@ class Neviweb130WifiMeshValveSwitch(Neviweb130Switch):
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
-               'id': self._id}
+               'id': str(self._id)})
         return data
