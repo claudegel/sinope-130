@@ -20,10 +20,10 @@ import time
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, STAT_INTERVAL, VERSION)
 from homeassistant.components.light import (
-    LightEntity,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
-    SUPPORT_BRIGHTNESS,
+    ColorMode,
+    LightEntity,
 )
 
 from homeassistant.const import (
@@ -353,7 +353,7 @@ class Neviweb130Light(LightEntity):
                     self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
                     self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
                 else:
-                    _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+                    _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
             self.do_stat(start)
@@ -365,11 +365,18 @@ class Neviweb130Light(LightEntity):
                 )
 
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
+    def supported_color_modes(self):
+        """Return the list of supported colorMode features."""
         if self._is_dimmable:
-            return SUPPORT_BRIGHTNESS
-        return 0
+            return {ColorMode.BRIGHTNESS}
+        return {ColorMode.ONOFF}
+
+    @property
+    def color_mode(self):
+        """ Set ColorMode """
+        if self._is_dimmable:
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
 
     @property
     def unique_id(self):
@@ -408,7 +415,7 @@ class Neviweb130Light(LightEntity):
                     'rssi': self._rssi,
                     'firmware': self._firmware,
                     'Activation': self._activ,
-                    'id': self._id})
+                    'id': str(self._id)})
         return data
 
     @property
@@ -430,18 +437,18 @@ class Neviweb130Light(LightEntity):
     def turn_on(self, **kwargs):
         """Turn the light on."""
         if not self.is_on:
-            self._client.set_onoff(self._id, "on")
+            if self._brightness_pct == 0:
+                self._brightness_pct = 5
+            self._client.set_light_onoff(self._id, "on", self._brightness_pct)
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
-            brightness_pct = \
-                brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
+            brightness_pct = brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
             self._client.set_brightness(self._id, brightness_pct)
             self._brightness_pct = brightness_pct
         self._onoff = "on"
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        self._client.set_onoff(self._id, "off")
-        self._brightness_pct = 0
+        self._client.set_light_onoff(self._id, "off", self._brightness_pct)
         self._onoff = MODE_OFF
 
     def set_phase_control(self, value):
@@ -543,6 +550,8 @@ class Neviweb130Light(LightEntity):
                 f"Warning: Maximun Neviweb session number reached...Close other connections and try again."
             )
             self._client.reconnect()
+        elif error_data == "DVCATTRNSPTD":
+                _LOGGER.warning("Device attribute not supported for %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning("Device action not supported for %s...(SKU: %s) Report to maintainer.", self._name, self._sku)
         elif error_data == "DVCCOMMTO":
@@ -651,7 +660,7 @@ class Neviweb130Dimmer(Neviweb130Light):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
+        data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
                'Temperature_status': self._temp_status,
                'wattage': self._wattage,
@@ -672,7 +681,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                'firmware': self._firmware,
                'rssi': self._rssi,
                'Activation': self._activ,
-               'id': self._id}
+               'id': str(self._id)})
         return data
 
 class Neviweb130NewDimmer(Neviweb130Light):
@@ -754,7 +763,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data = {ATTR_BRIGHTNESS_PCT: self._brightness_pct,
+        data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
                'Temperature_status': self._temp_status,
                'phase_control': self._phase_control,
@@ -775,5 +784,5 @@ class Neviweb130NewDimmer(Neviweb130Light):
                'firmware': self._firmware,
                'rssi': self._rssi,
                'Activation': self._activ,
-               'id': self._id}
+               'id': str(self._id)})
         return data
