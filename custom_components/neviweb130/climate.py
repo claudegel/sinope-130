@@ -902,6 +902,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'status end of life sensor': self._code_end_of_life,
                     'status load sensor': self._code_load_error,
                     'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
                     'keypad': self._keypad,
@@ -931,6 +932,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     'Activation': self._activ,
                     'id': str(self._id)})
         return data
+
+    @property
+    def pi_heating_demand(self) -> int:
+        """Heating demand."""
+        return self.heat_level
 
     @property
     def supported_features(self):
@@ -1593,6 +1599,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'status line error': self._line_error,
                'status inductive mode': self._inductive_mode,
                'heat_level': self._heat_level,
+               'pi_heating_demand': self._heat_level,
                'temp_display_value': self._temp_display_value,
                'second_display': self._display2,
                'keypad': self._keypad,
@@ -1810,6 +1817,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 'status reference sensor': self._code_reference_sensor,
                 'status load sensor': self._code_load_error,
                 'heat_level': self._heat_level,
+                'pi_heating_demand': self._heat_level,
                 'cycle_length': self._cycle_length,
                 'temp_display_value': self._temp_display_value,
                 'second_display': self._display2,
@@ -2022,6 +2030,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 'status air sensor': self._code_air_sensor,
                 'status floor sensor': self._code_floor_sensor,
                 'heat_level': self._heat_level,
+                'pi_heating_demand': self._heat_level,
                 'temp_display_value': self._temp_display_value,
                 'second_display': self._display2,
                 'keypad': self._keypad,
@@ -2193,6 +2202,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     'status reference sensor': self._code_reference_sensor,
                     'status load sensor': self._code_load_error,
                     'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
                     'keypad': self._keypad,
@@ -2383,6 +2393,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'status reference sensor': self._code_reference_sensor,
                     'status load sensor': self._code_load_error,
                     'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
                     'keypad': self._keypad,
@@ -2627,6 +2638,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'status current sensor': self._code_current_overload,
                     'status end of life sensor': self._code_end_of_life,
                     'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'keypad': self._keypad,
                     'backlight': self._backlight,
                     'time_format': self._time_format,
@@ -2851,6 +2863,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'status reference sensor': self._code_reference_sensor,
                     'status gfci base': self._code_gfcibase,
                     'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'second_display': self._display2,
                     'keypad': self._keypad,
                     'backlight': self._backlight,
@@ -3068,6 +3081,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'cool_lock_temp': self._cool_lock_temp,
                     'available_mode': self._avail_mode,
                     'heat_level': self._heat_level,
+                    'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
                     'keypad': self._keypad,
