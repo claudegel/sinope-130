@@ -1499,7 +1499,6 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._backlight = None
         self._cycle_length = 0
         self._wattage = 0
-        self._rssi = None
         self._code_compensation_sensor = None
         self._code_thermal_overload = None
         self._code_wire_sensor = None
@@ -1623,7 +1622,6 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'hourly_kwh': self._hour_kwh,
                'daily_kwh': self._today_kwh,
                'monthly_kwh': self._month_kwh,
-               'rssi': self._rssi,
                'sku': self._sku,
                'device_model': self._device_model,
                'device_model_cfg': self._device_model_cfg,
