@@ -765,6 +765,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -1482,6 +1483,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._time_format = "24h"
         self._temp_display_value = None
@@ -1517,7 +1519,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
 
     def update(self):
         if self._activ:
-            GEN2_ATTRIBUTES = [ATTR_DISPLAY2, ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_COLD_LOAD_PICKUP, ATTR_HEAT_LOCKOUT_TEMP]
+            GEN2_ATTRIBUTES = [ATTR_WATTAGE, ATTR_DISPLAY2, ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_COLD_LOAD_PICKUP, ATTR_HEAT_LOCKOUT_TEMP]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + GEN2_ATTRIBUTES)
@@ -1559,8 +1561,6 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
-                    self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -1616,7 +1616,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'hourly_kwh': self._hour_kwh,
                'daily_kwh': self._today_kwh,
                'monthly_kwh': self._month_kwh,
-               'rssi': self._rssi
+               'rssi': self._rssi,
                'sku': self._sku,
                'device_model': self._device_model,
                'device_model_cfg': self._device_model_cfg,
@@ -1654,6 +1654,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._min_temp = 0
         self._max_temp = 0
         self._temperature_format = UnitOfTemperature.CELSIUS
@@ -1665,11 +1666,13 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._keypad = None
         self._backlight = None
         self._cycle_length = 0
+        self._cycle_length_output2_status = "off"
         self._rssi = None
         self._wattage = 0
         self._gfci_status = None
         self._floor_mode = None
         self._aux_heat = "off"
+        self._aux_cycle_length = 0
         self._floor_air_limit = None
         self._floor_air_limit_status = None
         self._floor_sensor_type = None
@@ -1867,6 +1870,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._min_temp = 0
         self._max_temp = 0
         self._temperature_format = UnitOfTemperature.CELSIUS
@@ -1889,6 +1893,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._floor_min_status = "off"
         self._cycle_length_output2_value = 0
         self._cycle_length_output2_status = "off"
+        self._aux_heat = "off"
+        self._aux_cycle_length = 0
         self._cycle_length = 0
         self._floor_mode = None
         self._code_compensation_sensor = None
@@ -2078,6 +2084,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -2090,6 +2097,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._temp_display_value = None
         self._cycle_length = 0
+        self._cycle_length_output2_status = "off"
+        self._aux_heat = "off"
+        self._aux_cycle_length = 0
         self._code_reference_sensor = None
         self._code_compensation_sensor = None
         self._code_air_sensor = None
@@ -2242,14 +2252,17 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
-        self._wattage = 0
         self._occupancy = None
+        self._wattage = 0
         self._temp_display_status = None
         self._heat_source_type = None
         self._early_start = "off"
         self._target_temp_away = None
         self._load1 = 0
         self._cycle_length = 0
+        self._cycle_length_output2_status = "off"
+        self._aux_heat = "off"
+        self._aux_cycle_length = 0
         self._code_compensation_sensor = None
         self._code_wire_sensor = None
         self._code_current_overload = None
@@ -2429,6 +2442,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -2438,13 +2452,14 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._floor_mode = None
         self._floor_sensor_type = None
         self._aux_heat = "off"
+        self._aux_cycle_length = 0
+        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._keypad = None
         self._load1 = 0
         self._load2 = 0
         self._load2_status = None
         self._rssi = None
-        self._occupancy = None
         self._display2 = None
         self._backlight = None
         self._time_format = "24h"
@@ -2549,7 +2564,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
                     self._pump_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
-                    if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on"
+                    if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
                         self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
                     self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
@@ -2584,7 +2599,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'pump_protection_duration': self._pump_protec_duration,
                     'pump_protection_frequency': self._pump_protec_period,
                     'pump_duration': self._pump_duration,
-                    'pump_duration_value' self._pump_duration_value,
+                    'pump_duration_value': self._pump_duration_value,
                     'floor_limit_high': self._floor_max,
                     'floor_limit_high_status': self._floor_max_status,
                     'floor_limit_low': self._floor_min,
@@ -2669,6 +2684,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -2680,13 +2696,14 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._floor_mode = None
         self._floor_sensor_type = None
         self._aux_heat = "off"
+        self._aux_cycle_length = 0
+        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._keypad = None
         self._load1 = 0
         self._load2 = 0
         self._load2_status = None
         self._rssi = None
-        self._occupancy = None
         self._display2 = None
         self._backlight = None
         self._time_format = "24h"
@@ -2892,6 +2909,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 0
         self._max_temp = 0
@@ -2908,6 +2926,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._cool_min = None
         self._cool_max = None
         self._cycle_length = 0
+        self._cycle_length_output2_status = "off"
+        self._aux_cycle_length = 0
         self._HC_device = None
         self._language = None
         self._model = None
