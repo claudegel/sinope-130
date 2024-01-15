@@ -1562,8 +1562,6 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_CYCLE in device_data:
                         self._cycle_length = device_data[ATTR_CYCLE]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
                 elif device_data["errorCode"] == "ReadTimeout":
