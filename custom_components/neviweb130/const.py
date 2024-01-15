@@ -176,6 +176,7 @@ ATTR_DELAY = "delay"
 ATTR_INPUT_NUMBER = "input_number"
 ATTR_COLD_LOAD_PICKUP = "coldLoadPickup"
 ATTR_HEAT_LOCKOUT_TEMP = "heatLockoutTemp"
+ATTR_OCCUPANCY_SENSOR_DELAY = "occupancySensorUnoccupiedDelay"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
