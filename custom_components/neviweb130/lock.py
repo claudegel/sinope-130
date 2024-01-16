@@ -5,6 +5,9 @@ model 7000 = door lock ZigBee
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
+
+from __future__ import annotations
+
 import logging
 
 import voluptuous as vol
@@ -44,6 +47,8 @@ from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
 from .const import (
     DOMAIN,
+    ATTR_BATT_PERCENT_NORMAL,
+    ATTR_BATT_STATUS_NORMAL,
     ATTR_BATTERY_VOLTAGE,
     ATTR_BATTERY_STATUS,
     ATTR_LOCK_STATUS,
@@ -63,6 +68,19 @@ from .const import (
     STATE_FORCED,
     STATE_UNDEFINED,
     STATE_UNSPECIFIED,
+    SERVICE_SET_RELOCK_TIME,
+    SERVICE_SET_WRONG_CODE_LIMIT,
+    SERVICE_SET_TEMPORARY_DISABLE_TIME,
+)
+
+from .schema import (
+    DOOR_ALERT,
+    RELOCK_TIME,
+    WRONG_CODE_LIMIT,
+    TEMPORARY_DISABLE,
+    SET_RELOCK_TIME_SCHEMA,
+    SET_WRONG_CODE_LIMIT_SCHEMA,
+    SET_TEMPORARY_DISABLE_TIME_SCHEMA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,11 +89,6 @@ DEFAULT_NAME = 'neviweb130 lock'
 DEFAULT_NAME_2 = 'neviweb130 lock 2'
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_STATUS]
-
-DOOR_ALERT = {"jammed", "forced open", "unspecified error", "undefined"}
-RELOCK_TIME = {0, 30, 60, 90, 120, 150, 180}
-WRONG_CODE_LIMIT = {3, 4, 5, 6, 7, 8, 9, 10}
-TEMPORARY_DISABLE = {10, 30, 60, 90, 120, 150, 180}
 
 SWITCH_TYPES = {
     "sensor": ["mdi:door_open", BinarySensorDeviceClass.DOOR],
@@ -111,6 +124,60 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
+    def set_relock_time_service(service):
+        """ Set time delay to relock the device"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for lock in entities:
+            if lock.entity_id == entity_id:
+                value = {"id": lock.unique_id, "time": service.data[ATTR_RELOCK_TIME]}
+                lock.set_relock_time(value)
+                lock.schedule_update_ha_state(True)
+                break
+
+    def set_wrong_code_limit_service(service):
+        """ Set the limit for wrong code entered"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for lock in entities:
+            if lock.entity_id == entity_id:
+                value = {"id": lock.unique_id, "limit": service.data[ATTR_WRONG_CODE]}
+                lock.set_wrong_code_limit(value)
+                lock.schedule_update_ha_state(True)
+                break
+
+    def set_temporary_disable_time_service(service):
+        """ Set time in second the lock device is disabled when wrong code is entered"""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for lock in entities:
+            if lock.entity_id == entity_id:
+                value = {"id": lock.unique_id, "time": service.data[ATTR_DISABLE_TIME]}
+                lock.set_temporary_disable_time(value)
+                lock.schedule_update_ha_state(True)
+                break
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_RELOCK_TIME,
+        set_relock_time_service,
+        schema=SET_RELOCK_TIME_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_WRONG_CODE_LIMIT,
+        set_wrong_code_limit_service,
+        schema=SET_WRONG_CODE_LIMIT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TEMPORARY_DISABLE_TIME,
+        set_temporary_disable_time_service,
+        schema=SET_TEMPORARY_DISABLE_TIME_SCHEMA,
+    )
+
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
     if num == 2:
@@ -137,6 +204,8 @@ class Neviweb130Lock(LockEntity):
             IMPLEMENTED_DOOR_LOCK
         self._battery_voltage = 0
         self._battery_status = None
+        self._batt_percent_normal = None
+        self._batt_status_normal = None
         self._timer = 0
         self._keypad = None
         self._battery_alert = None
@@ -155,27 +224,31 @@ class Neviweb130Lock(LockEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        DOOR_ATTRIBUTE = [ATTR_LOCK_STATUS, ATTR_DOOR_STATE, ATTR_RELOCK_TIME, ATTR_WRONG_CODE, ATTR_DISABLE_TIME, ATTR_LANGUAGE,
-                         ATTR_SOUND, ATTR_USER, ATTR_MAX_PIN, ATTR_MIN_PIN]
+        DOOR_ATTRIBUTES = [ATTR_LOCK_STATUS, ATTR_DOOR_STATE, ATTR_RELOCK_TIME, ATTR_WRONG_CODE, ATTR_DISABLE_TIME, ATTR_LANGUAGE,
+                         ATTR_SOUND, ATTR_USER, ATTR_MAX_PIN, ATTR_MIN_PIN, ATTR_BATTERY_STATUS, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
         """Get the latest data from Neviweb and update the state."""
         start = time.time()
         device_data = self._client.get_device_attributes(self._id,
-            UPDATE_ATTRIBUTES + DOOR_ATTRIBUTE)
+            UPDATE_ATTRIBUTES + DOOR_ATTRIBUTES)
         end = time.time()
         elapsed = round(end - start, 3)
         if "error" not in device_data:
             if "errorCode" not in device_data:
-                if self._is_door:
-                    self._lock_status = device_data[ATTR_DRSTATUS][ATTR_LOCK_STATUS]
-                    self._door_state = device_data[ATTR_DRSTATUS][ATTR_DOOR_STATE]
-                    self._relock_time = device_data[ATTR_DRSTATUS][ATTR_RELOCK_TIME]
-                    self._wrong_code = device_data[ATTR_DRSTATUS][ATTR_WRONG_CODE]
-                    self._disable_time = device_data[ATTR_DRSTATUS][ATTR_DISABLE_TIME]
-                    self._language = device_data[ATTR_DRSTATUS][ATTR_LANGUAGE]
-                    self._sound = device_data[ATTR_DRSTATUS][ATTR_SOUND]
-                    self._user = device_data[ATTR_DRSTATUS][ATTR_USER]
-                    self._max_pin = device_data[ATTR_DRSTATUS][ATTR_MAX_PIN]
-                    self._min_pin = device_data[ATTR_DRSTATUS][ATTR_MIN_PIN]
+                self._lock_status = device_data[ATTR_DRSTATUS][ATTR_LOCK_STATUS]
+                self._door_state = device_data[ATTR_DRSTATUS][ATTR_DOOR_STATE]
+                self._relock_time = device_data[ATTR_DRSTATUS][ATTR_RELOCK_TIME]
+                self._wrong_code = device_data[ATTR_DRSTATUS][ATTR_WRONG_CODE]
+                self._disable_time = device_data[ATTR_DRSTATUS][ATTR_DISABLE_TIME]
+                self._language = device_data[ATTR_DRSTATUS][ATTR_LANGUAGE]
+                self._sound = device_data[ATTR_DRSTATUS][ATTR_SOUND]
+                self._user = device_data[ATTR_DRSTATUS][ATTR_USER]
+                self._max_pin = device_data[ATTR_DRSTATUS][ATTR_MAX_PIN]
+                self._min_pin = device_data[ATTR_DRSTATUS][ATTR_MIN_PIN]
+                self._battery_status = device_data[ATTR_BATTERY_STATUS]
+                if ATTR_BATT_PERCENT_NORMAL in device_data:
+                    self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
+                if ATTR_BATT_STATUS_NORMAL in device_data:
+                    self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
             else:
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
         elif device_data["error"]["code"] == "USRSESSEXP":
@@ -244,9 +317,11 @@ class Neviweb130Lock(LockEntity):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        if self._is_door:
-            data = {'lock_status': self._lock_status,
+        data.update({'lock_status': self._lock_status,
                     'door_state': self._door_state,
+                    'Battery_status': self._battery_status,
+                    'Battery_percent_normalized': self._batt_percent_normal,
+                    'Battery_status_normalized': self._batt_status_normal,
                     'relock_time': self._relock_time,
                     'wrong_code': self._wrong_code,
                     'disable_time': self._disable_time,
@@ -254,8 +329,8 @@ class Neviweb130Lock(LockEntity):
                     'sound': self._sound,
                     'users': self._user,
                     'max_pin': self._max_pin,
-                    'min_pin': self._min_pin}
-        data.update({'sku': self._sku,
+                    'min_pin': self._min_pin,
+                    'sku': self._sku,
                     'device_type': self._device_type,
                     'id': self._id})
         return data
@@ -271,9 +346,32 @@ class Neviweb130Lock(LockEntity):
         else:
             return STATE_UNLOCKED
 
-
     @property
     def battery_voltage(self):
         """Return the current battery voltage of the door lock in %."""
         type = 2
         return voltage_to_percentage(self._battery_voltage, type)
+
+    def set_relock_time(self, value):
+        """Set the time before the lock relock"""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_relock_time(
+            entity, time)
+        self._relock_time = time
+
+    def set_wrong_code_limit(self, value):
+        """Set limit of number of time a wrong code it entered"""
+        limit = value["limit"]
+        entity = value["id"]
+        self._client.set_wrong_code_limit(
+            entity, limit)
+        self._wrong_code = limit
+
+    def set_temporary_disable_time(self, value):
+        """Set time in second the lock device is disabled when wrong code is entered"""
+        time = value["time"]
+        entity = value["id"]
+        self._client.set_temporary_disable_time(
+            entity, time)
+        self._disable_time = time
