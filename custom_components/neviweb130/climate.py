@@ -760,7 +760,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -833,7 +833,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -917,7 +918,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
                     'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_value': self._drsetpoint_value,
+                    'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
                     'daily_kwh_count': self._today_energy_kwh_count,
                     'monthly_kwh_count': self._month_energy_kwh_count,
@@ -1000,8 +1001,11 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     def target_temperature (self):
-        """Return the temperature we try to reach."""
-        return self._target_temp
+        """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        temp = self._target_temp + self._drsetpoint_value
+        if temp < self._min_temp:
+            return self._min_temp
+        return temp
 
     @property
     def preset_modes(self):
@@ -1480,7 +1484,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cold_load_pickup = None
         self._heat_lockout_temp = None
         self._min_temp = 0
@@ -1546,7 +1550,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -1611,7 +1616,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'eco_power_relative': self._drstatus_rel,
                'eco_power_absolute': self._drstatus_abs,
                'eco_setpoint_status': self._drsetpoint_status,
-               'eco_setpoint_value': self._drsetpoint_value,
+               'eco_setpoint_delta': self._drsetpoint_value,
                'cold_load_pickup': self._cold_load_pickup,
                'heat_lockout_temp': self._heat_lockout_temp,
                'hourly_kwh_count': self._hour_energy_kwh_count,
@@ -1652,7 +1657,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -1734,7 +1739,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -1829,7 +1835,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 'eco_power_relative': self._drstatus_rel,
                 'eco_power_absolute': self._drstatus_abs,
                 'eco_setpoint_status': self._drsetpoint_status,
-                'eco_setpoint_value': self._drsetpoint_value,
+                'eco_setpoint_delta': self._drsetpoint_value,
                 'hourly_kwh_count': self._hour_energy_kwh_count,
                 'daily_kwh_count': self._today_energy_kwh_count,
                 'monthly_kwh_count': self._month_energy_kwh_count,
@@ -1869,7 +1875,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -1953,7 +1959,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -2044,7 +2051,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 'eco_power_relative': self._drstatus_rel,
                 'eco_power_absolute': self._drstatus_abs,
                 'eco_setpoint_status': self._drsetpoint_status,
-                'eco_setpoint_value': self._drsetpoint_value,
+                'eco_setpoint_delta': self._drsetpoint_value,
                 'hourly_kwh_count': self._hour_energy_kwh_count,
                 'daily_kwh_count': self._today_energy_kwh_count,
                 'monthly_kwh_count': self._month_energy_kwh_count,
@@ -2084,7 +2091,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -2152,7 +2159,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -2213,7 +2221,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
                     'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_value': self._drsetpoint_value,
+                    'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
                     'daily_kwh_count': self._today_energy_kwh_count,
                     'monthly_kwh_count': self._month_energy_kwh_count,
@@ -2253,7 +2261,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -2328,7 +2336,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -2404,7 +2413,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
                     'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_value': self._drsetpoint_value,
+                    'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
                     'daily_kwh_count': self._today_energy_kwh_count,
                     'monthly_kwh_count': self._month_energy_kwh_count,
@@ -2444,7 +2453,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -2538,7 +2547,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -2647,7 +2657,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
                     'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_value': self._drsetpoint_value,
+                    'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
                     'daily_kwh_count': self._today_energy_kwh_count,
                     'monthly_kwh_count': self._month_energy_kwh_count,
@@ -2687,7 +2697,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -2773,7 +2783,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -2873,7 +2884,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
                     'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_value': self._drsetpoint_value,
+                    'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
                     'daily_kwh_count': self._today_energy_kwh_count,
                     'monthly_kwh_count': self._month_energy_kwh_count,
@@ -2913,7 +2924,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
         self._drsetpoint_status = "off"
-        self._drsetpoint_value = None
+        self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
@@ -2999,7 +3010,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
-                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"]
+                        self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
+                            device_data[ATTR_DRSETPOINT]["value"] != None else 0
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
@@ -3092,7 +3104,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
                     'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_value': self._drsetpoint_value,
+                    'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
                     'daily_kwh_count': self._today_energy_kwh_count,
                     'monthly_kwh_count': self._month_energy_kwh_count,
