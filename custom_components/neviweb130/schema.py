@@ -207,7 +207,7 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
         vol.Required(ATTR_VALUE): vol.All(
-            vol.Coerce(float), vol.Range(min=-10, max=0)
+            vol.Coerce(float), vol.Range(min=-10, max=10)
         ),
     }
 )
