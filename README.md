@@ -183,7 +183,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_floor_air_limit to set floor thermostat max air limit temperature.
 - neviweb130.set_phase_control to set phase control mode for DM2550ZB dimmer (reverse or forward).
 - neviweb130.set_hvac_dr_options to set or reset DR period option in Neviweb for thermostats.
-- neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
+- neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 100 to -100 (oC*10). 0 will just make the small icon to flash.
 - neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
 - neviweb130.set_cycle_output to set main cycle length of low voltage thermostat in minutes.
 - neviweb130.set_aux_cycle_output to set auxiliary cycle length of low voltage thermostats in minutes.
