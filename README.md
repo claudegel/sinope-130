@@ -129,6 +129,7 @@ neviweb130:
   stat_interval: 1800
 ```
 Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130. If you have two networks for two GT130 or two wifi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and zigbee/wifi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
+![network](www/network.jpg)
 
 **Configuration options:**  
 
