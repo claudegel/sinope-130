@@ -1444,6 +1444,10 @@ class Neviweb130Thermostat(ClimateEntity):
             self.notify_ha(
                 f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
             )
+        elif error_data == "DVCERR":
+            _LOGGER.warning("Device error for %s, service already activ: %s...(SKU: %s)", self._name, device_data, self._sku)
+        elif error_data == "SVCUNAUTH":
+            _LOGGER.warning("Service not authorised for device %s: %s...(SKU: %s)", self._name, device_data, self._sku)
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
 
