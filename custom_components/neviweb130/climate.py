@@ -1721,7 +1721,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
 
     def update(self):
         if self._activ:
-            FLOOR_ATTRIBUTES = [ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SENSOR, ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_DISPLAY2, ATTR_RSSI]
+            FLOOR_ATTRIBUTES = [ATTR_WATTAGE, ATTR_GFCI_STATUS, ATTR_GFCI_ALERT, ATTR_FLOOR_MODE, ATTR_FLOOR_AUX, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_SENSOR, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_DISPLAY2, ATTR_RSSI]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTES)
@@ -1772,13 +1772,12 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     if ATTR_FLOOR_MIN in device_data:
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
-                    if not self._is_wifi_floor:
-                        self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                        if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
-                            self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                    if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
+                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                     else:
-                        self._gfci_alert = device_data[ATTR_GFCI_ALERT]
-                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+                        self._load2 = 0
+                    self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
