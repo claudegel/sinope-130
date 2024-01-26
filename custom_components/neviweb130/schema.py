@@ -92,6 +92,7 @@ FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 
 DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", "2 h", "3 h"}
 TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
+WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 
 """ Config schema """
 
@@ -443,7 +444,9 @@ SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema(
 SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_WATER_TEMP_MIN): vol.In([0, 45]),
+        vol.Required(ATTR_WATER_TEMP_MIN): vol.All(
+            cv.ensure_list, [vol.In(WATER_TEMP)]
+        ),
     }
 )
 
