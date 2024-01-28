@@ -736,6 +736,22 @@ def temp_format_to_ha(value):
     else:
         return UnitOfTemperature.FAHRENHEIT
 
+def lock_to_ha(lock):
+    """Convert keypad lock state to better description."""
+    match lock:
+        case "locked":
+            return "Locked"
+        case "lock":
+            return "Locked"
+        case "unlocked":
+            return "Unlocked"
+        case "unlock":
+            return "Unlocked"
+        case "partiallyLocked":
+            return "Tamper protection"
+        case "partialLock":
+            return "Tamper protection"
+
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
@@ -906,7 +922,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'backlight': self._backlight,
                     'time_format': self._time_format,
                     'temperature_format': self._temperature_format,
@@ -927,7 +943,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'device_model': self._device_model,
+                    'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
@@ -1077,6 +1093,9 @@ class Neviweb130Thermostat(ClimateEntity):
             else:
                 level_command = "always"
             level_name = "On"
+        elif level == "bedroom":
+            level_command = "bedroom"
+            level_name = "bedroom"
         else:
             if device == "wifi":
                 level_command = "onUserAction"
@@ -1091,17 +1110,16 @@ class Neviweb130Thermostat(ClimateEntity):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked"""
         lock = value["lock"]
         entity = value["id"]
-        if lock == "locked":
-            lock_name = "Locked"
-            if self._is_wifi:
-                lock = "lock"
+        if lock == "locked" and self._is_wifi:
+            lock = "lock"
+        elif lock == "partiallyLocked" and self._is_wifi:
+            lock = "partialLock"
         else:
-            lock_name = "Unlocked"
             if self._is_wifi:
                 lock = "unlock"
         self._client.set_keypad_lock(
             entity, lock, self._is_wifi)
-        self._keypad = lock_name
+        self._keypad = lock
 
     def set_time_format(self, value):
         """set time format 12h or 24h"""
@@ -1608,7 +1626,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'pi_heating_demand': self._heat_level,
                'temp_display_value': self._temp_display_value,
                'second_display': self._display2,
-               'keypad': self._keypad,
+               'keypad': lock_to_ha(self._keypad),
                'backlight': self._backlight,
                'time_format': self._time_format,
                'temperature_format': self._temperature_format,
@@ -1630,7 +1648,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'daily_kwh': self._today_kwh,
                'monthly_kwh': self._month_kwh,
                'sku': self._sku,
-               'device_model': self._device_model,
+               'device_model': str(self._device_model),
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'Activation': self._activ,
@@ -1826,7 +1844,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 'cycle_length': self._cycle_length,
                 'temp_display_value': self._temp_display_value,
                 'second_display': self._display2,
-                'keypad': self._keypad,
+                'keypad': lock_to_ha(self._keypad),
                 'backlight': self._backlight,
                 'time_format': self._time_format,
                 'temperature_format': self._temperature_format,
@@ -1847,7 +1865,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 'monthly_kwh': self._month_kwh,
                 'rssi': self._rssi,
                 'sku': self._sku,
-                'device_model': self._device_model,
+                'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
                 'Activation': self._activ,
@@ -2039,7 +2057,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 'pi_heating_demand': self._heat_level,
                 'temp_display_value': self._temp_display_value,
                 'second_display': self._display2,
-                'keypad': self._keypad,
+                'keypad': lock_to_ha(self._keypad),
                 'backlight': self._backlight,
                 'time_format': self._time_format,
                 'temperature_format': self._temperature_format,
@@ -2063,7 +2081,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 'monthly_kwh': self._month_kwh,
                 'rssi': self._rssi,
                 'sku': self._sku,
-                'device_model': self._device_model,
+                'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
                 'Activation': self._activ,
@@ -2212,7 +2230,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'backlight': self._backlight,
                     'time_format': self._time_format,
                     'temperature_format': self._temperature_format,
@@ -2233,7 +2251,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'device_model': self._device_model,
+                    'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
@@ -2404,7 +2422,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'backlight': self._backlight,
                     'time_format': self._time_format,
                     'temperature_format': self._temperature_format,
@@ -2425,7 +2443,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'device_model': self._device_model,
+                    'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
@@ -2648,7 +2666,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'status end of life sensor': self._code_end_of_life,
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'backlight': self._backlight,
                     'time_format': self._time_format,
                     'temperature_format': self._temperature_format,
@@ -2669,7 +2687,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'device_model': self._device_model,
+                    'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
@@ -2875,7 +2893,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
                     'second_display': self._display2,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'backlight': self._backlight,
                     'time_format': self._time_format,
                     'temperature_format': self._temperature_format,
@@ -2896,7 +2914,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'device_model': self._device_model,
+                    'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
@@ -3095,7 +3113,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
                     'second_display': self._display2,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'backlight': self._backlight,
                     'time_format': self._time_format,
                     'temperature_format': self._temperature_format,
@@ -3116,7 +3134,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'monthly_kwh': self._month_kwh,
                     'rssi': self._rssi,
                     'sku': self._sku,
-                    'device_model': self._device_model,
+                    'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': self._activ,
