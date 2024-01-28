@@ -287,6 +287,22 @@ def brightness_from_percentage(percent):
     """Convert percentage to absolute value 0..255."""
     return round((percent * 255.0) / 100.0)
 
+def lock_to_ha(lock):
+    """Convert keypad lock state to better description."""
+    match lock:
+        case "locked":
+            return "Locked"
+        case "lock":
+            return "Locked"
+        case "unlocked":
+            return "Unlocked"
+        case "unlock":
+            return "Unlocked"
+        case "partiallyLocked":
+            return "Tamper protection"
+        case "partialLock":
+            return "Tamper protection"
+
 class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light, SW2500ZB."""
 
@@ -297,6 +313,8 @@ class Neviweb130Light(LightEntity):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
@@ -401,7 +419,7 @@ class Neviweb130Light(LightEntity):
                     'wattage_status': self._wattage_status,
                     'Temperature_status': self._temp_status,
                     'onOff': self._onoff,
-                    'keypad': self._keypad,
+                    'keypad': lock_to_ha(self._keypad),
                     'timer': self._timer,
                     'led_on': self._led_on,
                     'led_off': self._led_off,
@@ -412,6 +430,8 @@ class Neviweb130Light(LightEntity):
                     'daily_kwh': self._today_kwh,
                     'monthly_kwh': self._month_kwh,
                     'sku': self._sku,
+                    'device_model': str(self._device_model),
+                    'device_model_cfg': self._device_model_cfg,
                     'rssi': self._rssi,
                     'firmware': self._firmware,
                     'Activation': self._activ,
@@ -460,7 +480,7 @@ class Neviweb130Light(LightEntity):
         self._phase_control = phase
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, lock = locked, unlock = unlocked"""
+        """Lock, unlock or partially lock device's keypad, lock = locked, unlock = unlocked, partiallyLocked = partial lock"""
         lock = value["lock"]
         entity = value["id"]
         self._client.set_keypad_lock(
@@ -595,6 +615,8 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
@@ -667,7 +689,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                'wattage_status': self._wattage_status,
                'Temperature_status': self._temp_status,
                'onOff': self._onoff,
-               'keypad': self._keypad,
+               'keypad': lock_to_ha(self._keypad),
                'timer': self._timer,
                'led_on': self._led_on,
                'led_off': self._led_off,
@@ -678,6 +700,8 @@ class Neviweb130Dimmer(Neviweb130Light):
                'daily_kwh': self._today_kwh,
                'monthly_kwh': self._month_kwh,
                'sku': self._sku,
+               'device_model': str(self._device_model),
+               'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'rssi': self._rssi,
                'Activation': self._activ,
@@ -694,6 +718,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
@@ -770,7 +796,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                'Double_up_Action': self._double_up,
                'wattage': self._wattage,
                'onOff': self._onoff,
-               'keypad': self._keypad,
+               'keypad': lock_to_ha(self._keypad),
                'timer': self._timer,
                'led_on': self._led_on,
                'led_off': self._led_off,
@@ -781,6 +807,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
                'daily_kwh': self._today_kwh,
                'monthly_kwh': self._month_kwh,
                'sku': self._sku,
+               'device_model': str(self._device_model),
+               'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'rssi': self._rssi,
                'Activation': self._activ,
