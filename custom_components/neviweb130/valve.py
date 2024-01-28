@@ -41,6 +41,8 @@ from homeassistant.components.valve import (
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    SERVICE_CLOSE_VALVE,
+    SERVICE_OPEN_VALVE,
     SERVICE_SET_VALVE_POSITION,
     SERVICE_TOGGLE,
     STATE_CLOSED,
@@ -82,6 +84,7 @@ from .const import (
     ATTR_BATTERY_STATUS,
     ATTR_BATTERY_VOLTAGE,
     ATTR_CLOSE_VALVE,
+    ATTR_ERROR_CODE_SET1,
     ATTR_FLOW_ALARM1,
     ATTR_FLOW_ALARM1_PERIOD,
     ATTR_FLOW_ALARM1_LENGHT,
@@ -138,6 +141,8 @@ DEFAULT_NAME = 'neviweb130 valve'
 DEFAULT_NAME_2 = 'neviweb130 valve 2'
 SNOOZE_TIME = 1200
 
+SUPPORT_FLAGS = (ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE)
+
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 HA_TO_NEVIWEB_DELAY = {
@@ -161,8 +166,8 @@ HA_TO_NEVIWEB_DELAY = {
 }
 
 VALVE_TYPES = {
-    "flow": ["mdi:water-percent", BinarySensorDeviceClass.MOISTURE],
-    "valve": ["mdi:water-pump", BinarySensorDeviceClass.OPENING],
+    "flow": ["mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE],
+    "valve": ["mdi:pipe-valve", ValveDeviceClass.WATER],
 }
 
 SUPPORTED_WIFI_MODES = [
@@ -172,7 +177,7 @@ SUPPORTED_WIFI_MODES = [
 ]
 
 IMPLEMENTED_WIFI_MESH_VALVE_MODEL = [3155]
-IMPLEMENTED_ZB_MESH_VALVE_MODEL = [31532, 3153]
+IMPLEMENTED_ZB_MESH_VALVE_MODEL = [3153, 31532]
 IMPLEMENTED_WIFI_VALVE_MODEL = [3150]
 IMPLEMENTED_ZB_VALVE_MODEL = [3151]
 
@@ -427,10 +432,11 @@ class Neviweb130Valve(ValveEntity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._onoff = None
+        self._reports_position = False
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
-        self._battery_alert = None
+        self._battery_alert = 0
         self._batt_percent_normal = None
         self._batt_status_normal = None
         self._power_supply = None
@@ -515,12 +521,22 @@ class Neviweb130Valve(ValveEntity):
         return VALVE_TYPES.get(self._device_type)[1]
 
     @property  
-    def is_on(self):
-        """Return current operation i.e. ON, OFF """
+    def is_open(self):
+        """Return current operation i.e. OPEN, CLOSED """
         return self._onoff != MODE_OFF
 
-    def turn_on(self, **kwargs):
-        """Turn the device on."""
+    @property  
+    def is_closed(self):
+        """Return current operation i.e. ON, OFF """
+        return self._onoff == MODE_OFF
+
+    @property  
+    def reports_position(self):
+        """Return current position True or False """
+        return self._reports_position
+
+    def open_valve(self, **kwargs):
+        """Open the valve."""
         if self._is_wifi_valve or self._is_wifi_mesh_valve:
             self._client.set_valve_onoff(self._id, 100)
             self._valve_status = "open"
@@ -530,8 +546,8 @@ class Neviweb130Valve(ValveEntity):
                 self._valve_status = "open"
         self._onoff = "on"
 
-    def turn_off(self, **kwargs):
-        """Turn the device off."""
+    def close_valve(self, **kwargs):
+        """Close the valve."""
         if self._is_wifi_valve or self._is_wifi_mesh_valve:
             self._client.set_valve_onoff(self._id, 0)
             self._valve_status = "closed"
@@ -560,13 +576,18 @@ class Neviweb130Valve(ValveEntity):
                'Battery_percent_normalized': self._batt_percent_normal,
                'Battery_status_normalized': self._batt_status_normal,
                'sku': self._sku,
-               'device_model': self._device_model,
+               'device_model': str(self._device_model),
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'Activation': self._activ,
                'device_type': self._device_type,
                'id': str(self._id)})
         return data
+
+    @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        return SUPPORT_FLAGS
 
     @property
     def battery_voltage(self):
@@ -749,13 +770,14 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
+        self._reports_position = False
         self._rssi = None
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
         self._power_supply = None
         self._valve_closure = None
-        self._battery_alert = None
+        self._battery_alert = 0
         self._batt_percent_normal = None
         self._batt_status_normal = None
         self._temp_alert = None
@@ -889,7 +911,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                'monthly_flow': L_2_sqm(self._month_kwh),
                'rssi': self._rssi,
                'sku': self._sku,
-               'device_model': self._device_model,
+               'device_model': str(self._device_model),
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'Activation': self._activ,
@@ -917,13 +939,14 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
+        self._reports_position = False
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
         self._power_supply = None
-        self._battery_alert = None
+        self._battery_alert = 0
         self._rssi = None
         self._flowmeter_multiplier = 0
         self._flowmeter_offset = 0
@@ -939,6 +962,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._stm8Error_motorJam = None
         self._stm8Error_motorPosition = None
         self._stm8Error_motorLimit = None
+        self._error_code = None
         self._water_leak_status = None
         self._is_zb_mesh_valve = device_info["signature"]["model"] in \
             IMPLEMENTED_ZB_MESH_VALVE_MODEL
@@ -953,7 +977,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
     def update(self):
         if self._activ:
             LOAD_ATTRIBUTES = [ATTR_RSSI, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_POWER_SUPPLY, ATTR_STM8_ERROR, ATTR_WATER_LEAK_STATUS, ATTR_FLOW_METER_CONFIG, ATTR_FLOW_ALARM_TIMER,
-                ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ENABLED, ATTR_BATT_STATUS_NORMAL, ATTR_BATT_PERCENT_NORMAL]
+                ATTR_FLOW_THRESHOLD, ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ENABLED, ATTR_BATT_STATUS_NORMAL, ATTR_BATT_PERCENT_NORMAL, ATTR_ERROR_CODE_SET1]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
@@ -984,14 +1008,12 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                    if ATTR_FLOW_ALARM_TIMER in device_data:
-                        self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer != 0:
-                            self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                            self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                            self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
-                            self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
-                            self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
+                    self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
+                    self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
+                    self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
+                    self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                    self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
+                    self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                     if ATTR_BATT_PERCENT_NORMAL in device_data:
                         self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                     if ATTR_BATT_STATUS_NORMAL in device_data:
@@ -1000,6 +1022,8 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._rssi = device_data[ATTR_RSSI]
                     if ATTR_FLOW_ENABLED in device_data:
                         self._flowmeter_enabled = device_data[ATTR_FLOW_ENABLED]
+                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                        self._error_code = "Present, see logs"
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1010,7 +1034,9 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 self._activ = True
                 self.notify_ha(
                     f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )    @property
+                )
+
+    @property
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
@@ -1024,11 +1050,13 @@ class Neviweb130MeshValve(Neviweb130Valve):
                'Alert_motor_jam': self._stm8Error_motorJam,
                'Alert_motor_position': self._stm8Error_motorPosition,
                'Alert_motor_limit': self._stm8Error_motorLimit,
+               'Error_code': self._error_code,
                'Flow_meter_multiplier': self._flowmeter_multiplier,
                'Flow_meter_offset': self._flowmeter_offset,
                'Flow_meter_divisor': self._flowmeter_divisor,
                'Flow_meter_model': self._flowmeter_model,
                'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
+               'Flow_meter_alarm_length': self._flowmeter_alarm_lenght,
                'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                'Flowmeter_enabled': self._flowmeter_enabled,
                'Water_leak_status': self._water_leak_status,
@@ -1041,7 +1069,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                'monthly_flow': L_2_sqm(self._month_kwh),
                'rssi': self._rssi,
                'sku': self._sku,
-               'device_model': self._device_model,
+               'device_model': str(self._device_model),
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'Activation': self._activ,
@@ -1069,6 +1097,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         self._today_kwh = None
         self._month_kwh = None
         self._onoff = None
+        self._reports_position = False
         self._valve_status = None
         self._battery_voltage = 0
         self._battery_status = None
@@ -1196,6 +1225,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                'Flow_meter_divisor': self._flowmeter_divisor,
                'Flow_meter_model': self._flowmeter_model,
                'Flow_meter_alert_delay': neviweb_to_ha_delay(self._flowmeter_alert_delay),
+               'Flow_meter_alarm_length': self._flowmeter_alarm_lenght,
                'Flowmeter_options': trigger_close(self._flowmeter_opt_action, self._flowmeter_opt_alarm),
                'Water_leak_status': self._water_leak_status,
                'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
@@ -1205,7 +1235,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                'daily_flow': L_2_sqm(self._today_kwh),
                'monthly_flow': L_2_sqm(self._month_kwh),
                'sku': self._sku,
-               'device_model': self._device_model,
+               'device_model': str(self._device_model),
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'Activation': self._activ,
