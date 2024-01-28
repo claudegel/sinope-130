@@ -5,7 +5,7 @@ set_climate_keypad_lock:
       description: Name(s) of neviweb130 climate device to lock/unlock the keypad.
       example: "climate.neviweb130_climate_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_light_keypad_lock:
@@ -15,7 +15,7 @@ set_light_keypad_lock:
       description: Name(s) of neviweb130 light device to lock/unlock the keypad.
       example: "light.neviweb130_light_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_switch_keypad_lock:
@@ -25,7 +25,7 @@ set_switch_keypad_lock:
       description: Name(s) of neviweb130 switch device to lock/unlock the keypad.
       example: "switch.neviweb130_switch_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_light_timer:
@@ -120,7 +120,7 @@ set_backlight:
       description: «wifi» for wifi devices or «zigbee» for zigbee devices
       example: "wifi"
     backlightAdaptive:
-      description: «auto» or «on».
+      description: «auto», «on» or «bedroom». (last one is only for G2 and wifi thermostats)
       example: "auto"
 
 set_wattage:
