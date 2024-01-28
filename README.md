@@ -110,6 +110,8 @@ There are two methods to install this custom component:
           switch.py
           climate.py
           sensor.py
+          valve.py
+          schema.py
           services.yaml
       ...
     ```
