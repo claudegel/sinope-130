@@ -381,6 +381,8 @@ class Neviweb130Sensor(Entity):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._cur_temp = None
         self._leak_status = None
@@ -547,6 +549,8 @@ class Neviweb130Sensor(Entity):
         if self._is_new_leak:
             data.update({'Data': self._data})
         data.update({'sku': self._sku,
+                    'device_model': str(self._device_model),
+                    'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
                     'Activation': "Activ" if self._activ else "Inactive",
                     'device_type': self._device_type,
@@ -642,7 +646,7 @@ class Neviweb130Sensor(Entity):
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, device_data, self._sku)
 
 class Neviweb130TankSensor(Neviweb130Sensor):
-    """Implementation of a Neviweb tank level sensor."""
+    """Implementation of a Neviweb tank level sensor LM4110ZB."""
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
@@ -651,6 +655,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._activ = True
         self._snooze = 0
@@ -733,6 +739,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'Temperature': self._temperature,
                 'Rssi': self._rssi,
                 'sku': self._sku,
+                'device_model': str(self._device_model),
+                'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
                 'Activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
@@ -804,6 +812,8 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._activ = True
         self._snooze = 0
@@ -839,6 +849,8 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         data = {}
         data.update({'Gateway_status': self._gateway_status,
                 'sku': self._sku,
+                'device_model': str(self._device_model),
+                'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
                 'Activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
