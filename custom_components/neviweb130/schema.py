@@ -126,14 +126,14 @@ SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TYPE): vol.In(["wifi", "zigbee"]),
-        vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on"]),
+        vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on", "bedroom"]),
     }
 )
 
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
     }
 )
 
@@ -366,7 +366,7 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked"]),
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
     }
 )
 
