@@ -149,6 +149,7 @@ def setup(hass, hass_config):
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'sensor', DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, 'valve', DOMAIN, {}, hass_config)
 
     return True
 
@@ -385,7 +386,7 @@ class Neviweb130Client(object):
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/alert", headers=self._headers, cookies=self._cookies,
                 timeout=self._timeout)
-            _LOGGER.debug("Received devices alert: %s", raw_res.json())
+            _LOGGER.debug("Received devices alert (%s): %s",str(device_id), raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
