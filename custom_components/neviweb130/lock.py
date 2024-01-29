@@ -15,13 +15,15 @@ import time
 
 import custom_components.neviweb130 as neviweb130
 from . import (SCAN_INTERVAL, STAT_INTERVAL)
+from homeassistant.components.lock import (
+    LockEntity,
+)
 
 from homeassistant.const import (
     ATTR_CODE,
     ATTR_CODE_FORMAT,
     ATTR_ENTITY_ID,
     SERVICE_LOCK,
-    SERVICE_OPEN,
     SERVICE_UNLOCK,
     STATE_JAMMED,
     STATE_LOCKED,
@@ -41,6 +43,7 @@ from homeassistant.helpers import (
 )
 
 from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from datetime import timedelta
 from homeassistant.helpers.event import track_time_interval
@@ -91,7 +94,7 @@ DEFAULT_NAME_2 = 'neviweb130 lock 2'
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_STATUS]
 
 SWITCH_TYPES = {
-    "sensor": ["mdi:door_open", BinarySensorDeviceClass.DOOR],
+    "sensor": ["mdi:lock", BinarySensorDeviceClass.DOOR],
 }
 
 IMPLEMENTED_DOOR_LOCK = [7000]
@@ -200,6 +203,8 @@ class Neviweb130Lock(LockEntity):
         self._sku = sku
         self._client = data.neviweb130_client
         self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_door = device_info["signature"]["model"] in \
             IMPLEMENTED_DOOR_LOCK
         self._battery_voltage = 0
@@ -331,8 +336,10 @@ class Neviweb130Lock(LockEntity):
                     'max_pin': self._max_pin,
                     'min_pin': self._min_pin,
                     'sku': self._sku,
+                    'device_model': str(self._device_model),
+                    'device_model_cfg': self._device_model_cfg,
                     'device_type': self._device_type,
-                    'id': self._id})
+                    'id': str(self._id)})
         return data
 
     @final
