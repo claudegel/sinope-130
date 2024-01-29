@@ -1393,7 +1393,6 @@ class Neviweb130Thermostat(ClimateEntity):
         """ Get device sensor error code """
         if not self._is_wifi and not self._is_hc:
             device_error_code = self._client.get_device_sensor_error(self._id)
-            _LOGGER.warning("Updating error code: %s",device_error_code)
             if device_error_code is not None and device_error_code != {}:
                 _LOGGER.warning("Error code set1 updated: %s",device_error_code)
                 if not self._is_hc:
@@ -2741,7 +2740,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._keypad = None
         self._load1 = 0
         self._load2 = 0
-        self._load2_status = None
         self._rssi = None
         self._display2 = None
         self._backlight = None
@@ -2837,9 +2835,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     self._gfci_alert = device_data[ATTR_GFCI_ALERT]
-                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                    if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
-                        self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -2865,7 +2861,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'sensor_mode': self._floor_mode,
                     'operation_mode': self._operation_mode,
                     'auxiliary_heat': self._aux_heat,
-                    'auxiliary_status': self._load2_status,
                     'auxiliary_load': self._load2,
                     'floor_sensor_type': self._floor_sensor_type,
                     'floor_limit_high': self._floor_max,

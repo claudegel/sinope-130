@@ -304,7 +304,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
 
 class Neviweb130Light(LightEntity):
-    """Implementation of a neviweb light, SW2500ZB."""
+    """Implementation of a neviweb light, SW2500ZB, SW2500ZB-G2."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
@@ -326,7 +326,6 @@ class Neviweb130Light(LightEntity):
         self._timer = 0
         self._led_on = "0,0,0,0"
         self._led_off = "0,0,0,0"
-        self._intensity_min = 600
         self._wattage = 0
         self._wattage_status = None
         self._temp_status = None
@@ -356,10 +355,6 @@ class Neviweb130Light(LightEntity):
                 self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    if ATTR_INTENSITY in device_data:
-                        self._brightness_pct = round(device_data[ATTR_INTENSITY]) if \
-                            device_data[ATTR_INTENSITY] is not None else 0
-                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                     self._onoff = device_data[ATTR_ONOFF]
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                     self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
@@ -606,7 +601,7 @@ class Neviweb130Light(LightEntity):
         return True
 
 class Neviweb130Dimmer(Neviweb130Light):
-    """Implementation of a neviweb dimmer, DM2500ZB."""
+    """Implementation of a neviweb dimmer, DM2500ZB, DM2500ZB-G2."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
@@ -709,7 +704,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         return data
 
 class Neviweb130NewDimmer(Neviweb130Light):
-    """Implementation of a neviweb new dimmer DM2550ZB."""
+    """Implementation of a neviweb new dimmer DM2550ZB, DM2550ZB-G2."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
