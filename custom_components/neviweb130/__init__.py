@@ -21,8 +21,8 @@ from homeassistant.util import Throttle
 
 from homeassistant.components.climate.const import (
     HVACMode,
-    PRESET_HOME,
     PRESET_AWAY,
+    PRESET_HOME,
     )
 from .const import (
     DOMAIN,
