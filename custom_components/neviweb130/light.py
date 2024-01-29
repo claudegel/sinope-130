@@ -304,7 +304,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
 
 class Neviweb130Light(LightEntity):
-    """Implementation of a neviweb light, SW2500ZB."""
+    """Implementation of a neviweb light, SW2500ZB, SW2500ZB-G2."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
@@ -601,7 +601,7 @@ class Neviweb130Light(LightEntity):
         return True
 
 class Neviweb130Dimmer(Neviweb130Light):
-    """Implementation of a neviweb dimmer, DM2500ZB."""
+    """Implementation of a neviweb dimmer, DM2500ZB, DM2500ZB-G2."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
@@ -704,7 +704,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         return data
 
 class Neviweb130NewDimmer(Neviweb130Light):
-    """Implementation of a neviweb new dimmer DM2550ZB."""
+    """Implementation of a neviweb new dimmer DM2550ZB, DM2550ZB-G2."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
