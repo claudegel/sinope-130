@@ -1393,7 +1393,6 @@ class Neviweb130Thermostat(ClimateEntity):
         """ Get device sensor error code """
         if not self._is_wifi and not self._is_hc:
             device_error_code = self._client.get_device_sensor_error(self._id)
-#            _LOGGER.warning("Updating error code: %s",device_error_code)
             if device_error_code is not None and device_error_code != {}:
                 _LOGGER.warning("Error code set1 updated: %s",device_error_code)
                 if not self._is_hc:
