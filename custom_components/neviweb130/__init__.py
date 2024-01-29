@@ -1,3 +1,7 @@
+""" Sinopé GT130 zigbee and wifi support. """
+
+from __future__ import annotations
+
 import logging
 import requests
 import json
@@ -14,6 +18,7 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.util import Throttle
+
 from homeassistant.components.climate.const import (
     HVACMode,
     PRESET_AWAY,
@@ -105,13 +110,15 @@ from .const import (
     MODE_MANUAL
 )
 
-VERSION = '2.5.5'
+from .schema import (
+    CONFIG_SCHEMA,
+    SCAN_INTERVAL,
+    HOMEKIT_MODE,
+    STAT_INTERVAL,
+)
+VERSION = '2.6.0'
 
 _LOGGER = logging.getLogger(__name__)
-
-SCAN_INTERVAL = timedelta(seconds=540)
-HOMEKIT_MODE = False
-STAT_INTERVAL = 1800
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -120,22 +127,6 @@ LOCATIONS_URL = "{}/api/locations?account$id=".format(HOST)
 GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
 DEVICE_DATA_URL = "{}/api/device/".format(HOST)
 
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.Schema({
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_NETWORK): cv.string,
-        vol.Optional(CONF_NETWORK2): cv.string,
-        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
-            cv.time_period,
-        vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
-            cv.boolean,
-        vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL):
-            vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
-    })
-},
-    extra=vol.ALLOW_EXTRA,
-)
 
 def setup(hass, hass_config):
     """Set up neviweb130."""
@@ -158,6 +149,7 @@ def setup(hass, hass_config):
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'switch', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'sensor', DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, 'valve', DOMAIN, {}, hass_config)
 
     return True
 
@@ -394,7 +386,7 @@ class Neviweb130Client(object):
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/alert", headers=self._headers, cookies=self._cookies,
                 timeout=self._timeout)
-            _LOGGER.debug("Received devices alert: %s", raw_res.json())
+            _LOGGER.debug("Received devices alert (%s): %s",str(device_id), raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
@@ -508,6 +500,11 @@ class Neviweb130Client(object):
     def set_onoff(self, device_id, onoff):
         """Set device onOff state."""
         data = {ATTR_ONOFF: onoff}
+        self.set_device_attributes(device_id, data)
+
+    def set_light_onoff(self, device_id, onoff, brightness):
+        """Set light device onOff state."""
+        data = {ATTR_ONOFF: onoff, ATTR_INTENSITY: brightness}
         self.set_device_attributes(device_id, data)
 
     def set_valve_onoff(self, device_id, onoff):

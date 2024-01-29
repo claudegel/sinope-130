@@ -5,8 +5,8 @@
   "zip_release": false,
   "filename": false,
   "render_readme": true,
-  "domains": ["sensor", "switch", "climate", "light"],
+  "domains": ["sensor", "switch", "climate", "light", "valve", "lock"],
   "country": ["CA"],
-  "homeassistant": "2021.12.1",
+  "homeassistant": "2023.0.0",
   "iot_class": "Cloud Polling"
 }

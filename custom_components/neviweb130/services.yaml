@@ -5,7 +5,7 @@ set_climate_keypad_lock:
       description: Name(s) of neviweb130 climate device to lock/unlock the keypad.
       example: "climate.neviweb130_climate_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_light_keypad_lock:
@@ -15,7 +15,7 @@ set_light_keypad_lock:
       description: Name(s) of neviweb130 light device to lock/unlock the keypad.
       example: "light.neviweb130_light_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_switch_keypad_lock:
@@ -25,7 +25,7 @@ set_switch_keypad_lock:
       description: Name(s) of neviweb130 switch device to lock/unlock the keypad.
       example: "switch.neviweb130_switch_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_light_timer:
@@ -120,7 +120,7 @@ set_backlight:
       description: «wifi» for wifi devices or «zigbee» for zigbee devices
       example: "wifi"
     backlightAdaptive:
-      description: «auto» or «on».
+      description: «auto», «on» or «bedroom». (last one is only for G2 and wifi thermostats)
       example: "auto"
 
 set_wattage:
@@ -286,7 +286,7 @@ set_control_onoff:
     status:
       description: Set to «on» or «off» to change status of output valve controller.
       example: "on"
-    onoff_num:
+    onOff_num:
       description: Select the output1, (1) or output2, (2) of the controller.
       example: 1
 
@@ -387,13 +387,13 @@ set_cool_setpoint_min:
       example: 22
 
 set_low_temp_protection:
-  description: Set Calypso low temperature protection  on / off. If water temperature goes below 45oC , heating will turn on automatically.
+  description: Set Calypso low temperature protection  on/off. If water temperature goes below selected temperature from 45 to 55 oC, heating will turn on automatically.
   fields:
     entity_id:
       description: Name(s) of neviweb130 Calypso device (RM3500ZB).
       example: "switch.neviweb130_switch_hot_water"
     drConfigWaterTempMin:
-      description: set to 0, turn off protection or to 45, turn on protection.
+      description: set to 0, turn off protection or from 45 to 55 oC, to turn on protection level.
       example: 45
 
 set_flow_meter_model:
@@ -587,7 +587,7 @@ set_on_off_input_delay:
     input_number:
       description: choose between input/output 1 or 2.
       example: 1
-    onoff:
+    onOff:
       description: set to «on», (on delay) or «off» (off delay).
       example: "on"
     delay:

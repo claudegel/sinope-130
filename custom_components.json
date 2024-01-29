@@ -1,6 +1,6 @@
 {
     "neviweb130": {
-        "version": "2.5.5",
+        "version": "2.6.0",
         "local_location": "/custom_components/neviweb130/__init__.py",
         "remote_location": "https://github.com/claudegel/sinope-130/tree/master/custom_components/__init__.py",
         "visit_repo": "https://github.com/claudegel/sinope-130",
@@ -11,6 +11,8 @@
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/switch.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/sensor.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/const.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/schema.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/valve.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/services.yaml"
         ]
     }

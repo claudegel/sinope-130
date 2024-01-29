@@ -28,6 +28,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1500WF wifi 3600W double pole thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
+  - SRM40 floor thermostat
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -109,6 +110,8 @@ There are two methods to install this custom component:
           switch.py
           climate.py
           sensor.py
+          valve.py
+          schema.py
           services.yaml
       ...
     ```
@@ -128,6 +131,8 @@ neviweb130:
   stat_interval: 1800
 ```
 Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130. If you have two networks for two GT130 or two wifi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and zigbee/wifi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
+
+![network](www/network.jpg)
 
 **Configuration options:**  
 
@@ -182,7 +187,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_floor_air_limit to set floor thermostat max air limit temperature.
 - neviweb130.set_phase_control to set phase control mode for DM2550ZB dimmer (reverse or forward).
 - neviweb130.set_hvac_dr_options to set or reset DR period option in Neviweb for thermostats.
-- neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 0 to -10 oC.
+- neviweb130.set_hvac_dr_setpoint to adjust thermostat setpoint reduction during DR period, 100 to -100 (oC*10). 0 will just make the small icon to flash.
 - neviweb130.set_load_dr_options to set or reset DR period options in Neviweb for load controler.
 - neviweb130.set_cycle_output to set main cycle length of low voltage thermostat in minutes.
 - neviweb130.set_aux_cycle_output to set auxiliary cycle length of low voltage thermostats in minutes.
