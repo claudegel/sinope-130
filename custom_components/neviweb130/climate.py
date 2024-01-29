@@ -2837,7 +2837,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                         self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     self._gfci_alert = device_data[ATTR_GFCI_ALERT]
-                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["status"]
+                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                     if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["value"]
                 elif device_data["errorCode"] == "ReadTimeout":
