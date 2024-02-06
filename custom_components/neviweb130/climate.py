@@ -2512,7 +2512,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._pump_protec_status = None
         self._pump_protec_duration = None
         self._pump_protec_period = None
-        self._pump_duration = None
         self._pump_duration_value = None
         self._code_reference_sensor = None
         self._code_compensation_sensor = None
@@ -2599,9 +2598,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                    self._pump_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
-                    if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
-                        self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
+                    self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]
                     self._aux_heat = device_data[ATTR_FLOOR_AUX]
                     self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 elif device_data["errorCode"] == "ReadTimeout":
@@ -2632,7 +2629,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
                     'pump_protection_frequency': self._pump_protec_period,
-                    'pump_duration': self._pump_duration,
                     'pump_duration_value': self._pump_duration_value,
                     'floor_limit_high': self._floor_max,
                     'floor_limit_high_status': self._floor_max_status,
