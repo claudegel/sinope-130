@@ -2598,8 +2598,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                    self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]
-                    self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                    if ATTR_PUMP_PROTEC_DURATION in device_data:
+                        self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]
+                    if ATTR_FLOOR_AUX in device_data:
+                        self._aux_heat = device_data[ATTR_FLOOR_AUX]
                     self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
