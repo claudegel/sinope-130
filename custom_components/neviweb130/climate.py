@@ -2515,6 +2515,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._pump_duration_value = None
         self._code_reference_sensor = None
         self._code_compensation_sensor = None
+        self._code_thermal_overload = None
         self._code_air_sensor = None
         self._code_wire_sensor = None
         self._code_current_overload = None
