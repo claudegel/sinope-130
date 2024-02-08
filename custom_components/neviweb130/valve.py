@@ -162,7 +162,8 @@ HA_TO_NEVIWEB_DELAY = {
     "3 h": 10800,
     "6 h": 21600,
     "12 h": 43200,
-    "24 h": 86400
+    "24 h": 86400,
+    "48 h": 172800
 }
 
 VALVE_TYPES = {
@@ -930,7 +931,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                'Flow_meter_multiplier': self._flowmeter_multiplier,
                'Flow_meter_offset': self._flowmeter_offset,
                'Flow_meter_divisor': self._flowmeter_divisor,
-               'occupancy_sensor_delay': self._occupancy_delay,
+               'occupancy_sensor_delay': neviweb_to_ha_delay(self._occupancy_delay),
                'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
                'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
                'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),
