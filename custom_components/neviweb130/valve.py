@@ -162,7 +162,8 @@ HA_TO_NEVIWEB_DELAY = {
     "3 h": 10800,
     "6 h": 21600,
     "12 h": 43200,
-    "24 h": 86400
+    "24 h": 86400,
+    "48 h": 172800
 }
 
 VALVE_TYPES = {
@@ -406,7 +407,7 @@ def trigger_close(action, alarm):
 def L_2_sqm(value):
     """convert liters valuer to cubic meter for water flow stat"""
     if value is not None:
-        return value/1000
+        return round(value/1000, 5)
     else:
         return None
 
@@ -786,14 +787,24 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._flowmeter_divisor = 1
         self._flowmeter_model = None
         self._stm8Error_motorJam = None
+        self._stm8Error_motorPosition = None
+        self._stm8Error_motorLimit = None
         self._motor_target = None
         self._valve_info_status = None
         self._valve_info_cause = None
         self._valve_info_id = None
         self._occupancy_delay = None
         self._water_leak_status = None
-        self._flow_alarm_1 = None
-        self._flow_alarm_2 = None
+        self._flowmeter_opt_alarm_1 = None
+        self._flowmeter_opt_action_1 = None
+        self._flometer_opt_flowmin_1 = 1
+        self._flometer_opt_duration_1 = 0
+        self._flometer_opt_observationPeriod_1 = 0
+        self._flowmeter_opt_alarm_2 = None
+        self._flowmeter_opt_action_2 = None
+        self._flometer_opt_flowmin_2 = 1
+        self._flometer_opt_duration_2 = 0
+        self._flometer_opt_observationPeriod_2 = 0
         self._temp_action_low = None
         self._batt_action_low = None
         self._away_action = None
@@ -840,14 +851,24 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
+                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
+                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
                     if ATTR_FLOW_METER_CONFIG in device_data:
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                     if ATTR_FLOW_ALARM1 in device_data:
-                        self._flow_alarm_1 = device_data[ATTR_FLOW_ALARM1]
+                        self._flowmeter_opt_alarm_1 = device_data[ATTR_FLOW_ALARM1]["actions"][ATTR_TRIGGER_ALARM]
+                        self._flowmeter_opt_action_1 = device_data[ATTR_FLOW_ALARM1]["actions"][ATTR_CLOSE_VALVE]
+                        self._flometer_opt_flowmin_1 = device_data[ATTR_FLOW_ALARM1]["flowMin"]
+                        self._flometer_opt_duration_1 = device_data[ATTR_FLOW_ALARM1]["duration"]
+                        self._flometer_opt_observationPeriod_1 = device_data[ATTR_FLOW_ALARM1]["observationPeriod"]
                     if ATTR_FLOW_ALARM2 in device_data:
-                        self._flow_alarm_2 = device_data[ATTR_FLOW_ALARM2]
+                        self._flowmeter_opt_alarm_2 = device_data[ATTR_FLOW_ALARM2]["actions"][ATTR_TRIGGER_ALARM]
+                        self._flowmeter_opt_action_2 = device_data[ATTR_FLOW_ALARM2]["actions"][ATTR_CLOSE_VALVE]
+                        self._flometer_opt_flowmin_2 = device_data[ATTR_FLOW_ALARM2]["flowMin"]
+                        self._flometer_opt_duration_2 = device_data[ATTR_FLOW_ALARM2]["duration"]
+                        self._flometer_opt_observationPeriod_2 = device_data[ATTR_FLOW_ALARM2]["observationPeriod"]
                     if ATTR_TEMP_ACTION_LOW in device_data:
                         self._temp_action_low = device_data[ATTR_TEMP_ACTION_LOW]
                     if ATTR_BATT_ACTION_LOW in device_data:
@@ -892,9 +913,17 @@ class Neviweb130WifiValve(Neviweb130Valve):
                'Valve_cause': self._valve_info_cause,
                'Valve_info_id': self._valve_info_id,
                'Alert_motor_jam': self._stm8Error_motorJam,
+               'Alert_motor_position': self._stm8Error_motorPosition,
+               'Alert_motor_limit': self._stm8Error_motorLimit,
                'away_action': self._away_action,
-               'Flow_alarm1': self._flow_alarm_1,
-               'Flow_alarm2': self._flow_alarm_2,
+               'Flow_meter_alarm_delay_1': neviweb_to_ha_delay(self._flometer_opt_observationPeriod_1),
+               'Flow_meter_alarm_duration_1': neviweb_to_ha_delay(self._flometer_opt_duration_1),
+               'Flow_meter_alarm_flowMin_1': self._flometer_opt_flowmin_1,
+               'Flowmeter_options_1': trigger_close(self._flowmeter_opt_action_1, self._flowmeter_opt_alarm_1),
+               'Flow_meter_alarm_delay_2': neviweb_to_ha_delay(self._flometer_opt_observationPeriod_2),
+               'Flow_meter_alarm_duration_2': neviweb_to_ha_delay(self._flometer_opt_duration_2),
+               'Flow_meter_alarm_flowMin_2': self._flometer_opt_flowmin_2,
+               'Flowmeter_options_2': trigger_close(self._flowmeter_opt_action_2, self._flowmeter_opt_alarm_2),
                'Temp_action_low': self._temp_action_low,
                'Batt_action_low': self._batt_action_low,
                'Battery_percent_normalized': self._batt_percent_normal,
@@ -902,7 +931,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                'Flow_meter_multiplier': self._flowmeter_multiplier,
                'Flow_meter_offset': self._flowmeter_offset,
                'Flow_meter_divisor': self._flowmeter_divisor,
-               'occupancy_sensor_delay': self._occupancy_delay,
+               'occupancy_sensor_delay': neviweb_to_ha_delay(self._occupancy_delay),
                'hourly_flow_count': L_2_sqm(self._hour_energy_kwh_count),
                'daily_flow_count': L_2_sqm(self._today_energy_kwh_count),
                'monthly_flow_count': L_2_sqm(self._month_energy_kwh_count),

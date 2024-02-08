@@ -187,7 +187,7 @@ set_valve_alert:
   fields:
     entity_id:
       description: Name(s) of neviweb130 water valve.
-      example: "switch.neviweb130_switch_valve"
+      example: "valve.neviweb130_valve_sedna_valve"
     alertLowBatt:
       description: Set to «true», send battery alert or «false», do nothing.
       example: "true"
@@ -197,7 +197,7 @@ set_valve_temp_alert:
   fields:
     entity_id:
       description: Name(s) of neviweb130 water valve.
-      example: "switch.neviweb130_switch_valve"
+      example: "valve.neviweb130_valve_sedna_valve"
     alertLowTemp:
       description: Set to 1 = «true», send alert or to 0 = «false», do nothing.
       example: 1
@@ -421,7 +421,7 @@ set_flow_meter_options:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "switch.neviweb130_switch_VA4220ZB"
+      example: "valve.neviweb130_valve_VA4220ZB"
     triggerAlarm:
       description: send leak alert, on/off.
       example: "on"
@@ -524,7 +524,7 @@ set_input_output_names:
   fields:
     entity_id:
       description: Name(s) of MC3100ZB device.
-      example: "switch.neviweb130_switch_MC3100ZB"
+      example: "valve.neviweb130_valve_MC3100ZB"
     input1name:
       description: set the name for input 1. Max length 10 characters.
       example: "alarm signal"

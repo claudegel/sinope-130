@@ -2494,7 +2494,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._keypad = None
         self._load1 = 0
         self._load2 = 0
-        self._load2_status = None
         self._rssi = None
         self._display2 = None
         self._backlight = None
@@ -2513,10 +2512,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._pump_protec_status = None
         self._pump_protec_duration = None
         self._pump_protec_period = None
-        self._pump_duration = None
         self._pump_duration_value = None
         self._code_reference_sensor = None
         self._code_compensation_sensor = None
+        self._code_thermal_overload = None
         self._code_air_sensor = None
         self._code_wire_sensor = None
         self._code_current_overload = None
@@ -2600,13 +2599,11 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
                         self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
-                    self._pump_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
-                    if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
-                        self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
-                    self._aux_heat = device_data[ATTR_FLOOR_AUX]
-                    self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
-                    if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
-                        self._load2 = device_data[ATTR_FLOOR_OUTPUT2]["value"]
+                    if ATTR_PUMP_PROTEC_DURATION in device_data:
+                        self._pump_duration_value = device_data[ATTR_PUMP_PROTEC_DURATION]
+                    if ATTR_FLOOR_AUX in device_data:
+                        self._aux_heat = device_data[ATTR_FLOOR_AUX]
+                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -2635,7 +2632,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'pump_protection_status': self._pump_protec_status,
                     'pump_protection_duration': self._pump_protec_duration,
                     'pump_protection_frequency': self._pump_protec_period,
-                    'pump_duration': self._pump_duration,
                     'pump_duration_value': self._pump_duration_value,
                     'floor_limit_high': self._floor_max,
                     'floor_limit_high_status': self._floor_max_status,
@@ -2653,7 +2649,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'occupancy': self._occupancy,
                     'operation_mode': self._operation_mode,
                     'auxiliary_heat': self._aux_heat,
-                    'auxiliary_status': self._load2_status,
                     'auxiliary_load': self._load2,
                     'status compensation sensor': self._code_compensation_sensor,
                     'status thermal overload': self._code_thermal_overload,

@@ -279,7 +279,7 @@ template:
         device_class: water
         state_class: total_increasing
         state: >-
-          {{ state_attr("switch.neviweb130_water_valve","hourly_flow_count") }}
+          {{ state_attr("valve.neviweb130_valve_water_valve","hourly_flow_count") }}
 ```
 or:
 ```yaml
@@ -291,7 +291,7 @@ template:
         device_class: water
         state_class: total
         state: >-
-          {{ state_attr("switch.neviweb130_water_valve","hourly_flow") }}
+          {{ state_attr("valve.neviweb130_valve_water_valve","hourly_flow") }}
 ```
 
 ## Troubleshooting
