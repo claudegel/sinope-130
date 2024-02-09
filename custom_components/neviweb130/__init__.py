@@ -64,6 +64,7 @@ from .const import (
     ATTR_EARLY_START,
     ATTR_FLOOR_MODE,
     ATTR_FLOOR_SENSOR,
+    ATTR_MODE,
     ATTR_PHASE_CONTROL,
     ATTR_OCCUPANCY,
     ATTR_SYSTEM_MODE,
@@ -116,7 +117,7 @@ from .schema import (
     HOMEKIT_MODE,
     STAT_INTERVAL,
 )
-VERSION = '2.6.2'
+VERSION = '2.6.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -126,6 +127,7 @@ LOGIN_URL = "{}/api/login".format(HOST)
 LOCATIONS_URL = "{}/api/locations?account$id=".format(HOST)
 GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
 DEVICE_DATA_URL = "{}/api/device/".format(HOST)
+NEVIWEB_LOCATION = "{}/api/location/".format(HOST)
 
 
 def setup(hass, hass_config):
@@ -190,6 +192,7 @@ class Neviweb130Client(object):
         self._account = None
         self._cookies = None
         self._timeout = timeout
+        self._occupancyMode = None
         self.user = None
 
         self.__post_login_page()
@@ -246,6 +249,7 @@ class Neviweb130Client(object):
             if self._network_name == None and self._network_name2 == None: # Use 1st network found and second if found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
+                self._occupancyMode = network[0]["mode"]
                 _LOGGER.debug("Selecting %s as first network", self._network_name)
                 if len(networks) > 1:
                     self._gateway_id2 = networks[1]["id"]
@@ -255,6 +259,7 @@ class Neviweb130Client(object):
                 for network in networks:
                     if network["name"] == self._network_name:
                         self._gateway_id = network["id"]
+                        self._occupancyMode = network["mode"]
                         _LOGGER.debug("Selecting %s network among: %s",self._network_name, networks)
                         continue
                     elif (network["name"] == self._network_name.capitalize()) or (network["name"] == self._network_name[0].lower()+self._network_name[1:]):
@@ -366,9 +371,29 @@ class Neviweb130Client(object):
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
             raise PyNeviweb130Error("Cannot get device status", e)
-        # Update cookies
-        #self._cookies.update(raw_res.cookies)
         # Prepare data
+        data = raw_res.json()
+        if "error" in data:
+            if data["error"]["code"] == "USRSESSEXP":
+                _LOGGER.error("Session expired. Set a scan_interval less" +
+                "than 10 minutes, otherwise the session will end.")
+                #raise PyNeviweb130Error("Session expired... reconnecting...")
+        return data
+
+    def get_neviweb_status(self, location):
+        """Get neviweb occupancyMode status."""
+        # Prepare return
+        data = {}
+        # Http request
+        try:
+            raw_res = requests.get(NEVIWEB_LOCATION + str(location) +
+                "/notifications", headers=self._headers, cookies=self._cookies,
+                timeout=self._timeout)
+            _LOGGER.debug("Received neviweb status: %s", raw_res.json())
+        except requests.exceptions.ReadTimeout:
+            return {"errorCode": "ReadTimeout"}
+        except Exception as e:
+            raise PyNeviweb130Error("Cannot get neviweb status", e)
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":

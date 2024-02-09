@@ -70,6 +70,8 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_LEAK_ALERT,
+    ATTR_MODE,
+    ATTR_OCCUPANCY,
     ATTR_ROOM_TEMP_ALARM,
     ATTR_ROOM_TEMPERATURE,
     ATTR_SAMPLING,
@@ -144,6 +146,7 @@ async def async_setup_platform(
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
+            location_id = device_info["location$id"]
             device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
             if device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL \
               or device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR \
@@ -155,13 +158,14 @@ async def async_setup_platform(
                 entities.append(Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
             else:
                 device_type = "gateway"
-                entities.append(Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware))
+                entities.append(Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware, location_id))
     for device_info in data.neviweb130_client.gateway_data2:
         if "signature" in device_info and \
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
+            location_id = device_info["location$id"]
             device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
             if device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL \
               or device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR \
@@ -173,7 +177,7 @@ async def async_setup_platform(
                 entities.append(Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
             else:
                 device_type = "gateway"
-                entities.append(Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware))
+                entities.append(Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware, location_id))
 
     async_add_entities(entities, True)
 
@@ -805,10 +809,11 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 class Neviweb130GatewaySensor(Neviweb130Sensor):
     """Implementation of a Neviweb gateway sensor."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware):
+    def __init__(self, data, device_info, name, device_type, sku, firmware, location):
         """Initialize."""
         self._name = name
         self._sku = sku
+        self._location = location
         self._firmware = firmware
         self._client = data.neviweb130_client
         self._id = device_info["id"]
@@ -818,6 +823,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._activ = True
         self._snooze = 0
         self._gateway_status = None
+        self._occupancyMode = None
         self._is_gateway = device_info["signature"]["model"] in \
             IMPLEMENTED_GATEWAY
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -827,10 +833,12 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         if self._activ:
             start = time.time()
             device_status = self._client.get_device_status(self._id)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_status)
             self._gateway_status = device_status[ATTR_STATUS]
+            self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
             return
 
     @property  
@@ -848,11 +856,13 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         """Return the state attributes."""
         data = {}
         data.update({'Gateway_status': self._gateway_status,
+                'neviweb_occupancyMode': self._occupancyMode,
                 'sku': self._sku,
                 'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
                 'Activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
+                'Neviweb_location': str(self._location),
                 'Id': str(self._id)})
         return data
