@@ -112,7 +112,6 @@ from .const import (
     ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_KEYPAD,
     ATTR_LANGUAGE,
-    ATTR_MODE,
     ATTR_MODEL,
     ATTR_OCCUPANCY,
     ATTR_OPTOUT,
@@ -195,8 +194,19 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE)
-SUPPORT_AUX_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.AUX_HEAT)
+SUPPORT_FLAGS = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
+)
+SUPPORT_AUX_FLAGS = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.AUX_HEAT
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
+)
 
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
@@ -755,6 +765,9 @@ def lock_to_ha(lock):
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
+    _enable_turn_on_off_backwards_compatibility = False
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         self._name = name
@@ -1060,6 +1073,21 @@ class Neviweb130Thermostat(ClimateEntity):
                 return HVACAction.IDLE
             else:
                 return HVACAction.HEATING
+
+    @property
+    def is_on(self):
+        """ Return True if mode = HVACMode.HEAT"""
+        if self._operation_mode == HVACMode.HEAT or self._operation_mode == HVACMode.AUTO:
+            return True
+        return False
+
+    def turn_on(self):
+        """Turn the thermostat to HVACMode.heat on."""
+        self._operation_mode = HVACMode.HEAT
+
+    def turn_off(self):
+        """Turn the thermostat to HVACMode.off."""
+        self._operation_mode = HVACMode.OFF
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
