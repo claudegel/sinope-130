@@ -249,7 +249,7 @@ class Neviweb130Client(object):
             if self._network_name == None and self._network_name2 == None: # Use 1st network found and second if found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
-                self._occupancyMode = network[0]["mode"]
+                self._occupancyMode = networks[0]["mode"]
                 _LOGGER.debug("Selecting %s as first network", self._network_name)
                 if len(networks) > 1:
                     self._gateway_id2 = networks[1]["id"]
