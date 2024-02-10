@@ -1083,10 +1083,12 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def turn_on(self):
         """Turn the thermostat to HVACMode.heat on."""
+        self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi)
         self._operation_mode = HVACMode.HEAT
 
     def turn_off(self):
         """Turn the thermostat to HVACMode.off."""
+        self._client.set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi)
         self._operation_mode = HVACMode.OFF
 
     def set_temperature(self, **kwargs):
