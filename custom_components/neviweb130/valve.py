@@ -852,8 +852,10 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
-                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
-                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
+                        if ATTR_STM8_ERROR["motorPosition"] in device_data:
+                            self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
+                        if ATTR_STM8_ERROR["motorLimit"] in device_data:
+                            self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
                     if ATTR_FLOW_METER_CONFIG in device_data:
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
