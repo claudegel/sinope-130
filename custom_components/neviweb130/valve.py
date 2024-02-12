@@ -163,7 +163,8 @@ HA_TO_NEVIWEB_DELAY = {
     "6 h": 21600,
     "12 h": 43200,
     "24 h": 86400,
-    "48 h": 172800
+    "48 h": 172800,
+    "1 week": 604800
 }
 
 VALVE_TYPES = {
@@ -851,8 +852,10 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
-                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
-                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
+                        if "motorPosition" in device_data[ATTR_STM8_ERROR]:
+                            self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
+                        if "motorLimit" in device_data[ATTR_STM8_ERROR]:
+                            self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
                     if ATTR_FLOW_METER_CONFIG in device_data:
                         self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
                         self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
