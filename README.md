@@ -5,6 +5,10 @@ Neviweb is a platform created by Sinopé Technologies to interact with their sma
 
 Neviweb130 will manage the zigbee devices connected to Neviweb via the GT130 gateway and the new wifi devices. It is presently almost up to date with Neviweb but some informations are still missing from Sinopé. As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported yet, please open an issue and I'll add it rapidly.
 
+## Big changes for valve devices
+
+Since version 2.6.2, valves devices are supported as new HA valve entities. They are no longer supported as switch. This will cause all your switch.neviweb130_switch_sedna_valve to be replaced by valve.neviweb130_valve_sedna_valve entities. You will need to revise your automation and cards to retreive your valve entities.
+
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
 - Zigbee thermostats:
