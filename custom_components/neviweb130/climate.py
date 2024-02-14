@@ -2310,10 +2310,12 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._drstatus_setpoint = "off"
         self._drstatus_abs = "off"
         self._drstatus_rel = "off"
+        self._drstatus_onOff = "off"
         self._drsetpoint_status = "off"
         self._drsetpoint_value = 0
         self._cur_temp = None
         self._cur_temp_before = None
+        self._room_temp_error = None
         self._target_temp = None
         self._operation_mode = None
         self._occupancy = None
@@ -2378,6 +2380,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
                         device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
+                    self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -2394,6 +2397,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
+                        self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
@@ -2434,6 +2438,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         data.update({'wattage': self._wattage,
                     'occupancy': self._occupancy,
                     'temp_display_status': self._temp_display_status,
+                    'temp_display_error': self._room_temp_error,
                     'source_type': self._heat_source_type,
                     'early_start': self._early_start,
                     'setpoint_away': self._target_temp_away,
@@ -2462,6 +2467,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'eco_setpoint': self._drstatus_setpoint,
                     'eco_power_relative': self._drstatus_rel,
                     'eco_power_absolute': self._drstatus_abs,
+                    'eco_onOff': self._drstatus_onOff,
                     'eco_setpoint_status': self._drsetpoint_status,
                     'eco_setpoint_delta': self._drsetpoint_value,
                     'hourly_kwh_count': self._hour_energy_kwh_count,
