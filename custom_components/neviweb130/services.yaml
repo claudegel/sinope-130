@@ -514,7 +514,7 @@ set_power_supply:
   fields:
     entity_id:
       description: Name(s) of neviweb130 device Sedna valve.
-      example: "switch.neviweb130_switch_sedna"
+      example: "valve.neviweb130_valve_sedna_valve"
     backupPowerSupply:
       description: set to "batt" for battery only, "power" for ACUPS-01 power supply only and "both" for battery and power supply together.
       example: "power"
@@ -524,7 +524,7 @@ set_input_output_names:
   fields:
     entity_id:
       description: Name(s) of MC3100ZB device.
-      example: "valve.neviweb130_valve_MC3100ZB"
+      example: "switch.neviweb130_switch_MC3100ZB"
     input1name:
       description: set the name for input 1. Max length 10 characters.
       example: "alarm signal"
