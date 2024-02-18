@@ -589,7 +589,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
 
 class Neviweb130Switch(SwitchEntity):
-    """Implementation of a Neviweb switch."""
+    """Implementation of a Neviweb switch, SP2600ZB and SP2610ZB."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""

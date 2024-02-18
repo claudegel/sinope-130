@@ -463,7 +463,7 @@ class Neviweb130Light(LightEntity):
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        self._client.set_light_onoff(self._id, "off", self._brightness_pct)
+        self._client.set_onoff(self._id, "off")
         self._onoff = MODE_OFF
 
     def set_phase_control(self, value):
