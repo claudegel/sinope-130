@@ -217,14 +217,23 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_on_off_input_delay to set the «on» or «off» delay in seconds for input 1 and 2 of MC3100ZB.
 
 ## Catch Éco Sinopé signal for peak period
-If you have at least on thermostat or one load controler registered with Éco Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or start signal for the load controler. Three attributes have been added to know that peak period is comming:
+If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:
 
-- For thermostats and load controler:
-  - eco_status: set to «off» during normal operation, to «on» during peak period.
-  - eco_power: set to «off» during normal operation, to «on» during peak period.
-  - eco_optout: set to «off» during normal operation during peak period, to «on» if somebody turn on the load controler during peak period.
+- For thermostats:
+  - eco_status: set to «off» during normal operation, turn «on» during peak period at the beginning of the pre-heating period. this is the attribute to follow to detect a peak start.
+  - eco_setpoint: set to «off» during normal operation, turn «on» during peak period if device is managed by Eco-Sinopé.
+  - eco_optout: set to «off» during normal operation during peak period, turn «on» if somebody change the setpoint during peak period.
+  - eco_power_relative: set to «off» during normal operation, used to set a minimum temperature compared to setpoint where the thermostat will turn on automatically for frost protection.
+  - eco_power_absolute: set to «off» during normal operation, used to limit the pi_heating_demand level between 1 to 100% during peak period.
+  - eco_setpoint_status: set to «off» during normal operation, turn «on» if device setpoint is changed by Eco-Sinopé.
+  - eco_setpoint_delta: set to 0 during normal operation, changed to values between -10 and +10 during peak period. For pre-heating the value is positive and for peak period it is a negative value. This is a delta applyed to regular setpoint. -10 = setpoint reduced by 10oC. +2 = setpoint increased by 2oC.
 
-It is then possible to make an automation to set all devices ready for peak period.
+- For load controler:
+  - eco_status: set to «off» during normal operation, turn «on» during peak period at the beginning of the pre-heating period. this is the attribute to follow to detect a peak start.
+  - eco_onoff: set to «off» during normal operation, turn «on» during peak period if device is managed by Eco-Sinopé. The device is turned off during peak period. Nothing is done during pre-heating period.
+  - eco_optout: set to «off» during normal operation during peak period, turn «on» if somebody turn on the device during peak period.
+
+It is then possible to make an automation to set all HA devices ready for peak period by following the eco_status attribute change from «off» to «on».
 
 ## Statistic for energy
 Six attributes are added to track energy usage for devices:
