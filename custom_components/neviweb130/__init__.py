@@ -117,7 +117,7 @@ from .schema import (
     HOMEKIT_MODE,
     STAT_INTERVAL,
 )
-VERSION = '2.6.7'
+VERSION = '2.7.0'
 
 _LOGGER = logging.getLogger(__name__)
 
