@@ -106,6 +106,7 @@ from .const import (
     ATTR_REL_HUMIDITY,
     ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
+    ATTR_SETPOINT,
     ATTR_STATUS,
     ATTR_SYSTEM_MODE,
     ATTR_TANK_SIZE,
@@ -1381,8 +1382,9 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._timer2 = 0
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
-        self._drstatus_onoff = "off"
-        self._drstatus_optout_reason = "off"
+        self._drstatus_setpoint = "off"
+        self._drstatus_power_abs = "off"
+        self._drstatus_power_rel = "off"
         self._humidity = None
         self._ext_temp = None
         self._room_temp = None
@@ -1414,7 +1416,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
             if self._is_zb_control or self._is_sedna_control:
                 if self._firmware == "0.1.1":
                     LOAD_ATTRIBUTES = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
-                    ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL]
+                    ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL, ATTR_DRSTATUS]
                 else:
                     LOAD_ATTRIBUTES = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
             """Get the latest data from Neviweb and update the state."""
@@ -1455,6 +1457,12 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         self._input_name_2 = device_data[ATTR_NAME_2]
                         self._output_name_1 = device_data[ATTR_OUTPUT_NAME_1]
                         self._output_name_2 = device_data[ATTR_OUTPUT_NAME_2]
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
+                        self._drstatus_setpoint = device_data[ATTR_DRSTATUS][ATTR_SETPOINT]
+                        self._drstatus_power_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
+                        self._drstatus_power_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1485,6 +1493,11 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                'Input2_status': self._input2_status,
                'onOff': self._onoff,
                'onOff2': self._onoff2,
+               'eco_status': self._drstatus_active,
+               'eco_optOut': self._drstatus_optout,
+               'eco_setpoint': self._drstatus_setpoint,
+               'eco_power_absolute': self._drstatus_power_abs,
+               'eco_power_relative': self._drstatus_power_rel,
                'Input1_on_delay': neviweb_to_ha_delay(self._input_1_on_delay),
                'Input2_on_delay': neviweb_to_ha_delay(self._input_2_on_delay),
                'Input1_off_delay': neviweb_to_ha_delay(self._input_1_off_delay),
