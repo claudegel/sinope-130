@@ -33,6 +33,9 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1500WF wifi 3600W double pole thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - SRM40 floor thermostat
+- Heatpump controller:
+  - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
+  - Sinopé HP6000ZB-MA for Convectair heat pump with Midea connector
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -232,6 +235,13 @@ If you have at least on thermostat or one load controler registered with Éco-Si
   - **eco_status**: set to «off» during normal operation, turn «on» during peak period at the beginning of the pre-heating period. this is the attribute to follow to detect a peak start.
   - **eco_onoff**: set to «off» during normal operation, turn «on» during peak period if device is managed by Eco-Sinopé. The device is turned off during peak period. Nothing is done during pre-heating period.
   - **eco_optout**: set to «off» during normal operation during peak period, turn «on» if somebody turn on the device during peak period.
+
+- For Multi-controller MC3100ZB:
+  - **eco_status**: set to «off» during normal operation, turn «on» during peak period at the beginning of the pre-heating period. this is the attribute to follow to detect a peak start.
+  - **eco_setpoint**: set to «off» during normal operation, no change during peak period if device is managed by Eco-Sinopé.
+  - **eco_optout**: set to «off» during normal operation, during peak period, turn «on» if somebody change the onoff value during peak period.
+  - **eco_power_relative**: set to «off» during normal operation, used to set a minimum temperature compared to room temperature value where the MC3100ZB will turn on automatically for frost protection.
+  - **eco_power_absolute**: set to «off» during normal operation, usage unknown.
 
 It is then possible to make an automation to set all HA devices ready for peak period by following the eco_status attribute change from «off» to «on».
 
