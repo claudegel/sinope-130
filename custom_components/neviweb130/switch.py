@@ -589,6 +589,12 @@ def lock_to_ha(lock):
         case "partialLock":
             return "Tamper protection"
 
+def remainig_time(time):
+    """ Convert time countdown for RM3500ZB """
+    if time == 65535:
+        return "off"
+    return time
+
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch, SP2600ZB and SP2610ZB."""
 
@@ -1174,7 +1180,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                'Water_leak_status': self._water_leak_status,
                'Water_temperature': self._water_temp,
                'Cold_load_pickup_status': self._cold_load_status,
-               'Cold_load_remaining_time': self._cold_load_remaining_time,
+               'Cold_load_remaining_time': remainig_time(self._cold_load_remaining_time),
                'Tank_size': neviweb_to_ha(self._tank_size),
                'Temperature_status': self._temp_status,
                'Stm_Mcu': self._stm_mcu,
@@ -1322,7 +1328,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'Water_leak_disconect_status': self._water_leak_disconected_status,
                'Water_temperature': self._water_temp,
                'Cold_load_pickup_status': self._cold_load_status,
-               'Cold_load_remaining_time': self._cold_load_remaining_time,
+               'Cold_load_remaining_time': remainig_time(self._cold_load_remaining_time),
                'Cold_load_temperature': self._cold_load_temp,
                'Tank_size': neviweb_to_ha(self._tank_size),
                'Temperature_status': self._temp_status,
