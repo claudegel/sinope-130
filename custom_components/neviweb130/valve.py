@@ -711,6 +711,16 @@ class Neviweb130Valve(ValveEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
+        elif error_data == "ACCDAYREQMAX":
+            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+        elif error_data == "TimeoutError":
+            _LOGGER.warning("Timeout error detected...Retry later.")
+        elif error_data == "MAINTENANCE":
+            _LOGGER.warning("Access blocked for maintenance...Retry later.")
+            self.notify_ha(
+                f"Warning: Neviweb access temporary blocked for maintenance...Retry later."
+            )
+            self._client.reconnect()
         elif error_data == "ACCSESSEXC":
             _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
             self.notify_ha(
