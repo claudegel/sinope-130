@@ -702,8 +702,8 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._is_new_connected = device_info["signature"]["model"] in \
             IMPLEMENTED_NEW_CONNECTED_SENSOR
         self._is_leak = True
-        self._is_monitor = false
-        self._is_gateway = false
+        self._is_monitor = False
+        self._is_gateway = False
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
