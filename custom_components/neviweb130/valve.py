@@ -2,7 +2,7 @@
 Support for Neviweb zigbee valve connected via GT130 and wifi valves.
 
 Water valves
-model 3150 = VA4201WZ, sedna valve 1 inch via wifi
+model 3150 = VA4201WZ, sedna valve 1 inch via wifi 
 model 3150 = VA4200WZ, sedna valve 3/4 inch via wifi
 model 3151 = VA4200ZB, sedna valve 3/4 inch via GT130, zigbee
 model 3153 = VA4220ZB, sedna 2e generation 3/4 inch, zigbee
