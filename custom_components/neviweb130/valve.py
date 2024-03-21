@@ -1052,11 +1052,12 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                    self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                    self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                    self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
-                    self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
-                    self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
+                        if self._flowmeter_timer != 0:
+                            self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
+                            self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
+                            self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                            self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
+                            self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                     if ATTR_BATT_PERCENT_NORMAL in device_data:
                         self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                     if ATTR_BATT_STATUS_NORMAL in device_data:
