@@ -117,7 +117,7 @@ from .schema import (
     HOMEKIT_MODE,
     STAT_INTERVAL,
 )
-VERSION = '2.7.1'
+VERSION = '2.7.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -216,7 +216,7 @@ class Neviweb130Client(object):
                 cookies = self._cookies, allow_redirects=False, 
                 timeout = self._timeout)
         except OSError:
-            raise PyNeviweb130Error("Cannot submit login form")
+            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.")
         if raw_res.status_code != 200:
             raise PyNeviweb130Error("Cannot log in")
 

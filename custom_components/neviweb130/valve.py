@@ -2,7 +2,7 @@
 Support for Neviweb zigbee valve connected via GT130 and wifi valves.
 
 Water valves
-model 3150 = VA4201WZ, sedna valve 1 inch via wifi
+model 3150 = VA4201WZ, sedna valve 1 inch via wifi 
 model 3150 = VA4200WZ, sedna valve 3/4 inch via wifi
 model 3151 = VA4200ZB, sedna valve 3/4 inch via GT130, zigbee
 model 3153 = VA4220ZB, sedna 2e generation 3/4 inch, zigbee
@@ -711,6 +711,16 @@ class Neviweb130Valve(ValveEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
+        elif error_data == "ACCDAYREQMAX":
+            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+        elif error_data == "TimeoutError":
+            _LOGGER.warning("Timeout error detected...Retry later.")
+        elif error_data == "MAINTENANCE":
+            _LOGGER.warning("Access blocked for maintenance...Retry later.")
+            self.notify_ha(
+                f"Warning: Neviweb access temporary blocked for maintenance...Retry later."
+            )
+            self._client.reconnect()
         elif error_data == "ACCSESSEXC":
             _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
             self.notify_ha(
@@ -1040,12 +1050,14 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                    self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                    self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                    self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                    self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
-                    self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
-                    self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
+                    if ATTR_FLOW_ALARM_TIMER in device_data:
+                        self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
+                        if self._flowmeter_timer != 0:
+                            self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
+                            self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
+                            self._flowmeter_alarm_lenght = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                            self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
+                            self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                     if ATTR_BATT_PERCENT_NORMAL in device_data:
                         self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                     if ATTR_BATT_STATUS_NORMAL in device_data:
