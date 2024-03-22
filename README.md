@@ -69,6 +69,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé WL4210S,  water leak detector with sensor
   - Sinopé WL4210C,  perimeter cable water leak detector
   - Sinopé WL4210ZB, water leak detector
+  - Sinopé WL4200ZB, connected to Sedna valve
   - Sinopé ACT4220WF-M, VA4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
   - Sinopé ACT4220ZB-M, VA4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
   - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
