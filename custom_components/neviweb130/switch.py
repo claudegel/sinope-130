@@ -16,9 +16,6 @@ Interlock
 model 6000 = HP6000ZB-GE Gree compatible heat pump interface
 model 6000 = HP6000ZB-MA Midea compatible heat pump interface
 
-Door lock
-model 7000 = door lock
-
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
