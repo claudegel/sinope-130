@@ -190,7 +190,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     def set_sensor_alert_service(service):
-        """ Set different alert and action for water leak sensor """
+        """Set different alert and action for water leak sensor."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -201,7 +201,7 @@ async def async_setup_platform(
                 break
 
     def set_battery_type_service(service):
-        """ Set battery type for water leak sensor """
+        """Set battery type for water leak sensor."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -212,7 +212,7 @@ async def async_setup_platform(
                 break
 
     def set_tank_type_service(service):
-        """ Set tank type for fuel tank """
+        """Set tank type for fuel tank."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -223,7 +223,7 @@ async def async_setup_platform(
                 break
 
     def set_gauge_type_service(service):
-        """ Set gauge type for propane tank """
+        """Set gauge type for propane tank."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -234,7 +234,7 @@ async def async_setup_platform(
                 break
 
     def set_low_fuel_alert_service(service):
-        """ Set low fuel alert on tank, propane or oil """
+        """Set low fuel alert on tank, propane or oil."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -245,7 +245,7 @@ async def async_setup_platform(
                 break
 
     def set_tank_height_service(service):
-        """ Set tank height for oil tank """
+        """Set tank height for oil tank."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -256,7 +256,7 @@ async def async_setup_platform(
                 break
 
     def set_fuel_alert_service(service):
-        """ Set fuel alert for LM4110-ZB """
+        """Set fuel alert for LM4110-ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -267,7 +267,7 @@ async def async_setup_platform(
                 break
 
     def set_battery_alert_service(service):
-        """ Set battery alert for LM4110-ZB """
+        """Set battery alert for LM4110-ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for sensor in entities:
@@ -278,7 +278,7 @@ async def async_setup_platform(
                 break
 
     def set_activation_service(service):
-        """ Activate or deactivate Neviweb polling for missing device """
+        """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -531,7 +531,7 @@ class Neviweb130Sensor(Entity):
 
     @property  
     def leak_status(self):
-        """Return current sensor leak status: 'water' or 'ok' """
+        """Return current sensor leak status: 'water' or 'ok'."""
         return self._leak_status != None
 
     @property
@@ -578,7 +578,7 @@ class Neviweb130Sensor(Entity):
         return self._leak_status
 
     def set_sensor_alert(self, value):
-        """ Set water leak sensor alert and action """
+        """Set water leak sensor alert and action."""
         leak = value["leak"]
         batt = value["batt"]
         temp = value["temp"]
@@ -592,7 +592,7 @@ class Neviweb130Sensor(Entity):
         self._closure_action = close
 
     def set_battery_type(self, value):
-        """ Set battery type, alkaline or lithium for water leak sensor. """
+        """Set battery type, alkaline or lithium for water leak sensor."""
         batt = value["type"]
         entity = value["id"]
         self._client.set_battery_type(
@@ -600,7 +600,7 @@ class Neviweb130Sensor(Entity):
         self._battery_type = batt
 
     def set_activation(self, value):
-        """ Activate or deactivate neviweb polling for a missing device """
+        """Activate or deactivate neviweb polling for a missing device."""
         action = value["active"]
         self._activ = action
 
@@ -618,7 +618,7 @@ class Neviweb130Sensor(Entity):
         return True
 
     def log_error(self, error_data):
-        """ Send error message to LOG """
+        """Send error message to LOG."""
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
@@ -819,7 +819,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
-        """ update device """
+        """Update device."""
         if self._activ:
             MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_BATT_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
             start = time.time()
@@ -857,7 +857,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     @property  
     def level_status(self):
-        """Return current sensor fuel level status """
+        """Return current sensor fuel level status."""
         if self._fuel_alert:
             return  "OK"
         else:
@@ -896,7 +896,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 #        return convert_to_percent(self._angle, 10, 80)
 
     def set_tank_type(self, value):
-        """ Set tank type for LM4110-ZB sensor. """
+        """Set tank type for LM4110-ZB sensor."""
         tank = value["type"]
         entity = value["id"]
         self._client.set_tank_type(
@@ -904,7 +904,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._tank_type = tank
 
     def set_gauge_type(self, value):
-        """ Set gauge type for LM4110-ZB sensor. """
+        """Set gauge type for LM4110-ZB sensor."""
         gauge = str(value["gauge"])
         entity = value["id"]
         self._client.set_gauge_type(
@@ -912,7 +912,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._gauge_type = gauge
 
     def set_low_fuel_alert(self, value):
-        """ Set low fuel alert limit LM4110-ZB sensor. """
+        """Set low fuel alert limit LM4110-ZB sensor."""
         alert = value["low"]
         entity = value["id"]
         self._client.set_low_fuel_alert(
@@ -920,7 +920,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._fuel_percent_alert = alert
 
     def set_tank_height(self, value):
-        """ Set low fuel alert LM4110-ZB sensor. """
+        """Set low fuel alert LM4110-ZB sensor."""
         height = value["height"]
         entity = value["id"]
         self._client.set_tank_height(
@@ -928,7 +928,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._tank_height = height
 
     def set_fuel_alert(self, value):
-        """ Set low fuel alert LM4110-ZB sensor. """
+        """Set low fuel alert LM4110-ZB sensor."""
         fuel = value["fuel"]
         entity = value["id"]
         self._client.set_fuel_alert(
@@ -936,7 +936,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._fuel_alert = fuel
 
     def set_battery_alert(self, value):
-        """ Set low battery alert LM4110-ZB sensor. """
+        """Set low battery alert LM4110-ZB sensor."""
         batt = value["batt"]
         entity = value["id"]
         self._client.set_battery_alert(
@@ -967,7 +967,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
-        """ update device """
+        """Update device."""
         if self._activ:
             start = time.time()
             device_status = self._client.get_device_status(self._id)
@@ -981,7 +981,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     @property  
     def gateway_status(self):
-        """Return current gateway status: 'online' or 'offline' """
+        """Return current gateway status: 'online' or 'offline'."""
         return self._gateway_status != None
 
     @property
