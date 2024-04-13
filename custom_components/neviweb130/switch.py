@@ -88,6 +88,7 @@ from .const import (
     ATTR_INPUT_2_OFF_DELAY,
     ATTR_INPUT2_STATUS,
     ATTR_KEYPAD,
+    ATTR_LEAK_CLOSURE_CONFIG,
     ATTR_LEG_PROTEC_STATUS,
     ATTR_MIN_WATER_TEMP,
     ATTR_NAME_1,
@@ -287,7 +288,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     def set_switch_keypad_lock_service(service):
-        """ lock/unlock keypad device"""
+        """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -298,7 +299,7 @@ async def async_setup_platform(
                 break
 
     def set_switch_timer_service(service):
-        """ set timer for switch device"""
+        """Set timer for switch device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -309,7 +310,7 @@ async def async_setup_platform(
                 break
 
     def set_switch_timer2_service(service):
-        """ set timer for switch device"""
+        """Set timer for switch device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -320,7 +321,7 @@ async def async_setup_platform(
                 break
 
     def set_load_dr_options_service(service):
-        """ Set dr mode options for load controler """
+        """Set dr mode options for load controler."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -331,7 +332,7 @@ async def async_setup_platform(
                 break
 
     def set_control_onoff_service(service):
-        """ Set status of both onoff controler """
+        """Set status of both onoff controler."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -342,7 +343,7 @@ async def async_setup_platform(
                 break
 
     def set_tank_size_service(service):
-        """ Set water tank size for RM3500ZB """
+        """Set water tank size for RM3500ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -353,7 +354,7 @@ async def async_setup_platform(
                 break
 
     def set_controlled_device_service(service):
-        """ Set controlled device type for RM3250ZB """
+        """Set controlled device type for RM3250ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -364,7 +365,7 @@ async def async_setup_platform(
                 break
 
     def set_low_temp_protection_service(service):
-        """ Set water tank temperature protection for RM3500ZB """
+        """Set water tank temperature protection for RM3500ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -375,7 +376,7 @@ async def async_setup_platform(
                 break
 
     def set_input_output_names_service(service):
-        """ Set names for input 1 and 2, output 1 and 2 for MC3100ZB device. """
+        """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -386,7 +387,7 @@ async def async_setup_platform(
                 break
 
     def set_activation_service(service):
-        """ Activate or deactivate Neviweb polling for missing device """
+        """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -397,7 +398,7 @@ async def async_setup_platform(
                 break
 
     def set_remaining_time_service(service):
-        """ set coldLoadPickupRemainingTime value. """
+        """Set coldLoadPickupRemainingTime value."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -408,7 +409,7 @@ async def async_setup_platform(
                 break
 
     def set_on_off_input_delay_service(service):
-        """ Set input 1 or 2 on/off delay for MC3100ZB device. """
+        """Set input 1 or 2 on/off delay for MC3100ZB device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -510,7 +511,7 @@ def voltage_to_percentage(voltage, num):
         return int((min(voltage,6.0)-3.0)/(6.0-3.0) * 100)
 
 def alert_to_text(alert, value):
-    """Convert numeric alert activation to text"""
+    """Convert numeric alert activation to text."""
     if alert == 1:
         match value:
             case "bat":
@@ -543,7 +544,7 @@ def neviweb_to_ha_delay(value):
     return None
 
 def trigger_close(action, alarm):
-    """No action", "Close and send", "Close only", "Send only"""
+    """No action", "Close and send", "Close only", "Send only."""
     if action:
         if alarm:
             return "Close and send"
@@ -556,7 +557,7 @@ def trigger_close(action, alarm):
             return "No action"
 
 def L_2_sqm(value):
-    """convert liters valuer to cubic meter for water flow stat"""
+    """Convert liters valuer to cubic meter for water flow stat."""
     if value is not None:
         return value/1000
     else:
@@ -587,7 +588,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
 
 def remainig_time(time):
-    """ Convert time countdown for RM3500ZB """
+    """Convert time countdown for RM3500ZB."""
     if time == 65535:
         return "off"
     return time
@@ -680,7 +681,7 @@ class Neviweb130Switch(SwitchEntity):
 
     @property  
     def is_on(self):
-        """Return current operation i.e. ON, OFF """
+        """Return current operation i.e. ON, OFF."""
         return self._onoff != MODE_OFF
 
     def turn_on(self, **kwargs):
@@ -695,7 +696,7 @@ class Neviweb130Switch(SwitchEntity):
 
     @property  
     def keypad_status(self):
-        """Return current keypad status, unlocked, locked or partially locked"""
+        """Return current keypad status, unlocked, locked or partially locked."""
         if self._keypad != None:
             return lock_to_ha(self._keypad)
         return False
@@ -764,7 +765,7 @@ class Neviweb130Switch(SwitchEntity):
         self._keypad = lock
 
     def set_timer(self, value):
-        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        """Set device timer, 0 = off, 1 to 255 = timer length."""
         time = value["time"]
         entity = value["id"]
         self._client.set_timer(
@@ -772,7 +773,7 @@ class Neviweb130Switch(SwitchEntity):
         self._timer = time
 
     def set_timer2(self, value):
-        """Set device timer 2 for Multi controller, 0 = off, 1 to 255 = timer length"""
+        """Set device timer 2 for Multi controller, 0 = off, 1 to 255 = timer length."""
         time = value["time"]
         entity = value["id"]
         self._client.set_timer2(
@@ -780,7 +781,7 @@ class Neviweb130Switch(SwitchEntity):
         self._timer2 = time
 
     def set_load_dr_options(self, value):
-        """ set load controler Éco Sinopé attributes """
+        """Set load controler Éco Sinopé attributes."""
         entity = value["id"]
         onoff = value["onoff"]
         optout = value["droptout"]
@@ -792,7 +793,7 @@ class Neviweb130Switch(SwitchEntity):
         self._drstatus_onoff = onoff
 
     def set_tank_size(self, value):
-        """ set water tank size for RM3500ZB Calypso controler. """
+        """Set water tank size for RM3500ZB Calypso controler."""
         entity = value["id"]
         val = value["val"]
         size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == val][0]
@@ -801,7 +802,7 @@ class Neviweb130Switch(SwitchEntity):
         self._tank_size = size
 
     def set_controlled_device(self, value):
-        """ set device name controlled by RM3250ZB load controler. """
+        """Set device name controlled by RM3250ZB load controler."""
         entity = value["id"]
         val = value["val"]
         tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
@@ -810,7 +811,7 @@ class Neviweb130Switch(SwitchEntity):
         self._controlled_device = tipe
 
     def set_low_temp_protection(self, value):
-        """ Set water temperature protection for Calypso """
+        """Set water temperature protection for Calypso."""
         temp = value["val"]
         entity = value["id"]
         self._client.set_low_temp_protection(
@@ -818,19 +819,19 @@ class Neviweb130Switch(SwitchEntity):
         self._water_temp_min = temp
 
     def set_activation(self, value):
-        """ Activate or deactivate neviweb polling for a missing device """
+        """Activate or deactivate neviweb polling for a missing device."""
         action = value["active"]
         self._activ = action
 
     def set_remaining_time(self, value):
-        """ set coldLoadPickupRemainingTime value."""
+        """Set coldLoadPickupRemainingTime value."""
         time = value["time"]
         entity = value["id"]
         self._client.set_remaining_time(entity, time)
         self._cold_load_remaining_time = time
 
     def set_on_off_input_delay(self, value):
-        """ set input 1 or 2 on/off delay in seconds"""
+        """Set input 1 or 2 on/off delay in seconds."""
         entity = value["id"]
         val = value["delay"]
         onoff = value["onoff"]
@@ -851,7 +852,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._input_2_off_delay = delay
 
     def set_input_output_names(self, value):
-        """ Set names for input 1 and 2, output 1 and 2 for MC3100ZB device. """
+        """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         if len(value["input1"]) > 0:
             in_1 = value["input1"]
         else:
@@ -876,7 +877,7 @@ class Neviweb130Switch(SwitchEntity):
         self._output_name_2 = out_2
 
     def do_stat(self, start):
-        """ Get device energy statistic """
+        """Get device energy statistic."""
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
 #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
@@ -904,7 +905,7 @@ class Neviweb130Switch(SwitchEntity):
             self._energy_stat_time = start
 
     def log_error(self, error_data):
-        """ Send error message to LOG """
+        """Send error message to LOG."""
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
@@ -1249,6 +1250,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_temp_min = None
         self._water_temp_time = None
         self._water_leak_disconected_status = None
+        self._water_leak_closure_conf = None
         self._water_tank_on = None
         self._water_leak_status = None
         self._tank_size = None
@@ -1273,7 +1275,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     def update(self):
         if self._activ:
             LOAD_ATTRIBUTES = [ATTR_WATER_LEAK_ALARM_STATUS, ATTR_WATER_TEMPERATURE, ATTR_WATER_LEAK_DISCONECTED_STATUS, ATTR_ERROR_CODE_SET1, ATTR_WIFI_WATTAGE, ATTR_WIFI_WATT_NOW, ATTR_COLD_LOAD_PICKUP_STATUS, ATTR_TANK_SIZE, ATTR_MIN_WATER_TEMP, ATTR_WATER_TANK_ON,
-                ATTR_WATER_TEMP_TIME, ATTR_WIFI, ATTR_DRSTATUS, ATTR_LEG_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_SYSTEM_MODE, ATTR_COLD_LOAD_PICKUP_TEMP, ATTR_AWAY_ACTION]
+                ATTR_WATER_TEMP_TIME, ATTR_WIFI, ATTR_DRSTATUS, ATTR_LEG_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_SYSTEM_MODE, ATTR_COLD_LOAD_PICKUP_TEMP, ATTR_LEAK_CLOSURE_CONFIG, ATTR_AWAY_ACTION]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
@@ -1312,6 +1314,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_temp_min = device_data[ATTR_MIN_WATER_TEMP]
                     self._water_tank_on = device_data[ATTR_WATER_TANK_ON]
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
+                    self._water_leak_closure_conf = device_data[ATTR_LEAK_CLOSURE_CONFIG]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1333,6 +1336,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'Wattage_instant': self._current_power_w,
                'Water_leak_status': self._water_leak_status,
                'Water_leak_disconect_status': self._water_leak_disconected_status,
+               'Water_leak_closure_config': self._water_leak_closure_conf,
                'Water_temperature': self._water_temp,
                'Cold_load_pickup_status': self._cold_load_status,
                'Cold_load_remaining_time': remainig_time(self._cold_load_remaining_time),
