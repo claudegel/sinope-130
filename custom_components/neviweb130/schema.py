@@ -51,6 +51,7 @@ from .const import (
     ATTR_KEYPAD,
     ATTR_LEAK_ALERT,
     ATTR_LIGHT_WATTAGE,
+    ATTR_MODE,
     ATTR_NAME_1,
     ATTR_NAME_2,
     ATTR_ONOFF,
@@ -79,7 +80,7 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
 )
 
-""" Default parameters values """
+"""Default parameters values."""
 
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
@@ -95,7 +96,7 @@ LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 FANSPEED = {"high", "medium", "low", "auto", "off"}
 
-""" Config schema """
+"""Config schema."""
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -114,7 +115,7 @@ CONFIG_SCHEMA = vol.Schema({
     extra=vol.ALLOW_EXTRA,
 )
 
-""" Climate schema """
+"""Climate schema."""
 
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
@@ -135,6 +136,13 @@ SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
+    }
+)
+
+SET_EM_HEAT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_VALUE): vol.In(["on", "off"]),
     }
 )
 
@@ -300,7 +308,7 @@ SET_SENSOR_TYPE_SCHEMA = vol.Schema(
     }
 )
 
-""" light schema"""
+"""light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
@@ -362,7 +370,7 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
     }
 )
     
-"""" Switch schema """
+""""Switch schema."""
 
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
@@ -515,7 +523,7 @@ SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema(
     }
 )
 
-""" Sensor schema """
+"""Sensor schema."""
 
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
     {
