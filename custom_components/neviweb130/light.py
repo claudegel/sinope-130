@@ -154,7 +154,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     def set_light_keypad_lock_service(service):
-        """ lock/unlock keypad device"""
+        """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -165,7 +165,7 @@ async def async_setup_platform(
                 break
 
     def set_light_timer_service(service):
-        """ set timer for light device"""
+        """Set timer for light device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -176,7 +176,7 @@ async def async_setup_platform(
                 break
 
     def set_led_indicator_service(service):
-        """ set led color and intensity for light indicator """
+        """Set led color and intensity for light indicator."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -187,7 +187,7 @@ async def async_setup_platform(
                 break
 
     def set_wattage_service(service):
-        """ set watt load for light device"""
+        """Set watt load for light device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -198,7 +198,7 @@ async def async_setup_platform(
                 break
 
     def set_phase_control_service(service):
-        """ Change phase control mode for dimmer device"""
+        """Change phase control mode for dimmer device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -209,7 +209,7 @@ async def async_setup_platform(
                 break
 
     def set_activation_service(service):
-        """ Activate or deactivate Neviweb polling for missing device """
+        """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -220,7 +220,7 @@ async def async_setup_platform(
                 break
 
     def set_key_double_up_service(service):
-        """ Change key double up action for dimmer device"""
+        """Change key double up action for dimmer device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for light in entities:
@@ -386,7 +386,7 @@ class Neviweb130Light(LightEntity):
 
     @property
     def color_mode(self):
-        """ Set ColorMode """
+        """Set ColorMode."""
         if self._is_dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
@@ -435,7 +435,7 @@ class Neviweb130Light(LightEntity):
 
     @property
     def brightness(self):
-        """Return intensity of light"""
+        """Return intensity of light."""
         return brightness_from_percentage(self._brightness_pct)
 
     @property
@@ -467,7 +467,7 @@ class Neviweb130Light(LightEntity):
         self._onoff = MODE_OFF
 
     def set_phase_control(self, value):
-        """Change phase control parameter, reverse or forward """
+        """Change phase control parameter, reverse or forward."""
         phase = value["phase"]
         entity = value["id"]
         self._client.set_phase(
@@ -475,7 +475,7 @@ class Neviweb130Light(LightEntity):
         self._phase_control = phase
 
     def set_keypad_lock(self, value):
-        """Lock, unlock or partially lock device's keypad, lock = locked, unlock = unlocked, partiallyLocked = partial lock"""
+        """Lock, unlock or partially lock device's keypad, lock = locked, unlock = unlocked, partiallyLocked = partial lock."""
         lock = value["lock"]
         entity = value["id"]
         self._client.set_keypad_lock(
@@ -483,7 +483,7 @@ class Neviweb130Light(LightEntity):
         self._keypad = lock
 
     def set_timer(self, value):
-        """Set device timer, 0 = off, 1 to 255 = timer length"""
+        """Set device timer, 0 = off, 1 to 255 = timer length."""
         time = value["time"]
         entity = value["id"]
         self._client.set_timer(
@@ -491,7 +491,7 @@ class Neviweb130Light(LightEntity):
         self._timer = time
 
     def set_led_indicator(self, value):
-        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100"""
+        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
         state = value["state"]
         entity = value["id"]
         intensity = value["intensity"]
@@ -506,7 +506,7 @@ class Neviweb130Light(LightEntity):
             self._led_on = str(value["intensity"])+","+str(value["red"])+","+str(value["green"])+","+str(value["blue"])
 
     def set_wattage(self, value):
-        """Set light device watt load """
+        """Set light device watt load."""
         watt = value["watt"]
         entity = value["id"]
         self._client.set_wattage(
@@ -514,12 +514,12 @@ class Neviweb130Light(LightEntity):
         self._wattage = watt
 
     def set_activation(self, value):
-        """ Activate or deactivate neviweb polling for a missing device """
+        """Activate or deactivate neviweb polling for a missing device."""
         action = value["active"]
         self._activ = action
 
     def set_key_double_up(self, value):
-        """Change key double up action """
+        """Change key double up action."""
         double = value["double"]
         entity = value["id"]
         self._client.set_double_up(
@@ -527,7 +527,7 @@ class Neviweb130Light(LightEntity):
         self._double_up = double
 
     def do_stat(self, start):
-        """ Get device energy statistic """
+        """Get device energy statistic."""
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
 #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
@@ -555,7 +555,7 @@ class Neviweb130Light(LightEntity):
             self._energy_stat_time = start
 
     def log_error(self, error_data):
-        """ Send error message to LOG """
+        """Send error message to LOG."""
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()

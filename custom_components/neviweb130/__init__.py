@@ -117,7 +117,7 @@ from .schema import (
     HOMEKIT_MODE,
     STAT_INTERVAL,
 )
-VERSION = '2.7.2'
+VERSION = '2.7.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -544,7 +544,7 @@ class Neviweb130Client(object):
 
     def set_setpoint_mode(self, device_id, mode, wifi):
         """Set thermostat operation mode."""
-        """ Work differently for wifi and zigbee devices. """
+        """Work differently for wifi and zigbee devices."""
         if wifi:
             if mode in [HVACMode.HEAT, MODE_MANUAL]:
                 mode = MODE_MANUAL
@@ -555,7 +555,7 @@ class Neviweb130Client(object):
 
     def set_occupancy_mode(self, device_id, mode, wifi):
         """Set thermostat preset mode."""
-        """ Work differently for wifi and zigbee devices. """
+        """Work differently for wifi and zigbee devices."""
         if wifi:
             if mode in [PRESET_AWAY, PRESET_HOME]:
                 data = {ATTR_OCCUPANCY: mode}
@@ -569,8 +569,8 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_backlight(self, device_id, level, device):
-        """ Set backlight intensity when idle, on or auto """
-        """ Work differently for wifi and zigbee devices """
+        """Set backlight intensity when idle, on or auto."""
+        """Work differently for wifi and zigbee devices."""
         if device == "wifi":
             data = {ATTR_BACKLIGHT_AUTO_DIM: level}
         else:
@@ -630,7 +630,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_floor_air_limit(self, device_id, status, temp):
-        """ Set device maximum air temperature limit. """
+        """Set device maximum air temperature limit."""
         if temp == 0:
             temp = None
         data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
@@ -644,7 +644,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_air_floor_mode(self, device_id, mode):
-        """switch temperature control between floor and ambiant sensor."""
+        """Switch temperature control between floor and ambiant sensor."""
         data = {ATTR_FLOOR_MODE: mode}
         _LOGGER.debug("floor_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -674,19 +674,19 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_aux_cycle_output(self, device_id, status, val):
-        """set low voltage thermostat aux cycle status and length."""
+        """Set low voltage thermostat aux cycle status and length."""
         data = {ATTR_CYCLE_OUTPUT2:{"status":status,"value":val}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_cycle_output(self, device_id, val):
-        """set low voltage thermostat main cycle length."""
+        """Set low voltage thermostat main cycle length."""
         data = {ATTR_CYCLE:val}
         _LOGGER.debug("Cycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_tank_size(self, device_id, val):
-        """set water heater tank size for RM3500ZB."""
+        """Set water heater tank size for RM3500ZB."""
         data = {ATTR_TANK_SIZE:val}
         _LOGGER.debug("TankSize.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -698,24 +698,24 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_sensor_type(self, device_id, val):
-        """set floor sensor type 10k, 12k."""
+        """Set floor sensor type 10k, 12k."""
         data = {ATTR_FLOOR_SENSOR:val, ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0}}
         _LOGGER.debug("sensor.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_low_temp_protection(self, device_id, val):
-        """set water heater temperature protection for RM3500ZB."""
+        """Set water heater temperature protection for RM3500ZB."""
         data = {ATTR_WATER_TEMP_MIN:val}
         _LOGGER.debug("Low temp protection.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_controlled_device(self, device_id, val):
-        """set device name controlled by RM3250ZB."""
+        """Set device name controlled by RM3250ZB."""
         data = {ATTR_CONTROLLED_DEVICE:val}
         _LOGGER.debug("ControlledDevice.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat(self, device_id, heat, low, sec):
+    def set_em_heat(self, device_id, heat, low, sec):
         """Set floor, low voltage, wifi floor and low voltage wifi thermostats auxiliary heat slave/off or on/off."""
         if low == "voltage":
             data = {ATTR_CYCLE_OUTPUT2:{"status":heat,"value":sec}}
@@ -723,11 +723,11 @@ class Neviweb130Client(object):
             data = {ATTR_AUX_CYCLE: heat}
         else:
             data = {ATTR_FLOOR_AUX: heat}
-        _LOGGER.debug("aux_heat.data = %s", data)
+        _LOGGER.debug("em_heat.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_floor_limit(self, device_id, level, low, wifi):
-        """Set floor setpoint limit low and high for zigbee and wifi thermostats. (0 = off)"""
+        """Set floor setpoint limit low and high for zigbee and wifi thermostats. (0 = off)."""
         if level == 0:
             if wifi:
                 if low == "low":
@@ -755,7 +755,7 @@ class Neviweb130Client(object):
 
     def set_pump_protection(self, device_id, status, wifi):
         """Set low voltage thermostat pump protection status."""
-        """ Work differently for wifi and zigbee devices. """
+        """Work differently for wifi and zigbee devices."""
         if wifi:
             data = {ATTR_PUMP_PROTEC: status}
         else:
@@ -767,7 +767,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_flow_meter_model(self, device_id, model):
-        """ Set flow meter model connected to the Sedna valve 2e gen """
+        """Set flow meter model connected to the Sedna valve 2e gen."""
         if model == "FS4221":
             data = {ATTR_FLOW_METER_CONFIG:{"multiplier":9887,"offset":87372,"divisor":1},ATTR_FLOW_ENABLED: True}
         elif model == "FS4220":
@@ -778,19 +778,19 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_flow_meter_delay(self, device_id, delay):
-        """ Set flow meter delay before alarm is activated on Sedna valve 2e gen """
+        """Set flow meter delay before alarm is activated on Sedna valve 2e gen."""
         data = {ATTR_FLOW_ALARM1_PERIOD:delay}
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
-        """ Set flow meter options when leak alarm is activated on Sedna valve 2e gen """
+        """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
         data = {ATTR_FLOW_ALARM1_OPTION:{"triggerAlarm":alarm,"closeValve":action},ATTR_FLOW_ALARM1_LENGHT:lenght,ATTR_FLOW_THRESHOLD:threshold}
         _LOGGER.debug("Flowmeter options.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
-        """Set devive led indicator intensity and color for on and off state"""
+        """Set devive led indicator intensity and color for on and off state."""
         if state == 1:
             data = {ATTR_LED_ON_COLOR:{"red":red,"green":green,"blue":blue}}
             self.set_device_attributes(device_id, data)
@@ -811,7 +811,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_auxiliary_load(self, device_id, status, load):
-        """ Set auxiliary output load in watt. """
+        """Set auxiliary output load in watt."""
         data = {ATTR_FLOOR_OUTPUT2:{"status":status,"value":load}}
         _LOGGER.debug("auxiliary_load.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -841,19 +841,19 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_load_dr_options(self, device_id, onoff, optout, dr):
-        """ Set load controler Eco Sinope attributes """
+        """Set load controler Eco Sinope attributes."""
         data = {ATTR_DRSTATUS:{"drActive":dr,"optOut":optout,"onOff":onoff}}
         _LOGGER.debug("Load.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_options(self, device_id, dr, optout, setpoint):
-        """ Set load controler Eco Sinope attributes """
+        """Set load controler Eco Sinope attributes."""
         data = {ATTR_DRSTATUS:{"drActive":dr,"optOut":optout,"setpoint":setpoint}}
         _LOGGER.debug("hvac.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_setpoint(self, device_id, status, val):
-        """ Set load controler Eco Sinope attributes """
+        """Set load controler Eco Sinope attributes."""
         data = {ATTR_DRSETPOINT:{"status":status,"value":val}}
         _LOGGER.debug("hvac.DR.setpoint = %s", data)
         self.set_device_attributes(device_id, data)
@@ -910,7 +910,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
-        """ set input 1 or 2 on/off delay in seconds"""
+        """Set input 1 or 2 on/off delay in seconds."""
         if inputnumber == 1:
             match onoff:
                 case "on":
@@ -927,7 +927,7 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_input_output_names(self, device_id, in1, in2, out1, out2):
-        """ Set names for input 1 and 2, output 1 and 2 for MC3100ZB device. """
+        """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         data = {}
         if len(in1) > 0:
             data.update({ATTR_NAME_1: in1})
@@ -949,12 +949,14 @@ class Neviweb130Client(object):
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
+        """Ser devices attributes."""
         result = 1
         while result < 4:
             try:
                 resp = requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
                     json=data, headers=self._headers, cookies=self._cookies,
                     timeout=self._timeout)
+                _LOGGER.debug("request = %s%s%s %s", DEVICE_DATA_URL, str(device_id), "/attribute", data)
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Request response = %s", resp.status_code)
                 _LOGGER.debug("Json Data received= %s", resp.json())

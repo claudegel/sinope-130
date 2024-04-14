@@ -593,3 +593,12 @@ set_on_off_input_delay:
     delay:
       description: set delay to "off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "45 min", "1 h", "2 h", "3 h".
       example: "10 min"
+
+set_em_heat:
+  description: Turn emergency heat on.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat device.
+      example: "climate.neviweb130_climate_office_floor"
+    value:
+      description: Set to «on» or «off» to turn_on or turn_off emergency heat.

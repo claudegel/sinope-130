@@ -238,7 +238,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     def set_valve_alert_service(service):
-        """ Set alert for water valve """
+        """Set alert for water valve."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -249,7 +249,7 @@ async def async_setup_platform(
                 break
 
     def set_valve_temp_alert_service(service):
-        """ Set alert for water valve temperature location """
+        """Set alert for water valve temperature location."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -260,7 +260,7 @@ async def async_setup_platform(
                 break
 
     def set_flow_meter_model_service(service):
-        """ Set the flow meter model connected to water valve """
+        """Set the flow meter model connected to water valve."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -271,7 +271,7 @@ async def async_setup_platform(
                 break
 
     def set_flow_meter_delay_service(service):
-        """ Set the flow meter delay before alert is turned on """
+        """Set the flow meter delay before alert is turned on."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -282,7 +282,7 @@ async def async_setup_platform(
                 break
 
     def set_flow_meter_options_service(service):
-        """ Set the flow meter options when leak is detected """
+        """Set the flow meter options when leak is detected."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -293,7 +293,7 @@ async def async_setup_platform(
                 break
 
     def set_power_supply_service(service):
-        """ Set power supply type for water valve """
+        """Set power supply type for water valve."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -304,7 +304,7 @@ async def async_setup_platform(
                 break
 
     def set_activation_service(service):
-        """ Activate or deactivate Neviweb polling for missing device """
+        """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -372,7 +372,7 @@ def voltage_to_percentage(voltage, num):
         return int((min(voltage,6.0)-3.0)/(6.0-3.0) * 100)
 
 def alert_to_text(alert, value):
-    """Convert numeric alert activation to text"""
+    """Convert numeric alert activation to text."""
     if alert == 1:
         match value:
             case "bat":
@@ -387,13 +387,14 @@ def alert_to_text(alert, value):
                 return "Off"
 
 def neviweb_to_ha_delay(value):
+    """Convert Neviweb values to HA vaues."""
     keys = [k for k, v in HA_TO_NEVIWEB_DELAY.items() if v == value]
     if keys:
         return keys[0]
     return None
 
 def trigger_close(action, alarm):
-    """No action", "Close and send", "Close only", "Send only"""
+    """No action", "Close and send", "Close only", "Send only."""
     if action:
         if alarm:
             return "Close and send"
@@ -406,7 +407,7 @@ def trigger_close(action, alarm):
             return "No action"
 
 def L_2_sqm(value):
-    """convert liters valuer to cubic meter for water flow stat"""
+    """Convert liters valuer to cubic meter for water flow stat."""
     if value is not None:
         return round(value/1000, 5)
     else:
@@ -524,17 +525,17 @@ class Neviweb130Valve(ValveEntity):
 
     @property  
     def is_open(self):
-        """Return current operation i.e. OPEN, CLOSED """
+        """Return current operation i.e. OPEN, CLOSED."""
         return self._onoff != MODE_OFF
 
     @property  
     def is_closed(self):
-        """Return current operation i.e. ON, OFF """
+        """Return current operation i.e. ON, OFF."""
         return self._onoff == MODE_OFF
 
     @property  
     def reports_position(self):
-        """Return current position True or False """
+        """Return current position True or False."""
         return self._reports_position
 
     def open_valve(self, **kwargs):
@@ -561,7 +562,7 @@ class Neviweb130Valve(ValveEntity):
 
     @property  
     def valve_status(self):
-        """Return current valve status, open or closed"""
+        """Return current valve status, open or closed."""
         return self._valve_status != None
 
     @property
@@ -601,7 +602,7 @@ class Neviweb130Valve(ValveEntity):
         return voltage_to_percentage(self._battery_voltage, type)
 
     def set_valve_alert(self, value):
-        """ Set valve batt alert action"""
+        """Set valve batt alert action."""
         if self._is_zb_valve or self._is_zb_mesh_valve:
             if value["batt"] == "true":
                 batt = 1
@@ -615,7 +616,7 @@ class Neviweb130Valve(ValveEntity):
         self._battery_alert = batt
 
     def set_valve_temp_alert(self, value):
-        """ Set valve temperature alert action """
+        """Set valve temperature alert action."""
         temp = value["temp"]
         entity = value["id"]
         self._client.set_valve_temp_alert(
@@ -623,14 +624,14 @@ class Neviweb130Valve(ValveEntity):
         self._temp_alert = temp
 
     def set_flow_meter_model(self, value):
-        """ Set water valve flow meter model connected """
+        """Set water valve flow meter model connected."""
         model = value["model"]
         entity = value["id"]
         self._client.set_flow_meter_model(entity, model)
         self._flowmeter_model = model
 
     def set_flow_meter_delay(self, value):
-        """ Set water valve flow meter delay befor alert """
+        """Set water valve flow meter delay befor alert."""
         val = value["delay"]
         delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
         entity = value["id"]
@@ -638,7 +639,7 @@ class Neviweb130Valve(ValveEntity):
         self._flowmeter_alert_delay = val
 
     def set_power_supply(self, value):
-        """ Set water valve power supply type """
+        """Set water valve power supply type."""
         match value["supply"]:
             case "batt":
                 sup = "batteries"
@@ -651,7 +652,7 @@ class Neviweb130Valve(ValveEntity):
         self._power_supply = sup
 
     def set_flow_meter_options(self, value):
-        """ Set water valve flow meter options when leak detected """
+        """Set water valve flow meter options when leak detected."""
         if value["alarm"] == "on":
             alarm = True
         else:
@@ -674,12 +675,12 @@ class Neviweb130Valve(ValveEntity):
         self._flowmeter_alarm_lenght = lenght
 
     def set_activation(self, value):
-        """ Activate or deactivate neviweb polling for a missing device """
+        """Activate or deactivate neviweb polling for a missing device."""
         action = value["active"]
         self._activ = action
 
     def do_stat(self, start):
-        """ Get device energy statistic """
+        """Get device energy statistic."""
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
 #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
@@ -707,7 +708,7 @@ class Neviweb130Valve(ValveEntity):
             self._energy_stat_time = start
 
     def log_error(self, error_data):
-        """ Send error message to LOG """
+        """Send error message to LOG."""
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
             self._client.reconnect()
