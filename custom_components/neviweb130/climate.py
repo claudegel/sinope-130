@@ -624,10 +624,10 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                if service.data[ATTR_VALUE][0] == "on":
-                    thermostat.turn_em_heat_on(entity_id)
+                if service.data[ATTR_VALUE] == "on":
+                    thermostat.turn_em_heat_on()
                 else:
-                    thermostat.turn_em_heat_off(entity_id)
+                    thermostat.turn_em_heat_off()
                 thermostat.schedule_update_ha_state(True)
                 break
 
