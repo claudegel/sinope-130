@@ -1300,7 +1300,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                        self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
+#                        self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
                     self._current_power_w = device_data[ATTR_WIFI_WATT_NOW]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
