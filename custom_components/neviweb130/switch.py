@@ -8,7 +8,7 @@ load controler
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A
-model 2150 = Calypso load controller for water heater, RM3500WF 20,8A wifi
+model 2152 = Calypso load controller for water heater, RM3500WF 20,8A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
@@ -221,7 +221,7 @@ SUPPORTED_WIFI_MODES = [
     MODE_OFF,
 ]
 
-IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2150]
+IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152]
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
