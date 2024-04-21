@@ -8,7 +8,7 @@ load controler
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A
-model 2150 = Calypso load controller for water heater, RM3500WF 20,8A wifi
+model 2152 = Calypso load controller for water heater, RM3500WF 20,8A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
@@ -221,7 +221,7 @@ SUPPORTED_WIFI_MODES = [
     MODE_OFF,
 ]
 
-IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2150]
+IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152]
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
@@ -1242,7 +1242,9 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_onoff = "off"
-        self._drstatus_optout_reason = "off"
+        self._drstatus_power_abs = "off"
+        self._drstatus_power_rel = "off"
+        self._drstatus_setpoint = "off"
         self._cold_load_status = None
         self._cold_load_remaining_time = 0
         self._cold_load_temp = None
@@ -1262,9 +1264,12 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._j3connector = None
         self._line_error = None
         self._rssi = None
-        self._leg_status = None
+        self._leg_status_temp = None
+        self._leg_status_consumption = None
+        self._leg_status_over_time = None
         self._mode = None
         self._away_action = None
+        self._away_payload = None
         self._is_wifi_tank_load = device_info["signature"]["model"] in \
             IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
@@ -1300,17 +1305,22 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                        self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
-                    self._current_power_w = device_data[ATTR_WIFI_WATT_NOW]
-                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                        self._drstatus_power_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
+                        self._drstatus_power_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
+                        self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
+                    self._current_power_w = device_data[ATTR_WIFI_WATT_NOW]["value"]
+                    self._wattage = device_data[ATTR_WIFI_WATTAGE]["value"]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
                     self._cold_load_temp = device_data[ATTR_COLD_LOAD_PICKUP_TEMP]
                     self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
                     self._rssi = device_data[ATTR_WIFI]
                     self._mode = device_data[ATTR_SYSTEM_MODE]
                     self._tank_size = device_data[ATTR_TANK_SIZE]
-                    self._away_action = device_data[ATTR_AWAY_ACTION]
-                    self._leg_status = device_data[ATTR_LEG_PROTEC_STATUS]
+                    self._away_action = device_data[ATTR_AWAY_ACTION]["action"]
+                    self._away_payload = device_data[ATTR_AWAY_ACTION]["actionPayload"]
+                    self._leg_status_temp = device_data[ATTR_LEG_PROTEC_STATUS]["temperature"]
+                    self._leg_status_consumption = device_data[ATTR_LEG_PROTEC_STATUS]["consumption"]
+                    self._leg_status_over_time = device_data[ATTR_LEG_PROTEC_STATUS]["consumptionOverTime"]
                     self._water_temp_min = device_data[ATTR_MIN_WATER_TEMP]
                     self._water_tank_on = device_data[ATTR_WATER_TANK_ON]
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
@@ -1334,6 +1344,12 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         data.update({'onOff': self._onoff,
                'Wattage': self._wattage,
                'Wattage_instant': self._current_power_w,
+               'hourly_kwh_count': self._hour_energy_kwh_count,
+               'daily_kwh_count': self._today_energy_kwh_count,
+               'monthly_kwh_count': self._month_energy_kwh_count,
+               'hourly_kwh': self._hour_kwh,
+               'daily_kwh': self._today_kwh,
+               'monthly_kwh': self._month_kwh,
                'Water_leak_status': self._water_leak_status,
                'Water_leak_disconect_status': self._water_leak_disconected_status,
                'Water_leak_closure_config': self._water_leak_closure_conf,
@@ -1352,13 +1368,18 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'eco_status': self._drstatus_active,
                'eco_optOut': self._drstatus_optout,
                'eco_onoff': self._drstatus_onoff,
-               'eco_optout_reason': self._drstatus_optout_reason,
+               'eco_setpoint': self._drstatus_setpoint,
+               'eco_power_absolute': self._drstatus_power_abs,
+               'eco_power_relative': self._drstatus_power_rel,
                'Water_temp_min': self._water_temp_min,
                'Water_time_on': self._water_tank_on,
                'Water_temp_time': self._water_temp_time,
                'Away_action': self._away_action,
+               'Away_action_payload': self._away_payload,
                'Mode': self._mode,
-               'Leg_status': self._leg_status,
+               'Leg_status_temperature': self._leg_status_temp,
+               'Leg_status_consumption': self._leg_status_consumption,
+               'leg_status_consumption_over_time': self._leg_status_over_time,
                'Rssi': self._rssi,
                'sku': self._sku,
                'device_model': str(self._device_model),
