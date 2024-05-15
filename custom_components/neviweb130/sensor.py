@@ -538,28 +538,28 @@ class Neviweb130Sensor(Entity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update({'Leak_status': self._leak_status,
-                'Temperature': self._cur_temp,
-                'Temp_alarm': self._temp_status,
-                'Temperature_alert': self._temp_alert,
+        data.update({'leak_status': self._leak_status,
+                'temperature': self._cur_temp,
+                'temp_alarm': self._temp_status,
+                'temperature_alert': self._temp_alert,
                 'leak_alert': self._leak_alert,
-                'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
-                'Battery_voltage': self._battery_voltage,
-                'Battery_status': self._battery_status,
-                'Battery_percent_normalized': self._batt_percent_normal,
-                'Battery_status_normalized': self._batt_status_normal,
-                'Battery_alert': self._battery_alert,
-                'Battery_type': self._battery_type,
-                'Rssi': self._rssi})
+                'battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
+                'battery_voltage': self._battery_voltage,
+                'battery_status': self._battery_status,
+                'battery_percent_normalized': self._batt_percent_normal,
+                'battery_status_normalized': self._batt_status_normal,
+                'battery_alert': self._battery_alert,
+                'battery_type': self._battery_type,
+                'rssi': self._rssi})
         if self._is_new_leak:
-            data.update({'Data': self._data})
+            data.update({'data': self._data})
         data.update({'sku': self._sku,
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': "Activ" if self._activ else "Inactive",
+                    'activation': "Activ" if self._activ else "Inactive",
                     'device_type': self._device_type,
-                    'Id': str(self._id)})
+                    'id': str(self._id)})
         return data
 
     @property
@@ -763,28 +763,28 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update({'Leak_status': self._leak_status,
-                'Temperature': self._cur_temp,
-                'Temp_alarm': self._temp_status,
-                'Temperature_alert': self._temp_alert,
+        data.update({'leak_status': self._leak_status,
+                'temperature': self._cur_temp,
+                'temp_alarm': self._temp_status,
+                'temperature_alert': self._temp_alert,
                 'leak_alert': self._leak_alert,
-                'Battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
-                'Battery_voltage': self._battery_voltage,
-                'Battery_status': self._battery_status,
-                'Battery_percent_normalized': self._batt_percent_normal,
-                'Battery_status_normalized': self._batt_status_normal,
-                'Battery_alert': self._battery_alert,
-                'Battery_type': self._battery_type,
-                'Closure_action': self._closure_action})
+                'battery_level': voltage_to_percentage(self._battery_voltage, self._battery_type),
+                'battery_voltage': self._battery_voltage,
+                'battery_status': self._battery_status,
+                'battery_percent_normalized': self._batt_percent_normal,
+                'battery_status_normalized': self._batt_status_normal,
+                'battery_alert': self._battery_alert,
+                'battery_type': self._battery_type,
+                'closure_action': self._closure_action})
         if self._is_connected:
-            data.update({'Rssi': self._rssi})
+            data.update({'rssi': self._rssi})
         data.update({'sku': self._sku,
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': "Activ" if self._activ else "Inactive",
+                    'activation': "Activ" if self._activ else "Inactive",
                     'device_type': self._device_type,
-                    'Id': str(self._id)})
+                    'id': str(self._id)})
         return data
 
 class Neviweb130TankSensor(Neviweb130Sensor):
@@ -867,26 +867,26 @@ class Neviweb130TankSensor(Neviweb130Sensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update({'Gauge_angle': self._angle,
-                'Last_sampling_time': convert(self._sampling),
-                'Battery_level': voltage_to_percentage(self._battery_voltage, "lithium"),
-                'Battery_voltage': self._battery_voltage,
-                'Battery_alert': self._battery_alert,
-                'Tank_type': self._tank_type,
-                'Tank_height': self._tank_height,
-                'Tank_percent': self._tank_percent,
-                'Gauge_type': self._gauge_type,
-                'Fuel_alert': "OK" if self._fuel_alert else "Low",
-                'Fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
-                'Temperature': self._temperature,
-                'Rssi': self._rssi,
+        data.update({'gauge_angle': self._angle,
+                'last_sampling_time': convert(self._sampling),
+                'battery_level': voltage_to_percentage(self._battery_voltage, "lithium"),
+                'battery_voltage': self._battery_voltage,
+                'battery_alert': self._battery_alert,
+                'tank_type': self._tank_type,
+                'tank_height': self._tank_height,
+                'tank_percent': self._tank_percent,
+                'gauge_type': self._gauge_type,
+                'fuel_alert': "OK" if self._fuel_alert else "Low",
+                'fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
+                'temperature': self._temperature,
+                'rssi': self._rssi,
                 'sku': self._sku,
                 'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
-                'Activation': "Activ" if self._activ else "Inactive",
+                'activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
-                'Id': str(self._id)})
+                'id': str(self._id)})
         return data
 
     @property
@@ -993,14 +993,14 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update({'Gateway_status': self._gateway_status,
+        data.update({'gateway_status': self._gateway_status,
                 'neviweb_occupancyMode': self._occupancyMode,
                 'sku': self._sku,
                 'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
-                'Activation': "Activ" if self._activ else "Inactive",
+                'activation': "Activ" if self._activ else "Inactive",
                 'device_type': self._device_type,
-                'Neviweb_location': str(self._location),
-                'Id': str(self._id)})
+                'neviweb_location': str(self._location),
+                'id': str(self._id)})
         return data
