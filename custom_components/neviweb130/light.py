@@ -412,7 +412,7 @@ class Neviweb130Light(LightEntity):
         data = {}
         data.update({'wattage': self._wattage,
                     'wattage_status': self._wattage_status,
-                    'Temperature_status': self._temp_status,
+                    'temperature_status': self._temp_status,
                     'onOff': self._onoff,
                     'keypad': lock_to_ha(self._keypad),
                     'timer': self._timer,
@@ -429,7 +429,7 @@ class Neviweb130Light(LightEntity):
                     'device_model_cfg': self._device_model_cfg,
                     'rssi': self._rssi,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -689,10 +689,9 @@ class Neviweb130Dimmer(Neviweb130Light):
         data = {}
         data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
-               'Temperature_status': self._temp_status,
+               'temperature_status': self._temp_status,
                'wattage': self._wattage,
                'wattage_status': self._wattage_status,
-               'Temperature_status': self._temp_status,
                'onOff': self._onoff,
                'keypad': lock_to_ha(self._keypad),
                'timer': self._timer,
@@ -709,7 +708,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'rssi': self._rssi,
-               'Activation': self._activ,
+               'activation': self._activ,
                'id': str(self._id)})
         return data
 
@@ -796,9 +795,9 @@ class Neviweb130NewDimmer(Neviweb130Light):
         data = {}
         data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
-               'Temperature_status': self._temp_status,
+               'temperature_status': self._temp_status,
                'phase_control': self._phase_control,
-               'Double_up_Action': self._double_up,
+               'double_up_Action': self._double_up,
                'wattage': self._wattage,
                'onOff': self._onoff,
                'keypad': lock_to_ha(self._keypad),
@@ -816,6 +815,6 @@ class Neviweb130NewDimmer(Neviweb130Light):
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'rssi': self._rssi,
-               'Activation': self._activ,
+               'activation': self._activ,
                'id': str(self._id)})
         return data
