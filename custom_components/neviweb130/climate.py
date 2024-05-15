@@ -1019,7 +1019,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -1787,7 +1787,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                'device_model': str(self._device_model),
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
-               'Activation': self._activ,
+               'activation': self._activ,
                'id': str(self._id)})
         return data
 
@@ -2005,7 +2005,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
-                'Activation': self._activ,
+                'activation': self._activ,
                 'id': str(self._id)})
         return data
 
@@ -2222,7 +2222,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 'device_model': str(self._device_model),
                 'device_model_cfg': self._device_model_cfg,
                 'firmware': self._firmware,
-                'Activation': self._activ,
+                'activation': self._activ,
                 'id': str(self._id)})
         return data
 
@@ -2393,7 +2393,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -2592,7 +2592,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -2832,7 +2832,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -3056,7 +3056,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -3276,7 +3276,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -3464,6 +3464,6 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
