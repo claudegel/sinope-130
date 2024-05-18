@@ -65,7 +65,6 @@ from homeassistant.helpers import (
     service,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
@@ -314,7 +313,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN]
 
@@ -1595,7 +1594,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self._activ = False
             self._snooze = time.time()
             self.notify_ha(
-                f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
+                f"Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
             )
         elif error_data == "DVCERR":
             _LOGGER.warning("Device error for %s, service already activ: %s...(SKU: %s)", self._name, error_data, self._sku)
