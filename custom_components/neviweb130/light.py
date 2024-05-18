@@ -40,7 +40,6 @@ from homeassistant.helpers import (
     device_registry,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
@@ -119,7 +118,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
@@ -592,7 +591,7 @@ class Neviweb130Light(LightEntity):
             self._activ = False
             self._snooze = time.time()
             self.notify_ha(
-                f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
+                f"Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
             )
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, error_data, self._sku)
