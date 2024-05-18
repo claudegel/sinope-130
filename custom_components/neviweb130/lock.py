@@ -42,7 +42,6 @@ from homeassistant.helpers import (
     device_registry,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from datetime import timedelta
@@ -105,7 +104,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the Neviweb130 lock."""
     data = hass.data[DOMAIN]
 
@@ -324,9 +323,9 @@ class Neviweb130Lock(LockEntity):
         data = {}
         data.update({'lock_status': self._lock_status,
                     'door_state': self._door_state,
-                    'Battery_status': self._battery_status,
-                    'Battery_percent_normalized': self._batt_percent_normal,
-                    'Battery_status_normalized': self._batt_status_normal,
+                    'battery_status': self._battery_status,
+                    'battery_percent_normalized': self._batt_percent_normal,
+                    'battery_status_normalized': self._batt_status_normal,
                     'relock_time': self._relock_time,
                     'wrong_code': self._wrong_code,
                     'disable_time': self._disable_time,
