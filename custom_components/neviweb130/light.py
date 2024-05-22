@@ -40,7 +40,6 @@ from homeassistant.helpers import (
     device_registry,
 )
 
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
@@ -119,7 +118,7 @@ async def async_setup_platform(
     config,
     async_add_entities,
     discovery_info=None,
-):
+) -> None:
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
     
@@ -412,7 +411,7 @@ class Neviweb130Light(LightEntity):
         data = {}
         data.update({'wattage': self._wattage,
                     'wattage_status': self._wattage_status,
-                    'Temperature_status': self._temp_status,
+                    'temperature_status': self._temp_status,
                     'onOff': self._onoff,
                     'keypad': lock_to_ha(self._keypad),
                     'timer': self._timer,
@@ -429,7 +428,7 @@ class Neviweb130Light(LightEntity):
                     'device_model_cfg': self._device_model_cfg,
                     'rssi': self._rssi,
                     'firmware': self._firmware,
-                    'Activation': self._activ,
+                    'activation': self._activ,
                     'id': str(self._id)})
         return data
 
@@ -592,7 +591,7 @@ class Neviweb130Light(LightEntity):
             self._activ = False
             self._snooze = time.time()
             self.notify_ha(
-                f"Warning: Received message from Neviweb, device disconnected... Check you log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
+                f"Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
             )
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, error_data, self._sku)
@@ -689,10 +688,9 @@ class Neviweb130Dimmer(Neviweb130Light):
         data = {}
         data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
-               'Temperature_status': self._temp_status,
+               'temperature_status': self._temp_status,
                'wattage': self._wattage,
                'wattage_status': self._wattage_status,
-               'Temperature_status': self._temp_status,
                'onOff': self._onoff,
                'keypad': lock_to_ha(self._keypad),
                'timer': self._timer,
@@ -709,7 +707,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'rssi': self._rssi,
-               'Activation': self._activ,
+               'activation': self._activ,
                'id': str(self._id)})
         return data
 
@@ -796,9 +794,9 @@ class Neviweb130NewDimmer(Neviweb130Light):
         data = {}
         data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
-               'Temperature_status': self._temp_status,
+               'temperature_status': self._temp_status,
                'phase_control': self._phase_control,
-               'Double_up_Action': self._double_up,
+               'double_up_Action': self._double_up,
                'wattage': self._wattage,
                'onOff': self._onoff,
                'keypad': lock_to_ha(self._keypad),
@@ -816,6 +814,6 @@ class Neviweb130NewDimmer(Neviweb130Light):
                'device_model_cfg': self._device_model_cfg,
                'firmware': self._firmware,
                'rssi': self._rssi,
-               'Activation': self._activ,
+               'activation': self._activ,
                'id': str(self._id)})
         return data
