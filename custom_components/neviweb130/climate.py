@@ -1511,7 +1511,7 @@ class Neviweb130Thermostat(ClimateEntity):
             if device_error_code is not None and device_error_code != {}:
                 _LOGGER.warning("Error code set1 updated: %s",device_error_code)
                 if not self._is_hc and not self._is_HP:
-                    self._code_compensation_sensor = device_error_code["compensationSensor"]
+#                    self._code_compensation_sensor = device_error_code["compensationSensor"]
                     self._code_thermal_overload = device_error_code["thermalOverload"]
                 elif self._is_HP:
                     self._temp_probe = device_data[ATTR_ERROR_CODE_SET1]["internalTempSensor"]
