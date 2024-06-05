@@ -358,7 +358,8 @@ class Neviweb130Light(LightEntity):
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                     self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
@@ -664,7 +665,8 @@ class Neviweb130Dimmer(Neviweb130Light):
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                     self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
@@ -772,7 +774,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
                     self._wattage = device_data[ATTR_WATTAGE_INSTANT]
                     self._timer = device_data[ATTR_TIMER]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-#                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
                     self._rssi = device_data[ATTR_RSSI]
                     self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
                     self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
