@@ -24,6 +24,7 @@ model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no ene
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
 model 6811 = HP6000ZB-MA for Convectair heat pump with Midea connector
+model 6812 = HP6000ZB-xx for xxx
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -304,7 +305,7 @@ DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1134]
-DEVICE_MODEL_HEAT_PUMP = [6810, 6811]
+DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE + DEVICE_MODEL_HEAT_PUMP
 
 
@@ -948,7 +949,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
-#            self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -1509,52 +1510,53 @@ class Neviweb130Thermostat(ClimateEntity):
         if not self._is_wifi:
             device_error_code = self._client.get_device_sensor_error(self._id)
             if device_error_code is not None and device_error_code != {}:
-                _LOGGER.warning("Error code set1 updated: %s",device_error_code)
-                if not self._is_hc and not self._is_HP:
-                    self._code_compensation_sensor = device_error_code["compensationSensor"]
-                    self._code_thermal_overload = device_error_code["thermalOverload"]
-                elif self._is_HP:
-                    self._temp_probe = device_data[ATTR_ERROR_CODE_SET1]["internalTempSensor"]
-                    self._heat_pump_nocomm = device_data[ATTR_ERROR_CODE_SET1]["heatpumpNoComm"]
-                    self._thermal_sensor = device_data[ATTR_ERROR_CODE_SET1]["heatpumpThermalSensor"]
-                    self._heat_pump_unreacheable = device_data[ATTR_ERROR_CODE_SET1]["heatpumpUnreacheable"]
-                    self._inductive_mode = device_data[ATTR_ERROR_CODE_SET1]["inductiveMode"]
-                    self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                    self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                    self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                    self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
-                else:
-                    self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-                    self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-                    self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-                    self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                    self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                    self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                    self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
-                if self._is_floor and not self._is_wifi_floor:
-                    self._code_floor_sensor = device_error_code["floorSensor"]
-                    self._code_gfcibase = device_error_code["gfciBase"]
-                if self._is_low_voltage or self._is_double:
-                    self._code_air_sensor = device_error_code["airSensor"]
-                    self._code_floor_sensor = device_error_code["floorSensor"]
-                elif self._is_double:
-                    self._base = device_error_code["base"]
-                else:
-                    self._code_wire_sensor = device_error_code["wireSensor"]
-                    self._code_current_overload = device_error_code["currentOverload"]
-                    self._code_end_of_life = device_error_code["endOfLife"]
-                if self._is_gen2:
-                    self._air_top = device_error_code["airTopSensor"]
-                    self._air_bottom = device_error_code["airBottomSensor"]
-                    self._line_error = device_error_code["lineError"]
-                    self._inductive_mode = device_error_code["inductiveMode"]
-                else:
-                    self._code_air_sensor = device_error_code["airSensor"]
-                    self._code_load_error = device_error_code["loadError"]
-                    self._code_reference_sensor = device_error_code["referenceSensor"]
-                self._energy_stat_time = time.time()
-            if self._energy_stat_time == 0:
-                self._energy_stat_time = start
+                if device_error_code["raw"] != 0:
+                    _LOGGER.warning("Error code set1 updated: %s",device_error_code)
+                    if not self._is_hc and not self._is_HP:
+                        self._code_compensation_sensor = device_error_code["compensationSensor"]
+                        self._code_thermal_overload = device_error_code["thermalOverload"]
+                    elif self._is_HP:
+                        self._temp_probe = device_error_code["internalTempSensor"]
+                        self._heat_pump_nocomm = device_error_code["heatpumpNoComm"]
+                        self._thermal_sensor = device_error_code["heatpumpThermalSensor"]
+                        self._heat_pump_unreacheable = device_error_code["heatpumpUnreacheable"]
+                        self._inductive_mode = device_error_code["inductiveMode"]
+                        self._current_overload = device_error_code["currentOverload"]
+                        self._j2connector = device_error_code["j2Connector"]
+                        self._j3connector = device_error_code["j3Connector"]
+                        self._line_error = device_error_code["lineError"]
+                    else:
+                        self._temp_status = device_error_code["temperatureSensor"]
+                        self._stm_mcu = device_error_code["stm_mcu"]
+                        self._thermal_overload = device_error_code["thermalOverload"]
+                        self._current_overload = device_error_code["currentOverload"]
+                        self._j2connector = device_error_code["j2Connector"]
+                        self._j3connector = device_error_code["j3Connector"]
+                        self._line_error = device_error_code["lineError"]
+                    if self._is_floor and not self._is_wifi_floor:
+                        self._code_floor_sensor = device_error_code["floorSensor"]
+                        self._code_gfcibase = device_error_code["gfciBase"]
+                    if self._is_low_voltage or self._is_double:
+                        self._code_air_sensor = device_error_code["airSensor"]
+                        self._code_floor_sensor = device_error_code["floorSensor"]
+                    elif self._is_double:
+                        self._base = device_error_code["base"]
+                    else:
+                        self._code_wire_sensor = device_error_code["wireSensor"]
+                        self._code_current_overload = device_error_code["currentOverload"]
+                        self._code_end_of_life = device_error_code["endOfLife"]
+                    if self._is_gen2:
+                        self._air_top = device_error_code["airTopSensor"]
+                        self._air_bottom = device_error_code["airBottomSensor"]
+                        self._line_error = device_error_code["lineError"]
+                        self._inductive_mode = device_error_code["inductiveMode"]
+                    else:
+                        self._code_air_sensor = device_error_code["airSensor"]
+                        self._code_load_error = device_error_code["loadError"]
+                        self._code_reference_sensor = device_error_code["referenceSensor"]
+                    self._energy_stat_time = time.time()
+                if self._energy_stat_time == 0:
+                    self._energy_stat_time = start
 
     def log_error(self, error_data):
         """Send error message to LOG."""
@@ -1734,7 +1736,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
-#            self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -1940,7 +1942,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
-#            self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -2159,7 +2161,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
-#            self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -2343,7 +2345,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
- #           self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -2533,7 +2535,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
- #           self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -2759,7 +2761,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
- #           self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -2987,7 +2989,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
- #           self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3209,7 +3211,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             if self._sku != "FLP55":
                 self.do_stat(start)
-#            self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3410,7 +3412,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-#            self.get_sensor_error_code(start)
+            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
