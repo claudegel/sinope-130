@@ -1019,8 +1019,9 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
-                        self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
+                            self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
@@ -1135,13 +1136,14 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-#                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-#                        self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-#                        self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-#                        self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-#                        self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-#                        self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-#                        self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
+                            self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
+                            self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
+                            self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
+                            self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
+                            self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
+                            self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
@@ -1293,13 +1295,14 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_leak_disconected_status = device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-                        self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-                        self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-                        self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                        self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                        self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                        self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
+                            self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
+                            self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
+                            self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
+                            self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
+                            self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
+                            self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
