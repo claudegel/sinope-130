@@ -415,10 +415,9 @@ class Neviweb130Sensor(Entity):
         self._tank_height = None
         self._tank_percent = None
         self._gauge_type = None
-        self._temperature = None
-        self._data = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
+        self._error_code = None
         self._is_leak = device_info["signature"]["model"] in \
             IMPLEMENTED_SENSOR_MODEL or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
         self._is_connected = device_info["signature"]["model"] in \
@@ -472,7 +471,11 @@ class Neviweb130Sensor(Entity):
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if self._is_new_leak:
                             if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                                self._data = device_data[ATTR_ERROR_CODE_SET1]["data"]
+                                if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                                    self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                    self.notify_ha(
+                                        f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                                    )
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
@@ -551,7 +554,7 @@ class Neviweb130Sensor(Entity):
                 'battery_type': self._battery_type,
                 'rssi': self._rssi})
         if self._is_new_leak:
-            data.update({'data': self._data})
+            data.update({'error_code': self._error_code})
         data.update({'sku': self._sku,
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
@@ -692,8 +695,6 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._tank_height = None
         self._tank_percent = None
         self._gauge_type = None
-        self._temperature = None
-        self._data = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
         self._is_connected = device_info["signature"]["model"] in \
@@ -811,7 +812,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._fuel_percent_alert = None
         self._battery_alert = None
         self._battery_voltage = None
-        self._temperature = None
+        self._error_code = None
         self._rssi = None
         self._is_monitor = device_info["signature"]["model"] in \
             IMPLEMENTED_TANK_MONITOR
@@ -838,7 +839,11 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temperature = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
@@ -877,7 +882,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'gauge_type': self._gauge_type,
                 'fuel_alert': "OK" if self._fuel_alert else "Low",
                 'fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
-                'temperature': self._temperature,
+                'error_code': self._error_code,
                 'rssi': self._rssi,
                 'sku': self._sku,
                 'device_model': str(self._device_model),

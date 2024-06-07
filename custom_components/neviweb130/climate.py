@@ -24,6 +24,7 @@ model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no ene
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
 model 6811 = HP6000ZB-MA for Convectair heat pump with Midea connector
+model 6812 = HP6000ZB-xx for xxx
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -304,7 +305,7 @@ DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1134]
-DEVICE_MODEL_HEAT_PUMP = [6810, 6811]
+DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE + DEVICE_MODEL_HEAT_PUMP
 
 
@@ -864,14 +865,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._backlight = None
         self._cycle_length = 0
         self._rssi = None
-        self._code_reference_sensor = None
-        self._code_compensation_sensor = None
-        self._code_air_sensor = None
-        self._code_wire_sensor = None
-        self._code_current_overload = None
-        self._code_thermal_overload = None
-        self._code_load_error = None
-        self._code_end_of_life = None
+        self._error_code = None
         self._is_double = device_info["signature"]["model"] in \
             DEVICE_MODEL_DOUBLE
         self._is_hc = device_info["signature"]["model"] in \
@@ -982,14 +976,7 @@ class Neviweb130Thermostat(ClimateEntity):
         data = {}
         data.update({'wattage': self._wattage,
                     'cycle_length': self._cycle_length,
-                    'status compensation sensor': self._code_compensation_sensor,
-                    'status reference sensor': self._code_reference_sensor,
-                    'status wire sensor': self._code_wire_sensor,
-                    'status air sensor': self._code_air_sensor,
-                    'status current sensor': self._code_current_overload,
-                    'status thermal sensor': self._code_thermal_overload,
-                    'status end of life sensor': self._code_end_of_life,
-                    'status load sensor': self._code_load_error,
+                    'error_code': self._error_code,
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
@@ -1509,52 +1496,15 @@ class Neviweb130Thermostat(ClimateEntity):
         if not self._is_wifi:
             device_error_code = self._client.get_device_sensor_error(self._id)
             if device_error_code is not None and device_error_code != {}:
-                _LOGGER.warning("Error code set1 updated: %s",device_error_code)
-                if not self._is_hc and not self._is_HP:
-                    self._code_compensation_sensor = device_error_code["compensationSensor"]
-                    self._code_thermal_overload = device_error_code["thermalOverload"]
-                elif self._is_HP:
-                    self._temp_probe = device_data[ATTR_ERROR_CODE_SET1]["internalTempSensor"]
-                    self._heat_pump_nocomm = device_data[ATTR_ERROR_CODE_SET1]["heatpumpNoComm"]
-                    self._thermal_sensor = device_data[ATTR_ERROR_CODE_SET1]["heatpumpThermalSensor"]
-                    self._heat_pump_unreacheable = device_data[ATTR_ERROR_CODE_SET1]["heatpumpUnreacheable"]
-                    self._inductive_mode = device_data[ATTR_ERROR_CODE_SET1]["inductiveMode"]
-                    self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                    self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                    self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                    self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
-                else:
-                    self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-                    self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-                    self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-                    self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                    self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                    self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                    self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
-                if self._is_floor and not self._is_wifi_floor:
-                    self._code_floor_sensor = device_error_code["floorSensor"]
-                    self._code_gfcibase = device_error_code["gfciBase"]
-                if self._is_low_voltage or self._is_double:
-                    self._code_air_sensor = device_error_code["airSensor"]
-                    self._code_floor_sensor = device_error_code["floorSensor"]
-                elif self._is_double:
-                    self._base = device_error_code["base"]
-                else:
-                    self._code_wire_sensor = device_error_code["wireSensor"]
-                    self._code_current_overload = device_error_code["currentOverload"]
-                    self._code_end_of_life = device_error_code["endOfLife"]
-                if self._is_gen2:
-                    self._air_top = device_error_code["airTopSensor"]
-                    self._air_bottom = device_error_code["airBottomSensor"]
-                    self._line_error = device_error_code["lineError"]
-                    self._inductive_mode = device_error_code["inductiveMode"]
-                else:
-                    self._code_air_sensor = device_error_code["airSensor"]
-                    self._code_load_error = device_error_code["loadError"]
-                    self._code_reference_sensor = device_error_code["referenceSensor"]
-                self._energy_stat_time = time.time()
-            if self._energy_stat_time == 0:
-                self._energy_stat_time = start
+                if device_error_code["raw"] != 0:
+                    self._error_code = device_error_code["raw"]
+                    self.notify_ha(
+                        f"Warning: Neviweb Device error code detected: " + str(device_error_code["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                    )
+                    _LOGGER.warning("Error code set1 updated: %s",str(device_error_code["raw"]))
+                    self._energy_stat_time = time.time()
+                if self._energy_stat_time == 0:
+                    self._energy_stat_time = start
 
     def log_error(self, error_data):
         """Send error message to LOG."""
@@ -1659,15 +1609,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._backlight = None
         self._cycle_length = 0
         self._wattage = 0
-        self._code_compensation_sensor = None
-        self._code_thermal_overload = None
-        self._code_wire_sensor = None
-        self._code_current_overload = None
-        self._code_end_of_life = None
-        self._air_top = None
-        self._air_bottom = None
-        self._line_error = None
-        self._inductive_mode = None
+        self._error_code = None
         self._is_gen2 = device_info["signature"]["model"] in \
             DEVICE_MODEL_HEAT_G2
         self._is_wifi = False
@@ -1748,15 +1690,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         data = {}
         data.update({'wattage': self._wattage,
                'cycle_length': self._cycle_length,
-               'status compensation sensor': self._code_compensation_sensor,
-               'status wire sensor': self._code_wire_sensor,
-               'status current sensor': self._code_current_overload,
-               'status thermal sensor': self._code_thermal_overload,
-               'status end of life sensor': self._code_end_of_life,
-               'Status air top': self._air_top,
-               'status air bottom': self._air_bottom,
-               'status line error': self._line_error,
-               'status inductive mode': self._inductive_mode,
+               'error_code': self._error_code,
                'heat_level': self._heat_level,
                'pi_heating_demand': self._heat_level,
                'temp_display_value': self._temp_display_value,
@@ -1847,16 +1781,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._floor_min_status = "off"
         self._load2 = 0
         self._load2_status = None
-        self._code_compensation_sensor = None
-        self._code_thermal_overload = None
-        self._code_floor_sensor = None
-        self._code_gfcibase = None
-        self._code_air_sensor = None
-        self._code_load_error = None
-        self._code_reference_sensor = None
-        self._code_wire_sensor = None
-        self._code_current_overload = None
-        self._code_end_of_life = None
+        self._error_code = None
         self._gfci_alert = None
         self._is_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_FLOOR
@@ -1964,17 +1889,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 'floor_air_limit': self._floor_air_limit,
                 'floor_sensor_type': self._floor_sensor_type,
                 'load_watt': self._wattage,
-                'status compensation sensor': self._code_compensation_sensor,
-                'status floor sensor': self._code_floor_sensor,
-                'status thermal overload': self._code_thermal_overload,
-                'status gfci base': self._code_gfcibase,
-                'status wire sensor': self._code_wire_sensor,
-                'status current sensor': self._code_current_overload,
-                'status thermal sensor': self._code_thermal_overload,
-                'status end of life sensor': self._code_end_of_life,
-                'status air sensor': self._code_air_sensor,
-                'status reference sensor': self._code_reference_sensor,
-                'status load sensor': self._code_load_error,
+                'error_code': self._error_code,
                 'heat_level': self._heat_level,
                 'pi_heating_demand': self._heat_level,
                 'cycle_length': self._cycle_length,
@@ -2064,10 +1979,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._aux_cycle_length = 0
         self._cycle_length = 0
         self._floor_mode = None
-        self._code_compensation_sensor = None
-        self._code_thermal_overload = None
-        self._code_air_sensor = None
-        self._code_floor_sensor = None
+        self._error_code = None
         self._load1 = 0
         self._load2 = 0
         self._load2_status = None
@@ -2186,10 +2098,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 'pump_protection_duration': self._pump_protec_duration,
                 'pump_protection_frequency': self._pump_protec_period,
                 'pump_protection_frequency_status': self._pump_protec_period_status,
-                'status compensation sensor': self._code_compensation_sensor,
-                'status thermal overload': self._code_thermal_overload,
-                'status air sensor': self._code_air_sensor,
-                'status floor sensor': self._code_floor_sensor,
+                'error_code': self._error_code,
                 'heat_level': self._heat_level,
                 'pi_heating_demand': self._heat_level,
                 'temp_display_value': self._temp_display_value,
@@ -2270,13 +2179,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._aux_cycle_length = 0
-        self._code_reference_sensor = None
-        self._code_compensation_sensor = None
-        self._code_air_sensor = None
-        self._code_floor_sensor = None
-        self._base = None
-        self._code_thermal_overload = None
-        self._code_load_error = None
+        self._error_code = None
         self._is_double = device_info["signature"]["model"] in \
             DEVICE_MODEL_DOUBLE
         self._is_wifi = False
@@ -2357,13 +2260,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         data = {}
         data.update({'wattage': self._wattage,
                     'cycle_length': neviweb_to_ha(self._cycle_length),
-                    'status compensation sensor': self._code_compensation_sensor,
-                    'status thermal overload': self._code_thermal_overload,
-                    'status air sensor': self._code_air_sensor,
-                    'status floor sensor': self._code_floor_sensor,
-                    'status base': self._base,
-                    'status reference sensor': self._code_reference_sensor,
-                    'status load sensor': self._code_load_error,
+                    'error_code': self._error_code,
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
@@ -2438,14 +2335,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._aux_cycle_length = 0
-        self._code_compensation_sensor = None
-        self._code_wire_sensor = None
-        self._code_current_overload = None
-        self._code_thermal_overload = None
-        self._code_end_of_life = None
-        self._code_air_sensor = None
-        self._code_reference_sensor = None
-        self._code_load_error = None
+        self._error_code = None
         self._heat_level = 0
         self._temp_display_value = None
         self._display2 = None
@@ -2554,14 +2444,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     'setpoint_away': self._target_temp_away,
                     'load_watt_1': self._load1,
                     'cycle_length': self._cycle_length,
-                    'status compensation sensor': self._code_compensation_sensor,
-                    'status wire sensor': self._code_wire_sensor,
-                    'status current sensor': self._code_current_overload,
-                    'status thermal sensor': self._code_thermal_overload,
-                    'status end of life sensor': self._code_end_of_life,
-                    'status air sensor': self._code_air_sensor,
-                    'status reference sensor': self._code_reference_sensor,
-                    'status load sensor': self._code_load_error,
+                    'error_code': self._error_code,
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
                     'temp_display_value': self._temp_display_value,
@@ -2659,14 +2542,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._pump_protec_duration = None
         self._pump_protec_period = None
         self._pump_duration_value = None
-        self._code_reference_sensor = None
-        self._code_compensation_sensor = None
-        self._code_thermal_overload = None
-        self._code_air_sensor = None
-        self._code_wire_sensor = None
-        self._code_current_overload = None
-        self._code_load_error = None
-        self._code_end_of_life = None
+        self._error_code = None
         self._is_wifi = device_info["signature"]["model"] in \
             DEVICE_MODEL_WIFI_FLOOR or device_info["signature"]["model"] in \
             DEVICE_MODEL_WIFI or device_info["signature"]["model"] in \
@@ -2797,14 +2673,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     'operation_mode': self._operation_mode,
                     'auxiliary_heat': self._em_heat,
                     'auxiliary_load': self._load2,
-                    'status compensation sensor': self._code_compensation_sensor,
-                    'status thermal overload': self._code_thermal_overload,
-                    'status air sensor': self._code_air_sensor,
-                    'status reference sensor': self._code_reference_sensor,
-                    'status load sensor': self._code_load_error,
-                    'status wire sensor': self._code_wire_sensor,
-                    'status current sensor': self._code_current_overload,
-                    'status end of life sensor': self._code_end_of_life,
+                    'error_code': self._error_code,
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
                     'keypad': lock_to_ha(self._keypad),
@@ -2893,16 +2762,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._floor_min = None
         self._floor_min_status = "off"
         self._temperature_format = UnitOfTemperature.CELSIUS
-        self._code_reference_sensor = None
-        self._code_compensation_sensor = None
-        self._code_air_sensor = None
-        self._code_floor_sensor = None
-        self._code_wire_sensor = None
-        self._code_current_overload = None
-        self._code_thermal_overload = None
-        self._code_load_error = None
-        self._code_gfcibase = None
-        self._code_end_of_life = None
+        self._error_code = None
         self._is_wifi_floor = device_info["signature"]["model"] in \
             DEVICE_MODEL_WIFI_FLOOR
         self._is_wifi = device_info["signature"]["model"] in \
@@ -3018,16 +2878,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     'early_start': self._early_start,
                     'setpoint_away': self._target_temp_away,
                     'load_watt_1': self._load1,
-                    'status compensation sensor': self._code_compensation_sensor,
-                    'status thermal overload': self._code_thermal_overload,
-                    'status wire sensor': self._code_wire_sensor,
-                    'status current sensor': self._code_current_overload,
-                    'status end of life sensor': self._code_end_of_life,
-                    'status floor sensor': self._code_floor_sensor,
-                    'status air sensor': self._code_air_sensor,
-                    'status load sensor': self._code_load_error,
-                    'status reference sensor': self._code_reference_sensor,
-                    'status gfci base': self._code_gfcibase,
+                    'error_code': self._error_code,
                     'heat_level': self._heat_level,
                     'pi_heating_demand': self._heat_level,
                     'second_display': self._display2,
@@ -3120,13 +2971,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._heat_lock_temp = None
         self._cool_lock_temp = None
         self._avail_mode = None
-        self._temp_status = None
-        self._stm_mcu = None
-        self._thermal_overload = None
-        self._current_overload = None
-        self._j2connector = None
-        self._j3connector = None
-        self._line_error = None
+        self._error_code = None
         self._is_hc = device_info["signature"]["model"] in \
             DEVICE_MODEL_HC
         self._is_HP = False
@@ -3222,13 +3067,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         """Return the state attributes."""
         data = {}
         data.update({'wattage': self._wattage,
-                    'status temp': self._temp_status,
-                    'status stm mcu': self._stm_mcu,
-                    'status current sensor': self._current_overload,
-                    'status thermal sensor': self._thermal_overload,
-                    'status line error': self._line_error,
-                    'status j2 connector': self._j2connector,
-                    'status j3 connector': self._j3connector,
+                    'error_code': self._error_code,
                     'cool setpoint min': self._cool_min,
                     'cool setpoint max': self._cool_max,
                     'cool setpoint': self._target_cool,
@@ -3326,15 +3165,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._display_conf = None
         self._sound_cap = None
         self._sound_conf = None
-        self._temp_probe = None
-        self._thermal_sensor = None
-        self._current_overload = None
-        self._j2connector = None
-        self._j3connector = None
-        self._line_error = None
-        self._heat_pump_nocomm = None
-        self._heat_pump_unreacheable = None
-        self._inductive_mode = None
+        self._error_code = None
         self._is_HP = device_info["signature"]["model"] in \
             DEVICE_MODEL_HEAT_PUMP
         self._is_hc = False
@@ -3423,15 +3254,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         """Return the state attributes."""
         data = {}
         data.update({'model':  self._model,
-                    'status temp probe': self._temp_probe,
-                    'status current sensor': self._current_overload,
-                    'status thermal sensor': self._thermal_sensor,
-                    'status line error': self._line_error,
-                    'status j2 connector': self._j2connector,
-                    'status j3 connector': self._j3connector,
-                    'status heat pump comm': self._heat_pump_nocomm,
-                    'status heat pump available': self._heat_pump_unreacheable,
-                    'status inductive mode': self._inductive_mode,
+                    'error_code': self._error_code,
                     'operation modes': self._operation_mode,
                     'cool setpoint': self._target_cool,
                     'cool setpoint min': self._cool_min,

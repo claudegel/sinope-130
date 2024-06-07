@@ -1067,7 +1067,12 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     if ATTR_FLOW_ENABLED in device_data:
                         self._flowmeter_enabled = device_data[ATTR_FLOW_ENABLED]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._error_code = "Present, see logs"
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
+                            _LOGGER.warning("Error code set1 updated: %s",str(device_data[ATTR_ERROR_CODE_SET1]["raw"]))
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:

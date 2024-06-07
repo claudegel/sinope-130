@@ -986,9 +986,8 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_onoff = "off"
-        self._relayK1 = None
-        self._relayK2 = None
         self._rssi = None
+        self._error_code = None
         self._controlled_device = None
         self._is_load = device_info["signature"]["model"] in \
             IMPLEMENTED_LOAD_DEVICES
@@ -1019,8 +1018,11 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._relayK1 = device_data[ATTR_ERROR_CODE_SET1]["relayK1"]
-                        self._relayK2 = device_data[ATTR_ERROR_CODE_SET1]["relayK2"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
@@ -1055,8 +1057,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                'eco_status': self._drstatus_active,
                'eco_optOut': self._drstatus_optout,
                'eco_onoff': self._drstatus_onoff,
-               'relayK1': self._relayK1,
-               'relayK2': self._relayK2,
+               'error_code': self._error_code,
                'rssi': self._rssi,
                'sku': self._sku,
                'device_model': str(self._device_model),
@@ -1097,6 +1098,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._water_temp_min = None
         self._water_temp_time = None
         self._rssi = None
+        self._error_code = None
         self._temperature = None
         self._water_leak_status = None
         self._cold_load_status = None
@@ -1105,13 +1107,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._consumption = None
         self._consumption_time = None
         self._watt_time_on = None
-        self._stm_mcu = None
-        self._temp_status = None
-        self._thermal_overload = None
-        self._current_overload = None
-        self._j2connector = None
-        self._j3connector = None
-        self._line_error = None
         self._is_tank_load = device_info["signature"]["model"] in \
             IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
@@ -1135,13 +1130,11 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-                        self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-                        self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-                        self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                        self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                        self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                        self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
@@ -1189,13 +1182,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                'cold_load_pickup_status': self._cold_load_status,
                'cold_load_remaining_time': remainig_time(self._cold_load_remaining_time),
                'tank_size': neviweb_to_ha(self._tank_size),
-               'temperature_status': self._temp_status,
-               'stm_Mcu': self._stm_mcu,
-               'thermal_overload': self._thermal_overload,
-               'current_overload': self._current_overload,
-               'j2Connector': self._j2connector,
-               'j3Connector': self._j3connector,
-               'line_error': self._line_error,
                'eco_status': self._drstatus_active,
                'eco_optOut': self._drstatus_optout,
                'eco_onoff': self._drstatus_onoff,
@@ -1206,6 +1192,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                'protection_Temperature': self._temperature,
                'protection_Consumption': self._consumption,
                'protection_consumption_overtime': self._consumption_time,
+               'error_code': self._error_code,
                'rssi': self._rssi,
                'sku': self._sku,
                'device_model': str(self._device_model),
@@ -1255,14 +1242,8 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_tank_on = None
         self._water_leak_status = None
         self._tank_size = None
-        self._stm_mcu = None
-        self._temp_status = None
-        self._thermal_overload = None
-        self._current_overload = None
-        self._j2connector = None
-        self._j3connector = None
-        self._line_error = None
         self._rssi = None
+        self._error_code = None
         self._leg_status_temp = None
         self._leg_status_consumption = None
         self._leg_status_over_time = None
@@ -1293,13 +1274,11 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_leak_disconected_status = device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperatureSensor"]
-                        self._stm_mcu = device_data[ATTR_ERROR_CODE_SET1]["stm_mcu"]
-                        self._thermal_overload = device_data[ATTR_ERROR_CODE_SET1]["thermalOverload"]
-                        self._current_overload = device_data[ATTR_ERROR_CODE_SET1]["currentOverload"]
-                        self._j2connector = device_data[ATTR_ERROR_CODE_SET1]["j2Connector"]
-                        self._j3connector = device_data[ATTR_ERROR_CODE_SET1]["j3Connector"]
-                        self._line_error = device_data[ATTR_ERROR_CODE_SET1]["lineError"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
@@ -1357,13 +1336,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'cold_load_remaining_time': remainig_time(self._cold_load_remaining_time),
                'cold_load_temperature': self._cold_load_temp,
                'tank_size': neviweb_to_ha(self._tank_size),
-               'temperature_status': self._temp_status,
-               'stm_Mcu': self._stm_mcu,
-               'thermal_overload': self._thermal_overload,
-               'current_overload': self._current_overload,
-               'j2Connector': self._j2connector,
-               'j3Connector': self._j3connector,
-               'line_error': self._line_error,
                'eco_status': self._drstatus_active,
                'eco_optOut': self._drstatus_optout,
                'eco_onoff': self._drstatus_onoff,
@@ -1379,6 +1351,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'leg_status_temperature': self._leg_status_temp,
                'leg_status_consumption': self._leg_status_consumption,
                'leg_status_consumption_over_time': self._leg_status_over_time,
+               'error_code': self._error_code,
                'rssi': self._rssi,
                'sku': self._sku,
                'device_model': str(self._device_model),

@@ -327,7 +327,7 @@ class Neviweb130Light(LightEntity):
         self._led_off = "0,0,0,0"
         self._wattage = 0
         self._wattage_status = None
-        self._temp_status = None
+        self._error_code = None
         self._rssi = None
         self._onoff = None
         self._is_light = device_info["signature"]["model"] in \
@@ -358,7 +358,11 @@ class Neviweb130Light(LightEntity):
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                     self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
@@ -411,7 +415,7 @@ class Neviweb130Light(LightEntity):
         data = {}
         data.update({'wattage': self._wattage,
                     'wattage_status': self._wattage_status,
-                    'temperature_status': self._temp_status,
+                    'error_code': self._error_code,
                     'onOff': self._onoff,
                     'keypad': lock_to_ha(self._keypad),
                     'timer': self._timer,
@@ -635,7 +639,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._intensity_min = 600
         self._wattage = 0
         self._wattage_status = None
-        self._temp_status = None
+        self._error_code = None
         self._rssi = None
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_DIMMER
@@ -664,7 +668,11 @@ class Neviweb130Dimmer(Neviweb130Light):
                     self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                     self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
@@ -688,7 +696,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         data = {}
         data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
-               'temperature_status': self._temp_status,
+               'error_code': self._error_code,
                'wattage': self._wattage,
                'wattage_status': self._wattage_status,
                'onOff': self._onoff,
@@ -738,7 +746,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._intensity_min = 600
         self._wattage = 0
         self._double_up = None
-        self._temp_status = None
+        self._error_code = None
         self._rssi = None
         self._is_dimmable = device_info["signature"]["model"] in \
             DEVICE_MODEL_NEW_DIMMER
@@ -772,7 +780,11 @@ class Neviweb130NewDimmer(Neviweb130Light):
                     self._wattage = device_data[ATTR_WATTAGE_INSTANT]
                     self._timer = device_data[ATTR_TIMER]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        self._temp_status = device_data[ATTR_ERROR_CODE_SET1]["temperature"]
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     self._rssi = device_data[ATTR_RSSI]
                     self._led_on = str(device_data[ATTR_LED_ON_INTENSITY])+","+str(device_data[ATTR_LED_ON_COLOR]["red"])+","+str(device_data[ATTR_LED_ON_COLOR]["green"])+","+str(device_data[ATTR_LED_ON_COLOR]["blue"])
                     self._led_off = str(device_data[ATTR_LED_OFF_INTENSITY])+","+str(device_data[ATTR_LED_OFF_COLOR]["red"])+","+str(device_data[ATTR_LED_OFF_COLOR]["green"])+","+str(device_data[ATTR_LED_OFF_COLOR]["blue"])
@@ -794,7 +806,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         data = {}
         data.update({ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                'minimum_intensity': self._intensity_min,
-               'temperature_status': self._temp_status,
+               'error_code': self._error_code,
                'phase_control': self._phase_control,
                'double_up_Action': self._double_up,
                'wattage': self._wattage,
