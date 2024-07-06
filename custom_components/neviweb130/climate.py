@@ -95,7 +95,6 @@ from .const import (
     ATTR_DRSTATUS,
     ATTR_DRSETPOINT,
     ATTR_EARLY_START,
-    ATTR_ERROR_CODE_SET1,
     ATTR_FAN_CAP,    
     ATTR_FAN_SPEED,
     ATTR_FAN_SWING_CAP,
@@ -2970,6 +2969,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._fan_swing_cap = None
         self._fan_swing_cap_vert = None
         self._fan_swing_cap_horiz = None
+        self._display_cap = None
+        self._display_conf = None
+        self._sound_cap = None
+        self._sound_conf = None
         self._balance_pt = None
         self._heat_lock_temp = None
         self._cool_lock_temp = None
@@ -3049,6 +3052,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._avail_mode = device_data[ATTR_AVAIL_MODE]
+                    self._display_cap = device_data[ATTR_DISPLAY_CAP]
+                    self._display_conf = device_data[ATTR_DISPLAY_CONF]
+                    self._sound_cap = device_data[ATTR_SOUND_CAP]
+                    self._sound_conf = device_data[ATTR_SOUND_CONF]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -3085,6 +3092,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_swing_capability': self._fan_swing_cap,
                     'fan_swing_capability_vertical': self._fan_swing_cap_vert,
                     'fan_swing_capability_horizontal': self._fan_swing_cap_horiz,
+                    'display_conf': self._display_conf,
+                    'display_capability': self._display_cap,
+                    'sound_conf': self._sound_conf,
+                    'sound_capability': self._sound_cap,
                     'balance_point': self._balance_pt,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
@@ -3267,6 +3278,10 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'temperature_format': self._temperature_format,
                     'keypad': lock_to_ha(self._keypad),
                     'fan_speed': self._fan_speed,
+                    'display_conf': self._display_conf,
+                    'display_capability': self._display_cap,
+                    'sound_conf': self._sound_conf,
+                    'sound_capability': self._sound_cap,
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
