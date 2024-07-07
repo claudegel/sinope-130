@@ -3009,8 +3009,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._cur_temp_before = self._cur_temp
-                    self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
-                        device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
+                    self._cur_temp = float(device_data[ATTR_ROOM_TEMP_DISPLAY]) if \
+                        device_data[ATTR_ROOM_TEMP_DISPLAY] != None else self._cur_temp_before
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
