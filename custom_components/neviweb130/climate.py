@@ -2941,6 +2941,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
