@@ -3053,10 +3053,12 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._avail_mode = device_data[ATTR_AVAIL_MODE]
-                    self._display_cap = device_data[ATTR_DISPLAY_CAP]
-                    self._display_conf = device_data[ATTR_DISPLAY_CONF]
-                    self._sound_cap = device_data[ATTR_SOUND_CAP]
-                    self._sound_conf = device_data[ATTR_SOUND_CONF]
+                    if ATTR_DISPLAY_CAP in device_data:
+                        self._display_cap = device_data[ATTR_DISPLAY_CAP]
+                        self._display_conf = device_data[ATTR_DISPLAY_CONF]
+                    if ATTR_SOUND_CAP in device_data:
+                        self._sound_cap = device_data[ATTR_SOUND_CAP]
+                        self._sound_conf = device_data[ATTR_SOUND_CONF]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
