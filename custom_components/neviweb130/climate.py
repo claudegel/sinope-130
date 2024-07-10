@@ -9,7 +9,7 @@ model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
 model 1124 = thermostat OTH4000-ZB Ouellet
 model 737 = thermostat OTH3600-GA-ZB Ouellet
-model 1134 = Thermostat TH1134ZB-HC for heating/cooling interlocking
+model 1512 = Thermostat TH1134ZB-HC for heating/cooling interlocking
 
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
@@ -95,7 +95,6 @@ from .const import (
     ATTR_DRSTATUS,
     ATTR_DRSETPOINT,
     ATTR_EARLY_START,
-    ATTR_ERROR_CODE_SET1,
     ATTR_FAN_CAP,    
     ATTR_FAN_SPEED,
     ATTR_FAN_SWING_CAP,
@@ -304,7 +303,7 @@ DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
-DEVICE_MODEL_HC = [1134]
+DEVICE_MODEL_HC = [1512]
 DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE + DEVICE_MODEL_HEAT_PUMP
 
@@ -2942,6 +2941,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
+        self._occupancy = None
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
@@ -2970,6 +2970,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._fan_swing_cap = None
         self._fan_swing_cap_vert = None
         self._fan_swing_cap_horiz = None
+        self._display_cap = None
+        self._display_conf = None
+        self._sound_cap = None
+        self._sound_conf = None
         self._balance_pt = None
         self._heat_lock_temp = None
         self._cool_lock_temp = None
@@ -2993,7 +2997,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
     def update(self):
         if self._activ:
             HC_ATTRIBUTES = [ATTR_DISPLAY2, ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_WATTAGE, ATTR_BACKLIGHT, ATTR_KEYPAD, ATTR_HC_DEV, ATTR_LANGUAGE, ATTR_MODEL,
-                            ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ, ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE]
+                            ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ, ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE,
+                            ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + HC_ATTRIBUTES)
@@ -3006,8 +3011,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._cur_temp_before = self._cur_temp
-                    self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
-                        device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
+                    self._cur_temp = float(device_data[ATTR_ROOM_TEMP_DISPLAY]) if \
+                        device_data[ATTR_ROOM_TEMP_DISPLAY] != None else self._cur_temp_before
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -3049,6 +3054,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._avail_mode = device_data[ATTR_AVAIL_MODE]
+                    self._display_cap = device_data[ATTR_DISPLAY_CAP]
+                    self._display_conf = device_data[ATTR_DISPLAY_CONF]
+                    self._sound_cap = device_data[ATTR_SOUND_CAP]
+                    self._sound_conf = device_data[ATTR_SOUND_CONF]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -3085,6 +3094,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_swing_capability': self._fan_swing_cap,
                     'fan_swing_capability_vertical': self._fan_swing_cap_vert,
                     'fan_swing_capability_horizontal': self._fan_swing_cap_horiz,
+                    'display_conf': self._display_conf,
+                    'display_capability': self._display_cap,
+                    'sound_conf': self._sound_conf,
+                    'sound_capability': self._sound_cap,
                     'balance_point': self._balance_pt,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
@@ -3267,6 +3280,10 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'temperature_format': self._temperature_format,
                     'keypad': lock_to_ha(self._keypad),
                     'fan_speed': self._fan_speed,
+                    'display_conf': self._display_conf,
+                    'display_capability': self._display_cap,
+                    'sound_conf': self._sound_conf,
+                    'sound_capability': self._sound_cap,
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
