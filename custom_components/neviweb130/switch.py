@@ -1391,10 +1391,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._timer = 0
         self._timer2 = 0
         self._drstatus_active = "off"
-        self._drstatus_optout = "off"
-        self._drstatus_setpoint = "off"
-        self._drstatus_power_abs = "off"
-        self._drstatus_power_rel = "off"
+        self._drstatus_onOff = "off"
         self._humidity = None
         self._ext_temp = None
         self._room_temp = None
@@ -1469,10 +1466,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         self._output_name_2 = device_data[ATTR_OUTPUT_NAME_2]
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
-                        self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
-                        self._drstatus_setpoint = device_data[ATTR_DRSTATUS][ATTR_SETPOINT]
-                        self._drstatus_power_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
-                        self._drstatus_power_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
+                        self._drstatus_onOff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1504,10 +1498,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                'onOff': self._onoff,
                'onOff2': self._onoff2,
                'eco_status': self._drstatus_active,
-               'eco_optOut': self._drstatus_optout,
-               'eco_setpoint': self._drstatus_setpoint,
-               'eco_power_absolute': self._drstatus_power_abs,
-               'eco_power_relative': self._drstatus_power_rel,
+               'eco_onOff': self._drstatus_onOff,
                'input1_on_delay': neviweb_to_ha_delay(self._input_1_on_delay),
                'input2_on_delay': neviweb_to_ha_delay(self._input_2_on_delay),
                'input1_off_delay': neviweb_to_ha_delay(self._input_1_off_delay),
