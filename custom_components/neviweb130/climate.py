@@ -7,6 +7,7 @@ model 300 = thermostat TH1124ZB-G2 4000W
 model 737 = thermostat TH1300ZB 3600W (floor)
 model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
+model 7372 = thermostat TH1420ZB-01 Nordik low voltage radiant hydroponic floor
 model 1124 = thermostat OTH4000-ZB Ouellet
 model 737 = thermostat OTH3600-GA-ZB Ouellet
 model 1512 = Thermostat TH1134ZB-HC for heating/cooling interlocking
@@ -17,6 +18,7 @@ model 1510 = thermostat TH1124WF 4000W (wifi)
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF and SRM40 (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
+model xxx = thermostat TH6500WF
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
