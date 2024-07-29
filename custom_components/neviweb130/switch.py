@@ -89,6 +89,7 @@ from .const import (
     ATTR_KEYPAD,
     ATTR_LEAK_CLOSURE_CONFIG,
     ATTR_LEG_PROTEC_STATUS,
+    ATTR_LOW_TEMP_STATUS,
     ATTR_MIN_WATER_TEMP,
     ATTR_NAME_1,
     ATTR_NAME_2,
@@ -1406,6 +1407,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._input_2_on_delay = 0
         self._input_1_off_delay = 0
         self._input_2_off_delay = 0
+        self._low_temp_status = None
         self._is_zb_control = device_info["signature"]["model"] in \
             IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in \
@@ -1423,7 +1425,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
             if self._is_zb_control or self._is_sedna_control:
                 if self._firmware == "0.1.1":
                     LOAD_ATTRIBUTES = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI, ATTR_BATT_INFO, ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_ON_DELAY, ATTR_INPUT_1_OFF_DELAY,
-                    ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL, ATTR_DRSTATUS]
+                    ATTR_INPUT_2_OFF_DELAY, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL, ATTR_DRSTATUS, ATTR_LOW_TEMP_STATUS]
                 else:
                     LOAD_ATTRIBUTES = [ATTR_ONOFF2, ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS, ATTR_EXT_TEMP, ATTR_REL_HUMIDITY, ATTR_INPUT_STATUS, ATTR_INPUT2_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_TIMER, ATTR_TIMER2, ATTR_RSSI]
             """Get the latest data from Neviweb and update the state."""
@@ -1459,6 +1461,8 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
+                        if ATTR_LOW_TEMP_STATUS in device_data:
+                            self._low_temp_status = device_data[ATTR_LOW_TEMP_STATUS]
                     if self._is_zb_control:
                         self._input_name_1 = device_data[ATTR_NAME_1]
                         self._input_name_2 = device_data[ATTR_NAME_2]
@@ -1507,6 +1511,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                'input2_name': self._input_name_2,
                'output1_name': self._output_name_1,
                'output2_name': self._output_name_2,
+               'low_temp_status': self._low_temp_status,
                'rssi': self._rssi,
                'sku': self._sku,
                'device_model': str(self._device_model),
