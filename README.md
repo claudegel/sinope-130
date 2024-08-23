@@ -32,7 +32,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1500WF wifi 3600W double pole thermostat
-  - Sinopé TH6500WF (préliminary work)
+  - Sinopé TH6500WF wifi heat/cool (préliminary work)
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - SRM40 floor thermostat
 - Heatpump controller:
