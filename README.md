@@ -28,6 +28,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
 - Wifi thermostats (no need for GT130):
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
+  - Sinopé TH1133WF wifi 3000W Line voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
