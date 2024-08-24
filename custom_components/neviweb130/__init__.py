@@ -117,7 +117,7 @@ from .schema import (
     HOMEKIT_MODE,
     STAT_INTERVAL,
 )
-VERSION = '2.8.1'
+VERSION = '2.8.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -218,6 +218,7 @@ class Neviweb130Client(object):
         except OSError:
             raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.")
         if raw_res.status_code != 200:
+            _LOGGER.debug("Login status: %s", raw_res.json())
             raise PyNeviweb130Error("Cannot log in")
 
         # Update session
