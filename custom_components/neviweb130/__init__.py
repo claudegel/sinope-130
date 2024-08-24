@@ -212,7 +212,7 @@ class Neviweb130Client(object):
         data = {"username": self._email, "password": self._password, 
             "interface": "neviweb", "stayConnected": 1}
         try:
-            raw_res = requests.post(LOGIN_URL, data=data, 
+            raw_res = requests.post(LOGIN_URL, json=data, 
                 cookies = self._cookies, allow_redirects=False, 
                 timeout = self._timeout)
         except OSError:
