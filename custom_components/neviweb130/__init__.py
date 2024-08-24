@@ -218,6 +218,7 @@ class Neviweb130Client(object):
         except OSError:
             raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.")
         if raw_res.status_code != 200:
+            _LOGGER.debug("Login status: %s", raw_res.json())
             raise PyNeviweb130Error("Cannot log in")
 
         # Update session
