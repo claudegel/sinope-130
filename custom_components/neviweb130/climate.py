@@ -5,6 +5,7 @@ model 300 = thermostat TH1123ZB-G2 3000W
 model 1124 = thermostat TH1124ZB 4000W
 model 300 = thermostat TH1124ZB-G2 4000W
 model 737 = thermostat TH1300ZB 3600W (floor)
+model 737 = thermostat TH1320ZB-04 (floor)
 model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
 model 7372 = thermostat TH1420ZB-01 Nordik low voltage radiant hydroponic floor thermostat
@@ -19,7 +20,7 @@ model 1510 = thermostat TH1133WF 3000W (wifi)
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF and SRM40 (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
-model 6500 = thermostat TH6500WF heat/cool (wifi)
+model 6727 = thermostat TH6500WF heat/cool (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
@@ -92,7 +93,10 @@ from .const import (
     ATTR_COLD_LOAD_PICKUP,
     ATTR_COOL_CYCLE_LENGTH,
     ATTR_COOL_INTERSTAGE_DELAY,
+    ATTR_COOL_INTERSTAGE_MIN_DELAY,
     ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_SETPOINT,
     ATTR_COOL_SETPOINT_AWAY,
     ATTR_COOL_SETPOINT_MAX, 
@@ -130,6 +134,7 @@ from .const import (
     ATTR_HEAT_COOL,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
     ATTR_HEAT_INTERSTAGE_DELAY,
+    ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
@@ -3430,6 +3435,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._target_cool = None
         self._cool_min = None
         self._cool_max = None
+        self._cool_min_time_on = None
+        self._cool_min_time_off = None
         self._dual_status = None
         self._fan_filter_life = None
         self._fan_filter_remain = None
@@ -3478,7 +3485,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             ATTR_FAN_SPEED, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_VALVE_POLARITY, ATTR_HUMIDIFIER_TYPE, ATTR_HUMID_SETPOINT, ATTR_COOL_CYCLE_LENGTH,
                             ATTR_CYCLE, ATTR_AUX_CYCLE, ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_TEMP_OFFSET_HEAT, ATTR_HEAT_MIN_TIME_ON, ATTR_HEAT_MIN_TIME_OFF, ATTR_HUMID_TYPE,
                             ATTR_HUMID_DISPLAY, ATTR_DUAL_STATUS, ATTR_EARLY_START, ATTR_ROOM_SETPOINT_AWAY, ATTR_COOL_SETPOINT_AWAY, ATTR_FAN_FILTER_LIFE, ATTR_FAN_FILTER_REMAIN,
-                            ATTR_AUX_HEAT_TIMEON, ATTR_AUX_HEAT_START_DELAY, ATTR_HEAT_INTERSTAGE_DELAY, ATTR_COOL_INTERSTAGE_DELAY, ATTR_BULK_OUTPUT]
+                            ATTR_AUX_HEAT_TIMEON, ATTR_AUX_HEAT_START_DELAY, ATTR_HEAT_INTERSTAGE_DELAY, ATTR_COOL_INTERSTAGE_DELAY, ATTR_BULK_OUTPUT, ATTR_COOL_MIN_TIME_ON,
+                            ATTR_COOL_MIN_TIME_OFF]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES)
@@ -3541,6 +3549,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._cool_interstage_delay = device_data[ATTR_COOL_INTERSTAGE_DELAY]
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._bulk_output = device_data[ATTR_BULK_OUTPUT]
+                    self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
+                    self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -3593,6 +3603,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'heat_min_time_on': self._heat_min_time_on,
                     'heat_min_time_off': self._heat_min_time_off,
                     'heat_interstage_delay': self._heat_interstage_delay,
+                    'cool_min_time_on': self._cool_min_time_on,
+                    'cool_min_time_off': self._cool_min_time_off,
                     'cool_interstage_delay': self._cool_interstage_delay,
                     'aux_heat_time_on': self._aux_heat_time_on,
                     'aux_heat_start_delay': self._aux_heat_start_delay,
