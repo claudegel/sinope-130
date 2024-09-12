@@ -268,6 +268,7 @@ When energy attributes are available, it is possible to track energy consumption
 template:
   - sensor:
       - name: "Basement energy usage"
+        unique_id: sensor.basement_energy_usage
         unit_of_measurement: "kWh"
         device_class: energy
         state_class: total_increasing
@@ -279,6 +280,7 @@ or:
 template:
   - sensor:
       - name: "Basement energy usage"
+        unique_id: sensor.basement_energy_usage
         unit_of_measurement: "kWh"
         device_class: energy
         state_class: total
