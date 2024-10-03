@@ -141,6 +141,7 @@ neviweb130:
   scan_interval: 360
   homekit_mode: False
   stat_interval: 1800
+  notify: "nothing"
 ```
 Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130. If you have two networks for two GT130 or two wifi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and zigbee/wifi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
 
@@ -157,6 +158,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 | **homekit_mode** | no | False | Add support for Homekit specific values. Not needed if you don't use homekit.
 | **stat_interval** | no | 1800 | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.
+| **notify** | no | nothing | The method to send notification in case of device error. value option are nothing, logging, notification, both
 
 If you have a GT125 also connected to Neviweb the network parameter is mandatory or it is possible that during the setup, the GT125 network will be picked up accidentally. If you have only two GT130/wifi network, you can omit there names as during setup, the first two network found will be picked up automatically. If you prefer to add networs names make sure that they are written «exactly» as in Neviweb. (first letter capitalized or not). Avoid also accented letters as Home Assistant will remove them and location name won't match preventing custom_component loading.
 
