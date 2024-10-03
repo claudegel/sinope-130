@@ -119,7 +119,7 @@ from .schema import (
     SCAN_INTERVAL,
     STAT_INTERVAL,
 )
-VERSION = '2.8.3'
+VERSION = '2.8.4'
 
 _LOGGER = logging.getLogger(__name__)
 
