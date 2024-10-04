@@ -500,9 +500,10 @@ class Neviweb130Valve(ValveEntity):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY in {"notification", "both"}:
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def unique_id(self):
