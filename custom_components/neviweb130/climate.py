@@ -42,7 +42,13 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL, HOMEKIT_MODE, STAT_INTERVAL, NOTIFY, VERSION)
+from .schema import (
+    SCAN_INTERVAL,
+    HOMEKIT_MODE,
+    STAT_INTERVAL,
+    NOTIFY,
+    VERSION,
+)
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
