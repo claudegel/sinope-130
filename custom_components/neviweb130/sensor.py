@@ -762,9 +762,10 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY in {"notification", "both"}:
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):
@@ -862,9 +863,10 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY in {"notification", "both"}:
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property  
     def level_status(self):
