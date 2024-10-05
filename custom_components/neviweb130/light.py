@@ -694,9 +694,10 @@ class Neviweb130Dimmer(Neviweb130Light):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY in {"notification", "both"}:
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):
@@ -804,9 +805,10 @@ class Neviweb130NewDimmer(Neviweb130Light):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY in {"notification", "both"}:
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):
