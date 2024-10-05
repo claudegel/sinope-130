@@ -31,7 +31,7 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (
+from .schema import (
     SCAN_INTERVAL,
     STAT_INTERVAL,
     NOTIFY,
