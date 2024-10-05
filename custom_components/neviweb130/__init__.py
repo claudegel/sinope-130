@@ -118,8 +118,8 @@ from .schema import (
     NOTIFY,
     SCAN_INTERVAL,
     STAT_INTERVAL,
+    VERSION,
 )
-VERSION = '2.8.4'
 
 _LOGGER = logging.getLogger(__name__)
 
