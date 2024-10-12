@@ -87,7 +87,7 @@ VERSION = '2.8.4'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
-NOTIFY = "nothing"
+NOTIFY = "both"
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
