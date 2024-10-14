@@ -381,7 +381,7 @@ class Neviweb130Light(LightEntity):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                if NOTIFY in {"notification", "both"}:
+                if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
                         f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                     )
@@ -595,11 +595,11 @@ class Neviweb130Light(LightEntity):
         elif error_data == "DVCBUSY":
             _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, error_data, self._sku)
         elif error_data == "DVCUNVLB":
-            if NOTIFY in {"logging", "both"}:
+            if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, error_data, self._sku)
                 _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
                 _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
-            if NOTIFY in {"notification", "both"}:
+            if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
                     f"Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
                 )
@@ -694,7 +694,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                if NOTIFY in {"notification", "both"}:
+                if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
                         f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                     )
@@ -805,7 +805,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                if NOTIFY in {"notification", "both"}:
+                if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
                         f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                     )
