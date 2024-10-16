@@ -17,13 +17,13 @@ Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
 model 1510 = thermostat TH1133WF 3000W (wifi)
-model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF and SRM40 (wifi floor)
+model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
 model 6727 = thermostat TH6500WF heat/cool (wifi)
 
 Support for Flextherm wifi thermostat
-model 738 = Thermostat concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
+model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
 
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
@@ -1629,6 +1629,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif error_data == "DVCBUSY":
             _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, error_data, self._sku)
         elif error_data == "DVCUNVLB":
+            _LOGGER.warning("NOTIFY value: %s, (SKU: %s)", NOTIFY, self._sku)
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, error_data, self._sku)
                 _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
