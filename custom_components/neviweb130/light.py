@@ -18,12 +18,13 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from .schema import (
+from . import (
     SCAN_INTERVAL,
     STAT_INTERVAL,
     NOTIFY,
-    VERSION,
 )
+from .schema import VERSION
+
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
