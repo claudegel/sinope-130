@@ -24,11 +24,11 @@ import time
 from datetime import datetime
 
 import custom_components.neviweb130 as neviweb130
-from .schema import (
+from . import (
     SCAN_INTERVAL,
     NOTIFY,
-    VERSION,
 )
+from .schema import VERSION
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
