@@ -28,7 +28,13 @@ import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
-from . import (SCAN_INTERVAL, STAT_INTERVAL, VERSION)
+from . import (
+    SCAN_INTERVAL,
+    STAT_INTERVAL,
+    NOTIFY,
+)
+from .schema import VERSION
+
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,
@@ -652,9 +658,10 @@ class Neviweb130Switch(SwitchEntity):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def unique_id(self):
@@ -936,14 +943,16 @@ class Neviweb130Switch(SwitchEntity):
         elif error_data == "DVCBUSY":
             _LOGGER.warning("Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)", self._name, error_data, self._sku)
         elif error_data == "DVCUNVLB":
-            _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, error_data, self._sku)
-            _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
-            _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
+            if NOTIFY == "logging" or NOTIFY == "both":
+                _LOGGER.warning("Device %s is disconected from Neviweb: %s...(SKU: %s)", self._name, error_data, self._sku)
+                _LOGGER.warning("This device %s is de-activated and won't be updated for 20 minutes.",self._name)
+                _LOGGER.warning("You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",self._name)
+            if NOTIFY == "notification" or NOTIFY == "both":
+                self.notify_ha(
+                    f"Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
+                )
             self._activ = False
             self._snooze = time.time()
-            self.notify_ha(
-                f"Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for " + self._name + ", Sku: " + self._sku
-            )
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, error_data, self._sku)
 
@@ -1035,9 +1044,10 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):
@@ -1161,9 +1171,10 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):
@@ -1312,9 +1323,10 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):
@@ -1478,9 +1490,10 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                self.notify_ha(
-                    f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
-                )
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha(
+                        f"Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    )
 
     @property
     def extra_state_attributes(self):

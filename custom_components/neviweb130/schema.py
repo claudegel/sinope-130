@@ -16,9 +16,10 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
+    CONF_HOMEKIT_MODE,
     CONF_NETWORK,
     CONF_NETWORK2,
-    CONF_HOMEKIT_MODE,
+    CONF_NOTIFY,
     CONF_STAT_INTERVAL,
     ATTR_ACTIVE,
     ATTR_BACKLIGHT,
@@ -82,9 +83,11 @@ from .const import (
 
 """Default parameters values."""
 
+VERSION = '2.8.4'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
+NOTIFY = "both"
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
@@ -110,6 +113,8 @@ CONFIG_SCHEMA = vol.Schema({
             cv.boolean,
         vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL):
             vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
+        vol.Optional(CONF_NOTIFY, default=NOTIFY):
+            vol.In(["both","logging","nothing","notification"]),
     })
 },
     extra=vol.ALLOW_EXTRA,

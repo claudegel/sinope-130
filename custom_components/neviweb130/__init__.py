@@ -26,9 +26,10 @@ from homeassistant.components.climate.const import (
     )
 from .const import (
     DOMAIN,
+    CONF_HOMEKIT_MODE,
     CONF_NETWORK,
     CONF_NETWORK2,
-    CONF_HOMEKIT_MODE,
+    CONF_NOTIFY,
     CONF_STAT_INTERVAL,
     ATTR_INTENSITY,
     ATTR_ONOFF,
@@ -113,11 +114,12 @@ from .const import (
 
 from .schema import (
     CONFIG_SCHEMA,
-    SCAN_INTERVAL,
     HOMEKIT_MODE,
+    NOTIFY,
+    SCAN_INTERVAL,
     STAT_INTERVAL,
+    VERSION,
 )
-VERSION = '2.8.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,6 +148,10 @@ def setup(hass, hass_config):
     global STAT_INTERVAL
     STAT_INTERVAL = hass_config[DOMAIN].get(CONF_STAT_INTERVAL)
     _LOGGER.debug("Setting stat interval to: %s", STAT_INTERVAL)
+
+    global NOTIFY
+    NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY)
+    _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
     discovery.load_platform(hass, 'climate', DOMAIN, {}, hass_config)
     discovery.load_platform(hass, 'light', DOMAIN, {}, hass_config)
