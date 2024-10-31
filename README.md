@@ -20,6 +20,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1124ZB-G2 4000W Thermostat second generation
   - Sinopé TH1134ZB-HC for control of heating/cooling interlocking
   - Sinopé TH1300ZB 3600W Floor heating thermostat
+  - Sinopé TH1320ZB-04 Floor heating thermostat
   - Sinopé TH1400ZB Low voltage thermostat
   - Sinopé TH1500ZB 3600W double pole thermostat
   - Sinopé TH1134ZB-HC for heating/cooling interlocking
@@ -41,6 +42,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
 - Heatpump controller:
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
   - Sinopé HP6000ZB-MA for Convectair heat pump with Midea connector
+  - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
