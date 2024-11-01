@@ -686,32 +686,40 @@ class Neviweb130Valve(ValveEntity):
         self._activ = action
 
     def do_stat(self, start):
-        """Get device energy statistic."""
-        if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-#            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
-            if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
-                self._hour_kwh = device_hourly_stats[1]["period"] / 1000
-            else:
-                _LOGGER.warning("Got None for device_hourly_stats")
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
-#            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
-            if device_daily_stats is not None and len(device_daily_stats) > 1:
-                self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-                self._today_kwh = device_daily_stats[0]["period"] / 1000
-            else:
-                _LOGGER.warning("Got None for device_daily_stats")
-            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-#            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
-            if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-                self._month_kwh = device_monthly_stats[0]["period"] / 1000
-            else:
-                _LOGGER.warning("Got None for device_monthly_stats")
-            self._energy_stat_time = time.time()
-        if self._energy_stat_time == 0:
-            self._energy_stat_time = start
+        """Get device flow statistic."""
+        if self._flowmeter_model == "FS4221" or self._flowmeter_model == "FS4220":
+            if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+#                _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
+                if device_hourly_stats is not None and len(device_hourly_stats) > 1:
+                    self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
+                    self._hour_kwh = device_hourly_stats[1]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_hourly_stats")
+                device_daily_stats = self._client.get_device_daily_stats(self._id)
+#                _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
+                if device_daily_stats is not None and len(device_daily_stats) > 1:
+                    self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
+                    self._today_kwh = device_daily_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_daily_stats")
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+#                _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+                if device_monthly_stats is not None and len(device_monthly_stats) > 1:
+                    self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
+                    self._month_kwh = device_monthly_stats[0]["period"] / 1000
+                else:
+                    _LOGGER.warning("Got None for device_monthly_stats")
+                self._energy_stat_time = time.time()
+            if self._energy_stat_time == 0:
+                self._energy_stat_time = start
+        else:
+            self._hour_energy_kwh_count = 0
+            self._hour_kwh = 0
+            self._today_energy_kwh_count = 0
+            self._today_kwh = 0
+            self._month_energy_kwh_count = 0
+            self._month_kwh = 0
 
     def log_error(self, error_data):
         """Send error message to LOG."""
