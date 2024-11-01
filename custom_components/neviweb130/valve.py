@@ -687,7 +687,7 @@ class Neviweb130Valve(ValveEntity):
 
     def do_stat(self, start):
         """Get device flow statistic."""
-        if self._flowmeter_model == "FS4221" or self._flowmeter_model == "FS4220":
+        if self._flowmeter_multiplier != 0:
             if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
 #                _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
