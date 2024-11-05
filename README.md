@@ -88,6 +88,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé FS4221, 1 inch flow sensor
 - Tank level monitor:
   - Sinopé LM4110-ZB, Propane tank level monitor
+  - Sinopé LM4110-LTE, Propane tank level monitor LTE
 - Gateway:
   - GT130
   - GT4220WF-M, mesh gateway
