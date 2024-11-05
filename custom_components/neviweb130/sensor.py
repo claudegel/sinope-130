@@ -7,7 +7,7 @@ model 5052 = WL4200C, perimeter cable water leak detector connected to sedna 2 g
 model 4210 = WL4210, WL4210S connected to GT130.
 model 42102 = WL4210, WL4210S connected to sedna valve.
 model 5056 = LM4110-ZB, level monitor.
-model 5055 = LM4110-ZB, level monitor, multiples tanks.
+model 5055 = LM4110-LTE, level monitor, multiples tanks.
 model 130 = gateway GT130.
 model xxx = gateway GT4220WF, GT4220WF-M for mesh valve network.
 For more details about this platform, please refer to the documentation at  
@@ -121,12 +121,13 @@ SNOOZE_TIME = 1200
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
 
 IMPLEMENTED_GATEWAY = [130]
-IMPLEMENTED_TANK_MONITOR = [5055, 5056]
+IMPLEMENTED_TANK_MONITOR = [5056]
+IMPLEMENTED_LTE_TANK_MONITOR = [5055]
 IMPLEMENTED_SENSOR_MODEL = [5051, 5053]
 IMPLEMENTED_NEW_SENSOR_MODEL = [4210]
 IMPLEMENTED_NEW_CONNECTED_SENSOR = [42102]
 IMPLEMENTED_CONNECTED_SENSOR = [5050, 5052]
-IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR + IMPLEMENTED_GATEWAY + IMPLEMENTED_NEW_SENSOR_MODEL + IMPLEMENTED_NEW_CONNECTED_SENSOR
+IMPLEMENTED_DEVICE_MODEL = IMPLEMENTED_SENSOR_MODEL + IMPLEMENTED_TANK_MONITOR + IMPLEMENTED_LTE_TANK_MONITOR + IMPLEMENTED_CONNECTED_SENSOR + IMPLEMENTED_GATEWAY + IMPLEMENTED_NEW_SENSOR_MODEL + IMPLEMENTED_NEW_CONNECTED_SENSOR
 
 SENSOR_TYPES = {
     "leak": [None, None, BinarySensorDeviceClass.MOISTURE],
@@ -161,7 +162,8 @@ async def async_setup_platform(
               or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR:
                 device_type = "leak"
                 entities.append(Neviweb130ConnectedSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR \
+	          or device_info["signature"]["model"] in IMPLEMENTED_LTE_TANK_MONITOR:
                 device_type = "level"
                 entities.append(Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
             else:
@@ -824,12 +826,17 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._rssi = None
         self._is_monitor = device_info["signature"]["model"] in \
             IMPLEMENTED_TANK_MONITOR
+        self._is_lte_monitor = device_info["signature"]["model"] in \
+            IMPLEMENTED_LTE_TANK_MONITOR
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
         
     def update(self):
         """Update device."""
         if self._activ:
-            MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_BATT_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
+            if self._is_monitor:
+                MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT, ATTR_FUEL_ALERT, ATTR_BATT_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_ERROR_CODE_SET1, ATTR_RSSI]
+            else:
+                MONITOR_ATTRIBUTE = [ATTR_ANGLE, ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_GAUGE_TYPE, ATTR_TANK_HEIGHT]
             start = time.time()
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE)
             end = time.time()
@@ -843,18 +850,19 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self._tank_type = device_data[ATTR_TANK_TYPE]
                     self._tank_height = device_data[ATTR_TANK_HEIGHT]
                     self._gauge_type = device_data[ATTR_GAUGE_TYPE]
-                    self._fuel_alert = device_data[ATTR_FUEL_ALERT]
-                    self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
-                    self._battery_alert = device_data[ATTR_BATT_ALERT]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            self.notify_ha(
-                                f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
-                            )
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
+                    if self._is_monitor:
+                        self._fuel_alert = device_data[ATTR_FUEL_ALERT]
+                        self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
+                        self._battery_alert = device_data[ATTR_BATT_ALERT]
+                        if ATTR_RSSI in device_data:
+                            self._rssi = device_data[ATTR_RSSI]
+                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                self.notify_ha(
+                                    f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
+                                )
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
@@ -884,22 +892,24 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'last_sampling_time': convert(self._sampling),
                 'battery_level': voltage_to_percentage(self._battery_voltage, "lithium"),
                 'battery_voltage': self._battery_voltage,
-                'battery_alert': self._battery_alert,
                 'tank_type': self._tank_type,
                 'tank_height': self._tank_height,
                 'tank_percent': self._tank_percent,
                 'gauge_type': self._gauge_type,
-                'fuel_alert': "OK" if self._fuel_alert else "Low",
-                'fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
-                'error_code': self._error_code,
-                'rssi': self._rssi,
-                'sku': self._sku,
-                'device_model': str(self._device_model),
-                'device_model_cfg': self._device_model_cfg,
-                'firmware': self._firmware,
-                'activation': "Activ" if self._activ else "Inactive",
-                'device_type': self._device_type,
-                'id': str(self._id)})
+        if self._is_monitor:
+            data.update({'battery_alert': self._battery_alert,
+                        'fuel_alert': "OK" if self._fuel_alert else "Low",
+                        'fuel_percent_alert': "Off" if self._fuel_percent_alert == 0 else self._fuel_percent_alert,
+                        'error_code': self._error_code,
+                        'rssi': self._rssi})
+        data.update({'sku': self._sku,
+                    'sku': self._sku,
+                    'device_model': str(self._device_model),
+                    'device_model_cfg': self._device_model_cfg,
+                    'firmware': self._firmware,
+                    'activation': "Activ" if self._activ else "Inactive",
+                    'device_type': self._device_type,
+                    'id': str(self._id)})
         return data
 
     @property
