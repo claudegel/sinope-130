@@ -895,7 +895,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 'tank_type': self._tank_type,
                 'tank_height': self._tank_height,
                 'tank_percent': self._tank_percent,
-                'gauge_type': self._gauge_type,
+                'gauge_type': self._gauge_type})
         if self._is_monitor:
             data.update({'battery_alert': self._battery_alert,
                         'fuel_alert': "OK" if self._fuel_alert else "Low",
