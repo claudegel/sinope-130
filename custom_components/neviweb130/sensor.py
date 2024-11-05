@@ -903,7 +903,6 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                         'error_code': self._error_code,
                         'rssi': self._rssi})
         data.update({'sku': self._sku,
-                    'sku': self._sku,
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
                     'firmware': self._firmware,
