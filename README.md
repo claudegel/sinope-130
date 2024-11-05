@@ -33,15 +33,17 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1133WF wifi 3000W Line voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
+  - Sinopé TH1325WF wifi 3600W floor thermostat
   - Sinopé TH1400WF wifi low voltage thermostat
   - Sinopé TH1500WF wifi 3600W double pole thermostat
   - Sinopé TH6500WF wifi heat/cool (preliminary, need volontary to test)
+  - Sinopé TH6250WF wifi heat/cool (preliminary, need volontary to test)
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
 - Heatpump controller:
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
-  - Sinopé HP6000ZB-MA for Convectair heat pump with Midea connector
+  - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
