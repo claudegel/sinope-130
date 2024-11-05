@@ -161,7 +161,7 @@ async def async_setup_platform(
               or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR:
                 device_type = "leak"
                 entities.append(Neviweb130ConnectedSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
-            elif  device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
                 device_type = "level"
                 entities.append(Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
             else:
@@ -183,7 +183,7 @@ async def async_setup_platform(
               or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR:
                 device_type = "leak"
                 entities.append(Neviweb130ConnectedSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
-            elif  device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
                 device_type = "level"
                 entities.append(Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
             else:

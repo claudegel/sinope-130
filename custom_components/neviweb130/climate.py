@@ -21,14 +21,15 @@ model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
 model 6727 = thermostat TH6500WF heat/cool (wifi)
+model 6727 = thermostat TH6250WF heat/cool (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
 
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
-model 6811 = HP6000ZB-MA for Convectair heat pump with Midea connector
-model 6812 = HP6000ZB-xx for xxx
+model 6811 = HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
+model 6812 = HP6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -1104,12 +1105,12 @@ class Neviweb130Thermostat(ClimateEntity):
             return  False
 
     @property
-    def min_temp(self):
+    def target_temperature_low(self):
         """Return the minimum heating temperature."""
         return self._min_temp
 
     @property
-    def max_temp(self):
+    def target_temperature_high(self):
         """Return the maximum heating temperature."""
         return self._max_temp
 
@@ -1170,6 +1171,8 @@ class Neviweb130Thermostat(ClimateEntity):
             temp = 0
         if temp < self._min_temp:
             return self._min_temp
+        if temp > self._max_temp:
+            return self._max_temp
         return temp
 
     @property
@@ -1181,6 +1184,8 @@ class Neviweb130Thermostat(ClimateEntity):
             temp = 0
         if temp < self._cool_min:
             return self._cool_min
+        if temp > self._cool_max:
+            return self._cool_max
         return temp
 
     @property
@@ -3243,7 +3248,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         return data
 
 class Neviweb130HPThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb HP6000ZB-GE and HP6000ZB-MA heat pump interfaces thermostats."""
+    """Implementation of Neviweb HP6000ZB-GE, HP6000ZB-MA and HP6000ZB-HS heat pump interfaces thermostats."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""

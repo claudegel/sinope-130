@@ -12,10 +12,6 @@ model 2152 = Calypso load controller for water heater, RM3500WF 20,8A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
-Interlock
-model 6000 = HP6000ZB-GE Gree compatible heat pump interface
-model 6000 = HP6000ZB-MA Midea compatible heat pump interface
-
 For more details about this platform, please refer to the documentation at  
 https://www.sinopetech.com/en/support/#api
 """
