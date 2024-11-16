@@ -261,7 +261,7 @@ SUPPORT_AUX_FLAGS = (
 SUPPORT_HP_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
-    | ClimateEntityFeature.FAN_MODE
+#    | ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.SWING_MODE
     | ClimateEntityFeature.TURN_OFF
     | ClimateEntityFeature.TURN_ON
