@@ -97,7 +97,11 @@ DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", 
 TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
-FANSPEED = {"high", "medium", "low", "auto", "off"}
+FAN_SPEED = {"high", "medium", "low", "auto", "off"}
+FAN_CAPABILITY = {"low", "med", "high", "auto"}
+FAN_SWING_CAPABILITY = {"fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"}
+DISPLAY_CAPABILITY = {"enable", "disable"}
+SOUND_CAPABILITY = {"enable", "disable"}
 
 """Config schema."""
 
