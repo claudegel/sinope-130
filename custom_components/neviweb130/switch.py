@@ -1134,7 +1134,8 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if ATTR_WATER_LEAK_STATUS in device_data:
+                        self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
@@ -1156,9 +1157,10 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._water_temp_min = device_data[ATTR_WATER_TEMP_MIN]
                     self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
                     self._water_temp_time = device_data[ATTR_DR_WATER_TEMP_TIME]
-                    self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
-                    self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
-                    self._consumption_time = device_data[ATTR_DR_PROTEC_STATUS]["consumptionOverTime"]
+                    if ATTR_DR_PROTEC_STATUS in device_data:
+                        self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
+                        self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
+                        self._consumption_time = device_data[ATTR_DR_PROTEC_STATUS]["consumptionOverTime"]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
