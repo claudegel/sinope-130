@@ -212,7 +212,10 @@ from .const import (
 )
 
 from .schema import (
-    FANSPEED,
+    FAN_SPEED,
+    FAN_CAPABILITY,
+    FAN_SWING_CAPABILITY,
+    DISPLAY_CAPABILITY,
     PERIOD_VALUE,
     SET_SECOND_DISPLAY_SCHEMA,
     SET_BACKLIGHT_SCHEMA,
@@ -237,6 +240,7 @@ from .schema import (
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
     SET_ACTIVATION_SCHEMA,
     SET_SENSOR_TYPE_SCHEMA,
+    SOUND_CAPABILITY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -298,6 +302,18 @@ UPDATE_ATTRIBUTES = [
     ATTR_TIME,
 ]
 
+UPDATE_HP_ATTRIBUTES = [
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_COOL_SETPOINT_MAX,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_TEMP,
+]
+
 UPDATE_HEAT_COOL_ATTRIBUTES = [
     ATTR_OUTPUT_PERCENT_DISPLAY,
     ATTR_ROOM_SETPOINT,
@@ -330,7 +346,6 @@ SUPPORTED_HVAC_HC_MODES = [
 ]
 
 SUPPORTED_HVAC_HP_MODES = [
-    HVACMode.AUTO,
     HVACMode.COOL,
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
@@ -365,7 +380,7 @@ DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1512]
 DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
-DEVICE_MODEL_HEAT_COOL = [6500]
+DEVICE_MODEL_HEAT_COOL = [6727]
 IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_HEAT + DEVICE_MODEL_FLOOR + DEVICE_MODEL_LOW + DEVICE_MODEL_WIFI_FLOOR + DEVICE_MODEL_WIFI + DEVICE_MODEL_LOW_WIFI + DEVICE_MODEL_HEAT_G2 + DEVICE_MODEL_HC + DEVICE_MODEL_DOUBLE + DEVICE_MODEL_HEAT_PUMP + DEVICE_MODEL_HEAT_COOL
 
 
@@ -3270,7 +3285,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._cur_temp_before = None
         self._target_temp = None
         self._operation_mode = None
-        self._min_temp = 5
+        self._min_temp = 16
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._keypad = None
@@ -3312,13 +3327,13 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         
     def update(self):
         if self._activ:
-            HP_ATTRIBUTES = [ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MIN, ATTR_COOL_SETPOINT_MAX, ATTR_SYSTEM_MODE, ATTR_KEYPAD, ATTR_MODEL, ATTR_ROOM_TEMPERATURE, ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
-                            ATTR_TEMP, ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ, ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE,
-                            ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
+            HP_ATTRIBUTES = [ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_SYSTEM_MODE, ATTR_KEYPAD, ATTR_MODEL, ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ,
+                            ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP,
+                            ATTR_AVAIL_MODE, ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug("Updated attributes for %s: %s", self._name, HP_ATTRIBUTES)
-            device_data = self._client.get_device_attributes(self._id, HP_ATTRIBUTES)
+            _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3326,9 +3341,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._cur_temp_before = self._cur_temp
-                    self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]["value"]) if \
-                        device_data[ATTR_ROOM_TEMPERATURE]["value"] != None else self._cur_temp_before
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    self._cur_temp = float(device_data[ATTR_ROOM_TEMPERATURE]) if \
+                        device_data[ATTR_ROOM_TEMPERATURE] != None else self._cur_temp_before
+                    self._target_temp = device_data[ATTR_ROOM_SETPOINT]
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
@@ -3384,10 +3399,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update({'model':  self._model,
+        data.update({'heat_pump_model':  self._model,
                     'error_code': self._error_code,
                     'operation modes': self._operation_mode,
-                    'cool setpoint': self._target_cool,
                     'cool setpoint min': self._cool_min,
                     'cool setpoint max': self._cool_max,
                     'setpoint_max': self._max_temp,
@@ -3426,7 +3440,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         return data
 
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH6500WF heat cool thermostats."""
+    """Implementation of Neviweb TH6500WF, TH6250WF heat cool thermostats."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
