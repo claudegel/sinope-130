@@ -3522,6 +3522,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._is_wifi_floor = False
         self._is_floor = False
         self._is_low_wifi = False
+        self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
