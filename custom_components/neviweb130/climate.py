@@ -3302,6 +3302,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._fan_swing_cap_vert = None
         self._fan_swing_cap_horiz = None
         self._balance_pt = None
+        self._balance_pt_low = None
+        self._balance_pt_high = None
         self._heat_lock_temp = None
         self._cool_lock_temp = None
         self._avail_mode = None
@@ -3321,6 +3323,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._is_wifi_floor = False
         self._is_floor = False
         self._is_low_wifi = False
+        self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -3328,8 +3331,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     def update(self):
         if self._activ:
             HP_ATTRIBUTES = [ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_SYSTEM_MODE, ATTR_KEYPAD, ATTR_MODEL, ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ,
-                            ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP,
-                            ATTR_AVAIL_MODE, ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
+                            ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_BALANCE_PT_TEMP_HIGH,
+                            ATTR_BALANCE_PT_TEMP_LOW,ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE, ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP,
+                            ATTR_SOUND_CONF, ATTR_SOUND_CAP]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES)
@@ -3373,6 +3377,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
                     self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
+                    if ATTR_BALANCE_PT_TEMP_LOW in device_data:
+                        self._balance_pt_low = device_data[ATTR_BALANCE_PT_TEMP_LOW]
+                        self._balance_pt_high = device_data[ATTR_BALANCE_PT_TEMP_HIGH]
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._avail_mode = device_data[ATTR_AVAIL_MODE]
@@ -3419,7 +3426,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'fan_swing_capability': self._fan_swing_cap,
                     'fan_swing_capability_vertical': self._fan_swing_cap_vert,
                     'fan_swing_capability_horizontal': self._fan_swing_cap_horiz,
-                    'balance_point': self._balance_pt,
+                    'heat_pump_limit_temp': self._balance_pt,
+                    'min_heat_pump_limit_temp': self._balance_pt_low,
+                    'max_heat_pump_limit_temp': self._balance_pt_high,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
                     'available_mode': self._avail_mode,
