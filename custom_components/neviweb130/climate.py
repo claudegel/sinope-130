@@ -339,6 +339,8 @@ UPDATE_HEAT_COOL_ATTRIBUTES = [
     ATTR_TIME,
 ]
 
+FULL_SWING = ['swingFullRange', 'off']
+
 SUPPORTED_HVAC_WIFI_MODES = [
     HVACMode.AUTO,
     HVACMode.HEAT,
@@ -361,6 +363,19 @@ SUPPORTED_HVAC_HP_MODES = [
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
     HVACMode.HEAT,
+    HVACMode.OFF,
+]
+
+SUPPORTED_HVAC_HEAT_MODES = [
+    HVACMode.FAN_ONLY,
+    HVACMode.HEAT,
+    HVACMode.OFF,
+]
+
+SUPPORTED_HVAC_COOL_MODES = [
+    HVACMode.COOL,
+    HVACMode.DRY,
+    HVACMode.FAN_ONLY,
     HVACMode.OFF,
 ]
 
@@ -1004,6 +1019,11 @@ def lock_to_ha(lock):
         case "partialLock":
             return "Tamper protection"
 
+def extract_capability(cap):
+    """Extract capability which are True for each HP device."""
+    value = {i for i in cap if cap[i]==True}
+    return FULL_SWING + sorted(value)
+
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
@@ -1274,7 +1294,12 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._is_hc or self._is_HC:
             return SUPPORTED_HVAC_HC_MODES
         elif self._is_HP:
-            return SUPPORTED_HVAC_HP_MODES
+            if self._avail_mode = "heatingOnly":
+                return SUPPORTED_HVAC_HEAT_MODES
+            elif self._avail_mode = "coolingOnly":
+                return SUPPORTED_HVAC_COOL_MODES
+            else:
+                return SUPPORTED_HVAC_HP_MODES
         else:
             return SUPPORTED_HVAC_MODES
 
@@ -3569,15 +3594,15 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'keypad': lock_to_ha(self._keypad),
                     'fan_speed': self._fan_speed,
                     'display_conf': self._display_conf,
-                    'display_capability': self._display_cap,
+                    'display_capability': extract_capability(self._display_cap),
                     'sound_conf': self._sound_conf,
-                    'sound_capability': self._sound_cap,
+                    'sound_capability': extract_capability(self._sound_cap),
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
-                    'fan_swing_capability': self._fan_swing_cap,
-                    'fan_swing_capability_vertical': self._fan_swing_cap_vert,
-                    'fan_swing_capability_horizontal': self._fan_swing_cap_horiz,
+                    'fan_swing_capability': extract_capability(self._fan_swing_cap),
+                    'fan_swing_capability_vertical': extract_capability(self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability(self._fan_swing_cap_horiz),
                     'heat_pump_limit_temp': self._balance_pt,
                     'min_heat_pump_limit_temp': self._balance_pt_low,
                     'max_heat_pump_limit_temp': self._balance_pt_high,
