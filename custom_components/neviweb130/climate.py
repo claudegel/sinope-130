@@ -271,6 +271,7 @@ SUPPORT_HC_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
 #    | ClimateEntityFeature.FAN_MODE
+#    | ClimateEntityFeature.SWING_MODE
     | ClimateEntityFeature.TURN_OFF
     | ClimateEntityFeature.TURN_ON
 )
@@ -1102,7 +1103,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORT_AUX_FLAGS
         elif self._is_HP:
             return SUPPORT_HP_FLAGS
-        elif self._is_HC:
+        elif self._is_HC or self._is_hc:
             return SUPPORT_HC_FLAGS
         else:
             return SUPPORT_FLAGS
@@ -3089,7 +3090,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._HC_device = None
         self._language = None
         self._model = None
-        self._fan_speed = 0
+        self._fan_speed = None
         self._fan_swing_vert = None
         self._fan_swing_horiz = None
         self._fan_cap = None
@@ -3289,12 +3290,13 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._keypad = None
+        self._heat_level = None
         self._rssi = None
         self._target_cool = None
         self._cool_min = None
         self._cool_max = None
         self._model = None
-        self._fan_speed = 0
+        self._fan_speed = None
         self._fan_swing_vert = None
         self._fan_swing_horiz = None
         self._fan_cap = None
@@ -3468,6 +3470,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._time_format = "24h"
+        self._heat_level = 0
         self._rssi = None
         self._keypad = None
         self._backlight = None
@@ -3487,7 +3490,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._dual_status = None
         self._fan_filter_life = None
         self._fan_filter_remain = None
-        self._fan_speed = 0
+        self._fan_speed = None
         self._balance_pt = None
         self._cycle = None
         self._aux_cycle = None
