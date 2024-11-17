@@ -15,24 +15,21 @@ from homeassistant.const import (
 )
 
 from .const import (
-    DOMAIN,
-    CONF_HOMEKIT_MODE,
-    CONF_NETWORK,
-    CONF_NETWORK2,
-    CONF_NOTIFY,
-    CONF_STAT_INTERVAL,
     ATTR_ACTIVE,
     ATTR_BACKLIGHT,
+    ATTR_BALANCE_PT,
     ATTR_BATT_ALERT,
     ATTR_BATTERY_TYPE,
     ATTR_BLUE,
     ATTR_CLOSE_VALVE,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_CONF_CLOSURE,
+    ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_SETPOINT_MAX, 
     ATTR_COOL_SETPOINT_MIN,
     ATTR_DELAY,
     ATTR_DISPLAY2,
+    ATTR_DISPLAY_CONF,
     ATTR_DRACTIVE,
     ATTR_EARLY_START,
     ATTR_FLOOR_AIR_LIMIT,
@@ -46,6 +43,7 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_GREEN,
+    ATTR_HEAT_LOCK_TEMP,
     ATTR_INPUT_NUMBER,
     ATTR_INTENSITY,
     ATTR_KEY_DOUBLE_UP,
@@ -66,6 +64,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT,
+    ATTR_SOUND_CONF,
     ATTR_STATE,
     ATTR_STATUS,
     ATTR_TANK_HEIGHT,
@@ -79,6 +78,12 @@ from .const import (
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_WATER_TEMP_MIN,
+    DOMAIN,
+    CONF_HOMEKIT_MODE,
+    CONF_NETWORK,
+    CONF_NETWORK2,
+    CONF_NOTIFY,
+    CONF_STAT_INTERVAL,
 )
 
 """Default parameters values."""
@@ -317,6 +322,51 @@ SET_SENSOR_TYPE_SCHEMA = vol.Schema(
     }
 )
 
+SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BALANCE_PT): vol.All(
+            vol.Coerce(int), vol.Range(min=-30, max=-5)
+        ),
+    }
+)
+
+SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=30)
+        ),
+    }
+)
+
+SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=30)
+        ),
+    }
+)
+
+SET_DISPLAY_CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DISPLAY_CONF): vol.All(
+            cv.ensure_list, [vol.In(DISPLAY_CAPABILITY)]
+        ),
+    }
+)
+
+SET_SOUND_CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_SOUND_CONF): vol.All(
+            cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
+        ),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
@@ -378,7 +428,7 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
         vol.Required(ATTR_KEY_DOUBLE_UP): vol.In(["On", "Off"]),
     }
 )
-    
+
 """"Switch schema."""
 
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
