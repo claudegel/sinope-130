@@ -194,12 +194,16 @@ from .const import (
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
     SERVICE_SET_COOL_SETPOINT_MAX,
     SERVICE_SET_COOL_SETPOINT_MIN,
+    SERVICE_SET_COOL_LOCKOUT_TEMPERATURE,
     SERVICE_SET_CYCLE_OUTPUT,
+    SERVICE_SET_DISPLAY_CONFIG,
     SERVICE_SET_EARLY_START,
     SERVICE_SET_EM_HEAT,
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
     SERVICE_SET_FLOOR_LIMIT_LOW,
+    SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
+    SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
     SERVICE_SET_PUMP_PROTECTION,
@@ -207,39 +211,45 @@ from .const import (
     SERVICE_SET_SENSOR_TYPE,
     SERVICE_SET_SETPOINT_MAX,
     SERVICE_SET_SETPOINT_MIN,
+    SERVICE_SET_SOUND_CONFIG,
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_TIME_FORMAT,
 )
 
 from .schema import (
+    DISPLAY_CAPABILITY,
     FAN_SPEED,
     FAN_CAPABILITY,
     FAN_SWING_CAPABILITY,
-    DISPLAY_CAPABILITY,
     PERIOD_VALUE,
-    SET_SECOND_DISPLAY_SCHEMA,
+    SET_ACTIVATION_SCHEMA,
+    SET_AIR_FLOOR_MODE_SCHEMA,
+    SET_AUX_CYCLE_OUTPUT_SCHEMA,
+    SET_AUXILIARY_LOAD_SCHEMA,
     SET_BACKLIGHT_SCHEMA,
     SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
-    SET_EM_HEAT_SCHEMA,
-    SET_TIME_FORMAT_SCHEMA,
-    SET_TEMPERATURE_FORMAT_SCHEMA,
-    SET_SETPOINT_MAX_SCHEMA,
-    SET_SETPOINT_MIN_SCHEMA,
-    SET_FLOOR_AIR_LIMIT_SCHEMA,
-    SET_EARLY_START_SCHEMA,
-    SET_AIR_FLOOR_MODE_SCHEMA,
-    SET_HVAC_DR_OPTIONS_SCHEMA,
-    SET_HVAC_DR_SETPOINT_SCHEMA,
+    SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA,
     SET_COOL_SETPOINT_MAX_SCHEMA,
     SET_COOL_SETPOINT_MIN_SCHEMA,
-    SET_AUXILIARY_LOAD_SCHEMA,
-    SET_AUX_CYCLE_OUTPUT_SCHEMA,
     SET_CYCLE_OUTPUT_SCHEMA,
-    SET_PUMP_PROTECTION_SCHEMA,
-    SET_FLOOR_LIMIT_LOW_SCHEMA,
+    SET_DISPLAY_CONFIG_SCHEMA,
+    SET_EARLY_START_SCHEMA,
+    SET_EM_HEAT_SCHEMA,
+    SET_FLOOR_AIR_LIMIT_SCHEMA,
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
-    SET_ACTIVATION_SCHEMA,
+    SET_FLOOR_LIMIT_LOW_SCHEMA,
+    SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
+    SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
+    SET_HVAC_DR_OPTIONS_SCHEMA,
+    SET_HVAC_DR_SETPOINT_SCHEMA,
+    SET_PUMP_PROTECTION_SCHEMA,
+    SET_SECOND_DISPLAY_SCHEMA,
     SET_SENSOR_TYPE_SCHEMA,
+    SET_SETPOINT_MAX_SCHEMA,
+    SET_SETPOINT_MIN_SCHEMA,
+    SET_SOUND_CONFIG_SCHEMA,
+    SET_TEMPERATURE_FORMAT_SCHEMA,
+    SET_TIME_FORMAT_SCHEMA,
     SOUND_CAPABILITY,
 )
 
@@ -368,6 +378,11 @@ PRESET_MODES = [
 PRESET_HP_MODES = [
     PRESET_AWAY,
     PRESET_HOME,
+    PRESET_NONE,
+]
+
+PRESET_HC_MODES = [
+    PRESET_AWAY,
     PRESET_NONE,
 ]
 
@@ -679,11 +694,11 @@ async def async_setup_platform(
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "active": service.data[ATTR_ACTIVE]}
+                thermostat.set_activation(value)
+                thermostat.schedule_update_ha_state(True)
                 break
 
     def set_sensor_type_service(service):
@@ -707,6 +722,61 @@ async def async_setup_platform(
                     thermostat.turn_em_heat_on()
                 else:
                     thermostat.turn_em_heat_off()
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_heat_pump_operation_limit_service(service):
+        """Set minimum temperature for heat pump device operation."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_BALANCE_PT]}
+                thermostat.set_heat_pump_operation_limit(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_heat_lockout_temperature_service(service):
+        """Set maximum outside temperature limit to allow heating device operation."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_HEAT_LOCK_TEMP]}
+                thermostat.set_heat_lockout_temperature(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_cool_lockout_temperature_service(service):
+        """Set minimum outside temperature limit to allow cooling device operation."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_COOL_LOCK_TEMP]}
+                thermostat.set_cool_lockout_temperature(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_display_config_service(service):
+        """Set display on/off for heat pump."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "display": service.data[ATTR_DISPLAY_CONF]}
+                thermostat.set_display_config(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_sound_config_service(service):
+        """Set sound on/off for heat pump."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "sound": service.data[ATTR_SOUND_CONF]}
+                thermostat.set_sound_config(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -869,6 +939,41 @@ async def async_setup_platform(
         SERVICE_SET_EM_HEAT,
         set_em_heat_service,
         schema=SET_EM_HEAT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
+        set_heat_pump_operation_limit_service,
+        schema=SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_LOCKOUT_TEMPERATURE,
+        set_cool_lockout_temperature_service,
+        schema=SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
+        set_heat_lockout_temperature_service,
+        schema=SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_DISPLAY_CONFIG,
+        set_display_config_service,
+        schema=SET_DISPLAY_CONFIG_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SOUND_CONFIG,
+        set_sound_config_service,
+        schema=SET_SOUND_CONFIG_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -1211,6 +1316,8 @@ class Neviweb130Thermostat(ClimateEntity):
             return PRESET_WIFI_MODES
         elif self._is_HP:
             return PRESET_HP_MODES
+        elif self._is_HC or self._is_hc:
+            return PRESET_HC_MODES
         else:
             return PRESET_MODES
 
@@ -1574,6 +1681,48 @@ class Neviweb130Thermostat(ClimateEntity):
         """Activate or deactivate neviweb polling for a missing device."""
         action = value["active"]
         self._activ = action
+
+    def set_heat_pump_operation_limit(self, value):
+        """Set minimum temperature for heat pump operation."""
+        temp = value["temp"]
+        entity = value["id"]
+        if temp < self._balance_pt_low:
+            temp = self._balance_pt_low
+        self._client.set_heat_pump_limit(
+            entity, temp)
+        self._balance_pt = temp
+
+    def set_heat_lockout_temperature(self, value):
+        """Set maximum outside temperature limit to allow heat device operation."""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_heat_lockout(
+            entity, temp)
+        self._heat_lockout_temp = temp
+
+    def set_cool_lockout_temperature(self, value):
+        """Set minimum outside temperature limit to allow cooling device operation."""
+        temp = value["temp"]
+        entity = value["id"]
+        self._client.set_cool_lockout(
+            entity, temp)
+        self._cool_lock_temp = temp
+
+    def set_display_config(self, value):
+        """Set display on/off for heat pump."""
+        display = value["display"]
+        entity = value["id"]
+        self._client.set_hp_display(
+            entity, display)
+        self._display_conf = display
+
+    def set_sound_config(self, value):
+        """Set sound on/off for heat pump."""
+        sound = value["sound"]
+        entity = value["id"]
+        self._client.set_hp_sound(
+            entity, sound)
+        self._sound_conf = sound
 
     def do_stat(self, start):
         """Get device energy statistic."""
