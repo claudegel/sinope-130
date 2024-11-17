@@ -1294,9 +1294,9 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._is_hc or self._is_HC:
             return SUPPORTED_HVAC_HC_MODES
         elif self._is_HP:
-            if self._avail_mode = "heatingOnly":
+            if self._avail_mode == "heatingOnly":
                 return SUPPORTED_HVAC_HEAT_MODES
-            elif self._avail_mode = "coolingOnly":
+            elif self._avail_mode == "coolingOnly":
                 return SUPPORTED_HVAC_COOL_MODES
             else:
                 return SUPPORTED_HVAC_HP_MODES
