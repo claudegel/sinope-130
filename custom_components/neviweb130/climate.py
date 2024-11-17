@@ -3291,6 +3291,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._keypad = None
         self._heat_level = None
+        self._occupancy = None
         self._rssi = None
         self._target_cool = None
         self._cool_min = None
@@ -3492,6 +3493,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_filter_remain = None
         self._fan_speed = None
         self._balance_pt = None
+        self._occupancy = None
         self._cycle = None
         self._aux_cycle = None
         self._cool_cycle_length = 0
