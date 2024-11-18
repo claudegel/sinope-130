@@ -652,3 +652,23 @@ set_sound_config:
     soundConfig:
       description: possible values, enabled, disabled.
       example: "disabled"
+
+set_fan_swing_horizontal:
+  description: Set horizontal fan swing action for heat pump.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    fanSwingHorizontal:
+      description: For possible values, check fan_swing_capability_vertical attribute of your device.
+      example: "swingFullRange"
+
+set_fan_swing_vertical:
+  description: Set vertical fan swing action for heat pump.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    fanSwingVertical:
+      description: For possible values, check fan_swing_capability_horizontal attribute of your device.
+      example: "swingFullRange"
