@@ -57,6 +57,10 @@ from homeassistant.components.climate import (
     HVACMode,
 )
 from homeassistant.components.climate.const import (
+    ATTR_FAN_MODES,
+    ATTR_FAN_MODE,
+    ATTR_SWING_MODES,
+    ATTR_SWING_MODE,
     PRESET_AWAY,
     PRESET_HOME,
     PRESET_NONE,
@@ -275,8 +279,17 @@ SUPPORT_AUX_FLAGS = (
 SUPPORT_HP_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
-#    | ClimateEntityFeature.FAN_MODE
-#    | ClimateEntityFeature.SWING_MODE
+    | ClimateEntityFeature.FAN_MODE
+    | ClimateEntityFeature.SWING_MODE
+    | ClimateEntityFeature.TURN_OFF
+    | ClimateEntityFeature.TURN_ON
+)
+
+SUPPORT_Hc_FLAGS = (
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.FAN_MODE
+    | ClimateEntityFeature.SWING_MODE
     | ClimateEntityFeature.TURN_OFF
     | ClimateEntityFeature.TURN_ON
 )
@@ -284,8 +297,7 @@ SUPPORT_HP_FLAGS = (
 SUPPORT_HC_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
-#    | ClimateEntityFeature.FAN_MODE
-#    | ClimateEntityFeature.SWING_MODE
+    | ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.TURN_OFF
     | ClimateEntityFeature.TURN_ON
 )
@@ -1273,8 +1285,10 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORT_AUX_FLAGS
         elif self._is_HP:
             return SUPPORT_HP_FLAGS
-        elif self._is_HC or self._is_hc:
+        elif self._is_HC:
             return SUPPORT_HC_FLAGS
+        elif self._is_hc:
+            return SUPPORT_Hc_FLAGS
         else:
             return SUPPORT_FLAGS
 
@@ -1439,6 +1453,58 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._operation_mode == HVACMode.HEAT or self._operation_mode == HVACMode.AUTO:
             return True
         return False
+
+    @property
+    def fan_modes(self):
+        """Return available fan modes."""
+        if self._is_HP or self._is_HC or self._is_hc:
+            return FAN_SPEED
+        else:
+            return None
+
+    @property
+    def fan_mode(self):
+        """Return the fan setting."""
+        return self._fan_speed
+
+    @property
+    def swing_modes(self):
+        """Return available swing modes"""
+        if self._is_HP or self._is_hc:
+            return extract_capability(self._fan_swing_cap)
+        else:
+            return None
+
+    @property
+    def swing_mode(self):
+        """Return the fan swing setting."""
+        return self._fan_swing_vert
+
+    @property
+    def swing_modes_vertical(self):
+        """Return available swing modes"""
+        if self._is_HP or self._is_hc:
+            return extract_capability_full(self._fan_swing_cap_vert)
+        else:
+            return None
+
+    @property
+    def swing_mode_vertical(self):
+        """Return the fan swing setting."""
+        return self._fan_swing_vert
+
+    @property
+    def swing_modes_horizontal(self):
+        """Return available swing modes"""
+        if self._is_HP or self._is_hc:
+            return extract_capability_full(self._fan_swing_cap_horiz)
+        else:
+            return None
+
+    @property
+    def swing_mode_horizontal(self):
+        """Return the fan swing setting."""
+        return self._fan_swing_horiz
 
     def turn_on(self):
         """Turn the thermostat to HVACMode.heat on."""
@@ -3464,14 +3530,14 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_speed': self._fan_speed,
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
-                    'fan_capability': self._fan_cap,
+                    'fan_capability': extract_capability(self._fan_cap),
                     'fan_swing_capability': self._fan_swing_cap,
-                    'fan_swing_capability_vertical': self._fan_swing_cap_vert,
-                    'fan_swing_capability_horizontal': self._fan_swing_cap_horiz,
+                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
                     'display_conf': self._display_conf,
                     'display_capability': self._display_cap,
                     'sound_conf': self._sound_conf,
-                    'sound_capability': self._sound_cap,
+                    'sound_capability': extract_capability(self._sound_cap),
                     'balance_point': self._balance_pt,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
