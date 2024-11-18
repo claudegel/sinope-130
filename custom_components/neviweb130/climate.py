@@ -199,6 +199,8 @@ from .const import (
     SERVICE_SET_DISPLAY_CONFIG,
     SERVICE_SET_EARLY_START,
     SERVICE_SET_EM_HEAT,
+    SERVICE_SET_FAN_SWING_HORIZONTAL,
+    SERVICE_SET_FAN_SWING_VERTICAL,
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
     SERVICE_SET_FLOOR_LIMIT_LOW,
@@ -235,6 +237,8 @@ from .schema import (
     SET_DISPLAY_CONFIG_SCHEMA,
     SET_EARLY_START_SCHEMA,
     SET_EM_HEAT_SCHEMA,
+    SET_FAN_SWING_HORIZONTALL_SCHEMA,
+    SET_FAN_SWING_VERTICAL_SCHEMA,
     SET_FLOOR_AIR_LIMIT_SCHEMA,
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
     SET_FLOOR_LIMIT_LOW_SCHEMA,
@@ -795,6 +799,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_fan_swing_horizontal_service(service):
+        """Set horizontal fan swing action for heat pump."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "swing": service.data[ATTR_FAN_SWING_HORIZ]}
+                thermostat.set_fan_swing_horizontal(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_fan_swing_vertical_service(service):
+        """Set vertical fan swing action for heat pump."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "swing": service.data[ATTR_FAN_SWING_VERT]}
+                thermostat.set_fan_swing_vertical(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -989,6 +1015,20 @@ async def async_setup_platform(
         SERVICE_SET_SOUND_CONFIG,
         set_sound_config_service,
         schema=SET_SOUND_CONFIG_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FAN_SWING_HORIZONTAL,
+        set_fan_swing_horizontal_service,
+        schema=SET_FAN_SWING_HORIZONTALL_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FAN_SWING_VERTICAL,
+        set_fan_swing_vertical_service,
+        schema=SET_FAN_SWING_VERTICAL_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -1753,6 +1793,32 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_hp_sound(
             entity, sound)
         self._sound_conf = sound
+
+    def set_fan_swing_horizontal(self, value):
+        """Set horizontal fan swing action for heat pump."""
+        swing = value["swing"]
+        entity = value["id"]
+        if swing not in extract_capability_full(self._fan_swing_cap_horiz):
+            self.notify_ha(
+                        f"Warning: Value selected for fan swing horizontal is not supported by " + self._name
+                    )
+            return
+        self._client.set_swing_horizontal(
+            entity, swing)
+        self._fan_swing_horiz = swing
+
+    def set_fan_swing_vertical(self, value):
+        """Set vertical fan swing action for heat pump."""
+        swing = value["swing"]
+        entity = value["id"]
+        if swing not in extract_capability_full(self._fan_swing_cap_vert):
+            self.notify_ha(
+                        f"Warning: Value selected for fan swing vertical is not supported by " + self._name
+                    )
+            return
+        self._client.set_swing_vertical(
+            entity, swing)
+        self._fan_swing_vert = swing
 
     def do_stat(self, start):
         """Get device energy statistic."""
