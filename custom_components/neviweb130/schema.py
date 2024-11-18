@@ -32,6 +32,8 @@ from .const import (
     ATTR_DISPLAY_CONF,
     ATTR_DRACTIVE,
     ATTR_EARLY_START,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_MAX,
     ATTR_FLOOR_MIN,
@@ -107,6 +109,10 @@ FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {"fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"}
 DISPLAY_CAPABILITY = {"enable", "disable"}
 SOUND_CAPABILITY = {"enable", "disable"}
+SWING_CAPABILITY_VERTICAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8',
+                             'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
+SWING_CAPABILITY_HORIZONTAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8',
+                               'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
 
 """Config schema."""
 
@@ -363,6 +369,24 @@ SET_SOUND_CONFIG_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SOUND_CONF): vol.All(
             cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
+        ),
+    }
+)
+
+SET_FAN_SWING_VERTICAL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_SWING_VERT): vol.All(
+            cv.ensure_list, [vol.In(SWING_CAPABILITY_VERTICAL)]
+        ),
+    }
+)
+
+SET_FAN_SWING_HORIZONTALL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_SWING_HORIZ): vol.All(
+            cv.ensure_list, [vol.In(SWING_CAPABILITY_HORIZONTAL)]
         ),
     }
 )
