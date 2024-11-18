@@ -1019,10 +1019,15 @@ def lock_to_ha(lock):
         case "partialLock":
             return "Tamper protection"
 
+def extract_capability_full(cap):
+    """Extract swing capability which are True for each HP device."""
+    value = {i for i in cap if cap[i]==True}
+    return FULL_SWING + sorted(value)
+
 def extract_capability(cap):
     """Extract capability which are True for each HP device."""
     value = {i for i in cap if cap[i]==True}
-    return FULL_SWING + sorted(value)
+    return sorted(value)
 
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
@@ -3601,8 +3606,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
                     'fan_swing_capability': extract_capability(self._fan_swing_cap),
-                    'fan_swing_capability_vertical': extract_capability(self._fan_swing_cap_vert),
-                    'fan_swing_capability_horizontal': extract_capability(self._fan_swing_cap_horiz),
+                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
                     'heat_pump_limit_temp': self._balance_pt,
                     'min_heat_pump_limit_temp': self._balance_pt_low,
                     'max_heat_pump_limit_temp': self._balance_pt_high,
