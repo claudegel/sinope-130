@@ -44,6 +44,8 @@ from .const import (
     ATTR_DRSETPOINT,
     ATTR_DRSTATUS,
     ATTR_EARLY_START,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AUX,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_MAX,
@@ -988,6 +990,18 @@ class Neviweb130Client(object):
         """Set display on/off for heat pump."""
         data = {ATTR_SOUND_CONF: sound}
         _LOGGER.debug("Sound config value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_swing_horizontal(self, device_id, swing):
+        """Set horizontal fan swing action for heat pump."""
+        data = {ATTR_FAN_SWING_HORIZ: swing}
+        _LOGGER.debug("Fan horizontal swing value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_swing_vertical(self, device_id, swing):
+        """Set vertical fan swing action for heat pump."""
+        data = {ATTR_FAN_SWING_VERT: swing}
+        _LOGGER.debug("Fan vertical swing value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
