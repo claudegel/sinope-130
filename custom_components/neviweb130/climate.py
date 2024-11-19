@@ -1506,17 +1506,15 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the fan swing setting."""
         return self._fan_swing_horiz
 
-    def set_fan_mode(self, **kwargs):
+    def set_fan_mode(self, speed):
         """Set new fan mode."""
-        speed = kwargs.get(ATTR_FAN_MODE)
         if speed is None:
             return
         self._client.set_fan_mode(self._id, speed)
         self._fan_speed = speed
 
-    def set_swing_mode(self, **kwargs):
+    def set_swing_mode(self, swing):
         """Set new swing mode."""
-        swing = kwargs.get(ATTR_SWING_MODE)
         if swing is None:
             return
         self._client.set_swing_vertical(self._id, swing)
