@@ -44,6 +44,7 @@ from .const import (
     ATTR_DRSETPOINT,
     ATTR_DRSTATUS,
     ATTR_EARLY_START,
+    ATTR_FAN_SPEED,
     ATTR_FAN_SWING_HORIZ,
     ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AUX,
@@ -1002,6 +1003,12 @@ class Neviweb130Client(object):
         """Set vertical fan swing action for heat pump."""
         data = {ATTR_FAN_SWING_VERT: swing}
         _LOGGER.debug("Fan vertical swing value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_fan_mode(self, device_id, speed):
+        """Set fan speed (mode) for heat pump."""
+        data = {ATTR_FAN_SPEED: speed}
+        _LOGGER.debug("Fan speed value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
