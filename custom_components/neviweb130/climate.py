@@ -1471,7 +1471,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def swing_modes(self):
         """Return available swing modes"""
         if self._is_HP or self._is_hc:
-            return extract_capability(self._fan_swing_cap)
+            return extract_capability_full(self._fan_swing_cap_vert)
         else:
             return None
 
