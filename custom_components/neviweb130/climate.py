@@ -355,7 +355,10 @@ UPDATE_HEAT_COOL_ATTRIBUTES = [
     ATTR_TIME,
 ]
 
-FULL_SWING = ['swingFullRange', 'off']
+FULL_SWING = ['swingFullRange']
+FULL_SWING_HORIZ = ['swingFullRangeHoriz']
+FULL_SWING_OFF = ['off']
+FULL_SWING_OFF_HORIZ = ['offHoriz']
 
 SUPPORTED_HVAC_WIFI_MODES = [
     HVACMode.AUTO,
@@ -1071,10 +1074,13 @@ def lock_to_ha(lock):
         case "partialLock":
             return "Tamper protection"
 
-def extract_capability_full(cap):
-    """Extract swing capability which are True for each HP device."""
-    value = {i for i in cap if cap[i]==True}
-    return FULL_SWING + sorted(value)
+def extract_capability_full(sens, cap):
+    """Extract swing capability which are True for each HP device and add denegal capability."""
+    if sens == "vert":
+        value = {i for i in cap if cap[i]==True}
+        return FULL_SWING_OFF + sorted(value)
+    value = {i+"Horiz" for i in cap if cap[i]==True}
+    return FULL_SWING_OFF_HORIZ + sorted(value)
 
 def extract_capability(cap):
     """Extract capability which are True for each HP device."""
@@ -1469,9 +1475,9 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     def swing_modes(self):
-        """Return available swing modes"""
+        """Return available swing modes, vertical + horizontal."""
         if self._is_HP or self._is_hc:
-            return extract_capability_full(self._fan_swing_cap_vert)
+            return self.swing_modes_vertical + self.swing_modes_horizontal
         else:
             return None
 
@@ -1482,9 +1488,12 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     def swing_modes_vertical(self):
-        """Return available swing modes"""
+        """Return available vertical swing modes"""
         if self._is_HP or self._is_hc:
-            return extract_capability_full(self._fan_swing_cap_vert)
+            if "fullVertical" in extract_capability(self._fan_swing_cap):
+                return FULL_SWING + extract_capability_full("vert", self._fan_swing_cap_vert)
+            else:
+                return extract_capability_full("vert", self._fan_swing_cap_vert)
         else:
             return None
 
@@ -1495,9 +1504,12 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     def swing_modes_horizontal(self):
-        """Return available swing modes"""
+        """Return available horizontal swing modes"""
         if self._is_HP or self._is_hc:
-            return extract_capability_full(self._fan_swing_cap_horiz)
+            if "fullHorizontal" in extract_capability(self._fan_swing_cap):
+                return FULL_SWING_HORIZ + extract_capability_full("horiz", self._fan_swing_cap_horiz)
+            else:
+                return extract_capability_full("horiz", self._fan_swing_cap_horiz)
         else:
             return None
 
@@ -1517,8 +1529,12 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set new swing mode."""
         if swing is None:
             return
-        self._client.set_swing_vertical(self._id, swing)
-        self._fan_swing_vert = swing
+        elif swing[-5:] == "Horiz":
+            self._client.set_swing_horizontal(self._id, swing[:-5])
+            self._fan_swing_horiz = swing[:-5]
+        else:
+            self._client.set_swing_vertical(self._id, swing)
+            self._fan_swing_vert = swing
 
     def turn_on(self):
         """Turn the thermostat to HVACMode.heat on."""
@@ -1878,26 +1894,24 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set horizontal fan swing action for heat pump."""
         swing = value["swing"]
         entity = value["id"]
-        if swing not in extract_capability_full(self._fan_swing_cap_horiz):
-            self.notify_ha(
-                        f"Warning: Value selected for fan swing horizontal is not supported by " + self._name
-                    )
-            return
-        self._client.set_swing_horizontal(
-            entity, swing)
-        self._fan_swing_horiz = swing
+        if swing[-5:] == "Horiz":
+            if swing not in FULL_SWING_HORIZ + extract_capability_full("horiz", self._fan_swing_cap_horiz):
+                self.notify_ha(f"Warning: Value " + swing + "selected for fan swing horizontal is not supported by " + self._name)
+                return
+            self._client.set_swing_horizontal(self._id, swing[:-5])
+            self._fan_swing_horiz = swing[:-5]
+        else:
+            self._client.set_swing_horizontal(entity, swing)
+            self._fan_swing_horiz = swing
 
     def set_fan_swing_vertical(self, value):
         """Set vertical fan swing action for heat pump."""
         swing = value["swing"]
         entity = value["id"]
-        if swing not in extract_capability_full(self._fan_swing_cap_vert):
-            self.notify_ha(
-                        f"Warning: Value selected for fan swing vertical is not supported by " + self._name
-                    )
+        if swing not in FULL_SWING + extract_capability_full("vert", self._fan_swing_cap_vert):
+            self.notify_ha(f"Warning: Value selected for fan swing vertical is not supported by " + self._name)
             return
-        self._client.set_swing_vertical(
-            entity, swing)
+        self._client.set_swing_vertical(entity, swing)
         self._fan_swing_vert = swing
 
     def do_stat(self, start):
@@ -3545,11 +3559,11 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': extract_capability(self._fan_cap),
-                    'fan_swing_capability': self._fan_swing_cap,
-                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
-                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
+                    'fan_swing_capability': extract_capability(self._fan_swing_cap),
+                    'fan_swing_capability_vertical': extract_capability_full("vert", self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability_full("horiz", self._fan_swing_cap_horiz),
                     'display_conf': self._display_conf,
-                    'display_capability': self._display_cap,
+                    'display_capability': extract_capability(self._display_cap),
                     'sound_conf': self._sound_conf,
                     'sound_capability': extract_capability(self._sound_cap),
                     'balance_point': self._balance_pt,
@@ -3752,8 +3766,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
                     'fan_swing_capability': extract_capability(self._fan_swing_cap),
-                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
-                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
+                    'fan_swing_capability_vertical': extract_capability_full("vert", self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability_full("horiz", self._fan_swing_cap_horiz),
                     'heat_pump_limit_temp': self._balance_pt,
                     'min_heat_pump_limit_temp': self._balance_pt_low,
                     'max_heat_pump_limit_temp': self._balance_pt_high,
