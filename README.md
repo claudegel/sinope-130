@@ -232,6 +232,13 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_remaining_time to set value for coldLoadPickupRemainingTime attribute.
 - neviweb130.set_on_off_input_delay to set the «on» or «off» delay in seconds for input 1 and 2 of MC3100ZB.
 - neviweb130.set_em_heat to turn on/off aux heat for floor and low voltage thermostats. This is a replacement of turn_aux_heat_on or off that was deprecated by HA.
+- neviweb130.set_display_config to set on/off display on heatpump.
+- neviweb130.set_sound_config to set on/off sound on heatpump.
+- neviweb130.set_fan_swing_horizontal to set various vertical fan swing modes for heatpump.
+- neviweb130.set_fan_swing_vertical to set various horizontal swing modes for heatpump.
+- neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
+- neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
+- neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:
