@@ -25,91 +25,99 @@ from homeassistant.components.climate.const import (
     PRESET_HOME,
     )
 from .const import (
+    ATTR_AUX_CYCLE,
+    ATTR_BACKLIGHT,
+    ATTR_BACKLIGHT_AUTO_DIM,
+    ATTR_BALANCE_PT,
+    ATTR_BATT_ALERT,
+    ATTR_BATTERY_TYPE,
+    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+    ATTR_CONF_CLOSURE,
+    ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_SETPOINT_MAX,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_CYCLE,
+    ATTR_CYCLE_OUTPUT2,
+    ATTR_DISPLAY_CONF,
+    ATTR_DISPLAY2,
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
+    ATTR_EARLY_START,
+    ATTR_FAN_SPEED,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
+    ATTR_FLOOR_AUX,
+    ATTR_FLOOR_AIR_LIMIT,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
+    ATTR_FLOW_ENABLED,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOOR_MODE,
+    ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_SENSOR,
+    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_THRESHOLD,
+    ATTR_FUEL_ALERT,
+    ATTR_FUEL_PERCENT_ALERT,
+    ATTR_GAUGE_TYPE,
+    ATTR_HEAT_LOCK_TEMP,
+    ATTR_INPUT_1_OFF_DELAY,
+    ATTR_INPUT_2_OFF_DELAY,
+    ATTR_INPUT_1_ON_DELAY,
+    ATTR_INPUT_2_ON_DELAY,
+    ATTR_INTENSITY,
+    ATTR_KEY_DOUBLE_UP,
+    ATTR_KEYPAD,
+    ATTR_LEAK_ALERT,
+    ATTR_LED_OFF_COLOR,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_COLOR,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LIGHT_WATTAGE,
+    ATTR_MODE,
+    ATTR_MOTOR_TARGET,
+    ATTR_NAME_1,
+    ATTR_NAME_2,
+    ATTR_OCCUPANCY,
+    ATTR_ONOFF,
+    ATTR_ONOFF2,
+    ATTR_OUTPUT_NAME_1,
+    ATTR_OUTPUT_NAME_2,
+    ATTR_PHASE_CONTROL,
+    ATTR_POWER_MODE,
+    ATTR_POWER_SUPPLY,
+    ATTR_PUMP_PROTEC,
+    ATTR_PUMP_PROTEC_DURATION,
+    ATTR_PUMP_PROTEC_PERIOD,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_SETPOINT_MODE,
+    ATTR_SIGNATURE,
+    ATTR_SOUND_CONF,
+    ATTR_SYSTEM_MODE,
+    ATTR_TANK_HEIGHT,
+    ATTR_TANK_SIZE,
+    ATTR_TANK_TYPE,
+    ATTR_TIMER,
+    ATTR_TIMER2,
+    ATTR_TIME,
+    ATTR_TEMP,
+    ATTR_TEMP_ALERT,
+    ATTR_WATER_TEMP_MIN,
+    ATTR_WIFI_KEYPAD,
     DOMAIN,
     CONF_HOMEKIT_MODE,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
-    ATTR_INTENSITY,
-    ATTR_ONOFF,
-    ATTR_ONOFF2,
-    ATTR_POWER_MODE,
-    ATTR_POWER_SUPPLY,
-    ATTR_SETPOINT_MODE,
-    ATTR_ROOM_SETPOINT,
-    ATTR_ROOM_SETPOINT_MIN,
-    ATTR_ROOM_SETPOINT_MAX,
-    ATTR_KEYPAD,
-    ATTR_KEY_DOUBLE_UP,
-    ATTR_BACKLIGHT,
-    ATTR_BACKLIGHT_AUTO_DIM,
-    ATTR_DISPLAY2,
-    ATTR_TIMER,
-    ATTR_TIMER2,
-    ATTR_TIME,
-    ATTR_TEMP,
-    ATTR_LED_ON_INTENSITY,
-    ATTR_LED_OFF_INTENSITY,
-    ATTR_LED_ON_COLOR,
-    ATTR_LED_OFF_COLOR,
-    ATTR_LIGHT_WATTAGE,
-    ATTR_LEAK_ALERT,
-    ATTR_BATT_ALERT,
-    ATTR_BATTERY_TYPE,
-    ATTR_TEMP_ALERT,
-    ATTR_CONF_CLOSURE,
-    ATTR_MOTOR_TARGET,
-    ATTR_FLOOR_AIR_LIMIT,
-    ATTR_SIGNATURE,
-    ATTR_EARLY_START,
-    ATTR_FLOOR_MODE,
-    ATTR_FLOOR_SENSOR,
-    ATTR_MODE,
-    ATTR_PHASE_CONTROL,
-    ATTR_OCCUPANCY,
-    ATTR_SYSTEM_MODE,
-    ATTR_DRSETPOINT,
-    ATTR_DRSTATUS,
-    ATTR_FLOOR_AUX,
-    ATTR_FLOOR_OUTPUT2,
-    ATTR_FLOOR_MAX,
-    ATTR_FLOOR_MIN,
-    ATTR_CYCLE_OUTPUT2,
-    ATTR_AUX_CYCLE,
-    ATTR_CYCLE,
-    ATTR_PUMP_PROTEC,
-    ATTR_PUMP_PROTEC_DURATION,
-    ATTR_PUMP_PROTEC_PERIOD,
-    ATTR_TANK_SIZE,
-    ATTR_CONTROLLED_DEVICE,
-    ATTR_COOL_SETPOINT_MIN,
-    ATTR_COOL_SETPOINT_MAX,
-    ATTR_WATER_TEMP_MIN,
-    ATTR_FLOW_METER_CONFIG,
-    ATTR_FLOW_ENABLED,
-    ATTR_FLOW_ALARM1_PERIOD,
-    ATTR_FLOW_ALARM1_OPTION,
-    ATTR_FLOW_ALARM1_LENGHT,
-    ATTR_FLOW_THRESHOLD,
-    ATTR_WIFI_KEYPAD,
-    ATTR_TANK_TYPE,
-    ATTR_GAUGE_TYPE,
-    ATTR_FUEL_PERCENT_ALERT,
-    ATTR_TANK_HEIGHT,
-    ATTR_FUEL_ALERT,
-    ATTR_NAME_1,
-    ATTR_NAME_2,
-    ATTR_OUTPUT_NAME_1,
-    ATTR_OUTPUT_NAME_2,
-    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
-    ATTR_INPUT_1_ON_DELAY,
-    ATTR_INPUT_2_ON_DELAY,
-    ATTR_INPUT_1_OFF_DELAY,
-    ATTR_INPUT_2_OFF_DELAY,
     MODE_AWAY,
     MODE_HOME,
-    MODE_MANUAL
+    MODE_MANUAL,
 )
 
 from .schema import (
@@ -953,6 +961,54 @@ class Neviweb130Client(object):
         else:
             data.update({ATTR_OUTPUT_NAME_2: ""})
         _LOGGER.debug("in/out names.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_heat_pump_limit(self, device_id, temp):
+        """Set minimum temperature for heat pump operation."""
+        data = {ATTR_BALANCE_PT: temp}
+        _LOGGER.debug("Heat pump limit value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_heat_lockout(self, device_id, temp):
+        """Set maximum outside temperature limit to allow heating device operation."""
+        data = {ATTR_HEAT_LOCK_TEMP: temp}
+        _LOGGER.debug("Heat lockout limit value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_lockout(self, device_id, temp):
+        """Set minimum outside temperature limit to allow cooling devices operation."""
+        data = {ATTR_COOL_LOCK_TEMP: temp}
+        _LOGGER.debug("Cool lockout limit value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_hp_display(self, device_id, display):
+        """Set display on/off for heat pump."""
+        data = {ATTR_DISPLAY_CONF: display}
+        _LOGGER.debug("Display config value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_hp_sound(self, device_id, sound):
+        """Set display on/off for heat pump."""
+        data = {ATTR_SOUND_CONF: sound}
+        _LOGGER.debug("Sound config value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_swing_horizontal(self, device_id, swing):
+        """Set horizontal fan swing action for heat pump."""
+        data = {ATTR_FAN_SWING_HORIZ: swing}
+        _LOGGER.debug("Fan horizontal swing value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_swing_vertical(self, device_id, swing):
+        """Set vertical fan swing action for heat pump."""
+        data = {ATTR_FAN_SWING_VERT: swing}
+        _LOGGER.debug("Fan vertical swing value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_fan_mode(self, device_id, speed):
+        """Set fan speed (mode) for heat pump."""
+        data = {ATTR_FAN_SPEED: speed}
+        _LOGGER.debug("Fan speed value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

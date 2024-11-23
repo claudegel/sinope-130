@@ -602,3 +602,73 @@ set_em_heat:
       example: "climate.neviweb130_climate_office_floor"
     value:
       description: Set to «on» or «off» to turn_on or turn_off emergency heat.
+
+set_heat_pump_operation_limit:
+  description: Set the outside low temperature limit for heat pump operation. Depend on heat pump model.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    balancePoint:
+      description: possible values, from -5 to -30
+      example: -25
+
+set_cool_lockout_temperature:
+  description: Do not allow cooling for heat pump, if outside temperature is below this temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    coolLockoutTemperature:
+      description: possible values, from 10 to 30 oC
+      example: 20
+
+set_heat_lockout_temperature:
+  description: Do not allow heating for registered thermostats, if outside temperature is above this temperature.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    heatLockoutTemperature:
+      description: possible values, from 10 to 30 oC
+      example: 22
+
+set_display_config:
+  description: Set heat pump display on/off.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    displayConfig:
+      description: possible values, enabled, disabled.
+      example: "disabled"
+
+set_sound_config:
+  description: Set heat pump sound on/off.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    soundConfig:
+      description: possible values, enabled, disabled.
+      example: "disabled"
+
+set_fan_swing_horizontal:
+  description: Set horizontal fan swing action for heat pump.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    fanSwingHorizontal:
+      description: For possible values, check fan_swing_capability_vertical attribute of your device.
+      example: "swingFullRange"
+
+set_fan_swing_vertical:
+  description: Set vertical fan swing action for heat pump.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 thermostat HP6000 device.
+      example: "climate.neviweb130_climate_HP6000ZB-GE"
+    fanSwingVertical:
+      description: For possible values, check fan_swing_capability_horizontal attribute of your device.
+      example: "swingFullRange"

@@ -15,26 +15,25 @@ from homeassistant.const import (
 )
 
 from .const import (
-    DOMAIN,
-    CONF_HOMEKIT_MODE,
-    CONF_NETWORK,
-    CONF_NETWORK2,
-    CONF_NOTIFY,
-    CONF_STAT_INTERVAL,
     ATTR_ACTIVE,
     ATTR_BACKLIGHT,
+    ATTR_BALANCE_PT,
     ATTR_BATT_ALERT,
     ATTR_BATTERY_TYPE,
     ATTR_BLUE,
     ATTR_CLOSE_VALVE,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_CONF_CLOSURE,
+    ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_SETPOINT_MAX, 
     ATTR_COOL_SETPOINT_MIN,
     ATTR_DELAY,
     ATTR_DISPLAY2,
+    ATTR_DISPLAY_CONF,
     ATTR_DRACTIVE,
     ATTR_EARLY_START,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_MAX,
     ATTR_FLOOR_MIN,
@@ -46,6 +45,7 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_GREEN,
+    ATTR_HEAT_LOCK_TEMP,
     ATTR_INPUT_NUMBER,
     ATTR_INTENSITY,
     ATTR_KEY_DOUBLE_UP,
@@ -66,6 +66,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT,
+    ATTR_SOUND_CONF,
     ATTR_STATE,
     ATTR_STATUS,
     ATTR_TANK_HEIGHT,
@@ -79,6 +80,12 @@ from .const import (
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_WATER_TEMP_MIN,
+    DOMAIN,
+    CONF_HOMEKIT_MODE,
+    CONF_NETWORK,
+    CONF_NETWORK2,
+    CONF_NOTIFY,
+    CONF_STAT_INTERVAL,
 )
 
 """Default parameters values."""
@@ -97,7 +104,15 @@ DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", 
 TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
-FANSPEED = {"high", "medium", "low", "auto", "off"}
+FAN_SPEED = {"high", "medium", "low", "auto", "off"}
+FAN_CAPABILITY = {"low", "med", "high", "auto"}
+FAN_SWING_CAPABILITY = {"fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"}
+DISPLAY_CAPABILITY = {"enable", "disable"}
+SOUND_CAPABILITY = {"enable", "disable"}
+SWING_CAPABILITY_VERTICAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8',
+                             'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
+SWING_CAPABILITY_HORIZONTAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8',
+                               'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
 
 """Config schema."""
 
@@ -313,6 +328,69 @@ SET_SENSOR_TYPE_SCHEMA = vol.Schema(
     }
 )
 
+SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BALANCE_PT): vol.All(
+            vol.Coerce(int), vol.Range(min=-30, max=-5)
+        ),
+    }
+)
+
+SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=30)
+        ),
+    }
+)
+
+SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=30)
+        ),
+    }
+)
+
+SET_DISPLAY_CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DISPLAY_CONF): vol.All(
+            cv.ensure_list, [vol.In(DISPLAY_CAPABILITY)]
+        ),
+    }
+)
+
+SET_SOUND_CONFIG_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_SOUND_CONF): vol.All(
+            cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
+        ),
+    }
+)
+
+SET_FAN_SWING_VERTICAL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_SWING_VERT): vol.All(
+            cv.ensure_list, [vol.In(SWING_CAPABILITY_VERTICAL)]
+        ),
+    }
+)
+
+SET_FAN_SWING_HORIZONTALL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_SWING_HORIZ): vol.All(
+            cv.ensure_list, [vol.In(SWING_CAPABILITY_HORIZONTAL)]
+        ),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
@@ -374,7 +452,7 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
         vol.Required(ATTR_KEY_DOUBLE_UP): vol.In(["On", "Off"]),
     }
 )
-    
+
 """"Switch schema."""
 
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
