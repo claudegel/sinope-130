@@ -1379,12 +1379,12 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORTED_HVAC_MODES
 
     @property
-    def current_temperature(self):
+    def current_temperature(self) -> float:
         """Return the room current temperature."""
         return self._cur_temp
 
     @property
-    def target_temperature (self):
+    def target_temperature(self) -> float:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self._target_temp is not None:
             temp = self._target_temp + self._drsetpoint_value
@@ -1397,7 +1397,7 @@ class Neviweb130Thermostat(ClimateEntity):
         return temp
 
     @property
-    def target_cool_temperature (self):
+    def target_cool_temperature(self) -> float:
         """Return the cooling temperature we try to reach."""
         if self._target_cool is not None:
             temp = self._target_cool
