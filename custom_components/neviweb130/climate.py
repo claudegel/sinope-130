@@ -1311,22 +1311,32 @@ class Neviweb130Thermostat(ClimateEntity):
             return  False
 
     @property
-    def target_temperature_low(self):
+    def target_temperature_low(self) -> float:
         """Return the minimum heating temperature."""
         return self._min_temp
 
     @property
-    def target_temperature_high(self):
+    def target_temperature_high(self) -> float:
         """Return the maximum heating temperature."""
         return self._max_temp
 
     @property
-    def min_cool_temp(self):
+    def min_temp(self) -> float:
+        """Return the minimum temperature."""
+        return self._min_temp
+
+    @property
+    def max_temp(self) -> float:
+        """Return the maximum temperature."""
+        return self._max_temp
+
+    @property
+    def min_cool_temp(self) -> float:
         """Return the minimum cooling temperature."""
         return self._cool_min
 
     @property
-    def max_cool_temp(self):
+    def max_cool_temp(self) -> float:
         """Return the maximum cooling temperature."""
         return self._cool_max
 
@@ -1469,7 +1479,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
-    def fan_mode(self):
+    def fan_mode(self) -> str | None:
         """Return the fan setting."""
         return self._fan_speed
 
@@ -1482,7 +1492,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
-    def swing_mode(self):
+    def swing_mode(self) -> str | None:
         """Return the fan swing setting."""
         return self._fan_swing_vert
 
@@ -1498,7 +1508,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
-    def swing_mode_vertical(self):
+    def swing_mode_vertical(self) -> str | None:
         """Return the fan swing setting."""
         return self._fan_swing_vert
 
@@ -1514,7 +1524,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
-    def swing_mode_horizontal(self):
+    def swing_mode_horizontal(self) -> str | None:
         """Return the fan swing setting."""
         return self._fan_swing_horiz
 
@@ -1536,12 +1546,12 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.set_swing_vertical(self._id, swing)
             self._fan_swing_vert = swing
 
-    def turn_on(self):
+    def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat on."""
         self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi)
         self._operation_mode = HVACMode.HEAT
 
-    def turn_off(self):
+    def turn_off(self) -> None:
         """Turn the thermostat to HVACMode.off."""
         self._client.set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi)
         self._operation_mode = HVACMode.OFF
