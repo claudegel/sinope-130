@@ -173,6 +173,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 switch'
 DEFAULT_NAME_2 = 'neviweb130 switch 2'
+DEFAULT_NAME_3 = 'neviweb130 switch 3'
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
@@ -269,6 +270,28 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
+            device_sku = device_info["sku"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                device_type = "outlet"
+                entities.append(Neviweb130Switch(data, device_info, device_name, device_sku, device_firmware, device_type))
+            elif device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
+                device_type = "power"
+                entities.append(Neviweb130PowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type))
+            elif device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL:
+                device_type = "power"
+                entities.append(Neviweb130TankPowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type))
+            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL:
+                device_type = "power"
+                entities.append(Neviweb130WifiTankPowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type))
+            else:
+                device_type = "control"
+                entities.append(Neviweb130ControlerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type))
+    for device_info in data.neviweb130_client.gateway_data3:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = '{} {}'.format(DEFAULT_NAME_3, device_info["name"])
             device_sku = device_info["sku"]
             device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
             if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
