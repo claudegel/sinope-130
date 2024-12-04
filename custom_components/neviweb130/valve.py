@@ -144,6 +144,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 valve'
 DEFAULT_NAME_2 = 'neviweb130 valve 2'
+DEFAULT_NAME_3 = 'neviweb130 valve 3'
 SNOOZE_TIME = 1200
 
 SUPPORT_FLAGS = (ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE)
@@ -225,6 +226,25 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
+            device_sku = device_info["sku"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            if device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL:
+                device_type = "valve"
+                entities.append(Neviweb130Valve(data, device_info, device_name, device_sku, device_firmware, device_type))
+            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
+                device_type = "valve"
+                entities.append(Neviweb130WifiValve(data, device_info, device_name, device_sku, device_firmware, device_type))
+            elif device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL:
+                device_type = "flow"
+                entities.append(Neviweb130MeshValve(data, device_info, device_name, device_sku, device_firmware, device_type))
+            else:
+                device_type = "flow"
+                entities.append(Neviweb130WifiMeshValve(data, device_info, device_name, device_sku, device_firmware, device_type))
+    for device_info in data.neviweb130_client.gateway_data3:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = '{} {}'.format(DEFAULT_NAME_3, device_info["name"])
             device_sku = device_info["sku"]
             device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
             if device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL:
