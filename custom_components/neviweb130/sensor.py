@@ -116,6 +116,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'neviweb130 sensor'
 DEFAULT_NAME_2 = 'neviweb130 sensor 2'
+DEFAULT_NAME_3 = 'neviweb130 sensor 3'
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
@@ -174,6 +175,28 @@ async def async_setup_platform(
             "model" in device_info["signature"] and \
             device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
             device_name = '{} {}'.format(DEFAULT_NAME_2, device_info["name"])
+            device_sku = device_info["sku"]
+            location_id = device_info["location$id"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            if device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL \
+              or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL:
+                device_type = "leak"
+                entities.append(Neviweb130Sensor(data, device_info, device_name, device_type, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR \
+              or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR:
+                device_type = "leak"
+                entities.append(Neviweb130ConnectedSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+                device_type = "level"
+                entities.append(Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware))
+            else:
+                device_type = "gateway"
+                entities.append(Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware, location_id))
+    for device_info in data.neviweb130_client.gateway_data3:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = '{} {}'.format(DEFAULT_NAME_3, device_info["name"])
             device_sku = device_info["sku"]
             location_id = device_info["location$id"]
             device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
