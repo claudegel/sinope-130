@@ -90,7 +90,7 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = '2.8.8'
+VERSION = '2.8.9'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -109,10 +109,12 @@ FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {"fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"}
 DISPLAY_CAPABILITY = {"enable", "disable"}
 SOUND_CAPABILITY = {"enable", "disable"}
-SWING_CAPABILITY_VERTICAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8',
+SWING_CAPABILITY_VERTICAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8', \
                              'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
-SWING_CAPABILITY_HORIZONTAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8',
+SWING_CAPABILITY_HORIZONTAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8', \
                                'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
+FULL_SWING = ['swingFullRange']
+FULL_SWING_OFF = ['off']
 
 """Config schema."""
 
@@ -369,24 +371,6 @@ SET_SOUND_CONFIG_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SOUND_CONF): vol.All(
             cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
-        ),
-    }
-)
-
-SET_FAN_SWING_VERTICAL_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FAN_SWING_VERT): vol.All(
-            cv.ensure_list, [vol.In(SWING_CAPABILITY_VERTICAL)]
-        ),
-    }
-)
-
-SET_FAN_SWING_HORIZONTALL_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FAN_SWING_HORIZ): vol.All(
-            cv.ensure_list, [vol.In(SWING_CAPABILITY_HORIZONTAL)]
         ),
     }
 )
