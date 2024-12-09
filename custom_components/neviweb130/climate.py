@@ -203,8 +203,6 @@ from .const import (
     SERVICE_SET_DISPLAY_CONFIG,
     SERVICE_SET_EARLY_START,
     SERVICE_SET_EM_HEAT,
-    SERVICE_SET_FAN_SWING_HORIZONTAL,
-    SERVICE_SET_FAN_SWING_VERTICAL,
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
     SERVICE_SET_FLOOR_LIMIT_LOW,
@@ -227,6 +225,8 @@ from .schema import (
     FAN_SPEED,
     FAN_CAPABILITY,
     FAN_SWING_CAPABILITY,
+    FULL_SWING,
+    FULL_SWING_OFF,
     PERIOD_VALUE,
     SET_ACTIVATION_SCHEMA,
     SET_AIR_FLOOR_MODE_SCHEMA,
@@ -241,8 +241,6 @@ from .schema import (
     SET_DISPLAY_CONFIG_SCHEMA,
     SET_EARLY_START_SCHEMA,
     SET_EM_HEAT_SCHEMA,
-    SET_FAN_SWING_HORIZONTALL_SCHEMA,
-    SET_FAN_SWING_VERTICAL_SCHEMA,
     SET_FLOOR_AIR_LIMIT_SCHEMA,
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
     SET_FLOOR_LIMIT_LOW_SCHEMA,
@@ -280,6 +278,7 @@ SUPPORT_HP_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
     | ClimateEntityFeature.FAN_MODE
+    | ClimateEntityFeature.SWING_HORIZONTAL_MODE
     | ClimateEntityFeature.SWING_MODE
     | ClimateEntityFeature.TURN_OFF
     | ClimateEntityFeature.TURN_ON
@@ -354,11 +353,6 @@ UPDATE_HEAT_COOL_ATTRIBUTES = [
     ATTR_TEMP,
     ATTR_TIME,
 ]
-
-FULL_SWING = ['swingFullRange']
-FULL_SWING_HORIZ = ['swingFullRangeHoriz']
-FULL_SWING_OFF = ['off']
-FULL_SWING_OFF_HORIZ = ['offHoriz']
 
 SUPPORTED_HVAC_WIFI_MODES = [
     HVACMode.AUTO,
@@ -814,28 +808,6 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_fan_swing_horizontal_service(service):
-        """Set horizontal fan swing action for heat pump."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "swing": service.data[ATTR_FAN_SWING_HORIZ]}
-                thermostat.set_fan_swing_horizontal(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
-    def set_fan_swing_vertical_service(service):
-        """Set vertical fan swing action for heat pump."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "swing": service.data[ATTR_FAN_SWING_VERT]}
-                thermostat.set_fan_swing_vertical(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1032,20 +1004,6 @@ async def async_setup_platform(
         schema=SET_SOUND_CONFIG_SCHEMA,
     )
 
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_FAN_SWING_HORIZONTAL,
-        set_fan_swing_horizontal_service,
-        schema=SET_FAN_SWING_HORIZONTALL_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_FAN_SWING_VERTICAL,
-        set_fan_swing_vertical_service,
-        schema=SET_FAN_SWING_VERTICAL_SCHEMA,
-    )
-
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
@@ -1074,13 +1032,10 @@ def lock_to_ha(lock):
         case "partialLock":
             return "Tamper protection"
 
-def extract_capability_full(sens, cap):
-    """Extract swing capability which are True for each HP device and add denegal capability."""
-    if sens == "vert":
-        value = {i for i in cap if cap[i]==True}
-        return FULL_SWING_OFF + sorted(value)
-    value = {i+"Horiz" for i in cap if cap[i]==True}
-    return FULL_SWING_OFF_HORIZ + sorted(value)
+def extract_capability_full(cap):
+    """Extract swing capability which are True for each HP device and add genegal capability."""
+    value = {i for i in cap if cap[i]==True}
+    return FULL_SWING_OFF + sorted(value)
 
 def extract_capability(cap):
     """Extract capability which are True for each HP device."""
@@ -1410,6 +1365,16 @@ class Neviweb130Thermostat(ClimateEntity):
         return temp
 
     @property
+    def preset_mode(self):
+        """Return current preset mode."""
+        if self._occupancy == PRESET_HOME:
+            return PRESET_NONE
+        elif self._occupancy == PRESET_AWAY:
+            return PRESET_AWAY
+        else:
+            return PRESET_NONE
+
+    @property
     def preset_modes(self):
         """Return available preset modes."""
         if self._is_wifi:
@@ -1420,16 +1385,6 @@ class Neviweb130Thermostat(ClimateEntity):
             return PRESET_HC_MODES
         else:
             return PRESET_MODES
-
-    @property
-    def preset_mode(self):
-        """Return current preset mode."""
-        if self._occupancy == PRESET_HOME:
-            return PRESET_NONE
-        elif self._occupancy == PRESET_AWAY:
-            return PRESET_AWAY
-        else:
-            return PRESET_NONE
 
     @property
     def hvac_action(self):
@@ -1471,7 +1426,12 @@ class Neviweb130Thermostat(ClimateEntity):
         return False
 
     @property
-    def fan_modes(self):
+    def fan_mode(self) -> str | None:
+        """Return the fan setting."""
+        return self._fan_speed
+    
+    @property
+    def fan_modes(self) -> list[str] | None:
         """Return available fan modes."""
         if self._is_HP or self._is_HC or self._is_hc:
             return FAN_SPEED
@@ -1479,72 +1439,63 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
-    def fan_mode(self) -> str | None:
-        """Return the fan setting."""
-        return self._fan_speed
-
-    @property
-    def swing_modes(self):
-        """Return available swing modes, vertical + horizontal."""
-        if self._is_HP or self._is_hc:
-            return self.swing_modes_vertical + self.swing_modes_horizontal
-        else:
-            return None
-
-    @property
     def swing_mode(self) -> str | None:
-        """Return the fan swing setting."""
-        return self._fan_swing_vert
+        """Return the fan vertical swing setting."""
+        if self._is_HP or self._is_hc:
+            return self._fan_swing_vert
+        return None
 
     @property
-    def swing_modes_vertical(self):
-        """Return available vertical swing modes"""
+    def swing_modes(self) -> list[str] | None:
+        """Return availables vertical swing modes."""
         if self._is_HP or self._is_hc:
             if "fullVertical" in extract_capability(self._fan_swing_cap):
-                return FULL_SWING + extract_capability_full("vert", self._fan_swing_cap_vert)
+                return FULL_SWING + extract_capability_full(self._fan_swing_cap_vert)
             else:
-                return extract_capability_full("vert", self._fan_swing_cap_vert)
+                return extract_capability_full(self._fan_swing_cap_vert)
         else:
             return None
 
     @property
-    def swing_mode_vertical(self) -> str | None:
+    def swing_horizontal_mode(self) -> str | None:
         """Return the fan swing setting."""
-        return self._fan_swing_vert
+        if self._is_HP or self._is_hc:
+            return self._fan_swing_horiz
+        return None
 
     @property
-    def swing_modes_horizontal(self):
+    def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
         if self._is_HP or self._is_hc:
             if "fullHorizontal" in extract_capability(self._fan_swing_cap):
-                return FULL_SWING_HORIZ + extract_capability_full("horiz", self._fan_swing_cap_horiz)
+                return FULL_SWING + extract_capability_full(self._fan_swing_cap_horiz)
             else:
-                return extract_capability_full("horiz", self._fan_swing_cap_horiz)
+                return extract_capability_full(self._fan_swing_cap_horiz)
         else:
             return None
 
-    @property
-    def swing_mode_horizontal(self) -> str | None:
-        """Return the fan swing setting."""
-        return self._fan_swing_horiz
-
-    def set_fan_mode(self, speed):
+    def set_fan_mode(self, speed: str) -> None:
         """Set new fan mode."""
         if speed is None:
             return
         self._client.set_fan_mode(self._id, speed)
         self._fan_speed = speed
 
-    def set_swing_mode(self, swing):
-        """Set new swing mode."""
+    def set_swing_mode(self, swing: str) -> None:
+        """Set new vertical swing mode."""
         if swing is None:
             return
-        elif swing[-5:] == "Horiz":
-            self._client.set_swing_horizontal(self._id, swing[:-5])
-            self._fan_swing_horiz = swing[:-5]
         else:
             self._client.set_swing_vertical(self._id, swing)
             self._fan_swing_vert = swing
+
+    def set_swing_horizontal_mode(self, swing: str) -> None:
+        """Set new horizontal swing mode."""
+        if swing is None:
+            return
+        else:
+            self._client.set_swing_horizontal(self._id, swing)
+            self._fan_swing_horiz = swing
 
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat on."""
@@ -1899,30 +1850,6 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_hp_sound(
             entity, sound)
         self._sound_conf = sound
-
-    def set_fan_swing_horizontal(self, value):
-        """Set horizontal fan swing action for heat pump."""
-        swing = value["swing"]
-        entity = value["id"]
-        if swing[-5:] == "Horiz":
-            if swing not in FULL_SWING_HORIZ + extract_capability_full("horiz", self._fan_swing_cap_horiz):
-                self.notify_ha(f"Warning: Value " + swing + "selected for fan swing horizontal is not supported by " + self._name)
-                return
-            self._client.set_swing_horizontal(self._id, swing[:-5])
-            self._fan_swing_horiz = swing[:-5]
-        else:
-            self._client.set_swing_horizontal(entity, swing)
-            self._fan_swing_horiz = swing
-
-    def set_fan_swing_vertical(self, value):
-        """Set vertical fan swing action for heat pump."""
-        swing = value["swing"]
-        entity = value["id"]
-        if swing not in FULL_SWING + extract_capability_full("vert", self._fan_swing_cap_vert):
-            self.notify_ha(f"Warning: Value selected for fan swing vertical is not supported by " + self._name)
-            return
-        self._client.set_swing_vertical(entity, swing)
-        self._fan_swing_vert = swing
 
     def do_stat(self, start):
         """Get device energy statistic."""
@@ -3570,8 +3497,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': extract_capability(self._fan_cap),
                     'fan_swing_capability': extract_capability(self._fan_swing_cap),
-                    'fan_swing_capability_vertical': extract_capability_full("vert", self._fan_swing_cap_vert),
-                    'fan_swing_capability_horizontal': extract_capability_full("horiz", self._fan_swing_cap_horiz),
+                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
                     'display_conf': self._display_conf,
                     'display_capability': extract_capability(self._display_cap),
                     'sound_conf': self._sound_conf,
@@ -3776,8 +3703,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
                     'fan_swing_capability': extract_capability(self._fan_swing_cap),
-                    'fan_swing_capability_vertical': extract_capability_full("vert", self._fan_swing_cap_vert),
-                    'fan_swing_capability_horizontal': extract_capability_full("horiz", self._fan_swing_cap_horiz),
+                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
+                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
                     'heat_pump_limit_temp': self._balance_pt,
                     'min_heat_pump_limit_temp': self._balance_pt_low,
                     'max_heat_pump_limit_temp': self._balance_pt_high,
