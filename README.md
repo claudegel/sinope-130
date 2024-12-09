@@ -234,8 +234,6 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_em_heat to turn on/off aux heat for floor and low voltage thermostats. This is a replacement of turn_aux_heat_on or off that was deprecated by HA.
 - neviweb130.set_display_config to set on/off display on heatpump.
 - neviweb130.set_sound_config to set on/off sound on heatpump.
-- neviweb130.set_fan_swing_horizontal to set various vertical fan swing modes for heatpump.
-- neviweb130.set_fan_swing_vertical to set various horizontal swing modes for heatpump.
 - neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
