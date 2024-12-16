@@ -337,12 +337,16 @@ class Neviweb130Client(object):
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)
+            if data[ATTR_SIGNATURE]["protocol"] == "miwi":
+                _LOGGER.debug("The Neviweb location selected for parameter «network» contain unsupported device with protocol miwi. This location should be added to neviweb custom_components instead. Check your neviweb130 config.")
         if self._gateway_id2 is not None:          
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data2:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data2)
+                if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
+                    _LOGGER.debug("The Neviweb location selected for parameter «network2» contain unsupported device with protocol miwi. This location should be added to neviweb custom_components instead. Check your neviweb130 config.")
 #        _LOGGER.debug("Updated gateway data: %s", self.gateway_data) 
 #        _LOGGER.debug("Updated gateway data2: %s", self.gateway_data2)
 
