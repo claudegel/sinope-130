@@ -1115,7 +1115,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def update(self):
         if self._activ:
             HEAT_ATTRIBUTES = [ATTR_WATTAGE, ATTR_KEYPAD, ATTR_BACKLIGHT, ATTR_SYSTEM_MODE, ATTR_CYCLE, ATTR_DISPLAY2, ATTR_RSSI]
-            if self._firmware == "0.6.4":
+            if self._firmware == "0.6.4" or self._firmware == "0.6.0":
                 FIRMWARE_SPECIAL = []
             else:
                 FIRMWARE_SPECIAL = [ATTR_ROOM_TEMP_DISPLAY]
