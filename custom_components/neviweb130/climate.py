@@ -303,6 +303,7 @@ SUPPORT_HC_FLAGS = (
 
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
+DEFAULT_NAME_3 = "neviweb130 climate 3"
 SNOOZE_TIME = 1200
 
 HA_TO_NEVIWEB_PERIOD = {
@@ -495,6 +496,36 @@ async def async_setup_platform(
                 entities.append(Neviweb130HPThermostat(data, device_info, device_name, device_sku, device_firmware))
             else:
                 entities.append(Neviweb130HeatCoolThermostat(data, device_info, device_name, device_sku, device_firmware))
+    for device_info in data.neviweb130_client.gateway_data3:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = "{} {}".format(DEFAULT_NAME_3, device_info["name"])
+            device_sku = device_info["sku"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
+                entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
+                entities.append(Neviweb130G2Thermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
+                entities.append(Neviweb130FloorThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
+                entities.append(Neviweb130LowThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
+                entities.append(Neviweb130DoubleThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
+                entities.append(Neviweb130WifiThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
+                entities.append(Neviweb130LowWifiThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
+                entities.append(Neviweb130WifiFloorThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
+                entities.append(Neviweb130HcThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
+                entities.append(Neviweb130HPThermostat(data, device_info, device_name, device_sku, device_firmware))
+            else:
+                entities.append(Neviweb130HeatCoolThermostat(data, device_info, device_name, device_sku, device_firmware))
+
     async_add_entities(entities, True)
 
     def set_second_display_service(service):
@@ -1168,7 +1199,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -1258,7 +1289,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORT_FLAGS
 
     @property
-    def is_em_heat(self):
+    def is_em_heat(self) -> bool:
         """Return emergency heat state."""
         if self._em_heat == "slave":
             return True
@@ -1423,7 +1454,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 return HVACAction.HEATING
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return True if mode = HVACMode.HEAT."""
         if self._operation_mode == HVACMode.HEAT or self._operation_mode == HVACMode.AUTO:
             return True
@@ -2070,7 +2101,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2261,7 +2292,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2469,7 +2500,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2646,7 +2677,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2825,7 +2856,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3039,7 +3070,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3253,7 +3284,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3472,7 +3503,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
