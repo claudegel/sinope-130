@@ -114,12 +114,12 @@ from .const import (
     ATTR_COOL_SETPOINT_MIN,
     ATTR_CYCLE,
     ATTR_CYCLE_OUTPUT2,
-    ATTR_DISPLAY2,
     ATTR_DISPLAY_CAP,
     ATTR_DISPLAY_CONF,
+    ATTR_DISPLAY2,
     ATTR_DRACTIVE,
-    ATTR_DRSTATUS,
     ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
     ATTR_DUAL_STATUS,
     ATTR_EARLY_START,
     ATTR_FAN_CAP,
@@ -3469,7 +3469,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
+                        self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_RSSI in device_data:
@@ -3530,7 +3531,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_speed': self._fan_speed,
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
-                    'fan_capability': extract_capability(self._fan_cap),
+                    'fan_capability': self._fan_cap,
                     'fan_swing_capability': extract_capability(self._fan_swing_cap),
                     'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
                     'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
