@@ -3,6 +3,7 @@
 DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
 CONF_NETWORK2 = 'network2'
+CONF_NETWORK3 = 'network3'
 CONF_HOMEKIT_MODE = 'homekit_mode'
 CONF_STAT_INTERVAL = 'stat_interval'
 CONF_NOTIFY = 'notify'
