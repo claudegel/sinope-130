@@ -652,3 +652,23 @@ set_sound_config:
     soundConfig:
       description: possible values, enabled, disabled.
       example: "disabled"
+
+set_hc_second_display:
+  description: Set the second neviweb130 thermostat display to show setpoint or outside temperature for TH1134ZB-HC.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH1134ZB-HC device to set the second display.
+      example: "climate.neviweb130_climate_office"
+    config2ndDisplay:
+      description: «exteriorTemperature» = Time and outdoor temperature, «setpoint» for Time and Setpoint value or «none» = Ambient Temperature Only.
+      example: "exteriorTemperature"
+
+set_language:
+  description: Set the language for neviweb130 thermostat for TH1134ZB-HC and HP6000ZB-xx.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH1134ZB-HC device to set the second display.
+      example: "climate.neviweb130_climate_office"
+    language:
+      description: «fr» = french language, «en» for english.
+      example: "en"
