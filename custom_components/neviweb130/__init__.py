@@ -71,6 +71,7 @@ from .const import (
     ATTR_INTENSITY,
     ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
+    ATTR_LANGUAGE,
     ATTR_LEAK_ALERT,
     ATTR_LED_OFF_COLOR,
     ATTR_LED_OFF_INTENSITY,
@@ -1054,6 +1055,18 @@ class Neviweb130Client(object):
         """Set fan speed (mode) for heat pump."""
         data = {ATTR_FAN_SPEED: speed}
         _LOGGER.debug("Fan speed value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_hc_display(self, device_id, display):
+        """Set device second display for outside temperature or setpoint temperature for TH1134ZB-HC."""
+        data = {ATTR_DISPLAY2: display}
+        _LOGGER.debug("Hc display.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_language(self, device_id, lang):
+        """Set display language for TH1134ZB-HC."""
+        data = {ATTR_LANGUAGE: lang}
+        _LOGGER.debug("Hc language.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
