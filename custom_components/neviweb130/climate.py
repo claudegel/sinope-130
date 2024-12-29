@@ -206,10 +206,12 @@ from .const import (
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
     SERVICE_SET_FLOOR_LIMIT_LOW,
+    SERVICE_SET_HC_SECOND_DISPLAY,
     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
+    SERVICE_SET_LANGUAGE,
     SERVICE_SET_PUMP_PROTECTION,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_SENSOR_TYPE,
@@ -244,10 +246,12 @@ from .schema import (
     SET_FLOOR_AIR_LIMIT_SCHEMA,
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
     SET_FLOOR_LIMIT_LOW_SCHEMA,
+    SET_HC_SECOND_DISPLAY_SCHEMA,
     SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
     SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
     SET_HVAC_DR_OPTIONS_SCHEMA,
     SET_HVAC_DR_SETPOINT_SCHEMA,
+    SET_LANGUAGE_SCHEMA,
     SET_PUMP_PROTECTION_SCHEMA,
     SET_SECOND_DISPLAY_SCHEMA,
     SET_SENSOR_TYPE_SCHEMA,
@@ -838,6 +842,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_hc_second_display_service(service):
+        """Set second display for TH1134ZB-HC thermostat."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "display": service.data[ATTR_DISPLAY2]}
+                thermostat.set_hc_second_display(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_language_service(service):
+        """Set display language for TH1134ZB-HC thermostat."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "lang": service.data[ATTR_LANGUAGE]}
+                thermostat.set_language(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1032,6 +1058,20 @@ async def async_setup_platform(
         SERVICE_SET_SOUND_CONFIG,
         set_sound_config_service,
         schema=SET_SOUND_CONFIG_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HC_SECOND_DISPLAY,
+        set_hc_second_display_service,
+        schema=SET_HC_SECOND_DISPLAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LANGUAGE,
+        set_language_service,
+        schema=SET_LANGUAGE_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -1885,6 +1925,22 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_hp_sound(
             entity, sound)
         self._sound_conf = sound
+
+    def set_hc_second_display(self, value):
+        """Set second display value for TH1134ZB-HC."""
+        display = value["display"]
+        entity = value["id"]
+        self._client.set_hc_display(
+            entity, display)
+        self._display2 = display
+
+    def set_language(self, value):
+        """Set display language value for TH1134ZB-HC."""
+        lang = value["lang"]
+        entity = value["id"]
+        self._client.set_language(
+            entity, lang)
+        self._language = lang
 
     def do_stat(self, start):
         """Get device energy statistic."""
