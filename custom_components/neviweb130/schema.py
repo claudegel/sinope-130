@@ -50,6 +50,7 @@ from .const import (
     ATTR_INTENSITY,
     ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
+    ATTR_LANGUAGE,
     ATTR_LEAK_ALERT,
     ATTR_LIGHT_WATTAGE,
     ATTR_MODE,
@@ -373,6 +374,22 @@ SET_SOUND_CONFIG_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SOUND_CONF): vol.All(
             cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
+        ),
+    }
+)
+
+SET_HC_SECOND_DISPLAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DISPLAY2): vol.In(["exteriorTemperature", "setpoint", "none"]
+        ),
+    }
+)
+
+SET_LANGUAGE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LANGUAGE): vol.In(["en", "fr"]
         ),
     }
 )
