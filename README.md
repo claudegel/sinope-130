@@ -239,7 +239,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
-- neviweb130.set_hc_second_display tp set second display of TH1134ZB-HC thermostat.
+- neviweb130.set_hc_second_display to set second display of TH1134ZB-HC thermostat.
 - neviweb130.set_language to set display language on TH1134ZB-HC thermostats
 
 ## Catch Éco Sinopé signal for peak period
