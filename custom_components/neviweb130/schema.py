@@ -50,6 +50,7 @@ from .const import (
     ATTR_INTENSITY,
     ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
+    ATTR_LANGUAGE,
     ATTR_LEAK_ALERT,
     ATTR_LIGHT_WATTAGE,
     ATTR_MODE,
@@ -84,13 +85,14 @@ from .const import (
     CONF_HOMEKIT_MODE,
     CONF_NETWORK,
     CONF_NETWORK2,
+    CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
 )
 
 """Default parameters values."""
 
-VERSION = '2.9.0'
+VERSION = '2.9.1'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -124,6 +126,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_NETWORK): cv.string,
         vol.Optional(CONF_NETWORK2): cv.string,
+        vol.Optional(CONF_NETWORK3): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period,
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
@@ -371,6 +374,22 @@ SET_SOUND_CONFIG_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SOUND_CONF): vol.All(
             cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
+        ),
+    }
+)
+
+SET_HC_SECOND_DISPLAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_DISPLAY2): vol.In(["exteriorTemperature", "setpoint", "none"]
+        ),
+    }
+)
+
+SET_LANGUAGE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LANGUAGE): vol.In(["en", "fr"]
         ),
     }
 )

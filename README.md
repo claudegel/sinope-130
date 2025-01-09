@@ -144,6 +144,7 @@ neviweb130:
   password: '«your Neviweb password»'
   network: '«your gt130 location name in Neviweb»' (gt130 emplacement dans Neviweb)
   network2: '«your second location name in Neviweb»' (2e emplacement)
+  network3: '«your third location name in Neviweb»' (3e emplacement)
   scan_interval: 360
   homekit_mode: False
   stat_interval: 1800
@@ -161,6 +162,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **password** | yes |  | Your Neviweb password.
 | **network** | no | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control.| Network name is the location name in Neviweb written on top center of first page, where your wifi or zigbee devices are registered.
 | **network2** | no | 2nd location found | The name of the second location you want to control (zigbee and/or wifi only). Don't add it if you have only one network.
+| **network3** | no | 3rd location found | The name of the third location you want to control (zigbee and/or wifi only). Don't add it if you have only one network.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 | **homekit_mode** | no | False | Add support for Homekit specific values. Not needed if you don't use homekit.
 | **stat_interval** | no | 1800 | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.
@@ -237,6 +239,8 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
+- neviweb130.set_hc_second_display tp set second display of TH1134ZB-HC thermostat.
+- neviweb130.set_language to set display language on TH1134ZB-HC thermostats
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:

@@ -3,6 +3,7 @@
 DOMAIN = "neviweb130"
 CONF_NETWORK = 'network'
 CONF_NETWORK2 = 'network2'
+CONF_NETWORK3 = 'network3'
 CONF_HOMEKIT_MODE = 'homekit_mode'
 CONF_STAT_INTERVAL = 'stat_interval'
 CONF_NOTIFY = 'notify'
@@ -281,3 +282,5 @@ SERVICE_SET_COOL_LOCKOUT_TEMPERATURE = "set_cool_lockout_temperature"
 SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE = "set_heat_lockout_temperature"
 SERVICE_SET_DISPLAY_CONFIG = "set_display_config"
 SERVICE_SET_SOUND_CONFIG = "set_sound_config"
+SERVICE_SET_HC_SECOND_DISPLAY = "set_hc_second_display"
+SERVICE_SET_LANGUAGE = "set_language"

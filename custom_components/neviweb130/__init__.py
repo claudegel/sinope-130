@@ -71,6 +71,7 @@ from .const import (
     ATTR_INTENSITY,
     ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
+    ATTR_LANGUAGE,
     ATTR_LEAK_ALERT,
     ATTR_LED_OFF_COLOR,
     ATTR_LED_OFF_INTENSITY,
@@ -113,6 +114,7 @@ from .const import (
     CONF_HOMEKIT_MODE,
     CONF_NETWORK,
     CONF_NETWORK2,
+    CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
     MODE_AWAY,
@@ -179,7 +181,8 @@ class Neviweb130Data:
         password = config.get(CONF_PASSWORD)
         network = config.get(CONF_NETWORK)
         network2 = config.get(CONF_NETWORK2)
-        self.neviweb130_client = Neviweb130Client(username, password, network, network2)
+        network3 = config.get(CONF_NETWORK3)
+        self.neviweb130_client = Neviweb130Client(username, password, network, network2, network3)
 
 # According to HA: 
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -192,16 +195,19 @@ class PyNeviweb130Error(Exception):
 
 class Neviweb130Client(object):
 
-    def __init__(self, username, password, network, network2, timeout=REQUESTS_TIMEOUT):
+    def __init__(self, username, password, network, network2, network3, timeout=REQUESTS_TIMEOUT):
         """Initialize the client object."""
         self._email = username
         self._password = password
         self._network_name = network
         self._network_name2 = network2
+        self._network_name3 = network3
         self._gateway_id = None
         self._gateway_id2 = None
+        self._gateway_id3 = None
         self.gateway_data = {}
         self.gateway_data2 = {}
+        self.gateway_data3 = {}
         self._headers = None
         self._account = None
         self._cookies = None
@@ -261,7 +267,7 @@ class Neviweb130Client(object):
             networks = raw_res.json()
             _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
             _LOGGER.debug("networks: %s", networks)
-            if self._network_name == None and self._network_name2 == None: # Use 1st network found and second if found
+            if self._network_name == None and self._network_name2 == None and self._network_name3 == None: # Use 1st network found, second or third if found
                 self._gateway_id = networks[0]["id"]
                 self._network_name = networks[0]["name"]
                 self._occupancyMode = networks[0]["mode"]
@@ -270,6 +276,10 @@ class Neviweb130Client(object):
                     self._gateway_id2 = networks[1]["id"]
                     self._network_name2 = networks[1]["name"]
                     _LOGGER.debug("Selecting %s as second network", self._network_name2)
+                    if len(networks) > 2:
+                        self._gateway_id3 = networks[2]["id"]
+                        self._network_name3 = networks[2]["name"]
+                        _LOGGER.debug("Selecting %s as third network", self._network_name3)
             else:
                 for network in networks:
                     if network["name"] == self._network_name:
@@ -284,11 +294,10 @@ class Neviweb130Client(object):
                         continue
                     else:
                         _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one.... Please check your config if nothing is discovered.", self._network_name, network["name"])
-                    if self._network_name2 is not None:
+                    if self._network_name2 is not None and self._network_name2 != "":
                         if network["name"] == self._network_name2:
                             self._gateway_id2 = network["id"]
-                            _LOGGER.debug("Selecting %s network among: %s",
-                                self._network_name2, networks)
+                            _LOGGER.debug("Selecting %s network among: %s", self._network_name2, networks)
                             continue
                         elif (network["name"] == self._network_name2.capitalize()) or (network["name"] == self._network_name2[0].lower()+self._network_name2[1:]):
                             self._gateway_id = network["id"]
@@ -298,9 +307,22 @@ class Neviweb130Client(object):
                         else:
                             _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one...",
                                 self._network_name2, network["name"])
+                    if self._network_name3 is not None and self._network_name3 != "":
+                        if network["name"] == self._network_name3:
+                            self._gateway_id3 = network["id"]
+                            _LOGGER.debug("Selecting %s network among: %s", self._network_name3, networks)
+                            continue
+                        elif (network["name"] == self._network_name3.capitalize()) or (network["name"] == self._network_name3[0].lower()+self._network_name3[1:]):
+                            self._gateway_id = network["id"]
+                            _LOGGER.debug("Please check first letter of your network3 name, In capital letter or not? Selecting %s network among: %s",
+                                self._network_name3, networks)
+                            continue
+                        else:
+                            _LOGGER.debug("Your network name %s do not correspond to discovered network %s, skipping this one...",
+                                self._network_name3, network["name"])
 
         except OSError:
-            raise PyNeviweb130Error("Cannot get network")
+            raise PyNeviweb130Error("Cannot get Neviweb's networks")
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -332,13 +354,24 @@ class Neviweb130Client(object):
             # Prepare data
             self.gateway_data2 = raw_res2.json()
             _LOGGER.debug("Gateway_data2 : %s", self.gateway_data2)
+        if self._gateway_id3 is not None:
+            try:
+                raw_res3 = requests.get(GATEWAY_DEVICE_URL + str(self._gateway_id3),
+                    headers=self._headers, cookies=self._cookies, 
+                    timeout=self._timeout)
+                _LOGGER.debug("Received gateway data 3: %s", raw_res3.json())
+            except OSError:
+                raise PyNeviweb130Error("Cannot get gateway data 3")
+            # Prepare data
+            self.gateway_data3 = raw_res3.json()
+            _LOGGER.debug("Gateway_data3 : %s", self.gateway_data3)
         for device in self.gateway_data:
             data = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)
             if data[ATTR_SIGNATURE]["protocol"] == "miwi":
-                _LOGGER.debug("The Neviweb location selected for parameter «network» contain unsupported device with protocol miwi. This location should be added to neviweb custom_components instead. Check your neviweb130 config.")
+                _LOGGER.debug("The Neviweb location selected for parameter «network» contain unsupported device with protocol miwi. This location should be added to «sinope neviweb» custom_components instead. Check your neviweb130 config.")
         if self._gateway_id2 is not None:          
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
@@ -346,9 +379,18 @@ class Neviweb130Client(object):
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data2)
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    _LOGGER.debug("The Neviweb location selected for parameter «network2» contain unsupported device with protocol miwi. This location should be added to neviweb custom_components instead. Check your neviweb130 config.")
+                    _LOGGER.debug("The Neviweb location selected for parameter «network2» contain unsupported device with protocol miwi. This location should be added to «sinope neviweb» custom_components instead. Check your neviweb130 config.")
+        if self._gateway_id3 is not None:          
+            for device in self.gateway_data3:
+                data3 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
+                if ATTR_SIGNATURE in data3:
+                    device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
+                _LOGGER.debug("Received signature data: %s", data3)
+                if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
+                    _LOGGER.debug("The Neviweb location selected for parameter «network3» contain unsupported device with protocol miwi. This location should be added to «sinope neviweb» custom_components instead. Check your neviweb130 config.")
 #        _LOGGER.debug("Updated gateway data: %s", self.gateway_data) 
 #        _LOGGER.debug("Updated gateway data2: %s", self.gateway_data2)
+#        _LOGGER.debug("Updated gateway data3: %s", self.gateway_data3)
 
     def get_device_attributes(self, device_id, attributes):
         """Get device attributes."""
@@ -1013,6 +1055,18 @@ class Neviweb130Client(object):
         """Set fan speed (mode) for heat pump."""
         data = {ATTR_FAN_SPEED: speed}
         _LOGGER.debug("Fan speed value.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_hc_display(self, device_id, display):
+        """Set device second display for outside temperature or setpoint temperature for TH1134ZB-HC."""
+        data = {ATTR_DISPLAY2: display}
+        _LOGGER.debug("Hc display.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_language(self, device_id, lang):
+        """Set display language for TH1134ZB-HC."""
+        data = {ATTR_LANGUAGE: lang}
+        _LOGGER.debug("Hc language.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):

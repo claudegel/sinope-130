@@ -114,12 +114,12 @@ from .const import (
     ATTR_COOL_SETPOINT_MIN,
     ATTR_CYCLE,
     ATTR_CYCLE_OUTPUT2,
-    ATTR_DISPLAY2,
     ATTR_DISPLAY_CAP,
     ATTR_DISPLAY_CONF,
+    ATTR_DISPLAY2,
     ATTR_DRACTIVE,
-    ATTR_DRSTATUS,
     ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
     ATTR_DUAL_STATUS,
     ATTR_EARLY_START,
     ATTR_FAN_CAP,
@@ -206,10 +206,12 @@ from .const import (
     SERVICE_SET_FLOOR_AIR_LIMIT,
     SERVICE_SET_FLOOR_LIMIT_HIGH,
     SERVICE_SET_FLOOR_LIMIT_LOW,
+    SERVICE_SET_HC_SECOND_DISPLAY,
     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
     SERVICE_SET_HVAC_DR_OPTIONS,
     SERVICE_SET_HVAC_DR_SETPOINT,
+    SERVICE_SET_LANGUAGE,
     SERVICE_SET_PUMP_PROTECTION,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_SENSOR_TYPE,
@@ -244,10 +246,12 @@ from .schema import (
     SET_FLOOR_AIR_LIMIT_SCHEMA,
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
     SET_FLOOR_LIMIT_LOW_SCHEMA,
+    SET_HC_SECOND_DISPLAY_SCHEMA,
     SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
     SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
     SET_HVAC_DR_OPTIONS_SCHEMA,
     SET_HVAC_DR_SETPOINT_SCHEMA,
+    SET_LANGUAGE_SCHEMA,
     SET_PUMP_PROTECTION_SCHEMA,
     SET_SECOND_DISPLAY_SCHEMA,
     SET_SENSOR_TYPE_SCHEMA,
@@ -303,6 +307,7 @@ SUPPORT_HC_FLAGS = (
 
 DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
+DEFAULT_NAME_3 = "neviweb130 climate 3"
 SNOOZE_TIME = 1200
 
 HA_TO_NEVIWEB_PERIOD = {
@@ -495,6 +500,36 @@ async def async_setup_platform(
                 entities.append(Neviweb130HPThermostat(data, device_info, device_name, device_sku, device_firmware))
             else:
                 entities.append(Neviweb130HeatCoolThermostat(data, device_info, device_name, device_sku, device_firmware))
+    for device_info in data.neviweb130_client.gateway_data3:
+        if "signature" in device_info and \
+            "model" in device_info["signature"] and \
+            device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL:
+            device_name = "{} {}".format(DEFAULT_NAME_3, device_info["name"])
+            device_sku = device_info["sku"]
+            device_firmware = "{}.{}.{}".format(device_info["signature"]["softVersion"]["major"],device_info["signature"]["softVersion"]["middle"],device_info["signature"]["softVersion"]["minor"])
+            if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
+                entities.append(Neviweb130Thermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
+                entities.append(Neviweb130G2Thermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
+                entities.append(Neviweb130FloorThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
+                entities.append(Neviweb130LowThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
+                entities.append(Neviweb130DoubleThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
+                entities.append(Neviweb130WifiThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
+                entities.append(Neviweb130LowWifiThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
+                entities.append(Neviweb130WifiFloorThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
+                entities.append(Neviweb130HcThermostat(data, device_info, device_name, device_sku, device_firmware))
+            elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
+                entities.append(Neviweb130HPThermostat(data, device_info, device_name, device_sku, device_firmware))
+            else:
+                entities.append(Neviweb130HeatCoolThermostat(data, device_info, device_name, device_sku, device_firmware))
+
     async_add_entities(entities, True)
 
     def set_second_display_service(service):
@@ -807,6 +842,28 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_hc_second_display_service(service):
+        """Set second display for TH1134ZB-HC thermostat."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "display": service.data[ATTR_DISPLAY2]}
+                thermostat.set_hc_second_display(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_language_service(service):
+        """Set display language for TH1134ZB-HC thermostat."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "lang": service.data[ATTR_LANGUAGE]}
+                thermostat.set_language(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1003,6 +1060,20 @@ async def async_setup_platform(
         schema=SET_SOUND_CONFIG_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HC_SECOND_DISPLAY,
+        set_hc_second_display_service,
+        schema=SET_HC_SECOND_DISPLAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LANGUAGE,
+        set_language_service,
+        schema=SET_LANGUAGE_SCHEMA,
+    )
+
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
@@ -1168,7 +1239,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -1258,7 +1329,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORT_FLAGS
 
     @property
-    def is_em_heat(self):
+    def is_em_heat(self) -> bool:
         """Return emergency heat state."""
         if self._em_heat == "slave":
             return True
@@ -1423,7 +1494,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 return HVACAction.HEATING
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return True if mode = HVACMode.HEAT."""
         if self._operation_mode == HVACMode.HEAT or self._operation_mode == HVACMode.AUTO:
             return True
@@ -1855,6 +1926,22 @@ class Neviweb130Thermostat(ClimateEntity):
             entity, sound)
         self._sound_conf = sound
 
+    def set_hc_second_display(self, value):
+        """Set second display value for TH1134ZB-HC."""
+        display = value["display"]
+        entity = value["id"]
+        self._client.set_hc_display(
+            entity, display)
+        self._display2 = display
+
+    def set_language(self, value):
+        """Set display language value for TH1134ZB-HC."""
+        lang = value["lang"]
+        entity = value["id"]
+        self._client.set_language(
+            entity, lang)
+        self._language = lang
+
     def do_stat(self, start):
         """Get device energy statistic."""
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
@@ -2070,7 +2157,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2261,7 +2348,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2469,7 +2556,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2646,7 +2733,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -2825,7 +2912,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3039,7 +3126,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3253,7 +3340,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3438,7 +3525,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
+                        self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_RSSI in device_data:
@@ -3472,7 +3560,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "FLP55":
+            if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
         else:
@@ -3499,7 +3587,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     'fan_speed': self._fan_speed,
                     'fan_swing_vertical': self._fan_swing_vert,
                     'fan_swing_horizontal': self._fan_swing_horiz,
-                    'fan_capability': extract_capability(self._fan_cap),
+                    'fan_capability': self._fan_cap,
                     'fan_swing_capability': extract_capability(self._fan_swing_cap),
                     'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
                     'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
