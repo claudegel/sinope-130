@@ -31,6 +31,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
   - Sinopé TH1133WF wifi 3000W Line voltage thermostat
+  - Sinopé TH1133CR Sinopé Evo 3000w Line voltage thermostat
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1325WF wifi 3600W floor thermostat
