@@ -16,6 +16,7 @@ from homeassistant.const import (
 
 from .const import (
     ATTR_ACTIVE,
+    ATTR_AUX_HEAT_TIMEON,
     ATTR_BACKLIGHT,
     ATTR_BALANCE_PT,
     ATTR_BATT_ALERT,
@@ -24,6 +25,8 @@ from .const import (
     ATTR_CLOSE_VALVE,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_CONF_CLOSURE,
+    ATTR_COOL_MIN_TIME_OFF,
+    ATTR_COOL_MIN_TIME_ON,
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_SETPOINT_MAX, 
     ATTR_COOL_SETPOINT_MIN,
@@ -92,12 +95,14 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = '2.9.1'
+VERSION = '2.9.2'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 NOTIFY = "both"
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
+MIN_TIME = {120, 180, 240, 300, 600}
+WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
@@ -107,6 +112,7 @@ TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 FAN_SPEED = {"high", "medium", "low", "auto", "off"}
+WIFI_FAN_SPEED = {"auto", "on", "off"}
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {"fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"}
 DISPLAY_CAPABILITY = {"enable", "disable"}
@@ -390,6 +396,33 @@ SET_LANGUAGE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LANGUAGE): vol.In(["en", "fr"]
+        ),
+    }
+)
+
+SET_AUX_HEAT_MIN_TIME_ON_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_AUX_HEAT_TIMEON): vol.All(
+            cv.ensure_list, [vol.In(MIN_TIME)]
+        ),
+    }
+)
+
+SET_COOL_MIN_TIME_ON_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_MIN_TIME_ON): vol.All(
+            cv.ensure_list, [vol.In(MIN_TIME)]
+        ),
+    }
+)
+
+SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_MIN_TIME_OFF): vol.All(
+            cv.ensure_list, [vol.In(MIN_TIME)]
         ),
     }
 )
