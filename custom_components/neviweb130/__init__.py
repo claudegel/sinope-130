@@ -26,6 +26,7 @@ from homeassistant.components.climate.const import (
     )
 from .const import (
     ATTR_AUX_CYCLE,
+    ATTR_AUX_HEAT_TIMEON,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_BALANCE_PT,
@@ -34,6 +35,8 @@ from .const import (
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_CONF_CLOSURE,
     ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_MIN_TIME_OFF,
+    ATTR_COOL_MIN_TIME_ON,
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_COOL_SETPOINT_MIN,
@@ -221,6 +224,9 @@ class Neviweb130Client(object):
 
     def update(self):
         self.__get_gateway_data()
+
+    def test_connect(self):
+        self.__post_login_page()
 
     def reconnect(self):
         self.__post_login_page()
@@ -1067,6 +1073,21 @@ class Neviweb130Client(object):
         """Set display language for TH1134ZB-HC."""
         data = {ATTR_LANGUAGE: lang}
         _LOGGER.debug("Hc language.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heat_time_on(self, device_id, time):
+        """Set display language for TH1134ZB-HC."""
+        data = {ATTR_AUX_HEAT_TIMEON: time}
+        _LOGGER.debug("HC aux_heat_time_on.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_time(self, device_id, time, state):
+        """Set display language for TH1134ZB-HC."""
+        if state == "on":
+            data = {ATTR_COOL_MIN_TIME_ON: time}
+        else:
+            data = {ATTR_COOL_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC cool_min_time_on/off.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
