@@ -9,6 +9,7 @@ Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A
 model 2152 = Calypso load controller for water heater, RM3500WF 20,8A wifi
+model 2152 = Calypso load controller for water heater, RM3510WF 20,8A wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
@@ -122,6 +123,7 @@ from .const import (
     ATTR_WATER_LEAK_STATUS,
     ATTR_WATER_TANK_ON,
     ATTR_WATER_TEMP_MIN,
+    ATTR_WATER_TEMP_PROTEC,
     ATTR_WATER_TEMP_TIME,
     ATTR_WATER_TEMPERATURE,
     ATTR_WATT_TIME_ON,
@@ -1127,6 +1129,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._water_temp = None
         self._water_temp_min = None
         self._water_temp_time = None
+        self._water_temp_protec = None
         self._rssi = None
         self._error_code = None
         self._temperature = None
@@ -1147,7 +1150,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
     def update(self):
         if self._activ:
             LOAD_ATTRIBUTES = [ATTR_WATER_LEAK_STATUS, ATTR_ROOM_TEMPERATURE, ATTR_ERROR_CODE_SET1, ATTR_WATTAGE, ATTR_WATTAGE_INSTANT, ATTR_COLD_LOAD_PICKUP_STATUS, ATTR_TANK_SIZE, ATTR_WATER_TEMP_MIN, ATTR_WATT_TIME_ON,
-                ATTR_DR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS, ATTR_DR_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
+                ATTR_DR_WATER_TEMP_TIME, ATTR_RSSI, ATTR_DRSTATUS, ATTR_DR_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_WATER_TEMP_PROTEC]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
@@ -1178,6 +1181,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                         self._drstatus_optout_reason = device_data[ATTR_DRSTATUS]["optOutReason"]
                     self._water_temp_min = device_data[ATTR_WATER_TEMP_MIN]
+                    self._water_temp_protec = device_data[ATTR_WATER_TEMP_PROTEC]
                     self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
                     self._water_temp_time = device_data[ATTR_DR_WATER_TEMP_TIME]
                     if ATTR_DR_PROTEC_STATUS in device_data:
@@ -1222,6 +1226,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                'water_temp_min': self._water_temp_min,
                'water_time_on': self._watt_time_on,
                'water_temp_time': self._water_temp_time,
+               'water_temp_protection_type': self._water_temp_protec,
                'protection_Temperature': self._temperature,
                'protection_Consumption': self._consumption,
                'protection_consumption_overtime': self._consumption_time,
@@ -1270,6 +1275,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_temp = None
         self._water_temp_min = None
         self._water_temp_time = None
+        self._water_temp_protec = None
         self._water_leak_disconected_status = None
         self._water_leak_closure_conf = None
         self._water_tank_on = None
@@ -1293,7 +1299,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     def update(self):
         if self._activ:
             LOAD_ATTRIBUTES = [ATTR_WATER_LEAK_ALARM_STATUS, ATTR_WATER_TEMPERATURE, ATTR_WATER_LEAK_DISCONECTED_STATUS, ATTR_ERROR_CODE_SET1, ATTR_WIFI_WATTAGE, ATTR_WIFI_WATT_NOW, ATTR_COLD_LOAD_PICKUP_STATUS, ATTR_TANK_SIZE, ATTR_MIN_WATER_TEMP, ATTR_WATER_TANK_ON,
-                ATTR_WATER_TEMP_TIME, ATTR_WIFI, ATTR_DRSTATUS, ATTR_LEG_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_SYSTEM_MODE, ATTR_COLD_LOAD_PICKUP_TEMP, ATTR_LEAK_CLOSURE_CONFIG, ATTR_AWAY_ACTION]
+                ATTR_WATER_TEMP_TIME, ATTR_WIFI, ATTR_DRSTATUS, ATTR_LEG_PROTEC_STATUS, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_SYSTEM_MODE, ATTR_COLD_LOAD_PICKUP_TEMP, ATTR_LEAK_CLOSURE_CONFIG, ATTR_AWAY_ACTION, ATTR_WATER_TEMP_PROTEC]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
@@ -1335,6 +1341,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_temp_min = device_data[ATTR_MIN_WATER_TEMP]
                     self._water_tank_on = device_data[ATTR_WATER_TANK_ON]
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
+                    self._water_temp_protec = device_data[ATTR_WATER_TEMP_PROTEC]
                     self._water_leak_closure_conf = device_data[ATTR_LEAK_CLOSURE_CONFIG]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1379,6 +1386,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                'water_temp_min': self._water_temp_min,
                'water_time_on': self._water_tank_on,
                'water_temp_time': self._water_temp_time,
+               'water_temp_protection_type': self._water_temp_protec,
                'away_action': self._away_action,
                'away_action_payload': self._away_payload,
                'mode': self._mode,
