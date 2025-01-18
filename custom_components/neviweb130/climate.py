@@ -21,8 +21,8 @@ model 1510 = thermostat TH1133CR Sinopé Evo 3000W (wifi)
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
-model 6730 = thermostat TH6500WF heat/cool (wifi)
-model 6727 = thermostat TH6250WF heat/cool (wifi)
+model 6727 = thermostat TH6500WF heat/cool (wifi)
+model 6730 = thermostat TH6250WF heat/cool (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
@@ -4005,7 +4005,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             ATTR_EARLY_START, ATTR_ROOM_SETPOINT_AWAY, ATTR_COOL_SETPOINT_AWAY, ATTR_FAN_FILTER_REMAIN, ATTR_AUX_HEAT_TIMEON, ATTR_AUX_HEAT_START_DELAY,
                             ATTR_OUTPUT_CONNECT_STATE, ATTR_COOL_MIN_TIME_ON, ATTR_COOL_MIN_TIME_OFF, ATTR_HEAT_INSTALL_TYPE, ATTR_OCCUPANCY]
             """Get specific attributes"""
-            if self._device_model == 6730:
+            if self._device_model == 6727:
                 HC_EXTRA = [ATTR_HEAT_INTERSTAGE_MIN_DELAY, ATTR_COOL_INTERSTAGE_MIN_DELAY, ATTR_DRSETPOINT, ATTR_DRSTATUS]
             else:
                 HC_EXTRA = []
@@ -4146,6 +4146,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'balance_point': self._balance_pt,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
+                    'output_connect_state': self._output_connect_state,
                     'rssi': self._rssi,
                     'sku': self._sku,
                     'device_model': str(self._device_model),
@@ -4153,7 +4154,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'firmware': self._firmware,
                     'activation': self._activ,
                     'id': str(self._id)})
-        if self._device_model == 6730:
+        if self._device_model == 6727:
             data.update({'heat_interstage_delay': self._heat_interstage_delay,
                         'cool_interstage_delay': self._cool_interstage_delay,
                         'eco_status': self._drstatus_active,
@@ -4162,6 +4163,5 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         'eco_power_relative': self._drstatus_rel,
                         'eco_power_absolute': self._drstatus_abs,
                         'eco_setpoint_status': self._drsetpoint_status,
-                        'eco_setpoint_delta': self._drsetpoint_value,
-                        'output_connect_state': self._output_connect_state})
+                        'eco_setpoint_delta': self._drsetpoint_value})
         return data
