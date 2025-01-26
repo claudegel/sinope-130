@@ -3793,9 +3793,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     def update(self):
         if self._activ:
             HP_ATTRIBUTES = [ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_SYSTEM_MODE, ATTR_KEYPAD, ATTR_MODEL, ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ,
-                            ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_BALANCE_PT_TEMP_HIGH,
-                            ATTR_BALANCE_PT_TEMP_LOW,ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE, ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP,
-                            ATTR_SOUND_CONF, ATTR_SOUND_CAP]
+                            ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP,
+                            ATTR_COOL_LOCK_TEMP, ATTR_AVAIL_MODE, ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES)
@@ -3889,8 +3888,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
                     'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
                     'heat_pump_limit_temp': self._balance_pt,
-                    'min_heat_pump_limit_temp': self._balance_pt_low,
-                    'max_heat_pump_limit_temp': self._balance_pt_high,
+#                    'min_heat_pump_limit_temp': self._balance_pt_low,
+#                    'max_heat_pump_limit_temp': self._balance_pt_high,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
                     'available_mode': self._avail_mode,
