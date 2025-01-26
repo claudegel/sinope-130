@@ -149,7 +149,6 @@ from .const import (
     ATTR_HEAT_SOURCE_TYPE,
     ATTR_HUMID_DISPLAY,
     ATTR_HUMID_SETPOINT,
-    ATTR_HUMID_TYPE,
     ATTR_HUMIDIFIER_TYPE,
     ATTR_KEYPAD,
     ATTR_LANGUAGE,
@@ -3961,7 +3960,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._cycle = None
         self._aux_cycle = None
         self._cool_cycle_length = 0
-        self._humid_type = None
         self._humid_display = None
         self._humid_setpoint = None
         self._humidifier_type = None
@@ -4000,8 +3998,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if self._activ:
             HC_ATTRIBUTES = [ATTR_WIFI_KEYPAD, ATTR_HEAT_COOL, ATTR_SETPOINT_MODE, ATTR_LANGUAGE, ATTR_BACK_LIGHT, ATTR_BACKLIGHT_AUTO_DIM, ATTR_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_SOURCE_TYPE,
                             ATTR_FAN_SPEED, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_VALVE_POLARITY, ATTR_HUMIDIFIER_TYPE, ATTR_HUMID_SETPOINT, ATTR_COOL_CYCLE_LENGTH,
-                            ATTR_CYCLE, ATTR_AUX_CYCLE, ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_TEMP_OFFSET_HEAT, ATTR_HUMID_TYPE, ATTR_HUMID_DISPLAY, ATTR_DUAL_STATUS,
-                            ATTR_EARLY_START, ATTR_ROOM_SETPOINT_AWAY, ATTR_COOL_SETPOINT_AWAY, ATTR_FAN_FILTER_REMAIN, ATTR_AUX_HEAT_TIMEON, ATTR_AUX_HEAT_START_DELAY,
+                            ATTR_CYCLE, ATTR_AUX_CYCLE, ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_TEMP_OFFSET_HEAT, ATTR_HUMID_DISPLAY, ATTR_DUAL_STATUS, ATTR_EARLY_START,
+                            ATTR_ROOM_SETPOINT_AWAY, ATTR_COOL_SETPOINT_AWAY, ATTR_FAN_FILTER_REMAIN, ATTR_AUX_HEAT_TIMEON, ATTR_AUX_HEAT_START_DELAY,
                             ATTR_OUTPUT_CONNECT_STATE, ATTR_COOL_MIN_TIME_ON, ATTR_COOL_MIN_TIME_OFF, ATTR_HEAT_INSTALL_TYPE, ATTR_OCCUPANCY]
             """Get specific attributes"""
             if self._device_model == 6727:
@@ -4065,7 +4063,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
-                    self._humid_type = device_data[ATTR_HUMID_TYPE]
                     self._humid_display = device_data[ATTR_HUMID_DISPLAY]
                     self._humid_setpoint = device_data[ATTR_HUMID_SETPOINT]
                     self._humidifier_type = device_data[ATTR_HUMIDIFIER_TYPE]
@@ -4081,7 +4078,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
-                    self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
+                    if ATTR_HEAT_INSTALL_TYPE in device_data:
+                        self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
@@ -4127,7 +4125,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'cycle': self._cycle,
                     'aux_cycle': self._aux_cycle,
                     'cool_cycle_length': self._cool_cycle_length,
-                    'humid_type': self._humid_type,
                     'humid_display': self._humid_display,
                     'humid_setpoint': self._humid_setpoint,
                     'humidifier_type': self._humidifier_type,
