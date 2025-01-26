@@ -3789,13 +3789,18 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
     def update(self):
         if self._activ:
-            HP_ATTRIBUTES = [ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_SYSTEM_MODE, ATTR_KEYPAD, ATTR_MODEL, ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT, ATTR_FAN_SWING_HORIZ,
-                            ATTR_FAN_CAP, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP,
-                            ATTR_COOL_LOCK_TEMP, ATTR_DISPLAY_CONF, ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
+            HP_ATTRIBUTES = [ATTR_RSSI, ATTR_COOL_SETPOINT, ATTR_SYSTEM_MODE, ATTR_KEYPAD, ATTR_MODEL, ATTR_FAN_SPEED, ATTR_FAN_SWING_VERT,
+                            ATTR_FAN_CAP, ATTR_AVAIL_MODE]
+            if self._firmware != "0.1.7":
+                NEW_HP_ATTRIBUTES = [ATTR_DRSTATUS, ATTR_DRSETPOINT, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ,
+                                     ATTR_FAN_SWING_CAP_VERT, ATTR_BALANCE_PT, ATTR_HEAT_LOCK_TEMP, ATTR_COOL_LOCK_TEMP, ATTR_DISPLAY_CONF,
+                                     ATTR_DISPLAY_CAP, ATTR_SOUND_CONF, ATTR_SOUND_CAP]
+            else:
+                NEW_HP_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES)
-            device_data = self._client.get_device_attributes(self._id, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES)
+            _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3829,23 +3834,24 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._rssi = device_data[ATTR_RSSI]
                     self._fan_speed = device_data[ATTR_FAN_SPEED]
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
-                    self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
                     self._fan_cap = device_data[ATTR_FAN_CAP]
-                    self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
-                    self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
-                    self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
-                    self._balance_pt = device_data[ATTR_BALANCE_PT]
+                    self._avail_mode = device_data[ATTR_AVAIL_MODE]
+                    if ATTR_FAN_SWING_HORIZ in device_data:
+                        self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
+                        self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
+                        self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
+                        self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
+                        self._balance_pt = device_data[ATTR_BALANCE_PT]
+                        self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
+                        self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     if ATTR_BALANCE_PT_TEMP_LOW in device_data:
                         self._balance_pt_low = device_data[ATTR_BALANCE_PT_TEMP_LOW]
                         self._balance_pt_high = device_data[ATTR_BALANCE_PT_TEMP_HIGH]
-                    self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
-                    self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
-                    if ATTR_AVAIL_MODE in device_data:
-                        self._avail_mode = device_data[ATTR_AVAIL_MODE]
-                    self._display_cap = device_data[ATTR_DISPLAY_CAP]
-                    self._display_conf = device_data[ATTR_DISPLAY_CONF]
-                    self._sound_cap = device_data[ATTR_SOUND_CAP]
-                    self._sound_conf = device_data[ATTR_SOUND_CONF]
+                    if ATTR_DISPLAY_CONF in device_data:
+                        self._display_conf = device_data[ATTR_DISPLAY_CONF]
+                        self._display_cap = device_data[ATTR_DISPLAY_CAP]
+                        self._sound_conf = device_data[ATTR_SOUND_CONF]
+                        self._sound_cap = device_data[ATTR_SOUND_CAP]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
@@ -3875,30 +3881,31 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'temperature_format': self._temperature_format,
                     'keypad': lock_to_ha(self._keypad),
                     'fan_speed': self._fan_speed,
-                    'display_conf': self._display_conf,
-                    'display_capability': extract_capability(self._display_cap),
-                    'sound_conf': self._sound_conf,
-                    'sound_capability': extract_capability(self._sound_cap),
                     'fan_swing_vertical': self._fan_swing_vert,
-                    'fan_swing_horizontal': self._fan_swing_horiz,
                     'fan_capability': self._fan_cap,
-                    'fan_swing_capability': extract_capability(self._fan_swing_cap),
-                    'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
-                    'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
-                    'heat_pump_limit_temp': self._balance_pt,
-#                    'min_heat_pump_limit_temp': self._balance_pt_low,
-#                    'max_heat_pump_limit_temp': self._balance_pt_high,
-                    'heat_lock_temp': self._heat_lock_temp,
-                    'cool_lock_temp': self._cool_lock_temp,
-                    'available_mode': self._avail_mode,
-                    'eco_status': self._drstatus_active,
-                    'eco_optOut': self._drstatus_optout,
-                    'eco_setpoint': self._drstatus_setpoint,
-                    'eco_power_relative': self._drstatus_rel,
-                    'eco_power_absolute': self._drstatus_abs,
-                    'eco_setpoint_status': self._drsetpoint_status,
-                    'eco_setpoint_delta': self._drsetpoint_value,
-                    'rssi': self._rssi,
+                    'available_mode': self._avail_mode})
+        if self._firmware != "0.1.7":
+            data.update({'heat_pump_limit_temp': self._balance_pt,
+#                         'min_heat_pump_limit_temp': self._balance_pt_low,
+#                         'max_heat_pump_limit_temp': self._balance_pt_high,
+                         'heat_lock_temp': self._heat_lock_temp,
+                         'cool_lock_temp': self._cool_lock_temp,
+                         'fan_swing_horizontal': self._fan_swing_horiz,
+                         'fan_swing_capability': extract_capability(self._fan_swing_cap),
+                         'fan_swing_capability_vertical': extract_capability_full(self._fan_swing_cap_vert),
+                         'fan_swing_capability_horizontal': extract_capability_full(self._fan_swing_cap_horiz),
+                         'display_conf': self._display_conf,
+                         'display_capability': extract_capability(self._display_cap),
+                         'sound_conf': self._sound_conf,
+                         'sound_capability': extract_capability(self._sound_cap),
+                         'eco_status': self._drstatus_active,
+                         'eco_optOut': self._drstatus_optout,
+                         'eco_setpoint': self._drstatus_setpoint,
+                         'eco_power_relative': self._drstatus_rel,
+                         'eco_power_absolute': self._drstatus_abs,
+                         'eco_setpoint_status': self._drsetpoint_status,
+                         'eco_setpoint_delta': self._drsetpoint_value})
+        data.update({'rssi': self._rssi,
                     'sku': self._sku,
                     'device_model': str(self._device_model),
                     'device_model_cfg': self._device_model_cfg,
