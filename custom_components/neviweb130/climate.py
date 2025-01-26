@@ -3840,7 +3840,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._balance_pt_high = device_data[ATTR_BALANCE_PT_TEMP_HIGH]
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
-                    self._avail_mode = device_data[ATTR_AVAIL_MODE]
+                    if ATTR_AVAIL_MODE in device_data:
+                        self._avail_mode = device_data[ATTR_AVAIL_MODE]
                     self._display_cap = device_data[ATTR_DISPLAY_CAP]
                     self._display_conf = device_data[ATTR_DISPLAY_CONF]
                     self._sound_cap = device_data[ATTR_SOUND_CAP]
