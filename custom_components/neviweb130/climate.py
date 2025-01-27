@@ -3821,7 +3821,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._model = device_data[ATTR_MODEL]
+                    if ATTR_MODEL in device_data and ATTR_MODEL is not None:
+                        self._model = device_data[ATTR_MODEL]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = device_data[ATTR_DRSETPOINT]["value"] if \
@@ -3862,7 +3863,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            self.get_sensor_error_code(start)
+#            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3916,6 +3917,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     'firmware': self._firmware,
                     'activation': self._activ,
                     'id': str(self._id)})
+        _LOGGER.debug("Extra data = %s", data)
         return data
 
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
