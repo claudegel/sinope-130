@@ -3948,6 +3948,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._time_format = "24h"
         self._heat_level = 0
+        self._heat_level_source_type = None
         self._rssi = None
         self._keypad = None
         self._backlight = None
@@ -4041,6 +4042,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    self._heat_level_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._heat_source_type = device_data[ATTR_HEAT_SOURCE_TYPE]
                     self._aux_heat_source_type = device_data[ATTR_AUX_HEAT_SOURCE_TYPE]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
@@ -4132,6 +4134,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'language': self._language,
                     'occupancy': self._occupancy,
                     'heat_source_type': self._heat_source_type,
+                    'heat_level_source_type': self._heat_level_source_type,
                     'aux_heat_source_type': self._aux_heat_source_type,
                     'fan_filter_remain': self._fan_filter_remain,
                     'cycle': self._cycle,
