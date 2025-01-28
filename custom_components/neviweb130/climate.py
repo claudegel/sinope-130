@@ -3808,7 +3808,6 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
-
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._cur_temp_before = self._cur_temp
@@ -3857,12 +3856,15 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._display_cap = device_data[ATTR_DISPLAY_CAP]
                         self._sound_conf = device_data[ATTR_SOUND_CONF]
                         self._sound_cap = device_data[ATTR_SOUND_CAP]
+                    _LOGGER.debug("Stop point 1")
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning("A timeout occur during data update. Device %s do not respond. Check your network... (%s)", self._name, device_data)
                 else:    
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
+                _LOGGER.debug("Stop point 2")
             else:
                 self.log_error(device_data["error"]["code"])
+            _LOGGER.debug("Stop point 3")
 #            self.get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
