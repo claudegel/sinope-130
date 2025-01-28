@@ -5,7 +5,7 @@ set_climate_keypad_lock:
       description: Name(s) of neviweb130 climate device to lock/unlock the keypad.
       example: "climate.neviweb130_climate_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
+      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection. For HP6000ZB-xx devices, «partiallyLocked» is not available.
       example: "locked"
 
 set_light_keypad_lock:
