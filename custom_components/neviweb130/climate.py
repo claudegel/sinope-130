@@ -1592,7 +1592,9 @@ class Neviweb130Thermostat(ClimateEntity):
     def swing_modes(self) -> list[str] | None:
         """Return availables vertical swing modes."""
         if self._is_HP or self._is_hc:
-            if extract_capability(self._fan_swing_cap) == []:
+            if self._fan_swing_cap is None or self._fan_swing_cap_vert is None:
+                return None
+            elif extract_capability(self._fan_swing_cap) == []:
                 return None
             elif "fullVertical" in extract_capability(self._fan_swing_cap):
                 return FULL_SWING + extract_capability_full(self._fan_swing_cap_vert)
@@ -1612,7 +1614,9 @@ class Neviweb130Thermostat(ClimateEntity):
     def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
         if self._is_HP or self._is_hc:
-            if extract_capability(self._fan_swing_cap) == []:
+            if self._fan_swing_cap is None or self._fan_swing_cap_horiz is None:
+                return None
+            elif extract_capability(self._fan_swing_cap) == []:
                 return None
             elif "fullHorizontal" in extract_capability(self._fan_swing_cap):
                 return FULL_SWING + extract_capability_full(self._fan_swing_cap_horiz)
