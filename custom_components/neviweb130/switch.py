@@ -914,7 +914,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha(
+            await self.async_notify_ha(
                 f"Warning: Neviweb access temporary blocked for maintenance...Retry later."
             )
             await self._client.async_reconnect()
