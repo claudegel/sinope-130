@@ -4,9 +4,10 @@
   "codeowners": ["@claudegel"],
   "documentation": "https://github.com/claudegel/sinope-130",
   "issue_tracker": "https://github.com/claudegel/sinope-130/issues",
+  "config_flow": true,
   "dependencies": [],
   "requirements": [],
   "iot_class": "cloud_polling",
-  "version": "2.9.4",
-  "homeassistant": "2024.12.1"
+  "version": "3.0.0",
+  "homeassistant": "2025.1.1"
 }
