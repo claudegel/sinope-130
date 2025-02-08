@@ -1,0 +1,67 @@
+{
+  "title": "neviweb130",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Neviweb130: gestion Sinopé zigbee et wifi.",
+        "description": "Entrer les informations pour la connection à Neviweb, nom d'utilisateur (courriel), mot de passe, emplacements (3 possibles) pour parametres network, network2 et network3, Scan_interval, Support pour Homekit, stat_interval et Notifications.",
+        "data": {
+          "username": "Courriel pour Neviweb",
+          "password": "Mot de passe pour Neviweb",
+          "network": "Optionel, Premier emplacement dans Neviweb.",
+          "network2": "Optionel, Deuxième emplacement dans Neviweb.",
+          "network3": "Optionel, Troisième emplacement dans Neviweb.",
+          "homekit_mode": "Optionel, support homekit",
+          "scan_interval": "Optionel, intervalle des requêtes sur neviweb, 300 à 600 sec.",
+          "stat_interval": "Optionel, intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
+          "notify": "Optionel, avis en cas de déconnection pour un appareil."
+        }
+      },
+      "reconfigure":{
+        "title": "Neviweb130: reconfiguration.",
+        "description": "Modifier les informations pour la connection à Neviweb, nom d'utilisateur (courriel), mot de passe, emplacements (3 possibles) pour parametres network, network2 et network3, Scan_interval, Support pour Homekit, stat_interval et Notifications.",
+        "data": {
+          "username": "Courriel pour Neviweb",
+          "password": "Mot de passe pour Neviweb",
+          "network": "Optionel, Premier emplacement dans Neviweb, ou ' '.",
+          "network2": "Optionel, Deuxième emplacement dans Neviweb, ou ' '.",
+          "network3": "Optionel, Troisième emplacement dans Neviweb, ou ' '.",
+          "homekit_mode": "Optionel, support homekit",
+          "scan_interval": "Optionel, intervalle des requêtes sur neviweb, 300 à 600 sec.",
+          "stat_interval": "Optionel, intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
+          "notify": "Optionel, avis en cas de déconnection pour un appareil."
+        }
+      },
+      "abort": {
+          "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
+          "single_instance_allowed": "Une seule instance permise."
+      },
+      "error": {
+          "bad_data_entry": "Vérifiez les informations entrées, il y a des erreurs.",
+          "bad_network_name": "Le nom d'emplacement ne peut contenri de caractère accentués.",
+          "Cannot_Connect": "Le test de connection à neviweb a échoué, vérifier le courriel et le mot de passe.",
+          "Invalid_User_Email": "Le courriel fournit est invalide.",
+          "unknown": "[%key:common::config_flow::error::unknown%]"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Gestion Neviweb130",
+        "description": "Configurer des options additionelles pour Neviweb130.",
+        "data": {
+          "scan_interval": "Intervalle de scan",
+          "stat_interval": "Intervalle de statistique",
+          "notify": "Annonce",
+          "homekit_mode": "Mode HomeKit",
+          "reload": "Recharger l'integration",
+          "download_log": "Télécharger les diagnostiques",
+          "migrate": "Migrer les unique_id numériques"
+        }
+      }
+    }
+  },
+  "reload_triggered": "La recharge a été faite.",
+  "log_downloaded": "le téléchargement des diagnostiques a été fait."
+}
