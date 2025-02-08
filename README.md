@@ -124,18 +124,25 @@ There are two methods to install this custom component:
       custom_components/
         neviweb130/
           __init__.py
-          light.py
-          const.py
-          switch.py
           climate.py
-          sensor.py
-          valve.py
+          config_flow.py
+          const.py
+          light.py
+          manifest.json
           schema.py
+          sensor.py
+          strings.json
           services.yaml
+          switch.py
+          valve.py
+          translations/en.json
+          translations/fr.json
       ...
     ```
 ## Configuration
 
+- Old way via configuration.yaml:
+- 
 To enable Neviweb130 management in your installation, add the following to your `configuration.yaml` file, then restart Home Assistant.
 
 ```yaml
@@ -151,6 +158,8 @@ neviweb130:
   stat_interval: 1800
   notify: "both"
 ```
+- New way via the config flow located in Parameters/Devices and services, select neviweb130 tile and clic on Add entry. Fill the above parameters there.
+
 Networks names are the names found on top of first page after loging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or wifi devices. Both device type must be on same network to work in neviweb130. If you have two networks for two GT130 or two wifi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and zigbee/wifi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
 
 ![network](www/network.jpg)
