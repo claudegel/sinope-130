@@ -12,6 +12,7 @@ from homeassistant.const import (
     CONF_EMAIL,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
+    Platform,
 )
 
 from .const import (
@@ -95,11 +96,22 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = '2.9.4'
-SCAN_INTERVAL = timedelta(seconds=540)
+VERSION = '3.0.0'
+SCAN_INTERVAL = 540 #timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 NOTIFY = "both"
+
+PLATFORMS = [
+    Platform.CLIMATE,
+    Platform.LIGHT,
+    Platform.SENSOR,
+    Platform.SWITCH,
+    Platform.VALVE,
+#    platform.BINARY_SENSOR,
+#    platform.button,
+]
+
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
@@ -131,9 +143,9 @@ CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_NETWORK): cv.string,
-        vol.Optional(CONF_NETWORK2): cv.string,
-        vol.Optional(CONF_NETWORK3): cv.string,
+        vol.Optional(CONF_NETWORK, default="_"): cv.string,
+        vol.Optional(CONF_NETWORK2, default="_"): cv.string,
+        vol.Optional(CONF_NETWORK3, default="_"): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period,
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
