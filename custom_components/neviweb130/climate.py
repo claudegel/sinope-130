@@ -3976,7 +3976,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._error_code = None
         self._temp_display_status = None
         self._temp_display_value = None
-        self._bulk_output = None
         self._output_connect_state = None
         self._is_HC = device_info["signature"]["model"] in \
             DEVICE_MODEL_HEAT_COOL
@@ -4141,7 +4140,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'temp_display_status': self._temp_display_status,
                     'temp_display_value': self._temp_display_value,
                     'dual_status': self._dual_status,
-                    'bulk_output': self._bulk_output,
                     'balance_point': self._balance_pt,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
