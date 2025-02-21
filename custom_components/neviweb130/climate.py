@@ -1530,34 +1530,18 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if HOMEKIT_MODE:
-            if self._operation_mode == HVACMode.OFF:
-                return HVACAction.OFF
-            elif self._operation_mode == HVACMode.COOL:
-                return HVACAction.COOLING
-            elif self._operation_mode == HVACMode.FAN_ONLY:
-                return HVACAction.FAN
-            elif self._operation_mode == HVACMode.DRY:
-                return HVACAction.DRYING
-            elif self._heat_level == 0:
-                return HVACAction.IDLE
-            else:
-                return HVACAction.HEATING
+        if self._operation_mode == HVACMode.OFF:
+            return HVACAction.OFF
+        elif self._operation_mode == HVACMode.COOL:
+            return HVACAction.COOLING
+        elif self._operation_mode == HVACMode.FAN_ONLY:
+            return HVACAction.FAN
+        elif self._operation_mode == HVACMode.DRY:
+            return HVACAction.DRYING
+        elif self._heat_level == 0:
+            return HVACAction.IDLE
         else:
-            if self._operation_mode == HVACMode.OFF:
-                return HVACAction.OFF
-            elif self._operation_mode == HVACMode.COOL:
-                return HVACAction.COOLING
-            elif self._operation_mode == HVACMode.FAN_ONLY:
-                return HVACAction.FAN
-            elif self._operation_mode == HVACMode.DRY:
-                return HVACAction.DRYING
-            elif self._operation_mode == MODE_AUTO_BYPASS:
-                return MODE_AUTO_BYPASS
-            elif self._heat_level == 0:
-                return HVACAction.IDLE
-            else:
-                return HVACAction.HEATING
+            return HVACAction.HEATING
 
     @property
     def is_on(self) -> bool:
@@ -3992,7 +3976,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._error_code = None
         self._temp_display_status = None
         self._temp_display_value = None
-        self._bulk_output = None
         self._output_connect_state = None
         self._is_HC = device_info["signature"]["model"] in \
             DEVICE_MODEL_HEAT_COOL
@@ -4157,7 +4140,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     'temp_display_status': self._temp_display_status,
                     'temp_display_value': self._temp_display_value,
                     'dual_status': self._dual_status,
-                    'bulk_output': self._bulk_output,
                     'balance_point': self._balance_pt,
                     'heat_lock_temp': self._heat_lock_temp,
                     'cool_lock_temp': self._cool_lock_temp,
