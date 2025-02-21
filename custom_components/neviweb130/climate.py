@@ -1530,34 +1530,18 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if HOMEKIT_MODE:
-            if self._operation_mode == HVACMode.OFF:
-                return HVACAction.OFF
-            elif self._operation_mode == HVACMode.COOL:
-                return HVACAction.COOLING
-            elif self._operation_mode == HVACMode.FAN_ONLY:
-                return HVACAction.FAN
-            elif self._operation_mode == HVACMode.DRY:
-                return HVACAction.DRYING
-            elif self._heat_level == 0:
-                return HVACAction.IDLE
-            else:
-                return HVACAction.HEATING
+        if self._operation_mode == HVACMode.OFF:
+            return HVACAction.OFF
+        elif self._operation_mode == HVACMode.COOL:
+            return HVACAction.COOLING
+        elif self._operation_mode == HVACMode.FAN_ONLY:
+            return HVACAction.FAN
+        elif self._operation_mode == HVACMode.DRY:
+            return HVACAction.DRYING
+        elif self._heat_level == 0:
+            return HVACAction.IDLE
         else:
-            if self._operation_mode == HVACMode.OFF:
-                return HVACAction.OFF
-            elif self._operation_mode == HVACMode.COOL:
-                return HVACAction.COOLING
-            elif self._operation_mode == HVACMode.FAN_ONLY:
-                return HVACAction.FAN
-            elif self._operation_mode == HVACMode.DRY:
-                return HVACAction.DRYING
-            elif self._operation_mode == MODE_AUTO_BYPASS:
-                return MODE_AUTO_BYPASS
-            elif self._heat_level == 0:
-                return HVACAction.IDLE
-            else:
-                return HVACAction.HEATING
+            return HVACAction.HEATING
 
     @property
     def is_on(self) -> bool:
