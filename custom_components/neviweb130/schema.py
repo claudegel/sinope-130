@@ -52,10 +52,13 @@ from .const import (
     ATTR_HEAT_LOCK_TEMP,
     ATTR_INPUT_NUMBER,
     ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
     ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
     ATTR_LANGUAGE,
     ATTR_LEAK_ALERT,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_INTENSITY,
     ATTR_LIGHT_WATTAGE,
     ATTR_MODE,
     ATTR_NAME_1,
@@ -97,7 +100,7 @@ from .const import (
 """Default parameters values."""
 
 VERSION = '3.0.0'
-SCAN_INTERVAL = 540 #timedelta(seconds=540)
+SCAN_INTERVAL = timedelta(seconds=420)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 NOTIFY = "both"
@@ -109,7 +112,9 @@ PLATFORMS = [
     Platform.SWITCH,
     Platform.VALVE,
 #    platform.BINARY_SENSOR,
-#    platform.button,
+#    platform.BUTTON,
+#    platform.NUMBER,
+#    platform.SELECT,
 ]
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
@@ -458,14 +463,11 @@ SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     }
 )
 
-SET_LED_INDICATOR_SCHEMA = vol.Schema(
+SET_LED_COLOR_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATE): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_INTENSITY): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=100)
         ),
         vol.Required(ATTR_RED): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=255)
@@ -475,6 +477,33 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
         ),
         vol.Required(ATTR_BLUE): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+    }
+)
+
+SET_LED_ON_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LED_ON_INTENSITY): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+    }
+)
+
+SET_LED_OFF_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LED_OFF_INTENSITY): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+    }
+)
+
+SET_LIGHT_MIN_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_INTENSITY_MIN): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=3000)
         ),
     }
 )
