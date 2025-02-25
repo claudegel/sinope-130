@@ -78,8 +78,8 @@ set_temperature_format:
       description: Temperature format to set, «celsius» or «fahrenheit».
       example: "celsius"
 
-set_led_indicator:
-  description: Set led indicator intensity and color for each light state, on/off.
+set_led_color:
+  description: Set led indicator color for each light state, on/off.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the led indicator color and intensity.
@@ -87,9 +87,6 @@ set_led_indicator:
     state:
       description: 0 = when light is «off», 1 = when light is «on»
       example: 1
-    intensity:
-      description: 0 = off, 1 to 100 intensity.
-      example: 50
     red:
       description: 0 to 255 RGB red color indice.
       example: 25
@@ -99,6 +96,36 @@ set_led_indicator:
     blue:
       description: 0 to 255 RGB blue color indice.
       example: 255
+
+set_led_on_intensity:
+  description: Set led indicator on intensity.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set the led indicator intensity.
+      example: "light.neviweb130_light_office"
+    statusLedOnIntensity:
+      description: 0 to 100 %.
+      example: 30
+
+set_led_off_intensity:
+  description: Set led indicator off intensity.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set the led indicator intensity.
+      example: "light.neviweb130_light_office"
+    statusLedOnIntensity:
+      description: 0 to 100 %.
+      example: 30
+
+set_light_min_intensity:
+  description: Set dimmer light minimum intensity.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device to set the led indicator intensity.
+      example: "light.neviweb130_light_office"
+    intensityMin:
+      description: 1 to 3000.
+      example: 50
 
 set_second_display:
   description: Set the second neviweb130 thermostat display to show setpoint or outside temperature.
