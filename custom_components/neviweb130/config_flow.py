@@ -25,14 +25,14 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector, config_validation as cv
 
-from . import (
+from .coordinator import (
     Neviweb130Client, 
     PyNeviweb130Error,
+)
+from . import (
     async_migrate_unique_ids,
-    create_session,
     async_shutdown,
 )
-
 from .const import (
     DOMAIN,
     CONF_NETWORK,
