@@ -24,6 +24,7 @@ from homeassistant.components.climate.const import (
     PRESET_AWAY,
     PRESET_HOME,
     )
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from .const import (
     ATTR_AUX_CYCLE,
     ATTR_AUX_HEAT_TIMEON,
@@ -147,7 +148,7 @@ NEVIWEB_LOCATION = "{}/api/location/".format(HOST)
 
 def setup(hass, hass_config):
     """Set up neviweb130."""
-    data = Neviweb130Data(hass_config[DOMAIN])
+    data = Neviweb130Data(hass, hass_config[DOMAIN])
     hass.data[DOMAIN] = data
 
     global SCAN_INTERVAL 
@@ -177,7 +178,7 @@ def setup(hass, hass_config):
 class Neviweb130Data:
     """Get the latest data and update the states."""
 
-    def __init__(self, config):
+    def __init__(self, hass, config):
         """Init the neviweb130 data object."""
         # from pyneviweb130 import Neviweb130Client
         username = config.get(CONF_USERNAME)
@@ -185,7 +186,7 @@ class Neviweb130Data:
         network = config.get(CONF_NETWORK)
         network2 = config.get(CONF_NETWORK2)
         network3 = config.get(CONF_NETWORK3)
-        self.neviweb130_client = Neviweb130Client(username, password, network, network2, network3)
+        self.neviweb130_client = Neviweb130Client(hass, username, password, network, network2, network3)
 
 # According to HA: 
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -198,8 +199,9 @@ class PyNeviweb130Error(Exception):
 
 class Neviweb130Client(object):
 
-    def __init__(self, username, password, network, network2, network3, timeout=REQUESTS_TIMEOUT):
+    def __init__(self, hass, username, password, network, network2, network3, timeout=REQUESTS_TIMEOUT):
         """Initialize the client object."""
+        self.hass = hass
         self._email = username
         self._password = password
         self._network_name = network
@@ -233,6 +235,19 @@ class Neviweb130Client(object):
         self.__get_network()
         self.__get_gateway_data()
 
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration "+VERSION):
+        """Notify user via HA web frontend."""
+        self.hass.services.call(
+            PN_DOMAIN,
+            "create",
+            service_data={
+                "title": title,
+                "message": msg,
+            },
+            blocking=False,
+        )
+        return True
+
     def __post_login_page(self):
         """Login to Neviweb."""
         data = {"username": self._email, "password": self._password, 
@@ -256,6 +271,14 @@ class Neviweb130Client(object):
                 _LOGGER.error("Too many active sessions. Close all neviweb130 " +
                 "sessions you have opened on other platform (mobile, browser" +
                 ", ...), wait a few minutes, then reboot Home Assistant.")
+                self.notify_ha(
+                        f"Warning: Got ACCSESSEXC error, Too many active sessions. Close all neviweb130 sessions, wait few minutes and restart HA."
+                    )
+            elif data["error"]["code"] == "USRBADLOGIN":
+                _LOGGER.error("Invalid Neviweb username and/or password... Check your configuration parameters")
+                self.notify_ha(
+                        f"Warning: Got USRBADLOGIN error, Invalid Neviweb username and/or password... Check your configuration parameters"
+                    )
             return False
         else:
             self.user = data["user"]
@@ -268,7 +291,8 @@ class Neviweb130Client(object):
         """Get gateway id associated to the desired network."""
         # Http request
         if self._account is None:
-            _LOGGER.debug("Account ID is empty check your username and passord to log into Neviweb...")
+            _LOGGER.error("Account ID is empty check your username and passord to log into Neviweb...")
+        else:
             try:
                 raw_res = requests.get(LOCATIONS_URL + self._account, headers=self._headers, 
                     cookies=self._cookies, timeout=self._timeout)
@@ -424,6 +448,9 @@ class Neviweb130Client(object):
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
                 #raise PyNeviweb130Error("Session expired... reconnecting...")
+                self.notify_ha(
+                        f"Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this."
+                    )
         return data
 
     def get_device_status(self, device_id):
