@@ -141,11 +141,11 @@ To enable Neviweb130 management in your installation, add the following to your 
 ```yaml
 # Example configuration.yaml entry
 neviweb130:
-  username: '«your Neviweb username»'
-  password: '«your Neviweb password»'
-  network: '«your gt130 location name in Neviweb»' (gt130 emplacement dans Neviweb)
-  network2: '«your second location name in Neviweb»' (2e emplacement)
-  network3: '«your third location name in Neviweb»' (3e emplacement)
+  username: 'your Neviweb username'
+  password: 'your Neviweb password'
+  network: 'your gt130 location name in Neviweb' (gt130 emplacement dans Neviweb)
+  network2: 'your second location name in Neviweb' (2e emplacement)
+  network3: 'your third location name in Neviweb' (3e emplacement)
   scan_interval: 360
   homekit_mode: False
   stat_interval: 1800
