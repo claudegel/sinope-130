@@ -32,7 +32,7 @@ from homeassistant.components.climate.const import (
     PRESET_AWAY,
     PRESET_HOME,
     )
-
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from .schema import (
     CONFIG_SCHEMA,
     PLATFORMS,
@@ -224,6 +224,19 @@ class Neviweb130Client:
         await self.async_get_network()
         await self.async_get_gateway_data()
 
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration "+VERSION):
+        """Notify user via HA web frontend."""
+        self.hass.services.call(
+            PN_DOMAIN,
+            "create",
+            service_data={
+                "title": title,
+                "message": msg,
+            },
+            blocking=False,
+        )
+        return True
+
     async def async_post_login_page(self):
         """Login to Neviweb."""
         data = {"username": self._email, "password": self._password, 
@@ -256,6 +269,14 @@ class Neviweb130Client:
                 _LOGGER.error("Too many active sessions. Close all neviweb130 " +
                     "sessions you have opened on other platform (mobile, browser" +
                     ", ...), wait a few minutes, then reboot Home Assistant.")
+                self.notify_ha(
+                        f"Warning: Got ACCSESSEXC error, Too many active sessions. Close all neviweb130 sessions, wait few minutes and restart HA."
+                    )
+            elif data["error"]["code"] == "USRBADLOGIN":
+                _LOGGER.error("Invalid Neviweb username and/or password... Check your configuration parameters")
+                self.notify_ha(
+                        f"Warning: Got USRBADLOGIN error, Invalid Neviweb username and/or password... Check your configuration parameters"
+                    )
             return False
         else:
             self.user = data["user"]
@@ -424,6 +445,9 @@ class Neviweb130Client:
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
                 #raise PyNeviweb130Error("Session expired... reconnecting...")
+                self.notify_ha(
+                        f"Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this."
+                    )
         return data
 
     async def async_get_device_status(self, device_id):
