@@ -28,7 +28,7 @@ from datetime import datetime
 import custom_components.neviweb130 as neviweb130
 
 from .schema import VERSION
-
+from . import SCAN_INTERVAL
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorDeviceClass,
@@ -179,9 +179,6 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
-
     device_type = None
     device_registry = dr.async_get(hass)
 
@@ -209,20 +206,19 @@ async def async_setup_entry(
                         if device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL \
                           or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL:
                             device_type = "leak"
-                            device = Neviweb130Sensor(data, device_info, device_name, device_type, device_sku, device_firmware, coordinator)
+                            device = Neviweb130Sensor(data, device_info, device_name, device_type, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR \
                           or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR:
                             device_type = "leak"
-                            device = Neviweb130ConnectedSensor(data, device_info, device_name, device_type, device_sku, device_firmware, coordinator)
+                            device = Neviweb130ConnectedSensor(data, device_info, device_name, device_type, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR \
                           or device_info["signature"]["model"] in IMPLEMENTED_LTE_TANK_MONITOR:
                             device_type = "level"
-                            device = Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware, coordinator)
+                            device = Neviweb130TankSensor(data, device_info, device_name, device_type, device_sku, device_firmware)
                         else:
                             device_type = "gateway"
-                            device = Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware, location_id, coordinator)
+                            device = Neviweb130GatewaySensor(data, device_info, device_name, device_type, device_sku, device_firmware, location_id)
 
-                        coordinator.register_device(device)
                         entities.append(device)
 
                     # Add attribute sensors for each device type
@@ -459,12 +455,11 @@ def convert_to_percent(angle, low, high):
     pct = y * value_range + lower_limit
     return round(pct)
 
-class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
+class Neviweb130Sensor(SensorEntity):
     """Implementation of a Neviweb sensor."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -753,12 +748,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         else:
             _LOGGER.warning("Unknown error for %s: %s...(SKU: %s) Report to maintainer.", self._name, error_data, self._sku)
 
-class Neviweb130ConnectedSensor(CoordinatorEntity, Neviweb130Sensor):
+class Neviweb130ConnectedSensor(Neviweb130Sensor):
     """Implementation of a Neviweb sensor connected to Sedna valve."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -890,12 +884,11 @@ class Neviweb130ConnectedSensor(CoordinatorEntity, Neviweb130Sensor):
                     'id': self._id})
         return data
 
-class Neviweb130TankSensor(CoordinatorEntity, Neviweb130Sensor):
+class Neviweb130TankSensor(Neviweb130Sensor):
     """Implementation of a Neviweb tank level sensor LM4110ZB."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1071,12 +1064,11 @@ class Neviweb130TankSensor(CoordinatorEntity, Neviweb130Sensor):
         self._battery_alert = batt
 
 
-class Neviweb130GatewaySensor(CoordinatorEntity, Neviweb130Sensor):
+class Neviweb130GatewaySensor(Neviweb130Sensor):
     """Implementation of a Neviweb gateway sensor."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, location, coordinator):
+    def __init__(self, data, device_info, name, device_type, sku, firmware, location):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
