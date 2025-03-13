@@ -78,8 +78,8 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
-from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
+from . import SCAN_INTERVAL
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -210,9 +210,6 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
-
     entities = []
     device_registry = dr.async_get(hass)
 
@@ -233,18 +230,17 @@ async def async_setup_entry(
                         )
                         if device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL:
                             device_type = "valve"
-                            device = Neviweb130Valve(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130Valve(data, device_info, device_name, device_sku, device_firmware, device_type)
                         elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
                             device_type = "valve"
-                            device = Neviweb130WifiValve(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130WifiValve(data, device_info, device_name, device_sku, device_firmware, device_type)
                         elif device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL:
                             device_type = "flow"
-                            device = Neviweb130MeshValve(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130MeshValve(data, device_info, device_name, device_sku, device_firmware, device_type)
                         else:
                             device_type = "flow"
-                            device = Neviweb130WifiMeshValve(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130WifiMeshValve(data, device_info, device_name, device_sku, device_firmware, device_type)
 
-                        coordinator.register_device(device)
                         entities.append(device)
                         _LOGGER.debug("Entities are %s", entities)
 
@@ -435,12 +431,11 @@ def model_to_HA(value):
         return "No flow meter"
 
 
-class Neviweb130Valve(CoordinatorEntity, ValveEntity):
+class Neviweb130Valve(ValveEntity):
     """Implementation of a Neviweb valve."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -806,12 +801,11 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         )
         return True
 
-class Neviweb130WifiValve(CoordinatorEntity, Neviweb130Valve):
+class Neviweb130WifiValve(Neviweb130Valve):
     """Implementation of a Neviweb wifi valve switch, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1018,12 +1012,11 @@ class Neviweb130WifiValve(CoordinatorEntity, Neviweb130Valve):
                'id': self._id})
         return data
 
-class Neviweb130MeshValve(CoordinatorEntity, Neviweb130Valve):
+class Neviweb130MeshValve(Neviweb130Valve):
     """Implementation of a Neviweb mesh valve switch VA4220ZB and ACT4220ZB-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1196,12 +1189,11 @@ class Neviweb130MeshValve(CoordinatorEntity, Neviweb130Valve):
                'id': self._id})
         return data
 
-class Neviweb130WifiMeshValve(CoordinatorEntity, Neviweb130Valve):
+class Neviweb130WifiMeshValve(Neviweb130Valve):
     """Implementation of a Neviweb wifi mesh valve switch, ACT4220WF-M, ACT4221WF-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
