@@ -38,12 +38,7 @@ from .schema import (
     PLATFORMS,
     VERSION,
 )
-#from . import (
-#    HOMEKIT_MODE,
-#    NOTIFY,
-#    SCAN_INTERVAL,
-#    STAT_INTERVAL,
-#)
+from .session_manager import session_manager
 
 from .const import (
     ATTR_AUX_CYCLE,
@@ -151,13 +146,11 @@ _LOGGER = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
-LOGIN_URL = "{}/api/login/".format(HOST)
-LOCATIONS_URL = "{}/api/locations?account$id=".format(HOST)
-GATEWAY_DEVICE_URL = "{}/api/devices?location$id=".format(HOST)
-DEVICE_DATA_URL = "{}/api/device/".format(HOST)
-NEVIWEB_LOCATION = "{}/api/location/".format(HOST)
-
-SESSIONS = []
+LOGIN_URL = f"{HOST}/api/login"
+LOCATIONS_URL = f"{HOST}/api/locations?account$id="
+GATEWAY_DEVICE_URL = f"{HOST}/api/devices?location$id="
+DEVICE_DATA_URL = f"{HOST}/api/device/"
+NEVIWEB_LOCATION = f"{HOST}/api/location/"
 
 # According to HA: 
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -198,17 +191,17 @@ class Neviweb130Client:
 
     async def create_session(self):
         """Create a new session for Neviweb API."""
-        _LOGGER.debug("Creating a new session for Neviweb API")
-        self._session = aiohttp.ClientSession()
-        SESSIONS.append(self._session)
+        self._session = await session_manager.create_session()
+        return self._session
 
     async def async_initialize(self):
         """Asynchronously initialize the client."""
         _LOGGER.debug("Initializing Neviweb130Client...")
         await self.create_session()
-        await self.async_post_login_page()
-        await self.async_get_network()
-        await self.async_get_gateway_data()
+        if self._account is None:
+            await self.async_post_login_page()
+            await self.async_get_network()
+            await self.async_get_gateway_data()
 
     async def async_update(self):
         _LOGGER.debug("Fetching devices data from Neviweb API")
@@ -268,7 +261,7 @@ class Neviweb130Client:
             if data["error"]["code"] == "ACCSESSEXC":
                 _LOGGER.error("Too many active sessions. Close all neviweb130 " +
                     "sessions you have opened on other platform (mobile, browser" +
-                    ", ...), wait a few minutes, then reboot Home Assistant.")
+                    ", ...), wait a few minutes, then restart Home Assistant.")
                 self.notify_ha(
                         f"Warning: Got ACCSESSEXC error, Too many active sessions. Close all neviweb130 sessions, wait few minutes and restart HA."
                     )
@@ -1154,6 +1147,7 @@ class Neviweb130Client:
                 else:
                     break
 
+create_session = Neviweb130Client.create_session
 
 class Neviweb130Coordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, client: Neviweb130Client, scan_interval):
@@ -1187,8 +1181,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
 
     async def stop(self):
         _LOGGER.info("Stopping Neviweb130 Coordinator")
-        for session in SESSIONS:
-            await session.close()
+        await session.close()
         _LOGGER.info("All aiohttp.ClientSession instances closed")
 
 async def async_setup_coordinator(hass: HomeAssistant, client: Neviweb130Client, scan_interval):
