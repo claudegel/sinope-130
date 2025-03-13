@@ -146,7 +146,7 @@ def parse_scan_interval(scan_interval):
 def get_scan_interval(entry: ConfigEntry) -> timedelta:
     """Get the scan interval from the configuration entry or use the default."""
     scan_interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds())
-    _LOGGER.debug("Parse result = $s", parse_scan_interval(scan_interval))
+    _LOGGER.debug("Parse result = %s from %s", parse_scan_interval(scan_interval), scan_interval)
     return parse_scan_interval(scan_interval)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -161,8 +161,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     network2 = entry.data.get("network2")
     network3 = entry.data.get("network3")
 
-    scan_interval = get_scan_interval(entry)
-    _LOGGER.debug("Setting scan interval to: %s", scan_interval)
+    global SCAN_INTERVAL
+    SCAN_INTERVAL = get_scan_interval(entry)
+    _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
 
     homekit_mode = entry.data.get(CONF_HOMEKIT_MODE, DEFAULT_HOMEKIT_MODE)
     _LOGGER.debug("Setting Homekit mode to: %s", homekit_mode)
@@ -174,12 +175,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Setting notification method to: %s", notify)
 
     client = Neviweb130Client(hass, username, password, network, network2, network3)
-    coordinator = await async_setup_coordinator(hass, client, scan_interval)
+    coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
 
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "neviweb130_client": coordinator.client,
-        "scan_interval": scan_interval,
+        "scan_interval": SCAN_INTERVAL,
         "homekit_mode": homekit_mode,
         "stat_interval": stat_interval,
         "notify": notify,
