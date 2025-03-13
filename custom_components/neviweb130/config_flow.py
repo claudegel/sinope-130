@@ -28,7 +28,9 @@ from homeassistant.helpers import selector, config_validation as cv
 from .coordinator import (
     Neviweb130Client, 
     PyNeviweb130Error,
+    create_session,
 )
+from .session_manager import session_manager
 from . import (
     async_migrate_unique_ids,
     async_shutdown,
@@ -91,11 +93,11 @@ async def async_validate_email(user: str) -> bool:
         errors["email"] = "invalid_email"
         return False
 
-async def async_test_connect(self, user: str, passw: str) -> bool:
+async def async_test_connect(self, user: str, passwd: str) -> bool:
     """Validate Neviweb connection with suplied parameters."""
     _LOGGER.debug("Timeout %s", self._timeout) 
-    data = {"username": user, "password": passw, "interface": "neviweb", "stayConnected": 0}
-    session = await create_session()
+    data = {"username": user, "password": passwd, "interface": "neviweb", "stayConnected": 0}
+    session = await session_manager.create_session(self)
     try:
         async with session.post(LOGIN_URL, json=data, cookies = None, allow_redirects=False, timeout = 30) as response:
             _LOGGER.debug("Validate login status: %s", response.status)
