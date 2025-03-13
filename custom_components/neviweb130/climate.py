@@ -87,7 +87,8 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
-from homeassistant.helpers.event import track_time_interval
+
+from . import SCAN_INTERVAL
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -463,9 +464,6 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
-
     entities = []
     device_registry = dr.async_get(hass)
 
@@ -495,32 +493,30 @@ async def async_setup_entry(
                         )
 
                         if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
-                            device = Neviweb130Thermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130Thermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
-                            device = Neviweb130G2Thermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130G2Thermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
-                            device = Neviweb130FloorThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130FloorThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
-                            device = Neviweb130LowThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130LowThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
-                            device = Neviweb130DoubleThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130DoubleThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
                             _LOGGER.debug("Device id = %s", device_entry.id)
-                            device = Neviweb130WifiThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130WifiThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
-                            device = Neviweb130LowWifiThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130LowWifiThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
-                            device = Neviweb130WifiFloorThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130WifiFloorThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
-                            device = Neviweb130HcThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130HcThermostat(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
-                            device = Neviweb130HPThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130HPThermostat(data, device_info, device_name, device_sku, device_firmware)
                         else:
-                            device = Neviweb130HeatCoolThermostat(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130HeatCoolThermostat(data, device_info, device_name, device_sku, device_firmware)
 
-                        coordinator.register_device(device)
                         entities.append(device)
-                        _LOGGER.debug("Entities are %s", entities)
 
     async_add_entities(entities, True)
 
@@ -1158,15 +1154,14 @@ def extract_capability(cap):
     value = {i for i in cap if cap[i]==True}
     return sorted(value)
 
-class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
+class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
     _enable_turn_on_off_backwards_compatibility = False
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -2128,12 +2123,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         )
         return True
 
-class Neviweb130G2Thermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130G2Thermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1123ZB-G2, TH1124ZB-G2 thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -2301,12 +2295,11 @@ class Neviweb130G2Thermostat(CoordinatorEntity, Neviweb130Thermostat):
                'id': self._id})
         return data
 
-class Neviweb130FloorThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130FloorThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1300ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -2515,12 +2508,11 @@ class Neviweb130FloorThermostat(CoordinatorEntity, Neviweb130Thermostat):
                 'id': self._id})
         return data
 
-class Neviweb130LowThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130LowThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1400ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -2740,12 +2732,11 @@ class Neviweb130LowThermostat(CoordinatorEntity, Neviweb130Thermostat):
                 'id': self._id})
         return data
 
-class Neviweb130DoubleThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130DoubleThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1500ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -2913,12 +2904,11 @@ class Neviweb130DoubleThermostat(CoordinatorEntity, Neviweb130Thermostat):
                     'id': self._id})
         return data
 
-class Neviweb130WifiThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130WifiThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1123WF, TH1124WF, TH1500WF thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -3112,12 +3102,11 @@ class Neviweb130WifiThermostat(CoordinatorEntity, Neviweb130Thermostat):
                     'id': self._id})
         return data
 
-class Neviweb130LowWifiThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1400WF thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -3352,12 +3341,11 @@ class Neviweb130LowWifiThermostat(CoordinatorEntity, Neviweb130Thermostat):
                     'id': self._id})
         return data
 
-class Neviweb130WifiFloorThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF and SRM40 thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -3572,12 +3560,11 @@ class Neviweb130WifiFloorThermostat(CoordinatorEntity, Neviweb130Thermostat):
                     'id': self._id})
         return data
 
-class Neviweb130HcThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130HcThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1134ZB-HC thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -3809,12 +3796,11 @@ class Neviweb130HcThermostat(CoordinatorEntity, Neviweb130Thermostat):
                     'id': self._id})
         return data
 
-class Neviweb130HPThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130HPThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb HP6000ZB-GE, HP6000ZB-MA and HP6000ZB-HS heat pump interfaces thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -4017,12 +4003,11 @@ class Neviweb130HPThermostat(CoordinatorEntity, Neviweb130Thermostat):
                     'id': self._id})
         return data
 
-class Neviweb130HeatCoolThermostat(CoordinatorEntity, Neviweb130Thermostat):
+class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH6500WF, TH6250WF heat cool thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
