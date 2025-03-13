@@ -59,8 +59,8 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
-from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
+from . import SCAN_INTERVAL
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -252,9 +252,6 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
-
     entities = []
     device_registry = dr.async_get(hass)
 
@@ -275,21 +272,20 @@ async def async_setup_entry(
                         )
                         if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
                             device_type = "outlet"
-                            device = Neviweb130Switch(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130Switch(data, device_info, device_name, device_sku, device_firmware, device_type)
                         elif device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
                             device_type = "power"
-                            device = Neviweb130PowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130PowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type)
                         elif device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL:
                             device_type = "power"
-                            device = Neviweb130TankPowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130TankPowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type)
                         elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL:
                             device_type = "power"
-                            device = Neviweb130WifiTankPowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
+                            device = Neviweb130WifiTankPowerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type)
                         else:
                             device_type = "control"
-                            device = Neviweb130ControlerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type, coordinator)
-
-                        coordinator.register_device(device)
+                            device = Neviweb130ControlerSwitch(data, device_info, device_name, device_sku, device_firmware, device_type)
+                            
                         entities.append(device)
 
                     if model in IMPLEMENTED_ZB_DEVICE_CONTROL:
@@ -630,12 +626,11 @@ def remainig_time(time):
     return time
 
 
-class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
+class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch, SP2600ZB and SP2610ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1018,12 +1013,11 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         )
         return True
 
-class Neviweb130PowerSwitch(CoordinatorEntity, Neviweb130Switch):
+class Neviweb130PowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb power controler switch, RM3250ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1140,12 +1134,11 @@ class Neviweb130PowerSwitch(CoordinatorEntity, Neviweb130Switch):
                'id': self._id})
         return data
 
-class Neviweb130TankPowerSwitch(CoordinatorEntity, Neviweb130Switch):
+class Neviweb130TankPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb water heater power controler switch, RM3500ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1293,12 +1286,11 @@ class Neviweb130TankPowerSwitch(CoordinatorEntity, Neviweb130Switch):
                'id': self._id})
         return data
 
-class Neviweb130WifiTankPowerSwitch(CoordinatorEntity, Neviweb130Switch):
+class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb wifi power controler switch, RM3500WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1468,12 +1460,11 @@ class Neviweb130WifiTankPowerSwitch(CoordinatorEntity, Neviweb130Switch):
                'id': self._id})
         return data
 
-class Neviweb130ControlerSwitch(CoordinatorEntity, Neviweb130Switch):
+class Neviweb130ControlerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb multi controler switch, MC3100ZB connected to GT130 or Sedna."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
