@@ -50,7 +50,7 @@ from homeassistant.helpers import (
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from datetime import timedelta
-from homeassistant.helpers.event import track_time_interval
+from . import SCAN_INTERVAL
 from .const import (
     DOMAIN,
     ATTR_ACTIVE,
@@ -143,9 +143,6 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
-
     entities = []
     device_registry = dr.async_get(hass)
 
@@ -174,15 +171,13 @@ async def async_setup_entry(
                             sw_version=device_firmware,
                         )
                         if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
-                            device = Neviweb130Light(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130Light(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
-                            device = Neviweb130Dimmer(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130Dimmer(data, device_info, device_name, device_sku, device_firmware)
                         elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
-                            device = Neviweb130NewDimmer(data, device_info, device_name, device_sku, device_firmware, coordinator)
+                            device = Neviweb130NewDimmer(data, device_info, device_name, device_sku, device_firmware)
 
-                        coordinator.register_device(device)
                         entities.append(device)
-                        _LOGGER.debug("Entities are %s", entities)
 
     async_add_entities(entities, True)
 
@@ -431,12 +426,11 @@ def rgb_to_color(rgb):
             return None
 
 
-class Neviweb130Light(CoordinatorEntity, LightEntity):
+class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light, SW2500ZB, SW2500ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -795,12 +789,11 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         return True
 
 
-class Neviweb130Dimmer(CoordinatorEntity, Neviweb130Light):
+class Neviweb130Dimmer(Neviweb130Light):
     """Implementation of a neviweb dimmer, DM2500ZB, DM2500ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -921,12 +914,11 @@ class Neviweb130Dimmer(CoordinatorEntity, Neviweb130Light):
         return data
 
 
-class Neviweb130NewDimmer(CoordinatorEntity, Neviweb130Light):
+class Neviweb130NewDimmer(Neviweb130Light):
     """Implementation of a neviweb new dimmer DM2550ZB, DM2550ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(coordinator)
         self._device = device_info
         self._name = name
         self._sku = sku
