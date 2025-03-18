@@ -921,7 +921,7 @@ class Neviweb130Switch(SwitchEntity):
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                 self._today_kwh = device_daily_stats[0]["period"] / 1000
-            else:                
+            else:
                 self._today_energy_kwh_count = 0
                 self._today_kwh = 0
                 _LOGGER.warning("Got None for device_daily_stats")
