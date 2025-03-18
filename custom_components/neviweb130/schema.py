@@ -95,7 +95,7 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = '2.9.6'
+VERSION = '2.9.7'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -710,5 +710,12 @@ SET_BATTERY_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BATT_ALERT): vol.In([True, False]),
+    }
+)
+
+SET_NEVIWEB_STATUS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_MODE): vol.In(["home", "away"]),
     }
 )
