@@ -289,7 +289,7 @@ class Neviweb130Client(object):
 
     def __get_network(self):
         """Get gateway id associated to the desired network."""
-        # Http request
+        # Http requests
         if self._account is None:
             _LOGGER.error("Account ID is empty check your username and passord to log into Neviweb...")
         else:
@@ -362,7 +362,7 @@ class Neviweb130Client(object):
 
     def __get_gateway_data(self):
         """Get gateway data."""
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(GATEWAY_DEVICE_URL + str(self._gateway_id),
                 headers=self._headers, cookies=self._cookies, 
@@ -428,7 +428,7 @@ class Neviweb130Client(object):
         """Get device attributes."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/attribute?attributes=" + ",".join(attributes), 
@@ -457,7 +457,7 @@ class Neviweb130Client(object):
         """Get device status for the GT130."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/status", headers=self._headers, cookies=self._cookies,
@@ -480,7 +480,7 @@ class Neviweb130Client(object):
         """Get neviweb occupancyMode status."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(NEVIWEB_LOCATION + str(location) +
                 "/notifications", headers=self._headers, cookies=self._cookies,
@@ -502,7 +502,7 @@ class Neviweb130Client(object):
         """Get device alert for Sedna valve."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/alert", headers=self._headers, cookies=self._cookies,
@@ -527,7 +527,7 @@ class Neviweb130Client(object):
         """Get device power consumption (in Wh) for the last 24 months."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                     "/energy/monthly", headers=self._headers,
@@ -550,7 +550,7 @@ class Neviweb130Client(object):
         """Get device power consumption (in Wh) for the last 30 days."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                     "/energy/daily", headers=self._headers,
@@ -573,7 +573,7 @@ class Neviweb130Client(object):
         """Get device power consumption (in Wh) for the last 24 hours."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/energy/hourly", headers=self._headers,
@@ -596,7 +596,7 @@ class Neviweb130Client(object):
         """Get device error code status."""
         # Prepare return
         data = {}
-        # Http request
+        # Http requests
         try:
             raw_res = requests.get(DEVICE_DATA_URL + str(device_id) +
                 "/attribute?attributes=errorCodeSet1", headers=self._headers,
@@ -1127,9 +1127,9 @@ class Neviweb130Client(object):
                 resp = requests.put(DEVICE_DATA_URL + str(device_id) + "/attribute",
                     json=data, headers=self._headers, cookies=self._cookies,
                     timeout=self._timeout)
-                _LOGGER.debug("request = %s%s%s %s", DEVICE_DATA_URL, str(device_id), "/attribute", data)
+                _LOGGER.debug("Requests = %s%s%s %s", DEVICE_DATA_URL, str(device_id), "/attribute", data)
                 _LOGGER.debug("Data = %s", data)
-                _LOGGER.debug("Request response = %s", resp.status_code)
+                _LOGGER.debug("Requests response = %s", resp.status_code)
                 _LOGGER.debug("Json Data received= %s", resp.json())
                 _LOGGER.debug("Content = %s", resp.content)
                 _LOGGER.debug("Text = %s", resp.text)
@@ -1139,7 +1139,23 @@ class Neviweb130Client(object):
             finally:
                 if "error" in resp.json():
                     result += 1
-                    _LOGGER.debug("Service error received: %s, resending request %s",resp.json(), result)
+                    _LOGGER.debug("Service error received: %s, resending requests %s",resp.json(), result)
                     continue
                 else:
                     break
+
+    def post_neviweb_status(self, device_id, location, mode):
+        """Send post requests to Neviweb for global occupancy mode"""
+        data = {ATTR_MODE: mode}
+        try:
+            resp = requests.post(NEVIWEB_LOCATION + location + "/mode", 
+                json=data, headers=self._headers, cookies=self._cookies,
+                timeout=self._timeout)
+#            _LOGGER.debug("Post requests = %s%s%s %s", NEVIWEB_LOCATION, location, "/mode", data)
+            _LOGGER.debug("Data = %s", data)
+            _LOGGER.debug("Requests response = %s", resp.status_code)
+            _LOGGER.debug("Json Data received= %s", resp.json())
+        except OSError:
+                raise PyNeviweb130Error("Cannot post Neviweb: %s", data)
+        if "error" in resp.json():
+            _LOGGER.debug("Service error received: %s",resp.json())
