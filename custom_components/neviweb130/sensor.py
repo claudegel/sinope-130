@@ -97,6 +97,7 @@ from .const import (
     SERVICE_SET_FUEL_ALERT,
     SERVICE_SET_BATTERY_ALERT,
     SERVICE_SET_ACTIVATION,
+    SERVICE_SET_NEVIWEB_STATUS,
 )
 
 from .schema import (
@@ -110,6 +111,7 @@ from .schema import (
     SET_FUEL_ALERT_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
     SET_ACTIVATION_SCHEMA,
+    SET_NEVIWEB_STATUS_SCHEMA,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -309,11 +311,22 @@ async def async_setup_platform(
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
+        for sensor in entities:
+            if sensor.entity_id == entity_id:
+                value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
+                sensor.set_activation(value)
+                sensor.schedule_update_ha_state(True)
+                break
+
+    def set_neviweb_status_service(service):
+        """Set Neviweb global status, home or away."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for sensor in entities:
+            if sensor.entity_id == entity_id:
+                value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
+                sensor.set_neviweb_status(value)
+                sensor.schedule_update_ha_state(True)
                 break
 
     hass.services.async_register(
@@ -377,6 +390,13 @@ async def async_setup_platform(
         SERVICE_SET_ACTIVATION,
         set_activation_service,
         schema=SET_ACTIVATION_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_NEVIWEB_STATUS,
+        set_neviweb_status_service,
+        schema=SET_NEVIWEB_STATUS_SCHEMA,
     )
 
 def voltage_to_percentage(voltage, type):
@@ -1049,3 +1069,10 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
                 'neviweb_location': str(self._location),
                 'id': str(self._id)})
         return data
+
+    def set_neviweb_status(self, value):
+        """Set Neviweb global mode away or home"""
+        mode = value["mode"]
+        entity = value["id"]
+        self._client.post_neviweb_status(entity, str(self._location), mode)
+        self._occupancyMode = mode
