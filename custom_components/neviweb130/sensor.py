@@ -707,6 +707,10 @@ class Neviweb130Sensor(SensorEntity):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... reconnecting...")
+            if self._notify == "notification" or self._notify == "both":
+                await self.async_notify_ha(
+                    f"Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
+                )
             await self._client.async_reconnect()
         elif error_data == "ACCDAYREQMAX":
             _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
