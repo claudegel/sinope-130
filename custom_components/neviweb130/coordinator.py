@@ -438,9 +438,6 @@ class Neviweb130Client:
                 _LOGGER.error("Session expired. Set a scan_interval less" +
                 "than 10 minutes, otherwise the session will end.")
                 #raise PyNeviweb130Error("Session expired... reconnecting...")
-                self.notify_ha(
-                        f"Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this."
-                    )
         return data
 
     async def async_get_device_status(self, device_id):
