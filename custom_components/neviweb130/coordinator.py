@@ -1144,6 +1144,21 @@ class Neviweb130Client:
                 else:
                     break
 
+    async def async_post_neviweb_status(self, device_id, location, mode):
+        """Send post requests to Neviweb for global occupancy mode"""
+        data = {ATTR_MODE: mode}
+        try:
+            async with self._session.post(NEVIWEB_LOCATION + location + "/mode", json=data, headers=self._headers, cookies=self._cookies, timeout=self._timeout)  as response:
+                resp = await response.json()
+#            _LOGGER.debug("Post requests = %s%s%s %s", NEVIWEB_LOCATION, location, "/mode", data)
+            _LOGGER.debug("Data = %s", data)
+            _LOGGER.debug("Requests response = %s", response.status)
+            _LOGGER.debug("Json Data received= %s", resp)
+        except aiohttp.ClientError as e:
+            raise PyNeviweb130Error("Cannot post Neviweb: %s", data) from e
+        if "error" in resp:
+            _LOGGER.debug("Service error received: %s",resp)
+
 create_session = Neviweb130Client.create_session
 
 class Neviweb130Coordinator(DataUpdateCoordinator):
