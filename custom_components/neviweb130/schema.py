@@ -95,7 +95,7 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = '2.9.7'
+VERSION = '2.9.8'
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
