@@ -155,6 +155,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
 
+    # Call async_migrate_unique_ids before setting up devices
+    _LOGGER.info(f"Migrating neviweb130 unique_id to string...")
+    await async_migrate_unique_ids(hass)
+
     username = entry.data.get("username")
     password = entry.data.get("password")
     network = entry.data.get("network")
