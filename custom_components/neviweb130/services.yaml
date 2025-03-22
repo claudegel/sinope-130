@@ -729,3 +729,13 @@ set_cool_min_time_off:
     coolMinTimeOff:
       description: possible values are 120, 180, 240, 300, 600 sec.
       example: 120
+
+set_neviweb_status:
+  description: Set global Neviweb status, home or away.
+  fields:
+    entity_id:
+      description: Name of neviweb130 gateway GT130 device.
+      example: "sensor.neviweb130_sensor_gt130"
+    mode:
+      description: possible values are home or away.
+      example: "away"
