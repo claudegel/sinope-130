@@ -899,6 +899,10 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                        if self._water_leak_status = "flowMeter":
+                        self.notify_ha(
+                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_MOTOR_TARGET in device_data:
                         self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     if ATTR_VALVE_CLOSURE in device_data:
@@ -1098,6 +1102,10 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if self._water_leak_status = "flowMeter":
+                        self.notify_ha(
+                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                         if self._flowmeter_timer != 0:
@@ -1272,6 +1280,10 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if self._water_leak_status = "flowMeter":
+                        self.notify_ha(
+                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                         if self._flowmeter_timer != 0:
