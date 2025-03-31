@@ -30,7 +30,6 @@ import time
 from datetime import timedelta
 
 import voluptuous as vol
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN

@@ -25,12 +25,10 @@ import time
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
-from homeassistant.const import (ATTR_ENTITY_ID)
-
+from homeassistant.const import ATTR_ENTITY_ID
 
 from . import NOTIFY, STAT_INTERVAL
-from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION,
-                    ATTR_BATT_INFO,
+from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE,
                     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
@@ -42,13 +40,12 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
                     ATTR_INPUT_STATUS, ATTR_KEYPAD, ATTR_LEAK_CLOSURE_CONFIG,
                     ATTR_LEG_PROTEC_STATUS, ATTR_LOW_TEMP_STATUS,
-                    ATTR_MIN_WATER_TEMP, ATTR_NAME_1, ATTR_NAME_2,
-                    ATTR_ONOFF, ATTR_ONOFF2,
-                    ATTR_ONOFF_NUM, ATTR_OPTOUT, ATTR_OUTPUT_NAME_1,
-                    ATTR_OUTPUT_NAME_2, ATTR_REL_HUMIDITY,
-                    ATTR_ROOM_TEMPERATURE, ATTR_RSSI, ATTR_STATUS, ATTR_SYSTEM_MODE, ATTR_TANK_SIZE,
-                    ATTR_TIMER, ATTR_TIMER2, ATTR_VALUE,
-                    ATTR_WATER_LEAK_ALARM_STATUS,
+                    ATTR_MIN_WATER_TEMP, ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF,
+                    ATTR_ONOFF2, ATTR_ONOFF_NUM, ATTR_OPTOUT,
+                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_REL_HUMIDITY,
+                    ATTR_ROOM_TEMPERATURE, ATTR_RSSI, ATTR_STATUS,
+                    ATTR_SYSTEM_MODE, ATTR_TANK_SIZE, ATTR_TIMER, ATTR_TIMER2,
+                    ATTR_VALUE, ATTR_WATER_LEAK_ALARM_STATUS,
                     ATTR_WATER_LEAK_DISCONECTED_STATUS, ATTR_WATER_LEAK_STATUS,
                     ATTR_WATER_TANK_ON, ATTR_WATER_TEMP_MIN,
                     ATTR_WATER_TEMP_PROTEC, ATTR_WATER_TEMP_TIME,

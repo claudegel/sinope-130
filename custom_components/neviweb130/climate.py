@@ -52,7 +52,6 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
                                  UnitOfTemperature)
 
-
 from . import NOTIFY, STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_TIMEON,
@@ -114,10 +113,9 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
                     SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
                     SERVICE_SET_TIME_FORMAT)
-from .schema import (FAN_SPEED,
-                     FULL_SWING, FULL_SWING_OFF,
-                     SET_ACTIVATION_SCHEMA,
-                     SET_AIR_FLOOR_MODE_SCHEMA, SET_AUX_CYCLE_OUTPUT_SCHEMA,
+from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
+                     SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
+                     SET_AUX_CYCLE_OUTPUT_SCHEMA,
                      SET_AUX_HEAT_MIN_TIME_ON_SCHEMA,
                      SET_AUXILIARY_LOAD_SCHEMA, SET_BACKLIGHT_SCHEMA,
                      SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
@@ -136,8 +134,7 @@ from .schema import (FAN_SPEED,
                      SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
                      SET_SETPOINT_MAX_SCHEMA, SET_SETPOINT_MIN_SCHEMA,
                      SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
-                     SET_TIME_FORMAT_SCHEMA, VERSION,
-                     WIFI_FAN_SPEED)
+                     SET_TIME_FORMAT_SCHEMA, VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
