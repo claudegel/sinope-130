@@ -241,7 +241,11 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
 - neviweb130.set_hc_second_display to set second display of TH1134ZB-HC thermostat.
-- neviweb130.set_language to set display language on TH1134ZB-HC thermostats
+- neviweb130.set_language to set display language on TH1134ZB-HC thermostats.
+- neviweb130.set_aux_heat_min_time_on, to set auxiliary heating minimum time on.
+- neviweb130.set_cool_min_time_on, to set cooling minimum time on.
+- neviweb130.set_cool_min_time_off, to set cooling minimum time off.
+- neviweb130.set_neviweb_status, to set global Neviweb status, home / away.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:
