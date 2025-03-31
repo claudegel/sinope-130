@@ -26,119 +26,57 @@ https://www.sinopetech.com/en/support/#api
 from __future__ import annotations
 
 import logging
+import time
+from datetime import timedelta
 
 import voluptuous as vol
-import time
-
-import custom_components.neviweb130 as neviweb130
-from . import (
-    SCAN_INTERVAL,
-    STAT_INTERVAL,
-    NOTIFY,
-)
-from .schema import VERSION
-
-from homeassistant.components.valve import (
-    ValveDeviceClass,
-    ValveEntity,
-    ValveEntityDescription,
-    ValveEntityFeature,
-)
-
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    SERVICE_CLOSE_VALVE,
-    SERVICE_OPEN_VALVE,
-    SERVICE_SET_VALVE_POSITION,
-    SERVICE_TOGGLE,
-    STATE_CLOSED,
-    STATE_CLOSING,
-    STATE_OPEN,
-    STATE_OPENING,
-    STATE_UNAVAILABLE,
-    Platform,
-    UnitOfEnergy,
-    UnitOfTemperature,
-    UnitOfVolume,
-)
-
-from homeassistant.helpers import (
-    config_validation as cv,
-    discovery,
-    service,
-    entity_platform,
-    entity_component,
-    entity_registry,
-    device_registry,
-)
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-
-from datetime import timedelta
+from homeassistant.components.persistent_notification import \
+    DOMAIN as PN_DOMAIN
+from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
+                                            ValveEntityDescription,
+                                            ValveEntityFeature)
+from homeassistant.const import (ATTR_ENTITY_ID, SERVICE_CLOSE_VALVE,
+                                 SERVICE_OPEN_VALVE,
+                                 SERVICE_SET_VALVE_POSITION, SERVICE_TOGGLE,
+                                 STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
+                                 STATE_OPENING, STATE_UNAVAILABLE, Platform,
+                                 UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import (device_registry, discovery,
+                                   entity_component, entity_platform,
+                                   entity_registry, service)
 from homeassistant.helpers.event import track_time_interval
 from homeassistant.helpers.icon import icon_for_battery_level
-from .const import (
-    DOMAIN,
-    ATTR_ACTIVE,
-    ATTR_AWAY_ACTION,
-    ATTR_BATT_ACTION_LOW,
-    ATTR_BATT_ALERT,
-    ATTR_BATT_PERCENT_NORMAL,
-    ATTR_BATT_STATUS_NORMAL,
-    ATTR_BATTERY_STATUS,
-    ATTR_BATTERY_VOLTAGE,
-    ATTR_CLOSE_VALVE,
-    ATTR_ERROR_CODE_SET1,
-    ATTR_FLOW_ALARM1,
-    ATTR_FLOW_ALARM1_PERIOD,
-    ATTR_FLOW_ALARM1_LENGHT,
-    ATTR_FLOW_ALARM1_OPTION,
-    ATTR_FLOW_ALARM2,
-    ATTR_FLOW_ALARM_TIMER,
-    ATTR_FLOW_ENABLED,
-    ATTR_FLOW_METER_CONFIG,
-    ATTR_FLOW_MODEL_CONFIG,
-    ATTR_FLOW_THRESHOLD,
-    ATTR_MOTOR_POS,
-    ATTR_MOTOR_TARGET,
-    ATTR_OCCUPANCY_SENSOR_DELAY,
-    ATTR_ONOFF,
-    ATTR_POWER_SUPPLY,
-    ATTR_RSSI,
-    ATTR_STM8_ERROR,
-    ATTR_TEMP_ACTION_LOW,
-    ATTR_TEMP_ALARM,
-    ATTR_TEMP_ALERT,
-    ATTR_TRIGGER_ALARM,
-    ATTR_VALVE_CLOSURE,
-    ATTR_VALVE_INFO,
-    ATTR_WATER_LEAK_STATUS,
-    ATTR_WIFI,
-    MODE_AUTO,
-    MODE_MANUAL,
-    MODE_OFF,
-    STATE_VALVE_STATUS,
-    SERVICE_SET_VALVE_ALERT,
-    SERVICE_SET_VALVE_TEMP_ALERT,
-    SERVICE_SET_FLOW_METER_MODEL,
-    SERVICE_SET_FLOW_METER_DELAY,
-    SERVICE_SET_FLOW_METER_OPTIONS,
-    SERVICE_SET_POWER_SUPPLY,
-    SERVICE_SET_ACTIVATION,
-)
 
-from .schema import (
-    FLOW_MODEL,
-    FLOW_DURATION,
-    SET_VALVE_ALERT_SCHEMA,
-    SET_VALVE_TEMP_ALERT_SCHEMA,
-    SET_FLOW_METER_MODEL_SCHEMA,
-    SET_FLOW_METER_DELAY_SCHEMA,
-    SET_FLOW_METER_OPTIONS_SCHEMA,
-    SET_POWER_SUPPLY_SCHEMA,
-    SET_ACTIVATION_SCHEMA,
-)
+import custom_components.neviweb130 as neviweb130
+
+from . import NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
+from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
+                    ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
+                    ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
+                    ATTR_BATTERY_VOLTAGE, ATTR_CLOSE_VALVE,
+                    ATTR_ERROR_CODE_SET1, ATTR_FLOW_ALARM1,
+                    ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION,
+                    ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM2,
+                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
+                    ATTR_FLOW_METER_CONFIG, ATTR_FLOW_MODEL_CONFIG,
+                    ATTR_FLOW_THRESHOLD, ATTR_MOTOR_POS, ATTR_MOTOR_TARGET,
+                    ATTR_OCCUPANCY_SENSOR_DELAY, ATTR_ONOFF, ATTR_POWER_SUPPLY,
+                    ATTR_RSSI, ATTR_STM8_ERROR, ATTR_TEMP_ACTION_LOW,
+                    ATTR_TEMP_ALARM, ATTR_TEMP_ALERT, ATTR_TRIGGER_ALARM,
+                    ATTR_VALVE_CLOSURE, ATTR_VALVE_INFO,
+                    ATTR_WATER_LEAK_STATUS, ATTR_WIFI, DOMAIN, MODE_AUTO,
+                    MODE_MANUAL, MODE_OFF, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_FLOW_METER_DELAY, SERVICE_SET_FLOW_METER_MODEL,
+                    SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
+                    SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
+                    STATE_VALVE_STATUS)
+from .schema import (FLOW_DURATION, FLOW_MODEL, SET_ACTIVATION_SCHEMA,
+                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
+                     SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
+                     SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
+                     VERSION)
 
 _LOGGER = logging.getLogger(__name__)
 

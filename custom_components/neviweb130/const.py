@@ -36,12 +36,12 @@ ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 ATTR_BATTERY_STATUS = "batteryStatus"
 ATTR_BATTERY_TYPE = "batteryType"
 ATTR_FLOOR_MODE = "airFloorMode"
-ATTR_FLOOR_OUTPUT2 = "loadWattOutput2" # status on/off, value=xx
+ATTR_FLOOR_OUTPUT2 = "loadWattOutput2"  # status on/off, value=xx
 ATTR_FLOOR_AUX = "auxHeatConfig"
 ATTR_KEYPAD = "lockKeypad"
 ATTR_OCCUPANCY = "occupancyMode"
-ATTR_FLOOR_OUTPUT1 = "loadWattOutput1" # status on/off, value=xx
-ATTR_LIGHT_WATTAGE = "loadWattOutput1" # status on/off, value=xx
+ATTR_FLOOR_OUTPUT1 = "loadWattOutput1"  # status on/off, value=xx
+ATTR_LIGHT_WATTAGE = "loadWattOutput1"  # status on/off, value=xx
 ATTR_WIFI_WATTAGE = "loadWatt"
 ATTR_WIFI_WATT_NOW = "loadWattNow"
 ATTR_WIFI = "wifiRssi"
@@ -69,7 +69,7 @@ ATTR_LOW_TEMP_STATUS = "alertLowTempStatus"
 ATTR_TEMPERATURE = "temperature"
 ATTR_WATER_TEMPERATURE = "waterTemperature"
 ATTR_ROOM_TEMP_ALARM = "roomTemperatureAlarmStatus"
-ATTR_VALVE_CLOSURE = "valveClosureSource" # source
+ATTR_VALVE_CLOSURE = "valveClosureSource"  # source
 ATTR_LEAK_ALERT = "alertWaterLeak"
 ATTR_BATT_ALERT = "alertLowBatt"
 ATTR_TEMP_ALERT = "alertLowTemp"
@@ -85,10 +85,10 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
-ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" # status on/off, value (second)
-ATTR_PUMP_PROTEC = "pumpProtection" # status on/off, duration, frequency
-ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration" # status on/off, value
-ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod" # status on/off, value
+ATTR_CYCLE_OUTPUT2 = "cycleLengthOutput2"  # status on/off, value (second)
+ATTR_PUMP_PROTEC = "pumpProtection"  # status on/off, duration, frequency
+ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration"  # status on/off, value
+ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod"  # status on/off, value
 ATTR_TYPE = "type"
 ATTR_PHASE_CONTROL = "phaseControl"
 ATTR_SYSTEM_MODE = "systemMode"
