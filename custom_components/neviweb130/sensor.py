@@ -525,6 +525,10 @@ class Neviweb130Sensor(Entity):
                                     self.notify_ha(
                                         f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
                                     )
+                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku + ", Leak sensor disconnected."
+                            )
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
@@ -801,6 +805,10 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
+                    if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                        self.notify_ha(
+                            f"Warning: Neviweb Device error code detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku + ", Leak sensor disconnected."
+                        )
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
