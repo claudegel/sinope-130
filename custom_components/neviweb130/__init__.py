@@ -4,17 +4,14 @@ from __future__ import annotations
 
 import logging
 
-import homeassistant.helpers.config_validation as cv
 import requests
-import voluptuous as vol
 from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
                                                     HVACMode)
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
-from homeassistant.const import (CONF_EMAIL, CONF_PASSWORD, CONF_SCAN_INTERVAL,
+from homeassistant.const import (CONF_PASSWORD, CONF_SCAN_INTERVAL,
                                  CONF_USERNAME)
 from homeassistant.helpers import discovery
-from homeassistant.util import Throttle
 
 from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
