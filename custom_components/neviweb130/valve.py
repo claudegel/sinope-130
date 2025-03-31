@@ -27,16 +27,32 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import timedelta
+
+import voluptuous as vol
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
+                                            ValveEntityDescription,
                                             ValveEntityFeature)
-from homeassistant.const import (ATTR_ENTITY_ID)
+from homeassistant.const import (ATTR_ENTITY_ID, SERVICE_CLOSE_VALVE,
+                                 SERVICE_OPEN_VALVE,
+                                 SERVICE_SET_VALVE_POSITION, SERVICE_TOGGLE,
+                                 STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
+                                 STATE_OPENING, STATE_UNAVAILABLE, Platform,
+                                 UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import (device_registry, discovery,
+                                   entity_component, entity_platform,
+                                   entity_registry, service)
+from homeassistant.helpers.event import track_time_interval
+from homeassistant.helpers.icon import icon_for_battery_level
 
+import custom_components.neviweb130 as neviweb130
 
-from . import NOTIFY, STAT_INTERVAL
+from . import NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
@@ -57,7 +73,7 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
-from .schema import (SET_ACTIVATION_SCHEMA,
+from .schema import (FLOW_DURATION, FLOW_MODEL, SET_ACTIVATION_SCHEMA,
                      SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
                      SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
                      SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
@@ -1090,6 +1106,10 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                        if self._water_leak_status = "flowMeter":
+                        self.notify_ha(
+                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_MOTOR_TARGET in device_data:
                         self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     if ATTR_VALVE_CLOSURE in device_data:
@@ -1387,6 +1407,10 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         ]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if self._water_leak_status = "flowMeter":
+                        self.notify_ha(
+                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                         if self._flowmeter_timer != 0:
@@ -1431,6 +1455,8 @@ class Neviweb130MeshValve(Neviweb130Valve):
                                 "Error code set1 updated: %s",
                                 str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
                             )
+                    else:
+                        self._error_code = 0
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
@@ -1635,6 +1661,10 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         ]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                    if self._water_leak_status = "flowMeter":
+                        self.notify_ha(
+                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                         if self._flowmeter_timer != 0:
