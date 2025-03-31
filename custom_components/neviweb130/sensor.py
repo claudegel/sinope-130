@@ -24,12 +24,12 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.sensor import SensorStateClass
-from homeassistant.const import (ATTR_ENTITY_ID, PERCENTAGE)
+from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.helpers.entity import Entity
 
-
 from . import NOTIFY
-from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
+from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
+                    ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE,
                     ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
                     ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
@@ -38,12 +38,12 @@ from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT, ATTR_BATT_PERCENT_
                     ATTR_ROOM_TEMPERATURE, ATTR_RSSI, ATTR_SAMPLING,
                     ATTR_STATUS, ATTR_TANK_HEIGHT, ATTR_TANK_PERCENT,
                     ATTR_TANK_TYPE, ATTR_TEMP_ALERT, ATTR_WATER_LEAK_STATUS,
-                    DOMAIN, SERVICE_SET_ACTIVATION,
-                    SERVICE_SET_BATTERY_ALERT, SERVICE_SET_BATTERY_TYPE,
-                    SERVICE_SET_FUEL_ALERT, SERVICE_SET_GAUGE_TYPE,
-                    SERVICE_SET_LOW_FUEL_ALERT, SERVICE_SET_NEVIWEB_STATUS,
-                    SERVICE_SET_SENSOR_ALERT, SERVICE_SET_TANK_HEIGHT,
-                    SERVICE_SET_TANK_TYPE, STATE_WATER_LEAK)
+                    DOMAIN, SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
+                    SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
+                    SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
+                    SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_SENSOR_ALERT,
+                    SERVICE_SET_TANK_HEIGHT, SERVICE_SET_TANK_TYPE,
+                    STATE_WATER_LEAK)
 from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
                      SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
                      SET_GAUGE_TYPE_SCHEMA, SET_LOW_FUEL_ALERT_SCHEMA,
