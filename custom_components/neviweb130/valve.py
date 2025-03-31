@@ -882,7 +882,9 @@ class Neviweb130Valve(ValveEntity):
             _LOGGER.warning("Session expired... reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
+                    "Warning: Got USRSESSEXP error, Neviweb session expired. "
+                    + "Set your scan_interval parameter to less than 10 minutes "
+                    + "to avoid this... Reconnecting..."
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
@@ -1106,8 +1108,13 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         if self._water_leak_status = "flowMeter":
-                        self.notify_ha(
-                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
+                            self.notify_ha(
+                                "Warning: Neviweb Device error detected: "
+                                + device_data[ATTR_WATER_LEAK_STATUS]
+                                + " for device: "
+                                + self._name
+                                + ", Sku: "
+                                + self._sku
                             )
                     if ATTR_MOTOR_TARGET in device_data:
                         self._motor_target = device_data[ATTR_MOTOR_TARGET]
@@ -1408,8 +1415,13 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status = "flowMeter":
                         self.notify_ha(
-                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
-                            )
+                            "Warning: Neviweb Device error detected: "
+                            + device_data[ATTR_WATER_LEAK_STATUS]
+                            + " for device: "
+                            + self._name
+                            + ", Sku: "
+                            + self._sku
+                        )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                         if self._flowmeter_timer != 0:
@@ -1662,8 +1674,13 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status = "flowMeter":
                         self.notify_ha(
-                                f"Warning: Neviweb Device error detected: " + device_data[ATTR_WATER_LEAK_STATUS] + " for device: " + self._name + ", Sku: " + self._sku
-                            )
+                            "Warning: Neviweb Device error detected: "
+                            + device_data[ATTR_WATER_LEAK_STATUS]
+                            + " for device: "
+                            + self._name
+                            + ", Sku: "
+                            + self._sku
+                        )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
                         if self._flowmeter_timer != 0:
