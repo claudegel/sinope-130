@@ -1121,6 +1121,8 @@ class Neviweb130MeshValve(Neviweb130Valve):
                                 f"Warning: Neviweb Device error code detected: " + str(device_data[ATTR_ERROR_CODE_SET1]["raw"]) + " for device: " + self._name + ", Sku: " + self._sku
                             )
                             _LOGGER.warning("Error code set1 updated: %s",str(device_data[ATTR_ERROR_CODE_SET1]["raw"]))
+                    else:
+                        self._error_code = 0
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
