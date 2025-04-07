@@ -16,8 +16,10 @@ model 1512 = Thermostat TH1134ZB-HC for heating/cooling interlocking
 Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
-model 336 = thermostat TH1133WF 3000W (wifi)
-model 336 = thermostat TH1133CR Sinopé Evo 3000W (wifi)
+model 336 = thermostat TH1133WF 3000W (wifi lite)
+model 336 = thermostat TH1133CR Sinopé Evo 3000W (wifi lite)
+model 336 = thermostat TH1134WF 3000W (wifi lite)
+model 336 = thermostat TH1134CR Sinopé Evo 3000W (wifi lite)
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
@@ -3524,7 +3526,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1133WF, TH1133CR thermostats."""
+    """Implementation of Neviweb TH1133WF, TH1133CR, TH1134WF and TH1134CR thermostats."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
