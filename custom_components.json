@@ -13,7 +13,8 @@
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/const.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/schema.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/valve.py",
-            "https://github.com/claudegel/sinope-130/tree/master/custom_components/services.yaml"
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/services.yaml",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/manifest.json"
         ]
     }
 }
