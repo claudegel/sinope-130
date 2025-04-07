@@ -1344,6 +1344,8 @@ class Neviweb130Thermostat(ClimateEntity):
 
     _enable_turn_on_off_backwards_compatibility = False
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_precision = 0.1
+    _attr_target_temperature_step = 0.5
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
@@ -3527,6 +3529,9 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
 
 class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1133WF, TH1133CR, TH1134WF and TH1134CR thermostats."""
+
+  _attr_precision = 1.0  
+  _attr_target_temperature_step = 1.0
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
