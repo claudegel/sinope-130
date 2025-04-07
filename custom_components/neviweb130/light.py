@@ -23,9 +23,9 @@ from homeassistant.components.persistent_notification import \
 from homeassistant.const import ATTR_ENTITY_ID
 
 from . import (
+    NOTIFY,
     SCAN_INTERVAL,
     STAT_INTERVAL,
-    NOTIFY,
 )
 from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
                     ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
