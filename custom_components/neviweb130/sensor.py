@@ -28,8 +28,8 @@ from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.helpers.entity import Entity
 
 from . import (
-    SCAN_INTERVAL,
     NOTIFY,
+    SCAN_INTERVAL,
 )
 from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
