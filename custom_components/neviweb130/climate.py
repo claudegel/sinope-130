@@ -240,6 +240,12 @@ SUPPORTED_HVAC_WIFI_MODES = [
     HVACMode.OFF,
 ]
 
+SUPPORTED_HVAC_WIFI_LITE_MODES = [
+    HVACMode.AUTO,
+    MODE_MANUAL,
+    HVACMode.OFF,
+]
+
 SUPPORTED_HVAC_MODES = [
     HVACMode.HEAT,
     HVACMode.OFF,
@@ -1389,6 +1395,10 @@ class Neviweb130Thermostat(ClimateEntity):
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+            or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        )
+        self._is_wifi_lite = (
+            device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
         self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
         self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
@@ -1648,6 +1658,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of available operation modes."""
         if self._is_wifi:
             return SUPPORTED_HVAC_WIFI_MODES
+        elif self._is_wifi_lite:
+            return SUPPORTED_HVAC_WIFI_LITE_MODES
         elif self._is_hc:
             return SUPPORTED_HVAC_H_C_MODES
         elif self._is_HC:
@@ -1706,7 +1718,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_modes(self):
         """Return available preset modes."""
-        if self._is_wifi:
+        if self._is_wifi or self._is_wifi_lite:
             return PRESET_WIFI_MODES
         elif self._is_HP:
             return PRESET_HP_MODES
@@ -1737,6 +1749,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if (
             self._operation_mode == HVACMode.HEAT
             or self._operation_mode == HVACMode.AUTO
+            or self._operation_mode == MODE_MANUAL
         ):
             return True
         return False
@@ -2411,6 +2424,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._error_code = None
         self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
         self._is_wifi = False
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
         self._is_double = False
@@ -2621,6 +2635,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._gfci_alert = None
         self._is_floor = device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
         self._is_wifi = False
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
         self._is_double = False
@@ -2869,6 +2884,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._rssi = None
         self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
         self._is_wifi = False
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
         self._is_double = False
@@ -3124,6 +3140,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._error_code = None
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
         self._is_wifi = False
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
         self._is_low_voltage = False
@@ -3327,7 +3344,9 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+            or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
+        self._is_wifi_lite = False
         self._is_double = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
@@ -3559,10 +3578,10 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
-            or device["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+            or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
         self._is_wifi_lite = (
-            device["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+            device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
         self._is_double = False
         self._is_wifi_floor = False
@@ -3790,7 +3809,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+            or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
+        self._is_wifi_lite = False
         self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
         self._is_double = False
         self._is_low_voltage = False
@@ -4078,7 +4099,9 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+            or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
+        self._is_wifi_lite = False
         self._is_double = False
         self._is_low_voltage = False
         self._is_gen2 = False
@@ -4353,6 +4376,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._is_low_voltage = False
         self._is_gen2 = False
         self._is_wifi = False
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_floor = False
         self._is_low_wifi = False
@@ -4619,6 +4643,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._is_low_voltage = False
         self._is_gen2 = False
         self._is_wifi = False
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_floor = False
         self._is_low_wifi = False
@@ -4893,6 +4918,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._is_low_voltage = False
         self._is_gen2 = False
         self._is_wifi = True
+        self._is_wifi_lite = False
         self._is_wifi_floor = False
         self._is_floor = False
         self._is_low_wifi = False
