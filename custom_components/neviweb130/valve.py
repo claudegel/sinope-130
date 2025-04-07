@@ -51,7 +51,11 @@ from homeassistant.helpers.icon import icon_for_battery_level
 
 import custom_components.neviweb130 as neviweb130
 
-from . import NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
+from . import (
+    NOTIFY,
+    SCAN_INTERVAL,
+    STAT_INTERVAL,
+)
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
