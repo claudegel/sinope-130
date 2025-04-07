@@ -27,14 +27,11 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import timedelta
 
-import voluptuous as vol
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
-                                            ValveEntityDescription,
                                             ValveEntityFeature)
 from homeassistant.const import (ATTR_ENTITY_ID, SERVICE_CLOSE_VALVE,
                                  SERVICE_OPEN_VALVE,
@@ -42,7 +39,6 @@ from homeassistant.const import (ATTR_ENTITY_ID, SERVICE_CLOSE_VALVE,
                                  STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
                                  STATE_OPENING, STATE_UNAVAILABLE, Platform,
                                  UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import (device_registry, discovery,
                                    entity_component, entity_platform,
                                    entity_registry, service)
@@ -76,11 +72,10 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
-from .schema import (FLOW_DURATION, FLOW_MODEL, SET_ACTIVATION_SCHEMA,
-                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
-                     SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
-                     SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
-                     VERSION)
+from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
+                     SET_FLOW_METER_MODEL_SCHEMA, SET_FLOW_METER_OPTIONS_SCHEMA,
+                     SET_POWER_SUPPLY_SCHEMA, SET_VALVE_ALERT_SCHEMA,
+                     SET_VALVE_TEMP_ALERT_SCHEMA, VERSION)
 
 _LOGGER = logging.getLogger(__name__)
 
