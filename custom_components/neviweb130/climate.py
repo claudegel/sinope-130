@@ -1722,7 +1722,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_modes(self):
         """Return available preset modes."""
-        if self._is_wifi or self._is_wifi_lite:
+        if self._is_wifi:
             return PRESET_WIFI_MODES
         elif self._is_HP:
             return PRESET_HP_MODES
