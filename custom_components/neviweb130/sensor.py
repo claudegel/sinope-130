@@ -1348,7 +1348,15 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
             _LOGGER.debug(
                 "Updating %s (%s sec): %s", self._name, elapsed, device_status
             )
-            self._gateway_status = device_status[ATTR_STATUS]
+            if "error" not in device_status or device_status is not None:
+                if "errorCode" not in device_status:
+                    self._gateway_status = device_status[ATTR_STATUS]
+                else:
+                    _LOGGER.warning(
+                        "Error in reading device status for %s: (%s)", self._name, device_status
+                    )
+            else:
+                self.log_error(device_status["error"]["code"])
             self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
             return
 
