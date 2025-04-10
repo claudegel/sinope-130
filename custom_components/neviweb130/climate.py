@@ -24,6 +24,7 @@ model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
 model 6727 = thermostat TH6500WF heat/cool (wifi)
+model 6727 = thermostat TH6510WF heat/cool (wifi)
 model 6730 = thermostat TH6250WF heat/cool (wifi)
 
 Support for Flextherm wifi thermostat
@@ -3530,8 +3531,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
 class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1133WF, TH1133CR, TH1134WF and TH1134CR thermostats."""
 
-  _attr_precision = 1.0  
-  _attr_target_temperature_step = 1.0
+    _attr_precision = 1.0
+    _attr_target_temperature_step = 1.0
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
