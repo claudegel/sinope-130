@@ -910,7 +910,10 @@ class Neviweb130Switch(SwitchEntity):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked, partiallyLocked - partial lock."""
         lock = value["lock"]
         entity = value["id"]
-        self._client.set_keypad_lock(entity, lock, False)
+        if self._is_wifi_load or self._is_wifi_tank_load:
+            self._client.set_keypad_lock(entity, lock, True)
+        else:
+            self._client.set_keypad_lock(entity, lock, False)
         self._keypad = lock
 
     def set_timer(self, value):
