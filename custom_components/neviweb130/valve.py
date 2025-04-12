@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import logging
 
-import voluptuous as vol
 import time
 
 import custom_components.neviweb130 as neviweb130
@@ -805,6 +804,7 @@ class Neviweb130Valve(ValveEntity):
         )
         return True
 
+
 class Neviweb130WifiValve(Neviweb130Valve):
     """Implementation of a Neviweb wifi valve switch, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
@@ -1016,6 +1016,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                'id': self._id})
         return data
 
+
 class Neviweb130MeshValve(Neviweb130Valve):
     """Implementation of a Neviweb mesh valve switch VA4220ZB and ACT4220ZB-M."""
 
@@ -1192,6 +1193,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                'device_type': self._device_type,
                'id': self._id})
         return data
+
 
 class Neviweb130WifiMeshValve(Neviweb130Valve):
     """Implementation of a Neviweb wifi mesh valve switch, ACT4220WF-M, ACT4221WF-M."""
