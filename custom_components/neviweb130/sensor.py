@@ -27,10 +27,9 @@ from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.helpers.entity import Entity
 
-from . import (
-    NOTIFY,
-    SCAN_INTERVAL as scan_interval,
-)
+from . import NOTIFY
+from . import SCAN_INTERVAL as scan_interval
+
 SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
