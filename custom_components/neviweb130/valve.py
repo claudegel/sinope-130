@@ -39,7 +39,6 @@ from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 
-SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
@@ -72,6 +71,7 @@ DEFAULT_NAME = "neviweb130 valve"
 DEFAULT_NAME_2 = "neviweb130 valve 2"
 DEFAULT_NAME_3 = "neviweb130 valve 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
 
