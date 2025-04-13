@@ -7,6 +7,7 @@ model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
 load controler
 Support for Neviweb switch connected via GT130 ZigBee.
 model 2506 = load controller device, RM3250ZB, 50A
+model 346 = load controller device, RM3250WF, 50A, wifi
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A
 model 2152 = Calypso load controller for water heater, RM3500WF 20,8A wifi
 model 2152 = Calypso load controller for water heater, RM3510WF 20,8A wifi
@@ -129,6 +130,7 @@ IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
+IMPLEMENTED_WIFI_LOAD_DEVICES = [346]
 IMPLEMENTED_DEVICE_MODEL = (
     IMPLEMENTED_LOAD_DEVICES
     + IMPLEMENTED_WALL_DEVICES
@@ -136,6 +138,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_SED_DEVICE_CONTROL
     + IMPLEMENTED_WATER_HEATER_LOAD_MODEL
     + IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
+    + IMPLEMENTED_WIFI_LOAD_DEVICES
 )
 
 
@@ -178,6 +181,18 @@ async def async_setup_platform(
                 device_type = "power"
                 entities.append(
                     Neviweb130PowerSwitch(
+                        data,
+                        device_info,
+                        device_name,
+                        device_sku,
+                        device_firmware,
+                        device_type,
+                    )
+                )
+            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES:
+                device_type = "power"
+                entities.append(
+                    Neviweb130WifiPowerSwitch(
                         data,
                         device_info,
                         device_name,
@@ -264,6 +279,18 @@ async def async_setup_platform(
                         device_type,
                     )
                 )
+            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES:
+                device_type = "power"
+                entities.append(
+                    Neviweb130WifiPowerSwitch(
+                        data,
+                        device_info,
+                        device_name,
+                        device_sku,
+                        device_firmware,
+                        device_type,
+                    )
+                )
             elif (
                 device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
             ):
@@ -334,6 +361,18 @@ async def async_setup_platform(
                 device_type = "power"
                 entities.append(
                     Neviweb130PowerSwitch(
+                        data,
+                        device_info,
+                        device_name,
+                        device_sku,
+                        device_firmware,
+                        device_type,
+                    )
+                )
+            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES:
+                device_type = "power"
+                entities.append(
+                    Neviweb130WifiPowerSwitch(
                         data,
                         device_info,
                         device_name,
@@ -752,6 +791,9 @@ class Neviweb130Switch(SwitchEntity):
         self._onoff = None
         self._is_wall = device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
         self._is_load = device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES
+        self._is_wifi_load = (
+            device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
+        )
         self._is_tank_load = (
             device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         )
@@ -1299,6 +1341,149 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 "eco_onoff": self._drstatus_onoff,
                 "error_code": self._error_code,
                 "rssi": self._rssi,
+                "sku": self._sku,
+                "device_model": str(self._device_model),
+                "device_model_cfg": self._device_model_cfg,
+                "firmware": self._firmware,
+                "activation": self._activ,
+                "device_type": self._device_type,
+                "id": str(self._id),
+            }
+        )
+        return data
+
+
+class Neviweb130WifiPowerSwitch(Neviweb130Switch):
+    """Implementation of a Neviweb power controler switch, RM3250WF."""
+
+    def __init__(self, data, device_info, name, sku, firmware, device_type):
+        """Initialize."""
+        self._name = name
+        self._sku = sku
+        self._firmware = firmware
+        self._client = data.neviweb130_client
+        self._id = device_info["id"]
+        self._device_model = device_info["signature"]["model"]
+        self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._device_type = device_type
+        self._current_power_w = 0
+        self._wattage = 0
+        self._hour_energy_kwh_count = None
+        self._today_energy_kwh_count = None
+        self._month_energy_kwh_count = None
+        self._hour_kwh = None
+        self._today_kwh = None
+        self._month_kwh = None
+        self._onoff = None
+        self._timer = 0
+        self._keypad = None
+        self._drstatus_active = "off"
+        self._drstatus_optout = "off"
+        self._drstatus_onoff = "off"
+        self._wifirssi = None
+        self._error_code = None
+        self._controlled_device = None
+        self._is_wifi_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
+        self._energy_stat_time = time.time() - 1500
+        self._snooze = 0
+        self._activ = True
+        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+
+    def update(self):
+        if self._activ:
+            LOAD_ATTRIBUTES = [
+                ATTR_WATTAGE_INSTANT,
+                ATTR_WIFI_WATTAGE,
+                ATTR_WIFI_KEYPAD,
+                ATTR_DRSTATUS,
+                ATTR_WIFI,
+                ATTR_CONTROLLED_DEVICE,
+                ATTR_ERROR_CODE_SET1,
+            ]
+            """Get the latest data from Neviweb and update the state."""
+            start = time.time()
+            device_data = self._client.get_device_attributes(
+                self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            )
+            end = time.time()
+            elapsed = round(end - start, 3)
+            _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
+            if "error" not in device_data:
+                if "errorCode" not in device_data:
+                    self._onoff = device_data[ATTR_ONOFF]
+                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    self._keypad = (
+                        STATE_KEYPAD_STATUS
+                        if device_data[ATTR_WIFI_KEYPAD] == STATE_KEYPAD_STATUS
+                        else "locked"
+                    )
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS][
+                            ATTR_DRACTIVE
+                        ]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
+                        self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and len(device_data[ATTR_ERROR_CODE_SET1]) > 0
+                    ):
+                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                "Warning: Neviweb Device error code detected: "
+                                + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                                + " for device: "
+                                + self._name
+                                + ", Sku: "
+                                + self._sku
+                            )
+                    else:
+                        self._error_code = 0
+                    if ATTR_WIFI in device_data:
+                        self._wifirssi = device_data[ATTR_WIFI]
+                    self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
+                else:
+                    _LOGGER.warning(
+                        "Error in reading device %s: (%s)", self._name, device_data
+                    )
+            else:
+                self.log_error(device_data["error"]["code"])
+            self.do_stat(start)
+        else:
+            if time.time() - self._snooze > SNOOZE_TIME:
+                self._activ = True
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha(
+                        "Warning: Neviweb Device update restarted for "
+                        + self._name
+                        + ", Sku: "
+                        + self._sku
+                    )
+
+    @property
+    def extra_state_attributes(self):
+        """Return the extra state attributes."""
+        data = {}
+        data.update(
+            {
+                "onOff": self._onoff,
+                "controlled_device": neviweb_to_ha_controlled(self._controlled_device),
+                "wattage": self._wattage,
+                "wattage_instant": self._current_power_w,
+                "hourly_kwh_count": self._hour_energy_kwh_count,
+                "daily_kwh_count": self._today_energy_kwh_count,
+                "monthly_kwh_count": self._month_energy_kwh_count,
+                "hourly_kwh": self._hour_kwh,
+                "daily_kwh": self._today_kwh,
+                "monthly_kwh": self._month_kwh,
+                "keypad": lock_to_ha(self._keypad),
+                "timer": self._timer,
+                "eco_status": self._drstatus_active,
+                "eco_optOut": self._drstatus_optout,
+                "eco_onoff": self._drstatus_onoff,
+                "error_code": self._error_code,
+                "rssi": self._wifirssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
