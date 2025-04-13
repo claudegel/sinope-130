@@ -59,7 +59,6 @@ from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 
-SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_TIMEON,
                     ATTR_AVAIL_MODE, ATTR_BACK_LIGHT, ATTR_BACKLIGHT,
@@ -189,6 +188,7 @@ DEFAULT_NAME = "neviweb130 climate"
 DEFAULT_NAME_2 = "neviweb130 climate 2"
 DEFAULT_NAME_3 = "neviweb130 climate 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 HA_TO_NEVIWEB_PERIOD = {
     "15 sec": 15,
