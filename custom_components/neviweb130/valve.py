@@ -33,25 +33,10 @@ from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
                                             ValveEntityFeature)
-from homeassistant.const import (ATTR_ENTITY_ID, SERVICE_CLOSE_VALVE,
-                                 SERVICE_OPEN_VALVE,
-                                 SERVICE_SET_VALVE_POSITION, SERVICE_TOGGLE,
-                                 STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
-                                 STATE_OPENING, STATE_UNAVAILABLE, Platform,
-                                 UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
-from homeassistant.helpers import (device_registry, discovery,
-                                   entity_component, entity_platform,
-                                   entity_registry, service)
-from homeassistant.helpers.event import track_time_interval
-from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.const import (ATTR_ENTITY_ID)
 
-import custom_components.neviweb130 as neviweb130
 
-from . import (
-    NOTIFY,
-    SCAN_INTERVAL,
-    STAT_INTERVAL,
-)
+from . import NOTIFY, STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
@@ -73,9 +58,10 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
 from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
-                     SET_FLOW_METER_MODEL_SCHEMA, SET_FLOW_METER_OPTIONS_SCHEMA,
-                     SET_POWER_SUPPLY_SCHEMA, SET_VALVE_ALERT_SCHEMA,
-                     SET_VALVE_TEMP_ALERT_SCHEMA, VERSION)
+                     SET_FLOW_METER_MODEL_SCHEMA,
+                     SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
+                     SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
+                     VERSION)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1217,7 +1203,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "temperature_alert": self._temp_alert,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
@@ -1727,7 +1712,6 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "motor_target_position": self._motor_target,
                 "temperature_alert": self._temp_alert,
                 "valve_status": self._valve_info_status,

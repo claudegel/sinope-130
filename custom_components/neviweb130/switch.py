@@ -28,11 +28,7 @@ from homeassistant.components.persistent_notification import \
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID
 
-from . import (
-    NOTIFY,
-    SCAN_INTERVAL,
-    STAT_INTERVAL,
-)
+from . import NOTIFY, STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE,
@@ -56,8 +52,7 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_WATER_TEMP_PROTEC, ATTR_WATER_TEMP_TIME,
                     ATTR_WATER_TEMPERATURE, ATTR_WATT_TIME_ON, ATTR_WATTAGE,
                     ATTR_WATTAGE_INSTANT, ATTR_WIFI, ATTR_WIFI_WATT_NOW,
-                    ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO, MODE_MANUAL,
-                    MODE_OFF, SERVICE_SET_ACTIVATION,
+                    ATTR_WIFI_WATTAGE, DOMAIN, MODE_OFF, SERVICE_SET_ACTIVATION,
                     SERVICE_SET_CONTROL_ONOFF, SERVICE_SET_CONTROLLED_DEVICE,
                     SERVICE_SET_INPUT_OUTPUT_NAMES,
                     SERVICE_SET_LOAD_DR_OPTIONS,
@@ -1377,7 +1372,9 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._wifirssi = None
         self._error_code = None
         self._controlled_device = None
-        self._is_wifi_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
+        self._is_wifi_load = (
+            device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
+        )
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True

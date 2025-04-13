@@ -27,10 +27,7 @@ from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.helpers.entity import Entity
 
-from . import (
-    NOTIFY,
-    SCAN_INTERVAL,
-)
+from . import NOTIFY
 from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE,
@@ -1353,7 +1350,9 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
                     self._gateway_status = device_status[ATTR_STATUS]
                 else:
                     _LOGGER.warning(
-                        "Error in reading device status for %s: (%s)", self._name, device_status
+                        "Error in reading device status for %s: (%s)",
+                        self._name,
+                        device_status,
                     )
             else:
                 self.log_error(device_status["error"]["code"])

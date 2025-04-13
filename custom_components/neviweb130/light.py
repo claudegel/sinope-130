@@ -22,11 +22,7 @@ from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID
 
-from . import (
-    NOTIFY,
-    SCAN_INTERVAL,
-    STAT_INTERVAL,
-)
+from . import NOTIFY, STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
                     ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
                     ATTR_KEYPAD, ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
