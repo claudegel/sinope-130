@@ -49,8 +49,7 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
                     ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_NETWORK,
                     CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN, MODE_AWAY, MODE_HOME,
-                    MODE_MANUAL)
+                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL)
 from .schema import (CONFIG_SCHEMA, HOMEKIT_MODE, NOTIFY, SCAN_INTERVAL,
                      STAT_INTERVAL, VERSION)
 
@@ -214,8 +213,9 @@ class Neviweb130Client:
             if data["error"]["code"] == "ACCSESSEXC":
                 _LOGGER.error(
                     "Too many active sessions. Close all neviweb130 "
-                    + "sessions you have opened on other platform (mobile, browser"
-                    + ", ...), wait a few minutes, then reboot Home Assistant."
+                    + "sessions you have opened on other platform "
+                    + "(mobile, browser, ...)"
+                    + ", wait a few minutes, then reboot Home Assistant."
                 )
                 self.notify_ha(
                     "Warning: Got ACCSESSEXC error, Too many active sessions. Close all neviweb130 sessions, wait few minutes and restart HA."
@@ -254,9 +254,9 @@ class Neviweb130Client:
                 _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
                 _LOGGER.debug("networks: %s", networks)
                 if (
-                    self._network_name == None
-                    and self._network_name2 == None
-                    and self._network_name3 == None
+                    self._network_name is None
+                    and self._network_name2 is None
+                    and self._network_name3 is None
                 ):  # Use 1st network found, second or third if found
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
@@ -291,14 +291,19 @@ class Neviweb130Client:
                         ):
                             self._gateway_id = network["id"]
                             _LOGGER.debug(
-                                "Please check first letter of your network name, In capital letter or not? Selecting %s network among: %s",
+                                "Please check first letter of your network "
+                                + "name, In capital letter or not? Selecting "
+                                + "%s network among: %s",
                                 self._network_name,
                                 networks,
                             )
                             continue
                         else:
                             _LOGGER.debug(
-                                "Your network name %s do not correspond to discovered network %s, skipping this one.... Please check your config if nothing is discovered.",
+                                "Your network name %s do not correspond to "
+                                + "discovered network %s, skipping this one"
+                                + ".... Please check your config if nothing "
+                                + "is discovered.",
                                 self._network_name,
                                 network["name"],
                             )
@@ -323,14 +328,18 @@ class Neviweb130Client:
                             ):
                                 self._gateway_id = network["id"]
                                 _LOGGER.debug(
-                                    "Please check first letter of your network2 name, In capital letter or not? Selecting %s network among: %s",
+                                    "Please check first letter of your "
+                                    + "network2 name, In capital letter or "
+                                    + "not? Selecting %s network among: %s",
                                     self._network_name2,
                                     networks,
                                 )
                                 continue
                             else:
                                 _LOGGER.debug(
-                                    "Your network name %s do not correspond to discovered network %s, skipping this one...",
+                                    "Your network name %s do not correspond "
+                                    + "to discovered network %s, skipping "
+                                    + "this one...",
                                     self._network_name2,
                                     network["name"],
                                 )
@@ -355,14 +364,18 @@ class Neviweb130Client:
                             ):
                                 self._gateway_id = network["id"]
                                 _LOGGER.debug(
-                                    "Please check first letter of your network3 name, In capital letter or not? Selecting %s network among: %s",
+                                    "Please check first letter of your "
+                                    + "network3 name, In capital letter or "
+                                    + "not? Selecting %s network among: %s",
                                     self._network_name3,
                                     networks,
                                 )
                                 continue
                             else:
                                 _LOGGER.debug(
-                                    "Your network name %s do not correspond to discovered network %s, skipping this one...",
+                                    "Your network name %s do not correspond "
+                                    + "to discovered network %s, skipping "
+                                    + "this one...",
                                     self._network_name3,
                                     network["name"],
                                 )
@@ -427,7 +440,11 @@ class Neviweb130Client:
             _LOGGER.debug("Received signature data: %s", data)
             if data[ATTR_SIGNATURE]["protocol"] == "miwi":
                 _LOGGER.debug(
-                    "The Neviweb location selected for parameter «network» contain unsupported device with protocol miwi. This location should be added to «sinope neviweb» custom_components instead. Check your neviweb130 config."
+                    "The Neviweb location selected for parameter «network» "
+                    + "contain unsupported device with protocol miwi. "
+                    + "This location should be added to «sinope neviweb» "
+                    + "custom_components instead. Check your neviweb130 "
+                    + "config."
                 )
         if self._gateway_id2 is not None:
             for device in self.gateway_data2:
@@ -437,7 +454,11 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data: %s", data2)
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
                     _LOGGER.debug(
-                        "The Neviweb location selected for parameter «network2» contain unsupported device with protocol miwi. This location should be added to «sinope neviweb» custom_components instead. Check your neviweb130 config."
+                        "The Neviweb location selected for parameter "
+                        + "«network2» contain unsupported device with "
+                        + "protocol miwi. This location should be added to "
+                        + "«sinope neviweb» custom_components instead. "
+                        + "Check your neviweb130 config."
                     )
         if self._gateway_id3 is not None:
             for device in self.gateway_data3:
@@ -447,7 +468,11 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data: %s", data3)
                 if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
                     _LOGGER.debug(
-                        "The Neviweb location selected for parameter «network3» contain unsupported device with protocol miwi. This location should be added to «sinope neviweb» custom_components instead. Check your neviweb130 config."
+                        "The Neviweb location selected for parameter "
+                        + "«network3» contain unsupported device with "
+                        + "protocol miwi. This location should be added to "
+                        + "«sinope neviweb» custom_components instead. "
+                        + "Check your neviweb130 config."
                     )
 
     #        _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
@@ -539,7 +564,7 @@ class Neviweb130Client:
                     "Session expired. Set a scan_interval less"
                     + "than 10 minutes, otherwise the session will end."
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
+                # raise PyNeviweb130Error("Session expired...reconnecting...")
         return data
 
     def get_device_alert(self, device_id):
@@ -970,7 +995,11 @@ class Neviweb130Client:
             }
         else:
             data = {
-                ATTR_FLOW_METER_CONFIG: {"multiplier": 0, "offset": 0, "divisor": 1},
+                ATTR_FLOW_METER_CONFIG: {
+                    "multiplier": 0,
+                    "offset": 0,
+                    "divisor": 1,
+                },
                 ATTR_FLOW_ENABLED: False,
             }
         _LOGGER.debug("Flowmeter model.data = %s", data)
@@ -982,10 +1011,15 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
+    def set_flow_meter_options(
+        self, device_id, alarm, action, lenght, threshold
+    ):
         """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
         data = {
-            ATTR_FLOW_ALARM1_OPTION: {"triggerAlarm": alarm, "closeValve": action},
+            ATTR_FLOW_ALARM1_OPTION: {
+                "triggerAlarm": alarm,
+                "closeValve": action,
+            },
             ATTR_FLOW_ALARM1_LENGHT: lenght,
             ATTR_FLOW_THRESHOLD: threshold,
         }
@@ -995,12 +1029,20 @@ class Neviweb130Client:
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
         """Set devive led indicator intensity and color for on and off state."""
         if state == 1:
-            data = {ATTR_LED_ON_COLOR: {"red": red, "green": green, "blue": blue}}
+            data = {ATTR_LED_ON_COLOR: {
+                        "red": red,
+                        "green": green,
+                        "blue": blue,
+                    }}
             self.set_device_attributes(device_id, data)
             data2 = {ATTR_LED_ON_INTENSITY: intensity}
             self.set_device_attributes(device_id, data2)
         else:
-            data = {ATTR_LED_OFF_COLOR: {"red": red, "green": green, "blue": blue}}
+            data = {ATTR_LED_OFF_COLOR: {
+                        "red": red,
+                        "green": green,
+                        "blue": blue,
+                    }}
             self.set_device_attributes(device_id, data)
             data2 = {ATTR_LED_OFF_INTENSITY: intensity}
             self.set_device_attributes(device_id, data2)
@@ -1050,13 +1092,21 @@ class Neviweb130Client:
 
     def set_load_dr_options(self, device_id, onoff, optout, dr):
         """Set load controler Eco Sinope attributes."""
-        data = {ATTR_DRSTATUS: {"drActive": dr, "optOut": optout, "onOff": onoff}}
+        data = {ATTR_DRSTATUS: {
+                    "drActive": dr,
+                    "optOut": optout,
+                    "onOff": onoff,
+                }}
         _LOGGER.debug("Load.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_options(self, device_id, dr, optout, setpoint):
         """Set load controler Eco Sinope attributes."""
-        data = {ATTR_DRSTATUS: {"drActive": dr, "optOut": optout, "setpoint": setpoint}}
+        data = {ATTR_DRSTATUS: {
+                    "drActive": dr,
+                    "optOut": optout,
+                    "setpoint": setpoint,
+                }}
         _LOGGER.debug("hvac.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1282,7 +1332,12 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             )
-            #            _LOGGER.debug("Post requests = %s%s%s %s", NEVIWEB_LOCATION, location, "/mode", data)
+            # _LOGGER.debug("Post requests = %s%s%s %s",
+            #               NEVIWEB_LOCATION,
+            #               location,
+            #               "/mode",
+            #               data,
+            #              )
             _LOGGER.debug("Data = %s", data)
             _LOGGER.debug("Requests response = %s", resp.status_code)
             _LOGGER.debug("Json Data received= %s", resp.json())
