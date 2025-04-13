@@ -50,9 +50,13 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_NETWORK,
                     CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL)
-from .schema import (CONFIG_SCHEMA, HOMEKIT_MODE, NOTIFY, SCAN_INTERVAL,
-                     STAT_INTERVAL, VERSION)
-
+from .schema import (CONFIG_SCHEMA as config_schema, 
+                     HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE,
+                     NOTIFY as DEFAULT_NOTIFY,
+                     SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL,
+                     STAT_INTERVAL as DEFAULT_STAT_INTERVAL, 
+                     VERSION)
+CONFIG_SCHEMA = config_schema
 _LOGGER = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = 30
@@ -70,19 +74,22 @@ def setup(hass, hass_config):
     hass.data[DOMAIN] = data
 
     global SCAN_INTERVAL
-    SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL)
+    SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL,
+                                            DEFAULT_SCAN_INTERVAL)
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
 
     global HOMEKIT_MODE
-    HOMEKIT_MODE = hass_config[DOMAIN].get(CONF_HOMEKIT_MODE)
+    HOMEKIT_MODE = hass_config[DOMAIN].get(CONF_HOMEKIT_MODE,
+                                           DEFAULT_HOMEKIT_MODE)
     _LOGGER.debug("Setting Homekit mode to: %s", HOMEKIT_MODE)
 
     global STAT_INTERVAL
-    STAT_INTERVAL = hass_config[DOMAIN].get(CONF_STAT_INTERVAL)
+    STAT_INTERVAL = hass_config[DOMAIN].get(CONF_STAT_INTERVAL,
+                                            DEFAULT_STAT_INTERVAL)
     _LOGGER.debug("Setting stat interval to: %s", STAT_INTERVAL)
 
     global NOTIFY
-    NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY)
+    NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
     discovery.load_platform(hass, "climate", DOMAIN, {}, hass_config)
