@@ -58,7 +58,6 @@ from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
-
 from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_TIMEON,
                     ATTR_AVAIL_MODE, ATTR_BACK_LIGHT, ATTR_BACKLIGHT,
