@@ -28,7 +28,12 @@ from homeassistant.components.persistent_notification import \
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID
 
-from . import NOTIFY, STAT_INTERVAL
+from . import (
+    NOTIFY,
+    SCAN_INTERVAL as scan_interval,
+    STAT_INTERVAL,
+)
+SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE,
