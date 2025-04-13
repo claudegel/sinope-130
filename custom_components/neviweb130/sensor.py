@@ -30,7 +30,6 @@ from homeassistant.helpers.entity import Entity
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 
-SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE,
@@ -59,6 +58,7 @@ DEFAULT_NAME = "neviweb130 sensor"
 DEFAULT_NAME_2 = "neviweb130 sensor 2"
 DEFAULT_NAME_3 = "neviweb130 sensor 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
 
