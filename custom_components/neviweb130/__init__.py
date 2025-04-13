@@ -1011,9 +1011,7 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_options(
-        self, device_id, alarm, action, lenght, threshold
-    ):
+    def set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
         """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
         data = {
             ATTR_FLOW_ALARM1_OPTION: {
@@ -1029,20 +1027,24 @@ class Neviweb130Client:
     def set_led_indicator(self, device_id, state, intensity, red, green, blue):
         """Set devive led indicator intensity and color for on and off state."""
         if state == 1:
-            data = {ATTR_LED_ON_COLOR: {
-                        "red": red,
-                        "green": green,
-                        "blue": blue,
-                    }}
+            data = {
+                ATTR_LED_ON_COLOR: {
+                    "red": red,
+                    "green": green,
+                    "blue": blue,
+                }
+            }
             self.set_device_attributes(device_id, data)
             data2 = {ATTR_LED_ON_INTENSITY: intensity}
             self.set_device_attributes(device_id, data2)
         else:
-            data = {ATTR_LED_OFF_COLOR: {
-                        "red": red,
-                        "green": green,
-                        "blue": blue,
-                    }}
+            data = {
+                ATTR_LED_OFF_COLOR: {
+                    "red": red,
+                    "green": green,
+                    "blue": blue,
+                }
+            }
             self.set_device_attributes(device_id, data)
             data2 = {ATTR_LED_OFF_INTENSITY: intensity}
             self.set_device_attributes(device_id, data2)
@@ -1092,21 +1094,25 @@ class Neviweb130Client:
 
     def set_load_dr_options(self, device_id, onoff, optout, dr):
         """Set load controler Eco Sinope attributes."""
-        data = {ATTR_DRSTATUS: {
-                    "drActive": dr,
-                    "optOut": optout,
-                    "onOff": onoff,
-                }}
+        data = {
+            ATTR_DRSTATUS: {
+                "drActive": dr,
+                "optOut": optout,
+                "onOff": onoff,
+            }
+        }
         _LOGGER.debug("Load.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_options(self, device_id, dr, optout, setpoint):
         """Set load controler Eco Sinope attributes."""
-        data = {ATTR_DRSTATUS: {
-                    "drActive": dr,
-                    "optOut": optout,
-                    "setpoint": setpoint,
-                }}
+        data = {
+            ATTR_DRSTATUS: {
+                "drActive": dr,
+                "optOut": optout,
+                "setpoint": setpoint,
+            }
+        }
         _LOGGER.debug("hvac.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
