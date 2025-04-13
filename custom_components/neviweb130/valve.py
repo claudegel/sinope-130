@@ -35,7 +35,12 @@ from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
                                             ValveEntityFeature)
 from homeassistant.const import ATTR_ENTITY_ID
 
-from . import NOTIFY, STAT_INTERVAL
+from . import (
+    NOTIFY,
+    SCAN_INTERVAL as scan_interval,
+    STAT_INTERVAL,
+)
+SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
