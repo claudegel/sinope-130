@@ -55,12 +55,10 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
                                  UnitOfTemperature)
 
-from . import (
-    HOMEKIT_MODE,
-    NOTIFY,
-    SCAN_INTERVAL as scan_interval,
-    STAT_INTERVAL,
-)
+from . import HOMEKIT_MODE, NOTIFY
+from . import SCAN_INTERVAL as scan_interval
+from . import STAT_INTERVAL
+
 SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_TIMEON,

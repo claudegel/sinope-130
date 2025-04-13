@@ -33,8 +33,7 @@ from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
                                             ValveEntityFeature)
-from homeassistant.const import (ATTR_ENTITY_ID)
-
+from homeassistant.const import ATTR_ENTITY_ID
 
 from . import NOTIFY, STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
