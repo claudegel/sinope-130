@@ -26,7 +26,6 @@ from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 
-SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
                     ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
                     ATTR_KEYPAD, ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
@@ -49,6 +48,7 @@ DEFAULT_NAME = "neviweb130 light"
 DEFAULT_NAME_2 = "neviweb130 light 2"
 DEFAULT_NAME_3 = "neviweb130 light 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [
     ATTR_INTENSITY,
