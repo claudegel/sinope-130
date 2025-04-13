@@ -32,7 +32,6 @@ from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 
-SCAN_INTERVAL = scan_interval
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE,
@@ -80,6 +79,7 @@ DEFAULT_NAME = "neviweb130 switch"
 DEFAULT_NAME_2 = "neviweb130 switch 2"
 DEFAULT_NAME_3 = "neviweb130 switch 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
