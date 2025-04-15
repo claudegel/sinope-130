@@ -8,7 +8,8 @@ model 737 = thermostat TH1300ZB 3600W (floor)
 model 737 = thermostat TH1320ZB-04 (floor)
 model 7373 = thermostat TH1500ZB double pole thermostat
 model 7372 = thermostat TH1400ZB low voltage
-model 7372 = thermostat TH1420ZB-01 Nordik low voltage radiant hydroponic floor thermostat
+model 7372 = thermostat TH1420ZB-01 Nordik low voltage radiant hydroponic
+             floor thermostat
 model 1124 = thermostat OTH4000-ZB Ouellet
 model 737 = thermostat OTH3600-GA-ZB Ouellet
 model 1512 = Thermostat TH1134ZB-HC for heating/cooling interlocking
@@ -20,7 +21,8 @@ model 336 = thermostat TH1133WF 3000W (wifi lite)
 model 336 = thermostat TH1133CR Sinopé Evo 3000W (wifi lite)
 model 336 = thermostat TH1134WF 3000W (wifi lite)
 model 336 = thermostat TH1134CR Sinopé Evo 3000W (wifi lite)
-model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (wifi floor)
+model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort
+            (wifi floor)
 model 739 = thermostat TH1400WF low voltage (wifi)
 model 742 = thermostat TH1500WF double pole thermostat (wifi)
 model 6727 = thermostat TH6500WF heat/cool (wifi)
@@ -45,7 +47,8 @@ import logging
 import time
 
 from homeassistant.components.climate import (ClimateEntity,
-                                              ClimateEntityFeature, HVACAction,
+                                              ClimateEntityFeature,
+                                              HVACAction,
                                               HVACMode)
 from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
                                                     PRESET_NONE)
@@ -640,7 +643,10 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "lock": service.data[ATTR_KEYPAD]}
+                value = {
+                    "id": thermostat.unique_id,
+                    "lock": service.data[ATTR_KEYPAD],
+                }
                 thermostat.set_keypad_lock(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -662,7 +668,10 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "temp": service.data[ATTR_TEMP]}
+                value = {
+                    "id": thermostat.unique_id,
+                    "time": service.data[ATTR_TIME],
+                }
                 thermostat.set_temperature_format(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -804,7 +813,10 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "val": service.data[ATTR_VALUE][0]}
+                value = {
+                    "id": thermostat.unique_id,
+                    "val": service.data[ATTR_VALUE][0],
+                }
                 thermostat.set_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -1386,11 +1398,21 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cycle_length = 0
         self._rssi = None
         self._error_code = None
-        self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
-        self._is_hc = device_info["signature"]["model"] in DEVICE_MODEL_HC
-        self._is_HC = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
-        self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
-        self._is_floor = device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        self._is_double = (
+            device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
+        )
+        self._is_hc = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HC
+        )
+        self._is_HC = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+        )
+        self._is_gen2 = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
+        )
+        self._is_floor = (
+            device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        )
         self._is_wifi_floor = (
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
         )
@@ -1400,10 +1422,18 @@ class Neviweb130Thermostat(ClimateEntity):
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
-        self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
-        self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
-        self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
-        self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_wifi_lite = (
+            device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        )
+        self._is_low_voltage = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW
+        )
+        self._is_low_wifi = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+        )
+        self._is_HP = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        )
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1432,11 +1462,15 @@ class Neviweb130Thermostat(ClimateEntity):
                 UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,
             )
             device_data = self._client.get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL
+                self._id, UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES
+                + FIRMWARE_SPECIAL
             )
             end = time.time()
             elapsed = round(end - start, 3)
-            _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
+            _LOGGER.debug(
+                "Updating %s (%s sec): %s",
+                self._name, elapsed, device_data,
+            )
 
             if "error" not in device_data:
                 if "errorCode" not in device_data:
@@ -2425,7 +2459,9 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._cycle_length = 0
         self._wattage = 0
         self._error_code = None
-        self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
+        self._is_gen2 = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -2636,7 +2672,9 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._load2_status = None
         self._error_code = None
         self._gfci_alert = None
-        self._is_floor = device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        self._is_floor = (
+            device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -2885,7 +2923,9 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._load2 = 0
         self._load2_status = None
         self._rssi = None
-        self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
+        self._is_low_voltage = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -3141,7 +3181,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._em_heat = "off"
         self._aux_cycle_length = 0
         self._error_code = None
-        self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
+        self._is_double = (
+            device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -3586,7 +3628,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
-        self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        self._is_wifi_lite = (
+            device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        )
         self._is_double = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
@@ -3822,7 +3866,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
         self._is_wifi_lite = False
-        self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+        self._is_low_wifi = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+        )
         self._is_double = False
         self._is_low_voltage = False
         self._is_gen2 = False
@@ -4646,7 +4692,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._sound_cap = None
         self._sound_conf = None
         self._error_code = None
-        self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_HP = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        )
         self._is_hc = False
         self._is_HC = False
         self._is_double = False
@@ -4921,7 +4969,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_display_status = None
         self._temp_display_value = None
         self._output_connect_state = None
-        self._is_HC = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+        self._is_HC = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+        )
         self._is_hc = False
         self._is_HP = False
         self._is_double = False
