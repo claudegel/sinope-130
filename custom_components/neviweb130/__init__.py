@@ -223,14 +223,18 @@ class Neviweb130Client:
                     + ", wait a few minutes, then reboot Home Assistant."
                 )
                 self.notify_ha(
-                    "Warning: Got ACCSESSEXC error, Too many active sessions. Close all neviweb130 sessions, wait few minutes and restart HA."
+                    "Warning: Got ACCSESSEXC error, Too many active sessions."
+                    + " Close all neviweb130 sessions, wait few minutes and "
+                    + "restart HA."
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
                 _LOGGER.error(
-                    "Invalid Neviweb username and/or password... Check your configuration parameters"
+                    "Invalid Neviweb username and/or password... "
+                    + "Check your configuration parameters"
                 )
                 self.notify_ha(
-                    "Warning: Got USRBADLOGIN error, Invalid Neviweb username and/or password... Check your configuration parameters"
+                    "Warning: Got USRBADLOGIN error, Invalid Neviweb username "
+                    + "and/or password... Check your configuration parameters"
                 )
             return False
         else:
@@ -539,7 +543,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
+                    "Session expired. Set a scan_interval less "
                     + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
@@ -566,7 +570,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
+                    "Session expired. Set a scan_interval less "
                     + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired...reconnecting...")
@@ -598,7 +602,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
+                    "Session expired. Set a scan_interval less "
                     + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
