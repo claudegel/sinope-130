@@ -1339,13 +1339,13 @@ def lock_to_ha(lock):
 
 def extract_capability_full(cap):
     """Extract swing capability which are True for each HP device and add genegal capability."""
-    value = {i for i in cap if cap[i] == True}
+    value = {i for i in cap if cap[i] is True}
     return FULL_SWING_OFF + sorted(value)
 
 
 def extract_capability(cap):
     """Extract capability which are True for each HP device."""
-    value = {i for i in cap if cap[i] == True}
+    value = {i for i in cap if cap[i] is True}
     return sorted(value)
 
 
