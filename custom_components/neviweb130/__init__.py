@@ -51,8 +51,8 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL)
 from .schema import CONFIG_SCHEMA as config_schema
-from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
+from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
@@ -84,8 +84,7 @@ def setup(hass, hass_config):
     _LOGGER.debug("Setting Homekit mode to: %s", HOMEKIT_MODE)
 
     global IGNORE_MIWI
-    IGNORE_MIWI = hass_config[DOMAIN].get(CONF_IGNORE_MIWI,
-                                          DEFAULT_IGNORE_MIWI)
+    IGNORE_MIWI = hass_config[DOMAIN].get(CONF_IGNORE_MIWI, DEFAULT_IGNORE_MIWI)
     _LOGGER.debug("Setting ignore miwi to: %s", IGNORE_MIWI)
 
     global STAT_INTERVAL
