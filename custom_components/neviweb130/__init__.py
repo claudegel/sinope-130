@@ -47,10 +47,11 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT, ATTR_TANK_SIZE,
                     ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME,
                     ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
-                    ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_NETWORK,
-                    CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
+                    ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
+                    CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL)
 from .schema import CONFIG_SCHEMA as config_schema
+from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
@@ -81,6 +82,11 @@ def setup(hass, hass_config):
     global HOMEKIT_MODE
     HOMEKIT_MODE = hass_config[DOMAIN].get(CONF_HOMEKIT_MODE, DEFAULT_HOMEKIT_MODE)
     _LOGGER.debug("Setting Homekit mode to: %s", HOMEKIT_MODE)
+
+    global IGNORE_MIWI
+    IGNORE_MIWI = hass_config[DOMAIN].get(CONF_IGNORE_MIWI,
+                                          DEFAULT_IGNORE_MIWI)
+    _LOGGER.debug("Setting ignore miwi to: %s", IGNORE_MIWI)
 
     global STAT_INTERVAL
     STAT_INTERVAL = hass_config[DOMAIN].get(CONF_STAT_INTERVAL, DEFAULT_STAT_INTERVAL)
@@ -448,13 +454,17 @@ class Neviweb130Client:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)
             if data[ATTR_SIGNATURE]["protocol"] == "miwi":
-                _LOGGER.debug(
-                    "The Neviweb location selected for parameter «network» "
-                    + "contain unsupported device with protocol miwi. "
-                    + "This location should be added to «sinope neviweb» "
-                    + "custom_components instead. Check your neviweb130 "
-                    + "config."
-                )
+                if not IGNORE_MIWI:
+                    _LOGGER.debug(
+                        "The Neviweb location selected for parameter "
+                        + "«network» contain unsupported device with protocol"
+                        + " miwi. If this location contain only miwi devices,"
+                        + " it should be added to custom_component "
+                        + "«sinope neviweb» instead. If the location contain"
+                        + " mixed miwi, zigbee and/or wifi devices, "
+                        + "add parameter: ignore_miwi: True, in your "
+                        + "neviweb130 configuration."
+                    )
         if self._gateway_id2 is not None:
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
@@ -462,13 +472,17 @@ class Neviweb130Client:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data2)
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    _LOGGER.debug(
-                        "The Neviweb location selected for parameter "
-                        + "«network2» contain unsupported device with "
-                        + "protocol miwi. This location should be added to "
-                        + "«sinope neviweb» custom_components instead. "
-                        + "Check your neviweb130 config."
-                    )
+                    if not IGNORE_MIWI:
+                        _LOGGER.debug(
+                            "The Neviweb location selected for parameter "
+                            + "«network2» contain unsupported device with protocol"
+                            + " miwi. If this location contain only miwi devices,"
+                            + " it should be added to custom_component "
+                            + "«sinope neviweb» instead. If the location contain"
+                            + " mixed miwi, zigbee and/or wifi devices, "
+                            + "add parameter: ignore_miwi: True, in your "
+                            + "neviweb130 configuration."
+                        )
         if self._gateway_id3 is not None:
             for device in self.gateway_data3:
                 data3 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
@@ -476,13 +490,17 @@ class Neviweb130Client:
                     device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data3)
                 if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    _LOGGER.debug(
-                        "The Neviweb location selected for parameter "
-                        + "«network3» contain unsupported device with "
-                        + "protocol miwi. This location should be added to "
-                        + "«sinope neviweb» custom_components instead. "
-                        + "Check your neviweb130 config."
-                    )
+                    if not IGNORE_MIWI:
+                        _LOGGER.debug(
+                            "The Neviweb location selected for parameter "
+                            + "«network3» contain unsupported device with protocol"
+                            + " miwi. If this location contain only miwi devices,"
+                            + " it should be added to custom_component "
+                            + "«sinope neviweb» instead. If the location contain"
+                            + " mixed miwi, zigbee and/or wifi devices, "
+                            + "add parameter: ignore_miwi: True, in your "
+                            + "neviweb130 configuration."
+                        )
 
     #        _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
     #        _LOGGER.debug("Updated gateway data2: %s", self.gateway_data2)
