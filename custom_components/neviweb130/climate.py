@@ -1607,7 +1607,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -1622,7 +1622,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -2652,7 +2652,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -2666,7 +2666,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -2871,7 +2871,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -2885,7 +2885,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -3121,7 +3121,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -3138,7 +3138,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -3368,7 +3368,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -3382,7 +3382,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -3579,7 +3579,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
@@ -3593,7 +3593,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -3814,7 +3814,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
@@ -3827,7 +3827,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -4061,7 +4061,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -4080,7 +4080,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -4350,7 +4350,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -4363,7 +4363,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -4627,7 +4627,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMP_DISPLAY])
-                        if device_data[ATTR_ROOM_TEMP_DISPLAY] != None
+                        if device_data[ATTR_ROOM_TEMP_DISPLAY] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -4641,7 +4641,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -4892,7 +4892,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE])
-                        if device_data[ATTR_ROOM_TEMPERATURE] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = device_data[ATTR_ROOM_SETPOINT]
@@ -4908,7 +4908,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
@@ -5183,7 +5183,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
                         float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
-                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] != None
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -5210,7 +5210,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
-                            if device_data[ATTR_DRSETPOINT]["value"] != None
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
                             else 0
                         )
                     if ATTR_DRSTATUS in device_data:
