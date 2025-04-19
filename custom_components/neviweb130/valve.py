@@ -694,7 +694,7 @@ class Neviweb130Valve(ValveEntity):
     @property
     def valve_status(self):
         """Return current valve status, open or closed."""
-        return self._valve_status != None
+        return self._valve_status is not None
 
     @property
     def extra_state_attributes(self):
