@@ -30,7 +30,8 @@ model 6727 = thermostat TH6510WF heat/cool (wifi)
 model 6730 = thermostat TH6250WF heat/cool (wifi)
 
 Support for Flextherm wifi thermostat
-model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
+model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
+            (sku: FLP55), no energy stats
 
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
@@ -46,11 +47,17 @@ from __future__ import annotations
 import logging
 import time
 
-from homeassistant.components.climate import (ClimateEntity,
-                                              ClimateEntityFeature, HVACAction,
-                                              HVACMode)
-from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
-                                                    PRESET_NONE)
+from homeassistant.components.climate import (
+    ClimateEntity,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
+)
+from homeassistant.components.climate.const import (
+    PRESET_AWAY,
+    PRESET_HOME,
+    PRESET_NONE,
+)
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
@@ -365,73 +372,85 @@ async def async_setup_platform(
             if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
                 entities.append(
                     Neviweb130Thermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name,
+                        device_sku, device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
                 entities.append(
                     Neviweb130G2Thermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
                 entities.append(
                     Neviweb130FloorThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
                 entities.append(
                     Neviweb130LowThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
                 entities.append(
                     Neviweb130DoubleThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
                 entities.append(
                     Neviweb130WifiThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
                 entities.append(
                     Neviweb130WifiLiteThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
                 entities.append(
                     Neviweb130LowWifiThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
                 entities.append(
                     Neviweb130WifiFloorThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
                 entities.append(
                     Neviweb130HcThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
                 entities.append(
                     Neviweb130HPThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             else:
                 entities.append(
                     Neviweb130HeatCoolThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
     for device_info in data.neviweb130_client.gateway_data2:
@@ -450,73 +469,85 @@ async def async_setup_platform(
             if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
                 entities.append(
                     Neviweb130Thermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
                 entities.append(
                     Neviweb130G2Thermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
                 entities.append(
                     Neviweb130FloorThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
                 entities.append(
                     Neviweb130LowThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
                 entities.append(
                     Neviweb130DoubleThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
                 entities.append(
                     Neviweb130WifiThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
                 entities.append(
                     Neviweb130WifiLiteThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
                 entities.append(
                     Neviweb130LowWifiThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
                 entities.append(
                     Neviweb130WifiFloorThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
                 entities.append(
                     Neviweb130HcThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
                 entities.append(
                     Neviweb130HPThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             else:
                 entities.append(
                     Neviweb130HeatCoolThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
     for device_info in data.neviweb130_client.gateway_data3:
@@ -535,73 +566,85 @@ async def async_setup_platform(
             if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
                 entities.append(
                     Neviweb130Thermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
                 entities.append(
                     Neviweb130G2Thermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
                 entities.append(
                     Neviweb130FloorThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
                 entities.append(
                     Neviweb130LowThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
                 entities.append(
                     Neviweb130DoubleThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
                 entities.append(
                     Neviweb130WifiThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
                 entities.append(
                     Neviweb130WifiLiteThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
                 entities.append(
                     Neviweb130LowWifiThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
                 entities.append(
                     Neviweb130WifiFloorThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
                 entities.append(
                     Neviweb130HcThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
                 entities.append(
                     Neviweb130HPThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
             else:
                 entities.append(
                     Neviweb130HeatCoolThermostat(
-                        data, device_info, device_name, device_sku, device_firmware
+                        data, device_info, device_name, device_sku,
+                        device_firmware,
                     )
                 )
 
@@ -656,7 +699,10 @@ async def async_setup_platform(
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {"id": thermostat.unique_id, "time": service.data[ATTR_TIME]}
+                value = {
+                    "id": thermostat.unique_id,
+                    "time": service.data[ATTR_TIME],
+                }
                 thermostat.set_time_format(value)
                 thermostat.schedule_update_ha_state(True)
                 break
@@ -669,7 +715,7 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "time": service.data[ATTR_TIME],
+                    "temp": service.data[ATTR_TEMP],
                 }
                 thermostat.set_temperature_format(value)
                 thermostat.schedule_update_ha_state(True)
@@ -1397,11 +1443,21 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cycle_length = 0
         self._rssi = None
         self._error_code = None
-        self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
-        self._is_hc = device_info["signature"]["model"] in DEVICE_MODEL_HC
-        self._is_HC = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
-        self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
-        self._is_floor = device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        self._is_double = (
+            device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
+        )
+        self._is_hc = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HC
+        )
+        self._is_HC = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+        )
+        self._is_gen2 = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
+        )
+        self._is_floor = (
+            device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        )
         self._is_wifi_floor = (
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
         )
@@ -1411,10 +1467,18 @@ class Neviweb130Thermostat(ClimateEntity):
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
-        self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
-        self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
-        self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
-        self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_wifi_lite = (
+            device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        )
+        self._is_low_voltage = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW
+        )
+        self._is_low_wifi = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+        )
+        self._is_HP = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        )
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
@@ -1443,7 +1507,10 @@ class Neviweb130Thermostat(ClimateEntity):
                 UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,
             )
             device_data = self._client.get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL
+                self._id,
+                UPDATE_ATTRIBUTES
+                + HEAT_ATTRIBUTES
+                + FIRMWARE_SPECIAL
             )
             end = time.time()
             elapsed = round(end - start, 3)
@@ -1496,7 +1563,8 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._wattage = device_data[ATTR_WATTAGE]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
-                        "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
+                        "A timeout occur during data update. Device %s do not "
+                        + "respond. Check your network... (%s)",
                         self._name,
                         device_data,
                     )
@@ -2223,7 +2291,7 @@ class Neviweb130Thermostat(ClimateEntity):
             and self._energy_stat_time != 0
         ):
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            #            _LOGGER.debug("Energy data for %s (SKU: %s): %s, size = %s", self._name, self._sku, device_hourly_stats, len(device_hourly_stats))
+            #_LOGGER.debug("Energy data for %s (SKU: %s): %s, size = %s", self._name, self._sku, device_hourly_stats, len(device_hourly_stats))
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
                 self._hour_kwh = device_hourly_stats[1]["period"] / 1000
@@ -2232,7 +2300,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._hour_kwh = 0
                 _LOGGER.warning("Got None for device_hourly_stats")
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            #            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
+            #_LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
                 self._today_kwh = device_daily_stats[0]["period"] / 1000
@@ -2241,7 +2309,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._today_kwh = 0
                 _LOGGER.warning("Got None for device_daily_stats")
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-            #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+            #_LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
                 self._month_kwh = device_monthly_stats[0]["period"] / 1000
@@ -2281,25 +2349,32 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Session expired... reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
+                    "Warning: Got USRSESSEXP error, Neviweb session expired. "
+                    + "Set your scan_interval parameter to less than 10 "
+                    + "minutes to avoid this... Reconnecting..."
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+            _LOGGER.warning(
+                "Maximun daily request reached...Reduce polling frequency."
+            )
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance...Retry later.")
             self.notify_ha(
-                "Warning: Neviweb access temporary blocked for maintenance...Retry later."
+                "Warning: Neviweb access temporary blocked for maintenance..."
+                + "Retry later."
             )
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
             _LOGGER.warning(
-                "Maximun session number reached...Close other connections and try again."
+                "Maximun session number reached...Close other connections "
+                + "and try again."
             )
             self.notify_ha(
-                "Warning: Maximun Neviweb session number reached...Close other connections and try again."
+                "Warning: Maximun Neviweb session number reached..."
+                + "Close other connections and try again."
             )
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -2311,26 +2386,31 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s...(SKU: %s) Report to maintainer.",
+                "Device action not supported for %s...(SKU: %s) "
+                + "Report to maintainer.",
                 self._name,
                 self._sku,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
-                "Device Communication Timeout... The device %s did not respond to the server within the prescribed delay. (SKU: %s)",
+                "Device Communication Timeout... The device %s did not "
+                + "respond to the server within the prescribed delay. "
+                + "(SKU: %s)",
                 self._name,
                 self._sku,
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s: %s...(SKU: %s)",
+                "Service error, device not available retry later %s: %s..."
+                + "(SKU: %s)",
                 self._name,
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s: "
+                + "%s...(SKU: %s)",
                 self._name,
                 error_data,
                 self._sku,
@@ -2345,16 +2425,21 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated "
+                    + "for 20 minutes.",
                     self._name,
                 )
                 _LOGGER.warning(
-                    "You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",
+                    "You can re-activate device %s with "
+                    + "service.neviweb130_set_activation or wait 20 minutes "
+                    + "for update to restart or just restart HA.",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for "
+                    "Warning: Received message from Neviweb, device "
+                    + "disconnected... Check your log... Neviweb update will "
+                    + "be halted for 20 minutes for "
                     + self._name
                     + ", Sku: "
                     + self._sku
@@ -2441,7 +2526,9 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._cycle_length = 0
         self._wattage = 0
         self._error_code = None
-        self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
+        self._is_gen2 = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -2482,7 +2569,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             )
             end = time.time()
             elapsed = round(end - start, 3)
-            _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                          self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._cur_temp_before = self._cur_temp
@@ -2652,7 +2740,9 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._load2_status = None
         self._error_code = None
         self._gfci_alert = None
-        self._is_floor = device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        self._is_floor = (
+            device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -2901,7 +2991,9 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._load2 = 0
         self._load2_status = None
         self._rssi = None
-        self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
+        self._is_low_voltage = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -3157,7 +3249,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._em_heat = "off"
         self._aux_cycle_length = 0
         self._error_code = None
-        self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
+        self._is_double = (
+            device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
+        )
         self._is_wifi = False
         self._is_wifi_lite = False
         self._is_wifi_floor = False
@@ -3408,7 +3502,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             )
             end = time.time()
             elapsed = round(end - start, 3)
-            _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
+            _LOGGER.debug("Updating %s (%s sec): %s",
+                          self._name, elapsed, device_data)
 
             if "error" not in device_data:
                 if "errorCode" not in device_data:
@@ -3602,7 +3697,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
-        self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        self._is_wifi_lite = (
+            device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+        )
         self._is_double = False
         self._is_wifi_floor = False
         self._is_low_wifi = False
@@ -3716,7 +3813,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 self._activ = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        "Warning: Neviweb Device update restarted for "
+                        f"Warning: Neviweb Device update restarted for "
                         + self._name
                         + ", Sku: "
                         + self._sku
@@ -3838,7 +3935,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         )
         self._is_wifi_lite = False
-        self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+        self._is_low_wifi = (
+            device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
+        )
         self._is_double = False
         self._is_low_voltage = False
         self._is_gen2 = False
@@ -4662,7 +4761,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._sound_cap = None
         self._sound_conf = None
         self._error_code = None
-        self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_HP = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        )
         self._is_hc = False
         self._is_HC = False
         self._is_double = False
@@ -4937,7 +5038,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_display_status = None
         self._temp_display_value = None
         self._output_connect_state = None
-        self._is_HC = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+        self._is_HC = (
+            device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+        )
         self._is_hc = False
         self._is_HP = False
         self._is_double = False
