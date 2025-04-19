@@ -27,31 +27,17 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import timedelta
 
-import voluptuous as vol
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
-                                            ValveEntityDescription,
                                             ValveEntityFeature)
-from homeassistant.const import (ATTR_ENTITY_ID, SERVICE_CLOSE_VALVE,
-                                 SERVICE_OPEN_VALVE,
-                                 SERVICE_SET_VALVE_POSITION, SERVICE_TOGGLE,
-                                 STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
-                                 STATE_OPENING, STATE_UNAVAILABLE, Platform,
-                                 UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import (device_registry, discovery,
-                                   entity_component, entity_platform,
-                                   entity_registry, service)
-from homeassistant.helpers.event import track_time_interval
-from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.const import ATTR_ENTITY_ID
 
-import custom_components.neviweb130 as neviweb130
-
-from . import NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
+from . import NOTIFY
+from . import SCAN_INTERVAL as scan_interval
+from . import STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
@@ -72,8 +58,8 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
-from .schema import (FLOW_DURATION, FLOW_MODEL, SET_ACTIVATION_SCHEMA,
-                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
+from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
+                     SET_FLOW_METER_MODEL_SCHEMA,
                      SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
                      SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
                      VERSION)
@@ -84,6 +70,7 @@ DEFAULT_NAME = "neviweb130 valve"
 DEFAULT_NAME_2 = "neviweb130 valve 2"
 DEFAULT_NAME_3 = "neviweb130 valve 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
 
@@ -707,7 +694,7 @@ class Neviweb130Valve(ValveEntity):
     @property
     def valve_status(self):
         """Return current valve status, open or closed."""
-        return self._valve_status != None
+        return self._valve_status is not None
 
     @property
     def extra_state_attributes(self):
@@ -1218,7 +1205,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "temperature_alert": self._temp_alert,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
@@ -1492,7 +1478,6 @@ class Neviweb130MeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1728,7 +1713,6 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "motor_target_position": self._motor_target,
                 "temperature_alert": self._temp_alert,
                 "valve_status": self._valve_info_status,

@@ -5,6 +5,7 @@ CONF_NETWORK = "network"
 CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
 CONF_HOMEKIT_MODE = "homekit_mode"
+CONF_IGNORE_MIWI = "ignore_miwi"
 CONF_STAT_INTERVAL = "stat_interval"
 CONF_NOTIFY = "notify"
 
@@ -42,6 +43,7 @@ ATTR_KEYPAD = "lockKeypad"
 ATTR_OCCUPANCY = "occupancyMode"
 ATTR_FLOOR_OUTPUT1 = "loadWattOutput1"  # status on/off, value=xx
 ATTR_LIGHT_WATTAGE = "loadWattOutput1"  # status on/off, value=xx
+ATTR_OUTPUT1 = "loadWattOutput1"
 ATTR_WIFI_WATTAGE = "loadWatt"
 ATTR_WIFI_WATT_NOW = "loadWattNow"
 ATTR_WIFI = "wifiRssi"

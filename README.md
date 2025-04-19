@@ -30,8 +30,10 @@ Here is a list of currently supported devices. Basically, it's everything that c
 - Wifi thermostats (no need for GT130):
   - Sinopé TH1124WF wifi 4000W Line voltage thermostat
   - Sinopé TH1123WF wifi 3000W Line voltage thermostat
-  - Sinopé TH1133WF wifi 3000W Line voltage thermostat
-  - Sinopé TH1133CR Sinopé Evo 3000w Line voltage thermostat
+  - Sinopé TH1133WF wifi 3000W Line voltage thermostat lite
+  - Sinopé TH1133CR Sinopé Evo 3000w Line voltage thermostat lite
+  - Sinopé TH1134WF wifi 4000W Line voltage thermostat lite
+  - Sinopé TH1134CR Sinopé Evo 4000w Line voltage thermostat lite
   - Sinopé TH1300WF wifi 3600W floor thermostat
   - Sinopé TH1310WF wifi 3600W floor thermostat
   - Sinopé TH1325WF wifi 3600W floor thermostat
@@ -61,6 +63,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé MC3100ZB Sedna valve multi-controller for allarm system
 - Wifi specialized control:
   - Sinopé RM3500WF Load controller for water heater
+  - Sinopé RM3510WF Load controller for water heater
+  - Sinopé RM3250WF load controller 50A, wifi
 - Water leak detector and valves:
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch wifi
@@ -148,6 +152,7 @@ neviweb130:
   network3: 'your third location name in Neviweb' (3e emplacement)
   scan_interval: 360
   homekit_mode: False
+  ignore_miwi: False
   stat_interval: 1800
   notify: "both"
 ```
@@ -166,6 +171,7 @@ Networks names are the names found on top of first page after loging into Neviwe
 | **network3** | no | 3rd location found | The name of the third location you want to control (zigbee and/or wifi only). Don't add it if you have only one network.
 | **scan_interval** | no | 540 | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire.
 | **homekit_mode** | no | False | Add support for Homekit specific values. Not needed if you don't use homekit.
+| **ignore_miwi** | no | False | Ignore miwi devices if present in same location then zigbee and/or wifi devices. Warm if we set wrong Neviweb location.
 | **stat_interval** | no | 1800 | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.
 | **notify** | no | both | The method to send notification in case of device error. value option are nothing, logging, notification, both.
 

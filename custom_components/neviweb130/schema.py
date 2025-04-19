@@ -31,16 +31,17 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT, ATTR_TANK_TYPE,
                     ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER,
                     ATTR_TIMER2, ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
-                    ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_NETWORK,
-                    CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
+                    ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
+                    CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN)
 
 """Default parameters values."""
 
-VERSION = "2.9.9"
+VERSION = "3.0.0"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
+IGNORE_MIWI = False
 NOTIFY = "both"
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
 MIN_TIME = {120, 180, 240, 300, 600}
@@ -143,6 +144,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_NETWORK3): cv.string,
                 vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
                 vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
+                vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,
                 vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(
                     vol.Coerce(int), vol.Range(min=300, max=1800)
                 ),
