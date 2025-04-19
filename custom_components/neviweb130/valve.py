@@ -33,10 +33,12 @@ from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
                                             ValveEntityFeature)
-from homeassistant.const import (ATTR_ENTITY_ID)
 
+from homeassistant.const import ATTR_ENTITY_ID
 
-from . import NOTIFY, STAT_INTERVAL
+from . import NOTIFY
+from . import SCAN_INTERVAL as scan_interval
+from . import STAT_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
@@ -57,8 +59,9 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
-from .schema import (SET_ACTIVATION_SCHEMA,
-                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
+
+from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
+                     SET_FLOW_METER_MODEL_SCHEMA,
                      SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
                      SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
                      VERSION)
@@ -69,6 +72,7 @@ DEFAULT_NAME = "neviweb130 valve"
 DEFAULT_NAME_2 = "neviweb130 valve 2"
 DEFAULT_NAME_3 = "neviweb130 valve 3"
 SNOOZE_TIME = 1200
+SCAN_INTERVAL = scan_interval
 
 SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
 
@@ -692,7 +696,7 @@ class Neviweb130Valve(ValveEntity):
     @property
     def valve_status(self):
         """Return current valve status, open or closed."""
-        return self._valve_status != None
+        return self._valve_status is not None
 
     @property
     def extra_state_attributes(self):
@@ -1476,7 +1480,6 @@ class Neviweb130MeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
