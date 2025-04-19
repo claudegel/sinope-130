@@ -1478,7 +1478,6 @@ class Neviweb130MeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
-                "valve_status": self._valve_status,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
