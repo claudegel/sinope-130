@@ -879,7 +879,7 @@ class Neviweb130Switch(SwitchEntity):
     @property
     def keypad_status(self):
         """Return current keypad status, unlocked, locked or partially locked."""
-        if self._keypad != None:
+        if self._keypad is not None:
             return lock_to_ha(self._keypad)
         return False
 
