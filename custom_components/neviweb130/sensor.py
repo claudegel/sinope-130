@@ -739,7 +739,7 @@ class Neviweb130Sensor(Entity):
     @property
     def leak_status(self):
         """Return current sensor leak status: 'water' or 'ok'."""
-        return self._leak_status != None
+        return self._leak_status is not None
 
     @property
     def extra_state_attributes(self):
@@ -1364,7 +1364,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
     @property
     def gateway_status(self):
         """Return current gateway status: 'online' or 'offline'."""
-        return self._gateway_status != None
+        return self._gateway_status is not None
 
     @property
     def state(self):
