@@ -115,8 +115,9 @@ class Neviweb130Data:
         network = config.get(CONF_NETWORK)
         network2 = config.get(CONF_NETWORK2)
         network3 = config.get(CONF_NETWORK3)
+        ignore_miwi = config.get(CONF_IGNORE_MIWI)
         self.neviweb130_client = Neviweb130Client(
-            hass, username, password, network, network2, network3
+            hass, username, password, network, network2, network3, ignore_miwi
         )
 
 
@@ -141,6 +142,7 @@ class Neviweb130Client:
         network,
         network2,
         network3,
+        ignore_miwi,
         timeout=REQUESTS_TIMEOUT,
     ):
         """Initialize the client object."""
@@ -150,6 +152,7 @@ class Neviweb130Client:
         self._network_name = network
         self._network_name2 = network2
         self._network_name3 = network3
+        self._ignore_miwi = ignore_miwi
         self._gateway_id = None
         self._gateway_id2 = None
         self._gateway_id3 = None
@@ -453,7 +456,7 @@ class Neviweb130Client:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)
             if data[ATTR_SIGNATURE]["protocol"] == "miwi":
-                if not IGNORE_MIWI:
+                if not self._ignore_miwi:
                     _LOGGER.debug(
                         "The Neviweb location selected for parameter "
                         + "«network» contain unsupported device with protocol"
@@ -471,7 +474,7 @@ class Neviweb130Client:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data2)
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    if not IGNORE_MIWI:
+                    if not self._ignore_miwi:
                         _LOGGER.debug(
                             "The Neviweb location selected for parameter "
                             + "«network2» contain unsupported device with protocol"
@@ -489,7 +492,7 @@ class Neviweb130Client:
                     device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data3)
                 if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    if not IGNORE_MIWI:
+                    if not self._ignore_miwi:
                         _LOGGER.debug(
                             "The Neviweb location selected for parameter "
                             + "«network3» contain unsupported device with protocol"
