@@ -829,7 +829,7 @@ class Neviweb130Valve(ValveEntity):
                 and self._energy_stat_time != 0
             ):
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-                #_LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
+                # _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     self._hour_energy_kwh_count = (
                         device_hourly_stats[1]["counter"] / 1000
@@ -840,7 +840,7 @@ class Neviweb130Valve(ValveEntity):
                     self._hour_kwh = 0
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
-                #_LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
+                # _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     self._today_energy_kwh_count = (
                         device_daily_stats[0]["counter"] / 1000
@@ -851,7 +851,7 @@ class Neviweb130Valve(ValveEntity):
                     self._today_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-                #_LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+                # _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     self._month_energy_kwh_count = (
                         device_monthly_stats[0]["counter"] / 1000
@@ -884,9 +884,7 @@ class Neviweb130Valve(ValveEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning(
-                "Maximun daily request reached...Reduce polling frequency."
-            )
+            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
@@ -1117,7 +1115,10 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     self._battery_alert = device_data[ATTR_BATT_ALERT]
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                        if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
+                        if (
+                            self._water_leak_status == "flowMeter"
+                            and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0
+                        ):
                             self.notify_ha(
                                 "Warning: Neviweb Device error detected: "
                                 + device_data[ATTR_WATER_LEAK_STATUS]
@@ -1422,7 +1423,10 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         ]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                    if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
+                    if (
+                        self._water_leak_status == "flowMeter"
+                        and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0
+                    ):
                         self.notify_ha(
                             "Warning: Neviweb Device error detected: "
                             + device_data[ATTR_WATER_LEAK_STATUS]
@@ -1680,7 +1684,10 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         ]
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                    if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
+                    if (
+                        self._water_leak_status == "flowMeter"
+                        and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0
+                    ):
                         self.notify_ha(
                             "Warning: Neviweb Device error detected: "
                             + device_data[ATTR_WATER_LEAK_STATUS]
