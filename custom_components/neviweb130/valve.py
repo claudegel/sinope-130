@@ -324,7 +324,10 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+                value = {
+                    "id": switch.unique_id,
+                    "batt": service.data[ATTR_BATT_ALERT],
+                }
                 switch.set_valve_alert(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -335,7 +338,10 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "temp": service.data[ATTR_TEMP_ALERT]}
+                value = {
+                    "id": switch.unique_id,
+                    "temp": service.data[ATTR_TEMP_ALERT],
+                }
                 switch.set_valve_temp_alert(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -403,7 +409,10 @@ async def async_setup_platform(
         value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
+                value = {
+                    "id": switch.unique_id,
+                    "active": service.data[ATTR_ACTIVE],
+                }
                 switch.set_activation(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -820,7 +829,7 @@ class Neviweb130Valve(ValveEntity):
                 and self._energy_stat_time != 0
             ):
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-                #                _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
+                #_LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     self._hour_energy_kwh_count = (
                         device_hourly_stats[1]["counter"] / 1000
@@ -831,7 +840,7 @@ class Neviweb130Valve(ValveEntity):
                     self._hour_kwh = 0
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
-                #                _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
+                #_LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     self._today_energy_kwh_count = (
                         device_daily_stats[0]["counter"] / 1000
@@ -842,7 +851,7 @@ class Neviweb130Valve(ValveEntity):
                     self._today_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-                #                _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+                #_LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     self._month_energy_kwh_count = (
                         device_monthly_stats[0]["counter"] / 1000
@@ -875,21 +884,26 @@ class Neviweb130Valve(ValveEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+            _LOGGER.warning(
+                "Maximun daily request reached...Reduce polling frequency."
+            )
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance...Retry later.")
             self.notify_ha(
-                "Warning: Neviweb access temporary blocked for maintenance...Retry later."
+                "Warning: Neviweb access temporary blocked for maintenance..."
+                + "Retry later."
             )
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
             _LOGGER.warning(
-                "Maximun session number reached...Close other connections and try again."
+                "Maximun session number reached...Close other connections "
+                + "and try again."
             )
             self.notify_ha(
-                "Warning: Maximun Neviweb session number reached...Close other connections and try again."
+                "Warning: Maximun Neviweb session number reached...Close "
+                + "other connections and try again."
             )
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -901,13 +915,16 @@ class Neviweb130Valve(ValveEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s...(SKU: %s) Report to maintainer.",
+                "Device action not supported for %s...(SKU: %s) Report to "
+                + "maintainer.",
                 self._name,
                 self._sku,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
-                "Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)",
+                "Device Communication Timeout for %s... The device did not "
+                + "respond to the server within the prescribed delay. "
+                + "(SKU: %s)",
                 self._name,
                 self._sku,
             )
@@ -920,7 +937,8 @@ class Neviweb130Valve(ValveEntity):
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s: %s..."
+                + "(SKU: %s)",
                 self._name,
                 error_data,
                 self._sku,
@@ -934,16 +952,21 @@ class Neviweb130Valve(ValveEntity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for "
+                    + "20 minutes.",
                     self._name,
                 )
                 _LOGGER.warning(
-                    "You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",
+                    "You can re-activate device %s with "
+                    + "service.neviweb130_set_activation or wait 20 minutes "
+                    + "for update to restart or just restart HA.",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for "
+                    "Warning: Received message from Neviweb, device "
+                    + "disconnected... Check your log... Neviweb update will "
+                    + "be halted for 20 minutes for "
                     + self._name
                     + ", Sku: "
                     + self._sku
