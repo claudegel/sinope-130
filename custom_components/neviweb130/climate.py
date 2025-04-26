@@ -2181,6 +2181,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
         self._operation_mode = hvac_mode
+        self.update()
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
