@@ -1906,9 +1906,9 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return HVACAction.IDLE
+                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
             else:
-                return HVACAction.HEATING
+                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
