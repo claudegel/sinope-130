@@ -1735,7 +1735,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def pi_heating_demand(self) -> int:
         """Heating demand."""
-        return self.heat_level
+        return self._heat_level
 
     @property
     def supported_features(self):
