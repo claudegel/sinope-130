@@ -1735,7 +1735,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def pi_heating_demand(self) -> int:
         """Heating demand."""
-        return self.heat_level
+        return self._heat_level
 
     @property
     def supported_features(self):
@@ -1905,7 +1905,10 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._operation_mode == HVACMode.DRY:
             return HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
-            return HVACAction.HEATING
+            if self._heat_level == 0:
+                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+            else:
+                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
@@ -2178,6 +2181,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
         self._operation_mode = hvac_mode
+        self.update()
 
     def set_preset_mode(self, preset_mode):
         """Activate a preset."""
