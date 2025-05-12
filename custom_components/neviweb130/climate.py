@@ -2418,6 +2418,8 @@ class Neviweb130Thermostat(ClimateEntity):
                         + str(device_error_code["raw"])
                         + " for device: "
                         + self._name
+                        + ", ID: "
+                        + str(self._id)
                         + ", Sku: "
                         + self._sku
                     )
@@ -2462,39 +2464,45 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s: %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s..."
+                + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s...(SKU: %s) "
+                "Device action not supported for %s...(id: %s, SKU: %s) "
                 + "Report to maintainer.",
                 self._name,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
-                "Device Communication Timeout... The device %s did not "
-                + "respond to the server within the prescribed delay. "
+                "Device Communication Timeout... The device %s (id: %s) "
+                + "did not respond to the server within the prescribed delay. "
                 + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
                 "Service error, device not available retry later %s: %s..."
-                + "(SKU: %s)",
+                + "(id: %s, SKU: %s)",
                 self._name,
                 error_data,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s: "
-                + "%s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s "
+                + "(id: %s): %s...(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
@@ -2502,8 +2510,10 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("NOTIFY value: %s, (SKU: %s)", NOTIFY, self._sku)
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s is disconected from Neviweb: %s...(SKU: %s)",
+                    "Device %s (id: %s) is disconected from Neviweb: %s..."
+                    + "(SKU: %s)",
                     self._name,
+                    str(self._id),
                     error_data,
                     self._sku,
                 )
@@ -2524,6 +2534,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     + "disconnected... Check your log... Neviweb update will "
                     + "be halted for 20 minutes for "
                     + self._name
+                    + ", id: "
+                    + str(self._id)
                     + ", Sku: "
                     + self._sku
                 )
@@ -2531,22 +2543,28 @@ class Neviweb130Thermostat(ClimateEntity):
             self._snooze = time.time()
         elif error_data == "DVCERR":
             _LOGGER.warning(
-                "Device error for %s, service already activ: %s...(SKU: %s)",
+                "Device error for %s (id: %s), service already activ: %s..."
+                + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "SVCUNAUTH":
             _LOGGER.warning(
-                "Service not authorised for device %s: %s...(SKU: %s)",
+                "Service not authorised for device %s (id: %s): %s..."
+                + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         else:
             _LOGGER.warning(
-                "Unknown error for %s: %s...(SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to"
+                + " maintainer.",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
