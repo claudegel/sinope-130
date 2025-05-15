@@ -5055,7 +5055,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH6500WF, TH6250WF heat cool thermostats."""
+    """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO heat cool thermostats."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
