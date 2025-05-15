@@ -36,16 +36,16 @@ from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_LEAK_ALERT,
                     ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,
-                    ATTR_ROOM_TEMP_ALARM, ATTR_ROOM_TEMPERATURE,
-                    ATTR_RSSI, ATTR_SAMPLING, ATTR_STATUS,
-                    ATTR_TANK_HEIGHT, ATTR_TANK_PERCENT,
-                    ATTR_TANK_TYPE, ATTR_TEMP_ALERT, ATTR_WATER_LEAK_STATUS,
-                    DOMAIN, SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
-                    SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
-                    SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
-                    SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_REFUEL_ALERT,
-                    SERVICE_SET_SENSOR_ALERT, SERVICE_SET_TANK_HEIGHT,
-                    SERVICE_SET_TANK_TYPE, STATE_WATER_LEAK)
+                    ATTR_ROOM_TEMP_ALARM, ATTR_ROOM_TEMPERATURE, ATTR_RSSI,
+                    ATTR_SAMPLING, ATTR_STATUS, ATTR_TANK_HEIGHT,
+                    ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_TEMP_ALERT,
+                    ATTR_WATER_LEAK_STATUS, DOMAIN, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_BATTERY_ALERT, SERVICE_SET_BATTERY_TYPE,
+                    SERVICE_SET_FUEL_ALERT, SERVICE_SET_GAUGE_TYPE,
+                    SERVICE_SET_LOW_FUEL_ALERT, SERVICE_SET_NEVIWEB_STATUS,
+                    SERVICE_SET_REFUEL_ALERT, SERVICE_SET_SENSOR_ALERT,
+                    SERVICE_SET_TANK_HEIGHT, SERVICE_SET_TANK_TYPE,
+                    STATE_WATER_LEAK)
 from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
                      SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
                      SET_GAUGE_TYPE_SCHEMA, SET_LOW_FUEL_ALERT_SCHEMA,
@@ -881,8 +881,7 @@ class Neviweb130Sensor(Entity):
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s (id: %s): %s..."
-                + "(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s..." + "(SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1347,7 +1346,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._fuel_percent_alert = alert
 
     def set_refuel_alert(self, value):
-        """"Set refuel alert for LM4110-ZB sensor True/False."""
+        """ "Set refuel alert for LM4110-ZB sensor True/False."""
         alert = value["refuel"]
         entity = value["id"]
         self._client.set_refuel_alert(entity, alert)
