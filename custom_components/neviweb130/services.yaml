@@ -499,6 +499,16 @@ set_fuel_alert:
       description: set to «True» to activate alert, or «False».
       example: True
 
+set_refuel_alert:
+  description: Set refuel alert, on/off for LM4110-ZB.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    alertRefuel:
+      description: set to «True» to activate alert, or «False».
+      example: True
+
 set_battery_alert:
   description: Set battery alert, on/off for LM4110-ZB.
   fields:

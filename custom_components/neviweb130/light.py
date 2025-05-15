@@ -687,42 +687,54 @@ class Neviweb130Light(LightEntity):
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s: %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s...(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s...(SKU: %s) Report to maintainer.",
+                "Device action not supported for %s (id: %s)...(SKU: %s) Report to "
+                + "maintainer.",
                 self._name,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
-                "Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)",
+                "Device Communication Timeout for %s (id: %s)... The device "
+                + "did not respond to the server within the prescribed delay."
+                + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s: %s...(SKU: %s)",
+                "Service error, device not available retry later %s (id: %s):"
+                + "%s...(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s "
+                + "(id: %s): %s...(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s is disconected from Neviweb: %s...(SKU: %s)",
+                    "Device %s (id: %s) is disconected from Neviweb: %s..."
+                    + "(SKU: %s)",
                     self._name,
+                    str(self._id),
                     error_data,
                     self._sku,
                 )
@@ -738,6 +750,8 @@ class Neviweb130Light(LightEntity):
                 self.notify_ha(
                     "Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for "
                     + self._name
+                    + ", id: "
+                    + str(self._id)
                     + ", Sku: "
                     + self._sku
                 )
@@ -745,8 +759,10 @@ class Neviweb130Light(LightEntity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s: %s...(SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to "
+                + "maintainer.",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )

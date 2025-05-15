@@ -35,21 +35,23 @@ from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
                     ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_LEAK_ALERT,
-                    ATTR_MODE, ATTR_OCCUPANCY, ATTR_ROOM_TEMP_ALARM,
-                    ATTR_ROOM_TEMPERATURE, ATTR_RSSI, ATTR_SAMPLING,
-                    ATTR_STATUS, ATTR_TANK_HEIGHT, ATTR_TANK_PERCENT,
-                    ATTR_TANK_TYPE, ATTR_TEMP_ALERT, ATTR_WATER_LEAK_STATUS,
-                    DOMAIN, SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
-                    SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
-                    SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
-                    SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_SENSOR_ALERT,
+                    ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,
+                    ATTR_ROOM_TEMP_ALARM, ATTR_ROOM_TEMPERATURE, ATTR_RSSI,
+                    ATTR_SAMPLING, ATTR_STATUS, ATTR_TANK_HEIGHT,
+                    ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_TEMP_ALERT,
+                    ATTR_WATER_LEAK_STATUS, DOMAIN, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_BATTERY_ALERT, SERVICE_SET_BATTERY_TYPE,
+                    SERVICE_SET_FUEL_ALERT, SERVICE_SET_GAUGE_TYPE,
+                    SERVICE_SET_LOW_FUEL_ALERT, SERVICE_SET_NEVIWEB_STATUS,
+                    SERVICE_SET_REFUEL_ALERT, SERVICE_SET_SENSOR_ALERT,
                     SERVICE_SET_TANK_HEIGHT, SERVICE_SET_TANK_TYPE,
                     STATE_WATER_LEAK)
 from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
                      SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
                      SET_GAUGE_TYPE_SCHEMA, SET_LOW_FUEL_ALERT_SCHEMA,
-                     SET_NEVIWEB_STATUS_SCHEMA, SET_SENSOR_ALERT_SCHEMA,
-                     SET_TANK_HEIGHT_SCHEMA, SET_TANK_TYPE_SCHEMA, VERSION)
+                     SET_NEVIWEB_STATUS_SCHEMA, SET_REFUEL_ALERT_SCHEMA,
+                     SET_SENSOR_ALERT_SCHEMA, SET_TANK_HEIGHT_SCHEMA,
+                     SET_TANK_TYPE_SCHEMA, VERSION)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -400,6 +402,17 @@ async def async_setup_platform(
                 sensor.schedule_update_ha_state(True)
                 break
 
+    def set_refuel_alert_service(service):
+        """Set refuel alert for LM4110-ZB."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for sensor in entities:
+            if sensor.entity_id == entity_id:
+                value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
+                sensor.set_refuel_alert(value)
+                sensor.schedule_update_ha_state(True)
+                break
+
     def set_battery_alert_service(service):
         """Set battery alert for LM4110-ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
@@ -480,6 +493,13 @@ async def async_setup_platform(
         SERVICE_SET_FUEL_ALERT,
         set_fuel_alert_service,
         schema=SET_FUEL_ALERT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_REFUEL_ALERT,
+        set_refuel_alert_service,
+        schema=SET_REFUEL_ALERT_SCHEMA,
     )
 
     hass.services.async_register(
@@ -861,42 +881,54 @@ class Neviweb130Sensor(Entity):
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s: %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s..." + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s...(SKU: %s) Report to maintainer.",
+                "Device action not supported for %s (id: %s)...(SKU: %s) "
+                + "Report to maintainer.",
                 self._name,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
-                "Device Communication Timeout for %s... The device did not respond to the server within the prescribed delay. (SKU: %s)",
+                "Device Communication Timeout for %s (id: %s)... The device "
+                + "did not respond to the server within the prescribed delay."
+                + "(SKU: %s)",
                 self._name,
+                str(self._id),
                 self._sku,
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s: %s...(SKU: %s)",
+                "Service error, device not available retry later %s (id: %s):"
+                + "%s...(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s: %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s "
+                + "(id: %s): %s...(SKU: %s)",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s is disconected from Neviweb: %s...(SKU: %s)",
+                    "Device %s is disconected from Neviweb: %s (id: %s)..."
+                    + "(SKU: %s)",
                     self._name,
+                    str(self._id),
                     error_data,
                     self._sku,
                 )
@@ -905,13 +937,19 @@ class Neviweb130Sensor(Entity):
                     self._name,
                 )
                 _LOGGER.warning(
-                    "You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",
+                    "You can re-activate device %s with "
+                    + "service.neviweb130_set_activation or wait 20 minutes "
+                    + "for update to restart or just restart HA.",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for "
+                    "Warning: Received message from Neviweb, device "
+                    + "disconnected... Check your log... Neviweb update will "
+                    + "be halted for 20 minutes for "
                     + self._name
+                    + ", id: "
+                    + str(self._id)
                     + ", Sku: "
                     + self._sku
                 )
@@ -919,8 +957,10 @@ class Neviweb130Sensor(Entity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s: %s...(SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to "
+                + "maintainer.",
                 self._name,
+                str(self._id),
                 error_data,
                 self._sku,
             )
@@ -1121,6 +1161,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._tank_height = None
         self._gauge_type = None
         self._fuel_alert = None
+        self._refuel = False
         self._fuel_percent_alert = None
         self._battery_alert = None
         self._battery_voltage = None
@@ -1143,6 +1184,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     ATTR_GAUGE_TYPE,
                     ATTR_TANK_HEIGHT,
                     ATTR_FUEL_ALERT,
+                    ATTR_REFUEL,
                     ATTR_BATT_ALERT,
                     ATTR_FUEL_PERCENT_ALERT,
                     ATTR_ERROR_CODE_SET1,
@@ -1174,6 +1216,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if self._is_monitor:
                         self._fuel_alert = device_data[ATTR_FUEL_ALERT]
+                        self._refuel = device_data[ATTR_REFUEL]
                         self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
                         if ATTR_RSSI in device_data:
@@ -1221,6 +1264,14 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             return "Low"
 
     @property
+    def refuel_status(self):
+        """Return current sensor refuel status."""
+        if self._refuel:
+            return "Refueled"
+        else:
+            return "Normal"
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
@@ -1243,6 +1294,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 {
                     "battery_alert": self._battery_alert,
                     "fuel_alert": "OK" if self._fuel_alert else "Low",
+                    "refuel_alert": "Refueled" if self._refuel else "Normal",
                     "fuel_percent_alert": (
                         "Off"
                         if self._fuel_percent_alert == 0
@@ -1292,6 +1344,13 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         entity = value["id"]
         self._client.set_low_fuel_alert(entity, alert)
         self._fuel_percent_alert = alert
+
+    def set_refuel_alert(self, value):
+        """ "Set refuel alert for LM4110-ZB sensor True/False."""
+        alert = value["refuel"]
+        entity = value["id"]
+        self._client.set_refuel_alert(entity, alert)
+        self._refuel = alert
 
     def set_tank_height(self, value):
         """Set low fuel alert LM4110-ZB sensor."""

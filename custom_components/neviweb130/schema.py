@@ -26,18 +26,19 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_LIGHT_WATTAGE, ATTR_MODE, ATTR_NAME_1, ATTR_NAME_2,
                     ATTR_ONOFF, ATTR_ONOFF_NUM, ATTR_OPTOUT,
                     ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
-                    ATTR_POWER_SUPPLY, ATTR_RED, ATTR_ROOM_SETPOINT_MAX,
-                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT, ATTR_SOUND_CONF,
-                    ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT, ATTR_TANK_TYPE,
-                    ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER,
-                    ATTR_TIMER2, ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
+                    ATTR_POWER_SUPPLY, ATTR_RED, ATTR_REFUEL,
+                    ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
+                    ATTR_SETPOINT, ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS,
+                    ATTR_TANK_HEIGHT, ATTR_TANK_TYPE, ATTR_TEMP,
+                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
+                    ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
                     ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN)
 
 """Default parameters values."""
 
-VERSION = "3.0.2"
+VERSION = "3.0.3"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -688,6 +689,13 @@ SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema(
         vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.All(
             vol.Coerce(int), vol.In(LOW_FUEL_LEVEL)
         ),
+    }
+)
+
+SET_REFUEL_ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_REFUEL): vol.In([True, False]),
     }
 )
 

@@ -41,7 +41,7 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_ONOFF2, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
                     ATTR_PHASE_CONTROL, ATTR_POWER_MODE, ATTR_POWER_SUPPLY,
                     ATTR_PUMP_PROTEC, ATTR_PUMP_PROTEC_DURATION,
-                    ATTR_PUMP_PROTEC_PERIOD, ATTR_ROOM_SETPOINT,
+                    ATTR_PUMP_PROTEC_PERIOD, ATTR_REFUEL, ATTR_ROOM_SETPOINT,
                     ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
                     ATTR_SETPOINT_MODE, ATTR_SIGNATURE, ATTR_SOUND_CONF,
                     ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT, ATTR_TANK_SIZE,
@@ -1176,6 +1176,12 @@ class Neviweb130Client:
         """Set low fuel alert limit for LM4110-ZB sensor."""
         data = {ATTR_FUEL_PERCENT_ALERT: alert}
         _LOGGER.debug("low_fuel_alert.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_refuel_alert(self, device_id, alert):
+        """Set refuel alert for LM4110-ZB sensor."""
+        data = {ATTR_REFUEL: alert}
+        _LOGGER.debug("Refuel_alert.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_tank_height(self, device_id, height):
