@@ -28,6 +28,7 @@ model 742 = thermostat TH1500WF double pole thermostat (wifi)
 model 6727 = thermostat TH6500WF heat/cool (wifi)
 model 6727 = thermostat TH6510WF heat/cool (wifi)
 model 6730 = thermostat TH6250WF heat/cool (wifi)
+model 6730 = thermostat TH6250WF-PRO keat/cool (wifi)
 
 Support for Flextherm wifi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
@@ -2482,8 +2483,8 @@ class Neviweb130Thermostat(ClimateEntity):
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout... The device %s (id: %s) "
-                + "did not respond to the server within the prescribed delay. "
-                + "(SKU: %s)",
+                + "did not respond to the server within the prescribed delay."
+                + " (SKU: %s)",
                 self._name,
                 str(self._id),
                 self._sku,
