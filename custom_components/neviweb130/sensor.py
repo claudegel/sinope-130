@@ -1078,6 +1078,8 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             + device_data[ATTR_WATER_LEAK_STATUS]
                             + " for device: "
                             + self._name
+                            + ", id: "
+                            + str(self._id)
                             + ", Sku: "
                             + self._sku
                             + ", Leak sensor disconnected."
