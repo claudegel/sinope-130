@@ -1208,6 +1208,16 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     self._angle = device_data[ATTR_ANGLE]["value"]
+                    if self._angle == -2:
+                        self.notify_ha(
+                            "Warning: Tank monitor gauge diconnected: "
+                            + " for device: "
+                            + self._name
+                            + ", id: "
+                            + str(self._id)
+                            + ", Sku: "
+                            + self._sku
+                        )
                     self._sampling = device_data[ATTR_ANGLE][ATTR_SAMPLING]
                     self._tank_percent = device_data[ATTR_TANK_PERCENT]
                     self._tank_type = device_data[ATTR_TANK_TYPE]
@@ -1234,6 +1244,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                                     + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                                     + " for device: "
                                     + self._name
+                                    + ", id: "
+                                    + str(self._id)
                                     + ", Sku: "
                                     + self._sku
                                 )
