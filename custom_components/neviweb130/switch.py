@@ -1123,7 +1123,7 @@ class Neviweb130Switch(SwitchEntity):
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s (id: %s): %s..." + "(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s...(SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
