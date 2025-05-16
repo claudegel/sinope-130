@@ -252,6 +252,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_cool_min_time_on, to set cooling minimum time on.
 - neviweb130.set_cool_min_time_off, to set cooling minimum time off.
 - neviweb130.set_neviweb_status, to set global Neviweb status, home / away.
+- neviweb130.set_refuel_alert, to get an alert when the propane tank is refueled,
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:
