@@ -1066,8 +1066,8 @@ class Neviweb130Switch(SwitchEntity):
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
             #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
-                self._hour_kwh = device_hourly_stats[1]["period"] / 1000
+                #self._hour_energy_kwh_count += device_hourly_stats[1]["period"] / 1000
+                #self._hour_kwh = device_hourly_stats[1]["period"] / 1000
             else:
                 self._hour_energy_kwh_count = 0
                 self._hour_kwh = 0
@@ -1075,8 +1075,8 @@ class Neviweb130Switch(SwitchEntity):
             device_daily_stats = self._client.get_device_daily_stats(self._id)
             #            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
-                self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-                self._today_kwh = device_daily_stats[0]["period"] / 1000
+                #self._today_energy_kwh_count += device_daily_stats[0]["period"] / 1000
+                #self._today_kwh = device_daily_stats[0]["period"] / 1000
             else:
                 self._today_energy_kwh_count = 0
                 self._today_kwh = 0
@@ -1084,8 +1084,8 @@ class Neviweb130Switch(SwitchEntity):
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
             #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-                self._month_kwh = device_monthly_stats[0]["period"] / 1000
+                #self._month_energy_kwh_count += device_monthly_stats[0]["period"] / 1000
+                #self._month_kwh = device_monthly_stats[0]["period"] / 1000
             else:
                 self._month_energy_kwh_count = 0
                 self._month_kwh = 0
