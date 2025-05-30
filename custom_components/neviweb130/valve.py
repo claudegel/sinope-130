@@ -831,38 +831,44 @@ class Neviweb130Valve(ValveEntity):
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
                 # _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                    n = len(device_hourly_stats)-1
+                    n = len(device_hourly_stats)-2
                     #self._hour_energy_kwh_count += (
                     #    device_hourly_stats[n]["period"] / 1000
                     #)
                     self._hour_kwh = device_hourly_stats[n]["period"] / 1000
+                    self._current_hour_kwh = device_hourly_stats[n+1]["period"] / 1000
                 else:
                     self._hour_energy_kwh_count = 0
                     self._hour_kwh = 0
+                    self._current_hour_kwh = 0
                     _LOGGER.warning("Got None for device_hourly_stats")
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
                 # _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
-                    n = len(device_daily_stats)-1
+                    n = len(device_daily_stats)-2
                     #self._today_energy_kwh_count += (
                     #    device_daily_stats[n]["period"] / 1000
                     #)
                     self._today_kwh = device_daily_stats[n]["period"] / 1000
+                    self._current_today_kwh = device_daily_stats[n+1]["period"] / 1000
                 else:
                     self._today_energy_kwh_count = 0
                     self._today_kwh = 0
+                    self._current_month_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
                 # _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                    n = len(device_monthly_stats)-1
+                    n = len(device_monthly_stats)-2
                     #self._month_energy_kwh_count += (
-                    #    device_monthly_stats[0]["period"] / 1000
+                    #    device_monthly_stats[n]["period"] / 1000
                     #)
                     self._month_kwh = device_monthly_stats[n]["period"] / 1000
+                    self._current_month_kwh = device_monthly_stats[n+1]["period"] / 1000
                 else:
                     self._month_energy_kwh_count = 0
                     self._month_kwh = 0
+                    self._current_month_kwh = 0
                     _LOGGER.warning("Got None for device_monthly_stats")
                 self._energy_stat_time = time.time()
             if self._energy_stat_time == 0:
@@ -1024,9 +1030,12 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._reports_position = False
         self._rssi = None
@@ -1294,6 +1303,9 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "hourly_flow": L_2_sqm(self._hour_kwh),
                 "daily_flow": L_2_sqm(self._today_kwh),
                 "monthly_flow": L_2_sqm(self._month_kwh),
+                "current_hour_flow": L_2_sqm(self._current_hour_kwh),
+                "current_today_flow": L_2_sqm(self._current_today_kwh),
+                "current_month_flow": L_2_sqm(self._current_month_kwh),
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -1323,9 +1335,12 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._reports_position = False
         self._valve_status = None
@@ -1550,6 +1565,9 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "hourly_flow": L_2_sqm(self._hour_kwh),
                 "daily_flow": L_2_sqm(self._today_kwh),
                 "monthly_flow": L_2_sqm(self._month_kwh),
+                "current_hour_flow": L_2_sqm(self._current_hour_kwh),
+                "current_today_flow": L_2_sqm(self._current_today_kwh),
+                "current_month_flow": L_2_sqm(self._current_month_kwh),
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -1579,9 +1597,12 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         self._hour_energy_kwh_count = None
         self._today_energy_kwh_count = None
         self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._reports_position = False
         self._valve_status = None
@@ -1792,6 +1813,9 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "hourly_flow": L_2_sqm(self._hour_kwh),
                 "daily_flow": L_2_sqm(self._today_kwh),
                 "monthly_flow": L_2_sqm(self._month_kwh),
+                "current_hour_flow": L_2_sqm(self._current_hour_kwh),
+                "current_today_flow": L_2_sqm(self._current_today_kwh),
+                "current_month_flow": L_2_sqm(self._current_month_kwh),
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
