@@ -854,7 +854,7 @@ class Neviweb130Valve(ValveEntity):
                 else:
                     self._today_energy_kwh_count = 0
                     self._today_kwh = 0
-                    self._current_month_kwh = 0
+                    self._current_today_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
                 # _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
@@ -876,10 +876,13 @@ class Neviweb130Valve(ValveEntity):
         else:
             self._hour_energy_kwh_count = 0
             self._hour_kwh = 0
+            self._current_hour_kwh = 0
             self._today_energy_kwh_count = 0
             self._today_kwh = 0
+            self._current_today_kwh = 0
             self._month_energy_kwh_count = 0
             self._month_kwh = 0
+            self._current_month_kwh = 0
 
     def log_error(self, error_data):
         """Send error message to LOG."""
