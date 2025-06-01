@@ -358,9 +358,6 @@ class Neviweb130Light(LightEntity):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
@@ -502,9 +499,6 @@ class Neviweb130Light(LightEntity):
                 "timer": self._timer,
                 "led_on": self._led_on,
                 "led_off": self._led_off,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
@@ -637,11 +631,9 @@ class Neviweb130Light(LightEntity):
             #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)-2
-                #self._hour_energy_kwh_count += device_hourly_stats[1]["period"] / 1000
                 self._hour_kwh = device_hourly_stats[n]["period"] / 1000
                 self._current_hour_kwh = device_hourly_stats[n+1]["period"] / 1000
             else:
-                self._hour_energy_kwh_count = 0
                 self._hour_kwh = 0
                 self._current_hour_kwh = 0
                 _LOGGER.warning("Got None for device_hourly_stats")
@@ -649,11 +641,9 @@ class Neviweb130Light(LightEntity):
             #            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)-2
-                #self._today_energy_kwh_count += device_daily_stats[0]["period"] / 1000
                 self._today_kwh = device_daily_stats[n]["period"] / 1000
                 self._current_today_kwh = device_daily_stats[n+1]["period"] / 1000
             else:
-                self._today_energy_kwh_count = 0
                 self._today_kwh = 0
                 self._current_today_kwh = 0
                 _LOGGER.warning("Got None for device_daily_stats")
@@ -661,11 +651,9 @@ class Neviweb130Light(LightEntity):
             #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)-2
-                #self._month_energy_kwh_count += device_monthly_stats[0]["period"] / 1000
                 self._month_kwh = device_monthly_stats[n]["period"] / 1000
                 self._current_month_kwh = device_monthly_stats[n+1]["period"] / 1000
             else:
-                self._month_energy_kwh_count = 0
                 self._month_kwh = 0
                 self._current_month_kwh = 0
                 _LOGGER.warning("Got None for device_monthly_stats")
@@ -808,9 +796,6 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
@@ -926,9 +911,6 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "timer": self._timer,
                 "led_on": self._led_on,
                 "led_off": self._led_off,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
@@ -959,9 +941,6 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
@@ -1088,9 +1067,6 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "timer": self._timer,
                 "led_on": self._led_on,
                 "led_off": self._led_off,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
