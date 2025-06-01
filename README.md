@@ -282,12 +282,12 @@ It is then possible to make an automation to set all HA devices ready for peak p
 
 ## Statistic for energy
 Six attributes are added to track energy usage for devices:
-- hourly_kwh_count: total count of kwh hourly usage
-- daily_kwh_count: total count of kwh daily usage
-- monthly_kwh_count: total count of kwh monthly usage
 - hourly_kwh: kwh used for last hour
 - daily_kwh: kwh used for last day
 - monthly_kwh: kwh used for last month
+- current_hour_kwh": kwh used during current hour
+- current_today_kwh: kwh used during current day
+- current_month_kwh: kwh used during current month
 
 They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
 

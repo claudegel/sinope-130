@@ -635,7 +635,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/energy/monthly",
+                DEVICE_DATA_URL + str(device_id) + "/consumption/monthly",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -661,7 +661,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/energy/daily",
+                DEVICE_DATA_URL + str(device_id) + "/consumption/daily",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -687,7 +687,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/energy/hourly",
+                DEVICE_DATA_URL + str(device_id) + "/consumption/hourly",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,

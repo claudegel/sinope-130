@@ -774,12 +774,12 @@ class Neviweb130Switch(SwitchEntity):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._current_power_w = 0
         self._onoff = None
         self._is_wall = device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
@@ -899,12 +899,12 @@ class Neviweb130Switch(SwitchEntity):
             {
                 "onOff": self._onoff,
                 "wattage_instant": self._current_power_w,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
+                "current_hour_kwh": self._current_hour_kwh,
+                "current_today_kwh": self._current_today_kwh,
+                "current_month_kwh": self._current_month_kwh,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -1066,29 +1066,32 @@ class Neviweb130Switch(SwitchEntity):
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
             #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                self._hour_energy_kwh_count = device_hourly_stats[1]["counter"] / 1000
-                self._hour_kwh = device_hourly_stats[1]["period"] / 1000
+                n = len(device_hourly_stats) - 2
+                self._hour_kwh = device_hourly_stats[n]["period"] / 1000
+                self._current_hour_kwh = device_hourly_stats[n + 1]["period"] / 1000
             else:
-                self._hour_energy_kwh_count = 0
                 self._hour_kwh = 0
+                self._current_hour_kwh = 0
                 _LOGGER.warning("Got None for device_hourly_stats")
             device_daily_stats = self._client.get_device_daily_stats(self._id)
             #            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
-                self._today_energy_kwh_count = device_daily_stats[0]["counter"] / 1000
-                self._today_kwh = device_daily_stats[0]["period"] / 1000
+                n = len(device_daily_stats) - 2
+                self._today_kwh = device_daily_stats[n]["period"] / 1000
+                self._current_today_kwh = device_daily_stats[n + 1]["period"] / 1000
             else:
-                self._today_energy_kwh_count = 0
                 self._today_kwh = 0
+                self._current_today_kwh = 0
                 _LOGGER.warning("Got None for device_daily_stats")
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
             #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                self._month_energy_kwh_count = device_monthly_stats[0]["counter"] / 1000
-                self._month_kwh = device_monthly_stats[0]["period"] / 1000
+                n = len(device_monthly_stats) - 2
+                self._month_kwh = device_monthly_stats[n]["period"] / 1000
+                self._current_month_kwh = device_monthly_stats[n + 1]["period"] / 1000
             else:
-                self._month_energy_kwh_count = 0
                 self._month_kwh = 0
+                self._current_month_kwh = 0
                 _LOGGER.warning("Got None for device_monthly_stats")
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
@@ -1237,12 +1240,12 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._device_type = device_type
         self._current_power_w = 0
         self._wattage = 0
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._timer = 0
         self._keypad = None
@@ -1342,12 +1345,12 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 "controlled_device": neviweb_to_ha_controlled(self._controlled_device),
                 "wattage": self._wattage,
                 "wattage_instant": self._current_power_w,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
+                "current_hour_kwh": self._current_hour_kwh,
+                "current_today_kwh": self._current_today_kwh,
+                "current_month_kwh": self._current_month_kwh,
                 "keypad": lock_to_ha(self._keypad),
                 "timer": self._timer,
                 "eco_status": self._drstatus_active,
@@ -1382,12 +1385,12 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._device_type = device_type
         self._current_power_w = 0
         self._wattage = 0
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._timer = 0
         self._keypad = None
@@ -1487,12 +1490,12 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "controlled_device": neviweb_to_ha_controlled(self._controlled_device),
                 "wattage": self._wattage,
                 "wattage_instant": self._current_power_w,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
+                "current_hour_kwh": self._current_hour_kwh,
+                "current_today_kwh": self._current_today_kwh,
+                "current_month_kwh": self._current_month_kwh,
                 "keypad": lock_to_ha(self._keypad),
                 "timer": self._timer,
                 "eco_status": self._drstatus_active,
@@ -1525,12 +1528,12 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._current_power_w = 0
         self._wattage = 0
@@ -1684,12 +1687,12 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "onOff": self._onoff,
                 "wattage": self._wattage,
                 "wattage_instant": self._current_power_w,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
+                "current_hour_kwh": self._current_hour_kwh,
+                "current_today_kwh": self._current_today_kwh,
+                "current_month_kwh": self._current_month_kwh,
                 "water_leak_status": self._water_leak_status,
                 "water_temperature": self._water_temp,
                 "cold_load_pickup_status": self._cold_load_status,
@@ -1735,12 +1738,12 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
+        self._hour_kwh = 0
+        self._today_kwh = 0
+        self._month_kwh = 0
+        self._current_hour_kwh = 0
+        self._current_today_kwh = 0
+        self._current_month_kwh = 0
         self._onoff = None
         self._wattage = 0
         self._current_power_w = 0
@@ -1920,12 +1923,12 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "onOff": self._onoff,
                 "wattage": self._wattage,
                 "wattage_instant": self._current_power_w,
-                "hourly_kwh_count": self._hour_energy_kwh_count,
-                "daily_kwh_count": self._today_energy_kwh_count,
-                "monthly_kwh_count": self._month_energy_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
+                "current_hour_kwh": self._current_hour_kwh,
+                "current_today_kwh": self._current_today_kwh,
+                "current_month_kwh": self._current_month_kwh,
                 "water_leak_status": self._water_leak_status,
                 "water_leak_disconect_status": self._water_leak_disconected_status,
                 "water_leak_closure_config": self._water_leak_closure_conf,
@@ -1979,12 +1982,6 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._hour_energy_kwh_count = None
-        self._today_energy_kwh_count = None
-        self._month_energy_kwh_count = None
-        self._hour_kwh = None
-        self._today_kwh = None
-        self._month_kwh = None
         self._onoff = None
         self._onoff2 = None
         self._battery_voltage = 0
