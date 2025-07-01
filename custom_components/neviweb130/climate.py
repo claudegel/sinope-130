@@ -5262,7 +5262,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         ]
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._language = device_data[ATTR_LANGUAGE]
-                    self._occupancy = device_data[ATTR_OCCUPANCY]
+                    if ATTR_OCCUPANCY in device_data:
+                        self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     if ATTR_BACK_LIGHT in device_data:
                         self._backlight = device_data[ATTR_BACK_LIGHT]
