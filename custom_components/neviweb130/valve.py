@@ -1494,7 +1494,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._error_code = 0
                 else:
                     _LOGGER.warning(
-                        "Error in reading device %s: (%s)", self._name, device_data
+                        "Error reading device %s: (%s)", self._name, device_data
                     )
             else:
                 self.log_error(device_data["error"]["code"])
