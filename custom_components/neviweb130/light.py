@@ -667,7 +667,9 @@ class Neviweb130Light(LightEntity):
             _LOGGER.warning("Session expired... reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
+                    "Warning: Got USRSESSEXP error, Neviweb session expired. "
+                    + "Set your scan_interval parameter to less than 10 "
+                    + "minutes to avoid this... Reconnecting..."
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
@@ -685,7 +687,8 @@ class Neviweb130Light(LightEntity):
                 "Maximun session number reached...Close other connections and try again."
             )
             self.notify_ha(
-                "Warning: Maximun Neviweb session number reached...Close other connections and try again."
+                "Warning: Maximun Neviweb session number reached...Close "
+                + "other connections and try again."
             )
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -746,12 +749,16 @@ class Neviweb130Light(LightEntity):
                     self._name,
                 )
                 _LOGGER.warning(
-                    "You can re-activate device %s with service.neviweb130_set_activation or wait 20 minutes for update to restart or just restart HA.",
+                    "You can re-activate device %s with "
+                    + "service.neviweb130_set_activation or wait 20 minutes "
+                    + "for update to restart or just restart HA.",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Received message from Neviweb, device disconnected... Check your log... Neviweb update will be halted for 20 minutes for "
+                    "Warning: Received message from Neviweb, device disconnected..."
+                    + "Check your log... Neviweb update will be halted for 20 "
+                    + "minutes for "
                     + self._name
                     + ", id: "
                     + str(self._id)
@@ -879,7 +886,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                     )
                 else:
                     _LOGGER.warning(
-                        "Error in reading device %s: (%s)", self._name, device_data
+                        "Error reading device %s: (%s)", self._name, device_data
                     )
             else:
                 self.log_error(device_data["error"]["code"])
@@ -1034,7 +1041,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                     )
                 else:
                     _LOGGER.warning(
-                        "Error in reading device %s: (%s)", self._name, device_data
+                        "Error reading device %s: (%s)", self._name, device_data
                     )
             else:
                 self.log_error(device_data["error"]["code"])
