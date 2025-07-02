@@ -38,7 +38,7 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
 
 """Default parameters values."""
 
-VERSION = "3.0.5"
+VERSION = "3.0.6"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
