@@ -2782,7 +2782,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
 
 
 class Neviweb130FloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300ZB thermostat."""
+    """Implementation of Neviweb TH1300ZB, TH1320ZB-04, OTH3600-GA-ZB thermostat."""
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
@@ -3219,7 +3219,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     )
                 else:
                     _LOGGER.warning(
-                        "Error in updating device %s: (%s)", self._name, device_data
+                        "Error updating device %s: (%s)", self._name, device_data
                     )
             else:
                 self.log_error(device_data["error"]["code"])
@@ -4146,7 +4146,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT][
                         "status"
                     ]
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
+                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC][
+                        "status"
+                    ]
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC][
                             "frequency"
