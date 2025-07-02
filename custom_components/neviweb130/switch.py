@@ -38,10 +38,10 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_COLD_LOAD_PICKUP_STATUS, ATTR_COLD_LOAD_PICKUP_TEMP,
                     ATTR_CONTROLLED_DEVICE, ATTR_DELAY, ATTR_DR_PROTEC_STATUS,
                     ATTR_DR_WATER_TEMP_TIME, ATTR_DRACTIVE, ATTR_DRSTATUS,
-                    ATTR_ERROR_CODE_SET1, ATTR_EXT_TEMP, ATTR_INPUT2_STATUS,
+                    ATTR_ERROR_CODE_SET1, ATTR_EXT_TEMP, ATTR_INPUT_STATUS,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
-                    ATTR_INPUT_STATUS, ATTR_KEYPAD, ATTR_LEAK_CLOSURE_CONFIG,
+                    ATTR_INPUT2_STATUS, ATTR_KEYPAD, ATTR_LEAK_CLOSURE_CONFIG,
                     ATTR_LEG_PROTEC_STATUS, ATTR_LOW_TEMP_STATUS,
                     ATTR_MIN_WATER_TEMP, ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF,
                     ATTR_ONOFF2, ATTR_ONOFF_NUM, ATTR_OPTOUT,
@@ -822,7 +822,7 @@ class Neviweb130Switch(SwitchEntity):
                     self._onoff = device_data[ATTR_ONOFF]
                 else:
                     _LOGGER.warning(
-                        "Error in reading device %s: (%s)", self._name, device_data
+                        "Error reading device %s: (%s)", self._name, device_data
                     )
             else:
                 self.log_error(device_data["error"]["code"])
