@@ -1,6 +1,32 @@
 """Constants for neviweb130 component."""
 
-DOMAIN = "neviweb130"
+import json
+import pathlib
+
+# Base component constants, some loaded directly from the manifest
+_LOADER_PATH = pathlib.Path(__loader__.path)
+_MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
+with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
+    data = json.load(json_file)
+NAME = f"{data['name']}"
+DOMAIN = f"{data['domain']}"
+VERSION = f"{data['version']}"
+ISSUE_URL = f"{data['issue_tracker']}"
+REQUIRE = f"{data['homeassistant']}"
+DOC_URL = f"{data['documentation']}"
+
+STARTUP_MESSAGE = f"""
+-------------------------------------------------------------------
+{NAME} ({DOMAIN})
+Version: {VERSION}
+Requirement: Home Assistant {REQUIRE}
+This is a custom integration!
+If you have any issues with this you need to open an issue here:
+{ISSUE_URL}
+Documentation: {DOC_URL}
+-------------------------------------------------------------------
+"""
+
 CONF_NETWORK = "network"
 CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
