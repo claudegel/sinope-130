@@ -15,6 +15,8 @@ from __future__ import annotations
 import logging
 import time
 
+from datetime import datetime, timezone, date
+
 from homeassistant.components.light import (ATTR_BRIGHTNESS,
                                             ATTR_BRIGHTNESS_PCT, ColorMode,
                                             LightEntity)
@@ -34,12 +36,14 @@ from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
                     ATTR_WATTAGE_INSTANT, DOMAIN, MODE_OFF,
                     SERVICE_SET_ACTIVATION, SERVICE_SET_KEY_DOUBLE_UP,
                     SERVICE_SET_LED_INDICATOR, SERVICE_SET_LIGHT_KEYPAD_LOCK,
-                    SERVICE_SET_LIGHT_TIMER, SERVICE_SET_PHASE_CONTROL,
-                    SERVICE_SET_WATTAGE)
+                    SERVICE_SET_LIGHT_TIMER, SERVICE_SET_LED_OFF_INTENSITY,
+                    SERVICE_SET_LED_ON_INTENSITY, SERVICE_SET_LIGHT_MIN_INTENSITY,
+                    SERVICE_SET_PHASE_CONTROL, SERVICE_SET_WATTAGE)
 from .schema import (SET_ACTIVATION_SCHEMA, SET_KEY_DOUBLE_UP_SCHEMA,
-                     SET_LED_INDICATOR_SCHEMA, SET_LIGHT_KEYPAD_LOCK_SCHEMA,
-                     SET_LIGHT_TIMER_SCHEMA, SET_PHASE_CONTROL_SCHEMA,
-                     SET_WATTAGE_SCHEMA, VERSION)
+                     SET_LED_INDICATOR_SCHEMA, SET_LED_OFF_INTENSITY_SCHEMA,
+                     SET_LED_ON_INTENSITY_SCHEMA, SET_LIGHT_KEYPAD_LOCK_SCHEMA,
+                     SET_LIGHT_MIN_INTENSITY_SCHEMA, SET_LIGHT_TIMER_SCHEMA,
+                     SET_PHASE_CONTROL_SCHEMA, SET_WATTAGE_SCHEMA, VERSION)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -207,12 +211,53 @@ async def async_setup_platform(
                 value = {
                     "id": light.unique_id,
                     "state": service.data[ATTR_STATE],
-                    "intensity": service.data[ATTR_INTENSITY],
                     "red": service.data[ATTR_RED],
                     "green": service.data[ATTR_GREEN],
                     "blue": service.data[ATTR_BLUE],
                 }
                 light.set_led_indicator(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_led_on_intensity_service(service):
+        """Set led on intensity for light indicator."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {
+                    "id": light.unique_id,
+                    "led_on": service.data[ATTR_LED_ON_INTENSITY],
+                }
+                light.set_led_on_intensity(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_led_off_intensity_service(service):
+        """Set led off intensity for light indicator."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {
+                    "id": light.unique_id,
+                    "led_off": service.data[ATTR_LED_OFF_INTENSITY],
+                }
+                light.set_led_off_intensity(value)
+                light.schedule_update_ha_state(True)
+                break
+
+    def set_light_min_intensity_service(service):
+        """Set dimmer light minimum intensity."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for light in entities:
+            if light.entity_id == entity_id:
+                value = {
+                    "id": light.unique_id,
+                    "intensity": service.data[ATTR_INTENSITY_MIN],
+                }
+                light.set_light_min_intensity(value)
                 light.schedule_update_ha_state(True)
                 break
 
@@ -292,6 +337,27 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
+        SERVICE_SET_LED_ON_INTENSITY,
+        set_led_on_intensity_service,
+        schema=SET_LED_ON_INTENSITY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LED_OFF_INTENSITY,
+        set_led_off_intensity_service,
+        schema=SET_LED_OFF_INTENSITY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LIGHT_MIN_INTENSITY,
+        set_light_min_intensity_service,
+        schema=SET_LIGHT_MIN_INTENSITY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
         SERVICE_SET_WATTAGE,
         set_wattage_service,
         schema=SET_WATTAGE_SCHEMA,
@@ -358,12 +424,15 @@ class Neviweb130Light(LightEntity):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._total_kwh_count = 0
+        self._monthly_kwh_count = 0
+        self._daily_kwh_count = 0
+        self._hourly_kwh_count = 0
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._brightness_pct = 0
         self._keypad = "Unlocked"
         self._timer = 0
@@ -499,12 +568,14 @@ class Neviweb130Light(LightEntity):
                 "timer": self._timer,
                 "led_on": self._led_on,
                 "led_off": self._led_off,
+                "total_kwh_count": self._total_kwh_count,
+                "monthly_kwh_count": self._monthly_kwh_count,
+                "daily_kwh_count": self._daily_kwh_count,
+                "hourly_kwh_count": self._hourly_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -580,12 +651,10 @@ class Neviweb130Light(LightEntity):
         red = value["red"]
         green = value["green"]
         blue = value["blue"]
-        self._client.set_led_indicator(entity, state, intensity, red, green, blue)
+        self._client.set_led_indicator(entity, state, red, green, blue)
         if state == 0:
             self._led_off = (
-                str(value["intensity"])
-                + ","
-                + str(value["red"])
+                str(value["red"])
                 + ","
                 + str(value["green"])
                 + ","
@@ -593,14 +662,36 @@ class Neviweb130Light(LightEntity):
             )
         else:
             self._led_on = (
-                str(value["intensity"])
-                + ","
-                + str(value["red"])
+                str(value["red"])
                 + ","
                 + str(value["green"])
                 + ","
                 + str(value["blue"])
             )
+
+      def set_led_on_intensity(self, value):
+        """Set led indicator on intensity from 0 to 100."""
+        intensity = value["led_on"]
+        entity = value["id"]
+        self._client.set_led_on_intensity(
+            entity, intensity)
+        self._led_on_intensity = intensity
+
+    def set_led_off_intensity(self, value):
+        """Set led indicator off intensity from 0 to 100."""
+        intensity = value["led_off"]
+        entity = value["id"]
+        self._client.set_led_off_intensity(
+            entity, intensity)
+        self._led_off_intensity = intensity
+
+    def set_light_min_intensity(self, value):
+        """Set dimmer light minimum intensity from 1 to 3000."""
+        intensity = value["intensity"]
+        entity = value["id"]
+        self._client.set_light_min_intensity(
+            entity, intensity)
+        self._intensity_min = intensity
 
     def set_wattage(self, value):
         """Set light device watt load."""
@@ -627,36 +718,71 @@ class Neviweb130Light(LightEntity):
             start - self._energy_stat_time > STAT_INTERVAL
             and self._energy_stat_time != 0
         ):
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
-            if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                n = len(device_hourly_stats) - 2
-                self._hour_kwh = device_hourly_stats[n]["period"] / 1000
-                self._current_hour_kwh = device_hourly_stats[n + 1]["period"] / 1000
-            else:
-                self._hour_kwh = 0
-                self._current_hour_kwh = 0
-                _LOGGER.warning("Got None for device_hourly_stats")
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
-            #            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
-            if device_daily_stats is not None and len(device_daily_stats) > 1:
-                n = len(device_daily_stats) - 2
-                self._today_kwh = device_daily_stats[n]["period"] / 1000
-                self._current_today_kwh = device_daily_stats[n + 1]["period"] / 1000
-            else:
-                self._today_kwh = 0
-                self._current_today_kwh = 0
-                _LOGGER.warning("Got None for device_daily_stats")
+            today = date.today()
+            current_month = today.month
+            current_day = today.day
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
             #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                n = len(device_monthly_stats) - 2
-                self._month_kwh = device_monthly_stats[n]["period"] / 1000
-                self._current_month_kwh = device_monthly_stats[n + 1]["period"] / 1000
+                n = len(device_monthly_stats)
+                monthly_kwh_count = 0
+                k = 0
+                while k < n:
+                    monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                    k += 1
+                self._monthly_kwh_count = round(monthly_kwh_count, 3)
+                self._month_kwh = round(device_monthly_stats[n - 2]["period"] / 1000, 3)
+                dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + '+00:00').astimezone(timezone.utc)
+                _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
-                self._current_month_kwh = 0
-                _LOGGER.warning("Got None for device_monthly_stats")
+                _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
+            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            #            _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
+            if device_daily_stats is not None and len(device_daily_stats) > 1:
+                n = len(device_daily_stats)
+                daily_kwh_count = 0
+                k = 0
+                while k < n:
+                    if datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + '+00:00').astimezone(timezone.utc).month == current_month:
+                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                    k += 1
+                self._daily_kwh_count = round(daily_kwh_count, 3)
+                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+                dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace('Z', '+00:00'))
+                _LOGGER.debug("stat day = %s", dt_day.day)
+            else:
+                self._today_kwh = 0
+                _LOGGER.warning("%s Got None for device_daily_stats", self._name)
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            #            _LOGGER.warning("%s device_hourly_stats = %s", self._name, device_hourly_stats)
+            if device_hourly_stats is not None and len(device_hourly_stats) > 1:
+                n = len(device_hourly_stats)
+                hourly_kwh_count = 0
+                k = 0
+                while k < n:
+                    if datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace('Z', '+00:00')).day == current_day:
+                        hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                    k += 1
+                self._hourly_kwh_count = round(hourly_kwh_count, 3)
+                self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
+                self._marker = device_hourly_stats[n - 1]["date"]
+                dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                _LOGGER.debug("stat hour = %s", dt_hour.hour)
+            else:
+                self._hour_kwh = 0
+                _LOGGER.warning("%s Got None for device_hourly_stats", self._name)
+            if self._total_kwh_count == 0:
+                self._total_kwh_count = round(self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count, 3)
+                #async_add_data(self._id, self._total_kwh_count, self._marker)
+                #self.async_write_ha_state()
+                self._mark = self._marker
+            else:
+                if self._marker != self._mark:
+                    self._total_kwh_count += round(self._hour_kwh, 3)
+                    #save_data(self._id, self._total_kwh_count, self._marker)
+                    self._mark = self._marker
+            #_LOGGER.debug("Device dict updated: %s", device_dict)
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
@@ -803,12 +929,15 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._total_kwh_count = 0
+        self._monthly_kwh_count = 0
+        self._daily_kwh_count = 0
+        self._hourly_kwh_count = 0
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._brightness_pct = 0
         self._keypad = "Unlocked"
         self._timer = 0
@@ -918,12 +1047,14 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "timer": self._timer,
                 "led_on": self._led_on,
                 "led_off": self._led_off,
+                "total_kwh_count": self._total_kwh_count,
+                "monthly_kwh_count": self._monthly_kwh_count,
+                "daily_kwh_count": self._daily_kwh_count,
+                "hourly_kwh_count": self._hourly_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -948,12 +1079,15 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._total_kwh_count = 0
+        self._monthly_kwh_count = 0
+        self._daily_kwh_count = 0
+        self._hourly_kwh_count = 0
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._brightness_pct = 0
         self._keypad = "Unlocked"
         self._timer = 0
@@ -1074,12 +1208,14 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "timer": self._timer,
                 "led_on": self._led_on,
                 "led_off": self._led_off,
+                "total_kwh_count": self._total_kwh_count,
+                "monthly_kwh_count": self._monthly_kwh_count,
+                "daily_kwh_count": self._daily_kwh_count,
+                "hourly_kwh_count": self._hourly_kwh_count,
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
