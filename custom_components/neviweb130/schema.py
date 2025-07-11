@@ -21,13 +21,14 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_PERIOD,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_INTENSITY, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
-                    ATTR_LIGHT_WATTAGE, ATTR_MODE, ATTR_NAME_1, ATTR_NAME_2,
-                    ATTR_ONOFF, ATTR_ONOFF_NUM, ATTR_OPTOUT,
-                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
-                    ATTR_POWER_SUPPLY, ATTR_RED, ATTR_REFUEL,
-                    ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
+                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
+                    ATTR_LEAK_ALERT, ATTR_LED_ON_INTENSITY,
+                    ATTR_LED_OFF_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
+                    ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF, ATTR_ONOFF_NUM,
+                    ATTR_OPTOUT, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
+                    ATTR_PHASE_CONTROL, ATTR_POWER_SUPPLY, ATTR_RED,
+                    ATTR_REFUEL, ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
                     ATTR_SETPOINT, ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS,
                     ATTR_TANK_HEIGHT, ATTR_TANK_TYPE, ATTR_TEMP,
                     ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
@@ -463,13 +464,45 @@ SET_LIGHT_TIMER_SCHEMA = vol.Schema(
 SET_LED_INDICATOR_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATE): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
-        vol.Required(ATTR_INTENSITY): vol.All(
+        vol.Required(ATTR_STATE): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+        vol.Required(ATTR_RED): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(ATTR_GREEN): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(ATTR_BLUE): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+    }
+)
+
+SET_LED_ON_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LED_ON_INTENSITY): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=100)
         ),
-        vol.Required(ATTR_RED): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-        vol.Required(ATTR_GREEN): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-        vol.Required(ATTR_BLUE): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+    }
+)
+
+SET_LED_OFF_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LED_OFF_INTENSITY): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+    }
+)
+
+SET_LIGHT_MIN_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_INTENSITY_MIN): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=3000)
+        ),
     }
 )
 
