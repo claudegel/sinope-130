@@ -32,7 +32,8 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
                     ATTR_HEAT_LOCK_TEMP, ATTR_INPUT_1_OFF_DELAY,
                     ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
-                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_KEY_DOUBLE_UP,
+                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY,
+                    ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
                     ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
                     ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
@@ -1053,7 +1054,7 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter options.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_led_indicator(self, device_id, state, intensity, red, green, blue):
+    def set_led_indicator(self, device_id, state, red, green, blue):
         """Set devive led indicator intensity and color for on and off state."""
         if state == 1:
             data = {
@@ -1063,9 +1064,7 @@ class Neviweb130Client:
                     "blue": blue,
                 }
             }
-            self.set_device_attributes(device_id, data)
-            data2 = {ATTR_LED_ON_INTENSITY: intensity}
-            self.set_device_attributes(device_id, data2)
+            _LOGGER.debug("led on color.data = %s", data)
         else:
             data = {
                 ATTR_LED_OFF_COLOR: {
@@ -1074,11 +1073,26 @@ class Neviweb130Client:
                     "blue": blue,
                 }
             }
-            self.set_device_attributes(device_id, data)
-            data2 = {ATTR_LED_OFF_INTENSITY: intensity}
-            self.set_device_attributes(device_id, data2)
-        _LOGGER.debug("led.data = %s, led.data2 = %s", data, data2)
+            _LOGGER.debug("led off color.data = %s", data)
         self.set_device_attributes(device_id, data)
+
+    def set_led_on_intensity(self, device_id, intensity):
+        """Set devive led indicator intensity for on state."""
+        data = {ATTR_LED_ON_INTENSITY:intensity}
+        self.set_device_attributes(device_id, data)
+        _LOGGER.debug("led on intensity.data on = %s", data)
+
+    def set_led_off_intensity(self, device_id, intensity):
+        """Set devive led indicator intensity for off state."""
+        data = {ATTR_LED_OFF_INTENSITY:intensity}
+        self.set_device_attributes(device_id, data)
+        _LOGGER.debug("led off intensity.data on = %s", data)
+
+    def set_light_min_intensity(self, device_id, intensity):
+        """Set dimmer light minimum intensity from 1 to 3000."""
+        data = {ATTR_INTENSITY_MIN:intensity}
+        self.set_device_attributes(device_id, data)
+        _LOGGER.debug("led min intensity.data on = %s", data)
 
     def set_wattage(self, device_id, watt):
         """Set light and dimmer watt load."""
