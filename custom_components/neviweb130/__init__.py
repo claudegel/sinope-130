@@ -30,10 +30,10 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOW_ENABLED, ATTR_FLOW_METER_CONFIG,
                     ATTR_FLOW_THRESHOLD, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_INPUT_1_OFF_DELAY,
-                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
-                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY,
-                    ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDITY,
+                    ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
+                    ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
+                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
                     ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
                     ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
@@ -50,7 +50,7 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
                     ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL)
+                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL, STARTUP_MESSAGE)
 from .schema import CONFIG_SCHEMA as config_schema
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -73,6 +73,8 @@ NEVIWEB_LOCATION = f"{HOST}/api/location/"
 
 def setup(hass, hass_config):
     """Set up neviweb130."""
+    _LOGGER.info(STARTUP_MESSAGE)
+
     data = Neviweb130Data(hass, hass_config[DOMAIN])
     hass.data[DOMAIN] = data
 
@@ -784,6 +786,11 @@ class Neviweb130Client:
         data = {ATTR_ROOM_SETPOINT: temperature}
         self.set_device_attributes(device_id, data)
 
+    def set_humidity(self, device_id, humidity):
+        """Set device humidity target."""
+        data = {ATTR_HUMID_SETPOINT: humidity}
+        self.set_device_attributes(device_id, data)
+  
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
         """Work differently for wifi and zigbee devices."""
