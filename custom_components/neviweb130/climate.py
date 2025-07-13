@@ -85,9 +85,10 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_HEAT_COOL, ATTR_HEAT_INSTALL_TYPE,
                     ATTR_HEAT_INTERSTAGE_MIN_DELAY, ATTR_HEAT_LOCK_TEMP,
                     ATTR_HEAT_LOCKOUT_TEMP, ATTR_HEAT_SOURCE_TYPE,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_DISPLAY,
-                    ATTR_HUMID_SETPOINT, ATTR_HUMIDIFIER_TYPE, ATTR_KEYPAD,
-                    ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
+                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY,
+                    ATTR_HUMID_DISPLAY, ATTR_HUMID_SETPOINT,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_KEYPAD, ATTR_LANGUAGE,
+                    ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
                     ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
                     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_PUMP_PROTEC,
                     ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
@@ -5416,6 +5417,19 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         + ", Sku: "
                         + self._sku
                     )
+
+      @property
+    def current_humidity(self):
+        """Show current humidity percent."""
+        return self._humid_display
+
+    def target_humidity(self, **kwargs):
+        """Set new target humidity %."""
+        humidity = kwargs.get(ATTR_HUMIDITY)
+        if humidity is None
+            return
+        self._client.set_humidity(self._id, humidity)
+        self._humid_setpoint = humidity
 
     @property
     def extra_state_attributes(self):
