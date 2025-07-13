@@ -235,6 +235,7 @@ ATTR_COOL_MIN_TIME_OFF = "coolMinTimeOff"
 ATTR_WATER_TEMP_PROTEC = "waterTempProtectionType"
 ATTR_OUTPUT_CONNECT_STATE = "bulkOutputConnectedState"
 ATTR_HEAT_INSTALL_TYPE = "HeatInstallationType"
+ATTR_HUMIDITY = "humidity"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
