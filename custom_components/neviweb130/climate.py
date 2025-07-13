@@ -170,7 +170,7 @@ SUPPORT_HP_FLAGS = (
     | ClimateEntityFeature.TURN_ON
 )
 
-SUPPORT_Hc_FLAGS = (
+SUPPORT_H_c_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
     | ClimateEntityFeature.FAN_MODE
@@ -1551,7 +1551,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._rssi = None
         self._error_code = None
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
-        self._is_hc = device_info["signature"]["model"] in DEVICE_MODEL_HC
+        self._is_h_c = device_info["signature"]["model"] in DEVICE_MODEL_HC
         self._is_HC = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
         self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
         self._is_floor = device_info["signature"]["model"] in DEVICE_MODEL_FLOOR
@@ -1760,8 +1760,8 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORT_HP_FLAGS
         elif self._is_HC:
             return SUPPORT_HC_FLAGS
-        elif self._is_hc:
-            return SUPPORT_Hc_FLAGS
+        elif self._is_h_c:
+            return SUPPORT_H_c_FLAGS
         else:
             return SUPPORT_FLAGS
 
@@ -1835,7 +1835,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORTED_HVAC_WIFI_MODES
         elif self._is_wifi_lite:
             return SUPPORTED_HVAC_WIFI_LITE_MODES
-        elif self._is_hc:
+        elif self._is_h_c:
             return SUPPORTED_HVAC_H_C_MODES
         elif self._is_HC:
             return SUPPORTED_HVAC_HC_MODES
@@ -1897,7 +1897,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return PRESET_WIFI_MODES
         elif self._is_HP:
             return PRESET_HP_MODES
-        elif self._is_HC or self._is_hc:
+        elif self._is_HC or self._is_h_c:
             return PRESET_HC_MODES
         else:
             return PRESET_MODES
@@ -1942,7 +1942,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def fan_modes(self) -> list[str] | None:
         """Return available fan modes."""
-        if self._is_HP or self._is_hc:
+        if self._is_HP or self._is_h_c:
             return FAN_SPEED
         elif self._is_HC:
             return WIFI_FAN_SPEED
@@ -1952,14 +1952,14 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def swing_mode(self) -> str | None:
         """Return the fan vertical swing setting."""
-        if self._is_HP or self._is_hc:
+        if self._is_HP or self._is_h_c:
             return self._fan_swing_vert
         return None
 
     @property
     def swing_modes(self) -> list[str] | None:
         """Return availables vertical swing modes."""
-        if self._is_HP or self._is_hc:
+        if self._is_HP or self._is_h_c:
             if self._fan_swing_cap is None or self._fan_swing_cap_vert is None:
                 return None
             elif extract_capability(self._fan_swing_cap) == []:
@@ -1974,14 +1974,14 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def swing_horizontal_mode(self) -> str | None:
         """Return the fan swing setting."""
-        if self._is_HP or self._is_hc:
+        if self._is_HP or self._is_h_c:
             return self._fan_swing_horiz
         return None
 
     @property
     def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
-        if self._is_HP or self._is_hc:
+        if self._is_HP or self._is_h_c:
             if self._fan_swing_cap is None or self._fan_swing_cap_horiz is None:
                 return None
             elif extract_capability(self._fan_swing_cap) == []:
@@ -2661,7 +2661,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._is_double = False
         self._is_floor = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_low_voltage = False
@@ -2880,7 +2880,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._is_double = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_low_voltage = False
@@ -3137,7 +3137,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._is_double = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_floor = False
@@ -3401,7 +3401,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._is_low_voltage = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_floor = False
@@ -3616,7 +3616,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._is_low_voltage = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_floor = False
@@ -3861,7 +3861,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._is_low_voltage = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_floor = False
@@ -4109,7 +4109,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._is_double = False
         self._is_low_voltage = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_floor = False
@@ -4408,7 +4408,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._is_double = False
         self._is_low_voltage = False
         self._is_gen2 = False
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_HP = False
         self._is_floor = False
@@ -4680,7 +4680,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._cool_lock_temp = None
         self._avail_mode = None
         self._error_code = None
-        self._is_hc = device_info["signature"]["model"] in DEVICE_MODEL_HC
+        self._is_h_c = device_info["signature"]["model"] in DEVICE_MODEL_HC
         self._is_HC = False
         self._is_HP = False
         self._is_double = False
@@ -4952,7 +4952,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._sound_conf = None
         self._error_code = None
         self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HC = False
         self._is_double = False
         self._is_low_voltage = False
@@ -5227,7 +5227,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_display_value = None
         self._output_connect_state = None
         self._is_HC = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
-        self._is_hc = False
+        self._is_h_c = False
         self._is_HP = False
         self._is_double = False
         self._is_low_voltage = False
