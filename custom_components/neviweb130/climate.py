@@ -181,6 +181,7 @@ SUPPORT_H_c_FLAGS = (
 
 SUPPORT_HC_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.TARGET_HUMIDITY
     | ClimateEntityFeature.PRESET_MODE
     | ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.TURN_OFF
