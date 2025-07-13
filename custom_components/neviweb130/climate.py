@@ -5418,7 +5418,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         + self._sku
                     )
 
-      @property
+    @property
     def current_humidity(self):
         """Show current humidity percent."""
         return self._humid_display
