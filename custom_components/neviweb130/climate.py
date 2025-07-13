@@ -5426,7 +5426,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     def target_humidity(self, **kwargs):
         """Set new target humidity %."""
         humidity = kwargs.get(ATTR_HUMIDITY)
-        if humidity is None
+        if humidity is None:
             return
         self._client.set_humidity(self._id, humidity)
         self._humid_setpoint = humidity
