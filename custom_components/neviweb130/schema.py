@@ -21,9 +21,9 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_PERIOD,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
-                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
-                    ATTR_LEAK_ALERT, ATTR_LED_ON_INTENSITY,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE, ATTR_INTENSITY,
+                    ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD,
+                    ATTR_LANGUAGE, ATTR_LEAK_ALERT, ATTR_LED_ON_INTENSITY,
                     ATTR_LED_OFF_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
                     ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF, ATTR_ONOFF_NUM,
                     ATTR_OPTOUT, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
@@ -57,6 +57,7 @@ PERIOD_VALUE = {
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
+HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
 CONTROLLED_VALUE = {
     "Hot water heater",
     "Pool pump",
@@ -441,6 +442,15 @@ SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_MIN_TIME_OFF): vol.All(
             cv.ensure_list, [vol.In(MIN_TIME)]
+        ),
+    }
+)
+
+SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(
+            cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]
         ),
     }
 )
