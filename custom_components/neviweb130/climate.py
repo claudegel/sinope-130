@@ -62,7 +62,10 @@ from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
-from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
+from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
+                    ATTR_AIR_CONFIG, ATTR_AIR_EX_MIN_TIME_ON,
+                    ATTR_AIR_MAX_POWER_TEMP, ATTR_AUX_CYCLE,
+                    ATTR_AUX_HEAT_MIN_TIMEOFF, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_TIMEON,
                     ATTR_AVAIL_MODE, ATTR_BACK_LIGHT, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
@@ -70,25 +73,29 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_COLD_LOAD_PICKUP, ATTR_COOL_CYCLE_LENGTH,
                     ATTR_COOL_INTERSTAGE_MIN_DELAY, ATTR_COOL_LOCK_TEMP,
                     ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
-                    ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_AWAY,
-                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
-                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CAP,
-                    ATTR_DISPLAY_CONF, ATTR_DRACTIVE, ATTR_DRSETPOINT,
-                    ATTR_DRSTATUS, ATTR_DUAL_STATUS, ATTR_EARLY_START,
-                    ATTR_FAN_CAP, ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
-                    ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ,
+                    ATTR_COOL_PURGE_TIME, ATTR_COOL_SETPOINT,
+                    ATTR_COOL_SETPOINT_AWAY, ATTR_COOL_SETPOINT_MAX,
+                    ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE, ATTR_CYCLE_OUTPUT2,
+                    ATTR_DISPLAY2, ATTR_DISPLAY_CAP, ATTR_DISPLAY_CONF,
+                    ATTR_DRACTIVE, ATTR_DRSETPOINT, ATTR_DRSTATUS,
+                    ATTR_DRACCESORYCONF, ATTR_DRAIR_CURT_CONF,
+                    ATTR_DRAUXCONF, ATTR_DRFANCONF, ATTR_DUAL_STATUS, 
+                    ATTR_EARLY_START, ATTR_FAN_CAP, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_FAN_SPEED, ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ,
                     ATTR_FAN_SWING_CAP_VERT, ATTR_FAN_SWING_HORIZ,
                     ATTR_FAN_SWING_VERT, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX,
                     ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_MODE,
                     ATTR_FLOOR_OUTPUT1, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_SENSOR,
                     ATTR_GFCI_ALERT, ATTR_GFCI_STATUS, ATTR_HC_DEV,
-                    ATTR_HEAT_COOL, ATTR_HEAT_INSTALL_TYPE,
+                    ATTR_HC_LOCK_STATUS, ATTR_HEAT_COOL, ATTR_HEAT_INSTALL_TYPE,
                     ATTR_HEAT_INTERSTAGE_MIN_DELAY, ATTR_HEAT_LOCK_TEMP,
-                    ATTR_HEAT_LOCKOUT_TEMP, ATTR_HEAT_SOURCE_TYPE,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY,
-                    ATTR_HUMID_DISPLAY, ATTR_HUMID_SETPOINT,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_KEYPAD, ATTR_LANGUAGE,
-                    ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
+                    ATTR_HEAT_LOCKOUT_TEMP, ATTR_HEAT_MIN_TIME_OFF,
+                    ATTR_HEAT_MIN_TIME_ON, ATTR_HEAT_PURGE_TIME, 
+                    ATTR_HEAT_SOURCE_TYPE, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+                    ATTR_HUMIDITY, ATTR_HUMID_DISPLAY, ATTR_HUMID_SETPOINT,
+                    ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_INTERLOCK_ID, ATTR_KEYPAD,
+                    ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
                     ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
                     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_PUMP_PROTEC,
                     ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
@@ -117,12 +124,12 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     SERVICE_SET_HC_SECOND_DISPLAY,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
-                    SERVICE_SET_HVAC_DR_OPTIONS, SERVICE_SET_HVAC_DR_SETPOINT,
-                    SERVICE_SET_LANGUAGE, SERVICE_SET_PUMP_PROTECTION,
-                    SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
-                    SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
-                    SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_HUMIDIFIER_TYPE, SERVICE_SET_HVAC_DR_OPTIONS,
+                    SERVICE_SET_HVAC_DR_SETPOINT, SERVICE_SET_LANGUAGE,
+                    SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SECOND_DISPLAY,
+                    SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
+                    SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
+                    SERVICE_SET_TEMPERATURE_FORMAT, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
                      SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -139,12 +146,13 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HC_SECOND_DISPLAY_SCHEMA,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
-                     SET_HVAC_DR_OPTIONS_SCHEMA, SET_HVAC_DR_SETPOINT_SCHEMA,
-                     SET_LANGUAGE_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
-                     SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
-                     SET_SETPOINT_MAX_SCHEMA, SET_SETPOINT_MIN_SCHEMA,
-                     SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
-                     SET_TIME_FORMAT_SCHEMA, VERSION, WIFI_FAN_SPEED)
+                     SET_HUMIDIFIER_TYPE_SCHEMA, SET_HVAC_DR_OPTIONS_SCHEMA,
+                     SET_HVAC_DR_SETPOINT_SCHEMA, SET_LANGUAGE_SCHEMA,
+                     SET_PUMP_PROTECTION_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
+                     SET_SENSOR_TYPE_SCHEMA, SET_SETPOINT_MAX_SCHEMA,
+                     SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
+                     SET_TEMPERATURE_FORMAT_SCHEMA, SET_TIME_FORMAT_SCHEMA,
+                     VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -265,10 +273,10 @@ SUPPORTED_HVAC_H_C_MODES = [
 ]
 
 SUPPORTED_HVAC_HC_MODES = [
+    HVACMode.AUTO,
     HVACMode.COOL,
     HVACMode.HEAT,
     HVACMode.OFF,
-    MODE_AUTO,
     MODE_EM_HEAT,
 ]
 
@@ -1225,6 +1233,20 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_humidifier_type_service(service):
+        """Set TH6500WF humidifier type."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "type": service.data[ATTR_HUMIDIFIER_TYPE],
+                }
+                thermostat.set_humidifier_type(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+  
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1454,6 +1476,13 @@ async def async_setup_platform(
         SERVICE_SET_COOL_MIN_TIME_OFF,
         set_cool_min_time_off_service,
         schema=SET_COOL_MIN_TIME_OFF_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HUMIDIFIER_TYPE,
+        set_humidifier_type_service,
+        schema=SET_HUMIDIFIER_TYPE_SCHEMA,
     )
 
 
@@ -5201,6 +5230,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._target_cool = None
         self._cool_min = 16
         self._cool_max = 30
+        self._heat_min_time_on = None
+        self._heat_min_time_off = None
         self._cool_min_time_on = None
         self._cool_min_time_off = None
         self._dual_status = None
@@ -5211,9 +5242,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._cycle = None
         self._aux_cycle = None
         self._cool_cycle_length = 0
+        self._humid_min = 30
+        self._humid_max = 99
         self._humid_display = None
         self._humid_setpoint = None
-        self._humidifier_type = None
+        self._humidifier_type = "none"
         self._heat_inst_type = None
         self._heat_lock_temp = None
         self._cool_lock_temp = None
@@ -5242,6 +5275,22 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
+        self._accessory = None
+        self._humid_setpoint_offset = 0
+        self._humidity_setpoint_mode = None
+        self._air_min_timeon = 0
+        self._heatcool_lock_status = None
+        self._dr_aux_config = None
+        self._dr_fan_speed_conf = None
+        self._dr_accessory_conf = None
+        self._dr_air_curt_conf = None
+        self._interlock_id = None
+        self._heat_purge_time = 0
+        self._cool_purge_time = 0
+        self._air_curt_conf = None
+        self._air_curt_activation_temp = None
+        self._air_curt_max_temp = None
+        self._aux_heat_min_time_off = 0
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
@@ -5291,15 +5340,43 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ]
             else:
                 HC_EXTRA = []
+            if self._firmware == "4.2.1" or self._firmware == "4.3.0":
+                HC_SPECIAL_FIRMWARE = [
+                    ATTR_HEAT_MIN_TIME_ON,
+                    ATTR_HEAT_MIN_TIME_OFF,
+                    ATTR_ACCESSORY_TYPE,
+                    ATTR_HUMID_SETPOINT_OFFSET,
+                    ATTR_HUMID_SETPOINT_MODE,
+                    ATTR_AIR_EX_MIN_TIME_ON,
+                    ATTR_HC_LOCK_STATUS,
+                    ATTR_DRAUXCONF,
+                    ATTR_DRFANCONF,
+                    ATTR_DRACCESORYCONF,
+                    ATTR_DRAIR_CURT_CONF,
+                    ATTR_INTERLOCK_ID,
+                    ATTR_HEAT_PURGE_TIME,
+                    ATTR_COOL_PURGE_TIME,
+                    ATTR_AIR_CONFIG,
+                    ATTR_AIR_ACTIVATION_TEMP,
+                    ATTR_AIR_MAX_POWER_TEMP,
+                    ATTR_AUX_HEAT_MIN_TIMEOFF,
+                ]
+            else:
+                HC_SPECIAL_FIRMWARE = []
+
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug(
                 "Updated attributes for %s: %s",
                 self._name,
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA,
+                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_SPECIAL_FIRMWARE,
             )
             device_data = self._client.get_device_attributes(
-                self._id, UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA
+                self._id,
+                UPDATE_HEAT_COOL_ATTRIBUTES
+                + HC_ATTRIBUTES
+                + HC_EXTRA
+                + HC_SPECIAL_FIRMWARE
             )
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5394,6 +5471,26 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     if ATTR_HEAT_INSTALL_TYPE in device_data:
                         self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
+                    if self._firmware == "4.2.1":
+                        self._accessory = device_data[ATTR_ACCESSORY_TYPE]
+                        self._humid_setpoint_offset = device_data[ATTR_HUMID_SETPOINT_OFFSET]
+                        self._humidity_setpoint_mode = device_data[ATTR_HUMID_SETPOINT_MODE]
+                        self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
+                        self._heatcool_lock_status = device_data[ATTR_HC_LOCK_STATUS]
+                        self._dr_aux_config = device_data[ATTR_DRAUXCONF]
+                        self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
+                        self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
+                        self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
+                        self._heat_purge_time = device_data[ATTR_HEAT_PURGE_TIME]
+                        self._cool_purge_time = device_data[ATTR_COOL_PURGE_TIME]
+                        self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
+                        self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
+                        self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
+                        self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIMEOFF]
+                        self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
+                        self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
+                    if self._firmware == "4.3.0":
+                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5423,13 +5520,28 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Show current humidity percent."""
         return self._humid_display
 
-    def target_humidity(self, **kwargs):
+    @property
+    def target_humidity(self) -> int:
+        """Return target humidity."""
+        return self._humid_setpoint
+
+    def set_humidity(self, **kwargs):
         """Set new target humidity %."""
         humidity = kwargs.get(ATTR_HUMIDITY)
         if humidity is None:
             return
-        self._client.set_humidity(self._id, humidity)
-        self._humid_setpoint = humidity
+        if self._humidifier_type != "none":
+            self._client.set_humidity(self._id, humidity)
+            self._humid_setpoint = humidity
+        else:
+            return self._humid_setpoint
+
+    def set_humidifier_type(self, value):
+        """"Set humidifier type for TH6500WF."""
+        entity = value["id"]
+        type = value["type"]
+        self._client.set_humidifier_type(entity, type)
+        self._humidifier_type = type
 
     @property
     def extra_state_attributes(self):
@@ -5502,6 +5614,34 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "eco_power_absolute": self._drstatus_abs,
                     "eco_setpoint_status": self._drsetpoint_status,
                     "eco_setpoint_delta": self._drsetpoint_value,
+                }
+            )
+        if self._firmware == "4.2.1":
+            data.update(
+                {
+                    "accessory": self._accessory,
+                    "humidity_setpoint_offset": self._humid_setpoint_offset,
+                    "humidity_setpoint_mode": self._humidity_setpoint_mode,
+                    "exchanger_min_time_on": self._air_min_timeon,
+                    "heatcool_lock_status": self._heatcool_lock_status,
+                    "dr_aux_config": self._dr_aux_config,
+                    "dr_fan_speed_conf": self._dr_fan_speed_conf,
+                    "dr_accessory_conf": self._dr_accessory_conf,
+                    "dr_air_curtain_conf": self._dr_air_curt_conf,
+                    "heat_purge_time": self._heat_purge_time,
+                    "cool_purge_time": self._cool_purge_time,
+                    "air_curtain_conf": self._air_curt_conf,
+                    "air_curtain_activation_temp": self._air_curt_activation_temp,
+                    "air_curtain_max_temp": self._air_curt_max_temp,
+                    "aux_heat_min_time_off": self._aux_heat_min_time_off,
+                    "heat_min_time_on": self._heat_min_time_on,
+                    "heat_min_time_off": self._heat_min_time_off,
+                }
+            )
+        if self._firmware == "4.3.0":
+            data.update(
+                {
+                    "interlock_id": self._interlock_id,
                 }
             )
         return data
