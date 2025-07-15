@@ -30,12 +30,12 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOW_ENABLED, ATTR_FLOW_METER_CONFIG,
                     ATTR_FLOW_THRESHOLD, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDITY, ATTR_HUMID_SETPOINT,
-                    ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
-                    ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
-                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
-                    ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDITY, ATTR_HUMIDIFIER_TYPE,
+                    ATTR_HUMID_SETPOINT, ATTR_INPUT_1_OFF_DELAY,
+                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
+                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
+                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
+                    ATTR_LEAK_ALERT, ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
                     ATTR_LIGHT_WATTAGE, ATTR_MODE, ATTR_MOTOR_TARGET,
                     ATTR_NAME_1, ATTR_NAME_2, ATTR_OCCUPANCY, ATTR_ONOFF,
@@ -789,6 +789,11 @@ class Neviweb130Client:
     def set_humidity(self, device_id, humidity):
         """Set device humidity target."""
         data = {ATTR_HUMID_SETPOINT: humidity}
+        self.set_device_attributes(device_id, data)
+
+    def set_humidifier_type(self, device_id, type):
+        """Set humidifier type."""
+        data = {ATTR_HUMIDIFIER_TYPE: type}
         self.set_device_attributes(device_id, data)
   
     def set_backlight(self, device_id, level, device):
