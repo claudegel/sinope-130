@@ -48,6 +48,8 @@ from __future__ import annotations
 import logging
 import time
 
+from datetime import datetime, timezone, date
+
 from homeassistant.components.climate import (ClimateEntity,
                                               ClimateEntityFeature, HVACAction,
                                               HVACMode)
@@ -59,7 +61,8 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
                                  UnitOfTemperature)
 
-from . import HOMEKIT_MODE, NOTIFY
+from . import HOMEKIT_MODE
+from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
@@ -1553,9 +1556,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -1758,9 +1760,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -2415,49 +2415,70 @@ class Neviweb130Thermostat(ClimateEntity):
             start - self._energy_stat_time > STAT_INTERVAL
             and self._energy_stat_time != 0
         ):
+            today = date.today()
+            current_month = today.month
+            current_day = today.day
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
             _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                n = len(device_monthly_stats) - 2
+                n = len(device_monthly_stats)
+                monthly_kwh_count = 0
                 k = 0
-                while k < len(device_monthly_stats) - 1:
-                    self._monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                while k < n:
+                    monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
                     k += 1
-                self._month_kwh = device_monthly_stats[n]["period"] / 1000
-                self._current_month_kwh = device_monthly_stats[n + 1]["period"] / 1000
+                self._monthly_kwh_count = round(monthly_kwh_count, 3)
+                self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
+                dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + '+00:00').astimezone(timezone.utc)
+                _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
-                self._current_month_kwh = 0
-                _LOGGER.warning("Got None for device_monthly_stats")
+                _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = self._client.get_device_daily_stats(self._id)
             _LOGGER.warning("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
-                n = len(device_daily_stats) - 2
+                n = len(device_daily_stats)
+                daily_kwh_count = 0
                 k = 0
-                while k < len(device_daily_stats) - 1:
-                    self._daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                while k < n:
+                    if datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + '+00:00').astimezone(timezone.utc).month == current_month:
+                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
                     k += 1
-                self._today_kwh = device_daily_stats[n]["period"] / 1000
-                self._current_today_kwh = device_daily_stats[n + 1]["period"] / 1000
+                self._daily_kwh_count = round(daily_kwh_count, 3)
+                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+                dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace('Z', '+00:00'))
+                _LOGGER.debug("stat day = %s", dt_day.day)
             else:
                 self._today_kwh = 0
-                self._current_today_kwh = 0
-                _LOGGER.warning("Got None for device_daily_stats")
+                _LOGGER.warning("%s Got None for device_daily_stats", self._name)
             device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            _LOGGER.debug("Energy data for %s (SKU: %s): %s, size = %s", self._name, self._sku, device_hourly_stats, len(device_hourly_stats))
+            _LOGGER.debug("%s device hourly stat (SKU: %s): %s, size = %s", self._name, self._sku, device_hourly_stats, len(device_hourly_stats))
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                n = len(device_hourly_stats) - 2
+                n = len(device_hourly_stats)
+                hourly_kwh_count = 0
                 k = 0
-                while k < len(device_hourly_stats) - 1:
-                    self._hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                while k < n:
+                    if datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace('Z', '+00:00')).day == current_day:
+                        hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
                     k += 1
-                self._hour_kwh = device_hourly_stats[n]["period"] / 1000
-                self._current_hour_kwh = device_hourly_stats[n + 1]["period"] / 1000
+                self._hourly_kwh_count = round(hourly_kwh_count, 3)
+                self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
+                self._marker = device_hourly_stats[n - 1]["date"]
+                dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
                 self._hour_kwh = 0
-                self._current_hour_kwh = 0
-                _LOGGER.warning("Got None for device_hourly_stats")
-            self._total_kwh_count = self._monthly_kwh_count + self._today_kwh + self._hour_kwh
+                _LOGGER.warning("%s Got None for device_hourly_stats", self._name)
+            if self._total_kwh_count == 0:
+                self._total_kwh_count = round(self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count, 3)
+                #await async_add_data(self._id, self._total_kwh_count, self._marker)
+                #self.async_write_ha_state()
+                self._mark = self._marker
+            else:
+                if self._marker != self._mark:
+                    self._total_kwh_count += round(self._hour_kwh, 3)
+                    #save_data(self._id, self._total_kwh_count, self._marker)
+                    self._mark = self._marker
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
@@ -2656,9 +2677,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -2827,9 +2847,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -2860,9 +2878,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3081,9 +3098,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -3115,9 +3130,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3360,9 +3374,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -3394,9 +3406,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3563,9 +3574,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -3597,9 +3606,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3807,9 +3815,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -3844,9 +3850,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4045,9 +4050,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4079,9 +4082,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4348,9 +4350,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4382,9 +4382,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4625,9 +4624,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4659,9 +4656,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._hour_kwh = 0
         self._today_kwh = 0
         self._month_kwh = 0
-        self._current_hour_kwh = 0
-        self._current_today_kwh = 0
-        self._current_month_kwh = 0
+        self._marker = None
+        self._mark = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4915,9 +4911,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "hourly_kwh": self._hour_kwh,
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
-                "current_hour_kwh": self._current_hour_kwh,
-                "current_today_kwh": self._current_today_kwh,
-                "current_month_kwh": self._current_month_kwh,
+                "last_energy_stat_update": self._mark,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
