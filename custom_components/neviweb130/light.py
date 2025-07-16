@@ -731,7 +731,7 @@ class Neviweb130Light(LightEntity):
                     monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
                     k += 1
                 self._monthly_kwh_count = round(monthly_kwh_count, 3)
-                self._month_kwh = round(device_monthly_stats[n - 2]["period"] / 1000, 3)
+                self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
                 dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + '+00:00').astimezone(timezone.utc)
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
