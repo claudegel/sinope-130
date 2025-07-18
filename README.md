@@ -253,6 +253,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviweb130.set_cool_min_time_off, to set cooling minimum time off.
 - neviweb130.set_neviweb_status, to set global Neviweb status, home / away.
 - neviweb130.set_refuel_alert, to get an alert when the propane tank is refueled,
+- neviweb130.set_humidifier_type, to set the type of humidifier device connected to TH6500WF or TH6250WF.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:
@@ -281,15 +282,16 @@ If you have at least on thermostat or one load controler registered with Éco-Si
 It is then possible to make an automation to set all HA devices ready for peak period by following the eco_status attribute change from «off» to «on».
 
 ## Statistic for energy
-Six attributes are added to track energy usage for devices:
-- hourly_kwh: kwh used for last hour
-- daily_kwh: kwh used for last day
-- monthly_kwh: kwh used for last month
-- current_hour_kwh": kwh used during current hour
-- current_today_kwh: kwh used during current day
-- current_month_kwh: kwh used during current month
+Seven attributes are added to track energy usage for devices:
+- total_kwh_count: total count of energy usage to date.
+- hourly_kwh_count:  total count for hourly usage for current day.
+- daily_kwh_count: total count of water liters daily usage for current month.
+- monthly_kwh_count: total count of water liters monthly usage for current year.
+- hourly_kwh: kwh used for last hour.
+- daily_kwh: kwh used for last day.
+- monthly_kwh: kwh used for last month.
 
-They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
+They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart. Neviweb have a two hours delay to publish his data.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
@@ -318,15 +320,16 @@ template:
 ```
 
 ## Statistic for Sedna flow sensor
-Six attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what energy module is looking for:
-- hourly_flow_count: total count of water liters hourly usage
-- daily_flow_count: total count of water liters daily usage
-- monthly_flow_count: total count of water liters monthly usage
-- hourly_flow: water liters used for last hour
-- daily_flow: water liters used for last day
-- monthly_flow: water liters used for last month
+Seven attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what energy module is looking for:
+- total_flow_count: total count of water liters usage to date.
+- hourly_flow_count:  total count of hourly water liters usage for current day.
+- daily_flow_count: total count of daily water liters usage for current month.
+- monthly_flow_count: total count of monthly water liters usage for current year.
+- hourly_flow: water liters used for last hour.
+- daily_flow: water liters used for last day.
+- monthly_flow: water liters used for last month.
 
-They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart.
+They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart. Neviweb have a two hours delay to publish his data.
 
 ### Track water consumption in HA Energy dashboard
 When flow attributes are available, it is possible to track water consumption of sedna valve in Home Assistant energy dashboard by creating a [Template sensor](https://www.home-assistant.io/integrations/template/) in configuration.yaml:
