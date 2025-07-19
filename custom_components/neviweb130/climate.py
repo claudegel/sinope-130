@@ -5355,15 +5355,21 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_AIR_MAX_POWER_TEMP,
                     ATTR_AUX_HEAT_MIN_TIMEOFF,
                 ]
+                if self._firmware == "4.3.0":
+                    HC_43 = [ATTR_INTERLOCK_ID]
+                else:
+                    HC_43 = []
             else:
                 HC_SPECIAL_FIRMWARE = []
-
+                HC_43 = []
+            
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug(
                 "Updated attributes for %s: %s",
                 self._name,
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_SPECIAL_FIRMWARE,
+                self._firmware,
+                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_SPECIAL_FIRMWARE + HC_43,
             )
             device_data = self._client.get_device_attributes(
                 self._id,
@@ -5371,6 +5377,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 + HC_ATTRIBUTES
                 + HC_EXTRA
                 + HC_SPECIAL_FIRMWARE
+                + HC_43
             )
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5465,7 +5472,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     if ATTR_HEAT_INSTALL_TYPE in device_data:
                         self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
-                    if self._firmware == "4.2.1":
+                    if self._firmware == "4.2.1" or self._firmware == "4.3.0":
                         self._accessory = device_data[ATTR_ACCESSORY_TYPE]
                         self._humid_setpoint_offset = device_data[ATTR_HUMID_SETPOINT_OFFSET]
                         self._humidity_setpoint_mode = device_data[ATTR_HUMID_SETPOINT_MODE]
@@ -5483,8 +5490,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIMEOFF]
                         self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                         self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
-                    if self._firmware == "4.3.0":
-                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                        if self._firmware == "4.3.0":
+                            self._interlock_id = device_data[ATTR_INTERLOCK_ID]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
