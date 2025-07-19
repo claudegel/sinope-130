@@ -5617,7 +5617,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "eco_setpoint_delta": self._drsetpoint_value,
                 }
             )
-        if self._firmware == "4.2.1":
+        if self._firmware == "4.2.1" or self._firmware == "4.3.0":
             data.update(
                 {
                     "accessory": self._accessory,
