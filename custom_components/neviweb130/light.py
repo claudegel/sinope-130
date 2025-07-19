@@ -669,7 +669,7 @@ class Neviweb130Light(LightEntity):
                 + str(value["blue"])
             )
 
-      def set_led_on_intensity(self, value):
+    def set_led_on_intensity(self, value):
         """Set led indicator on intensity from 0 to 100."""
         intensity = value["led_on"]
         entity = value["id"]
