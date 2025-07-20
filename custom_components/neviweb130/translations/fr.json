@@ -12,6 +12,7 @@
           "network2": "Optionel, Deuxième emplacement dans Neviweb.",
           "network3": "Optionel, Troisième emplacement dans Neviweb.",
           "homekit_mode": "Optionel, support homekit",
+          "ignore_miwi": "Optionel, ignorer les appareils miwi",
           "scan_interval": "Optionel, intervalle des requêtes sur neviweb, 300 à 600 sec.",
           "stat_interval": "Optionel, intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
           "notify": "Optionel, avis en cas de déconnection pour un appareil."
@@ -27,6 +28,7 @@
           "network2": "Optionel, Deuxième emplacement dans Neviweb, ou ' '.",
           "network3": "Optionel, Troisième emplacement dans Neviweb, ou ' '.",
           "homekit_mode": "Optionel, support homekit",
+          "ignore_miwi": "Optionel, ignorer les appareils miwi",
           "scan_interval": "Optionel, intervalle des requêtes sur neviweb, 300 à 600 sec.",
           "stat_interval": "Optionel, intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
           "notify": "Optionel, avis en cas de déconnection pour un appareil."
@@ -55,6 +57,7 @@
           "stat_interval": "Intervalle de statistique",
           "notify": "Annonce",
           "homekit_mode": "Mode HomeKit",
+          "ignore_miwi": "Ignorer appareils miwi",
           "reload": "Recharger l'integration",
           "download_log": "Télécharger les diagnostiques",
           "migrate": "Migrer les unique_id numériques"
