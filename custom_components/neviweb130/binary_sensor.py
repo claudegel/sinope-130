@@ -80,7 +80,7 @@ async def async_setup_entry(
 
     entities = []
     device_registry = dr.async_get(hass)
-    
+
     for gateway_data, default_name in [
         (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
         (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
@@ -99,7 +99,7 @@ async def async_setup_entry(
                         device_firmware = "{major}.{middle}.{minor}".format(
                             **device_info["signature"]["softVersion"]
                         _LOGGER.debug("device found = %s", device_name)
-                        
+
                         # Ensure the device is registered in the device registry
                         device_entry = device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
@@ -109,6 +109,12 @@ async def async_setup_entry(
                             model=device_info["signature"]["model"],
                             sw_version=device_firmware,
                         )
+                        attr_info = {
+                            "identifiers": device_entry.identifiers,
+                            "name": device_entry.name,
+                            "manufacturer": device_entry.manufacturer,
+                            "model": device_entry.model,
+                        }
                         _LOGGER.debug("Config entry = %s", device_entry)
                         _LOGGER.debug("Attribute found for device: %s", master_device_name)
                         if model in CLIMAT_MODEL:
@@ -122,7 +128,17 @@ async def async_setup_entry(
 
                         for attribute in attributes_name:
                             _LOGGER.debug(f"Adding attributes number for : {device_name} {attribute}")
-                            entities.append(Neviweb130DeviceAttributeBinarySensor(data['coordinator'], device_info, device_name, attribute, device_entry.id))
+                            entities.append(
+                                Neviweb130DeviceAttributeBinarySensor(
+                                    data['coordinator'],
+                                    device_info,
+                                    device_name,
+                                    attribute,
+                                    device_entry.id,
+                                    attr_info,
+                                )
+                            )
+#                                    data['coordinator'], device_info, device_name, attribute, device_entry.id))
 
     async_add_entities(entities, True)
 
@@ -132,24 +148,73 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity, BinarySensorEntit
 
     entity_description: Neviweb130DeviceBinarySensorEntityDescription
 
-    def __init__(self, coordinator: DataUpdateCoordinator, device: dict, device_name: str, attribute: str, device_id: str):
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        device: dict,
+        device_name: str,
+        attribute: str,
+        device_id: str,
+        attr_info: dict,
+    ):
         """Initialize the binary sensor."""
         super().__init__(coordinator)
         self._device = device
         self._device_name = device_name
-        self._master_device_id = device["id"]
         self._attribute = attribute
-        self._attr_name = f"{device_name} {attribute.replace('_', ' ').capitalize()}"
-        self._attr_unique_id = f"{device.get('id')}_{attribute}"
+        self._device_id = device_id
+        self._state = None
+        self._attr_name = f"{self._attribute.replace('_', ' ').capitalize()}"
+        self._attr_unique_id = f"{self._device.get('id')}_{attribute}"
+        self._attr_device_info = attr_info
+        self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
+        self._icon = None
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._attr_name
+
+    @property
+    def unique_id(self):
+        """Return a unique ID."""
+        _LOGGER.debug("Device id = %s", self._device_id)
+        _LOGGER.debug("Unique id = %s", self._attr_unique_id)
+        return self._attr_unique_id
+
 
     @property
     def is_on(self):
         """Return true if the binary sensor is on."""
-#        return self._device.get(self._attribute) == "on"  # Adjust the condition
-        return self.entity_description.value_fn(self.device_data)
+        return self._device.get(self._attribute) == "on"  # Adjust the condition
 
-#    async def async_update(self):
-#        """Fetch new state data for the select entity."""
-#        await self.coordinator.async_request_refresh()
-#        self._device = self.coordinator.data
-#        self.async_write_ha_state()
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        _LOGGER.debug(
+            "Device %s with attribute %s have State = %s",
+            self._device,
+            self._attribute,
+            self._state,
+        )
+        return state = self._device.get(self._attribute)
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend, if any."""
+        return self._icon
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the sensor."""
+        return {
+            "device_name": self._attr_name,
+            ATTR_FRIENDLY_NAME: self._attr_friendly_name,
+            "device_id": self._attr_unique_id,
+        }
+
+    async def async_update(self):
+        """Fetch new state data for the select entity."""
+        await self.coordinator.async_request_refresh()
+        self._device = self.coordinator.data
+        self.async_write_ha_state()
