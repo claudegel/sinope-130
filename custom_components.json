@@ -1,6 +1,6 @@
 {
     "neviweb130": {
-        "version": "3.0.0",
+        "version": "4.0.0",
         "local_location": "/custom_components/neviweb130/__init__.py",
         "remote_location": "https://github.com/claudegel/sinope-130/tree/master/custom_components/__init__.py",
         "visit_repo": "https://github.com/claudegel/sinope-130",
@@ -17,6 +17,14 @@
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/strings.json",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/switch.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/valve.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/devices.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/attributes.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/binary_sensor.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/button.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/coordinator.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/number.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/select.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/session_manager.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/translations/en.json",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/translations/fr.json",
         ]
