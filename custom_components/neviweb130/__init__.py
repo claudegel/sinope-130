@@ -901,9 +901,12 @@ class Neviweb130Client:
         _LOGGER.debug("CoolsetpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_cycle_output(self, device_id, status, val):
+    def set_aux_cycle_output(self, device_id, status, val, wifi):
         """Set low voltage thermostat aux cycle status and length."""
-        data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
+        if wifi:
+            data = {ATTR_AUX_CYCLE: val}
+        else:
+            data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
