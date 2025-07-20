@@ -5058,7 +5058,12 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = device_data[ATTR_ROOM_SETPOINT]
+                    self._operation_mode = device_data[ATTR_SYSTEM_MODE]
+                    self._target_temp = (
+                        float(device_data[ATTR_COOL_SETPOINT])
+                        if self._operation_mode == "cool"
+                        else float(device_data[ATTR_ROOM_SETPOINT])
+                    )
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
@@ -5081,7 +5086,6 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     self._keypad = device_data[ATTR_KEYPAD]
-                    self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._fan_speed = device_data[ATTR_FAN_SPEED]
