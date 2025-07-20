@@ -50,6 +50,7 @@ from .const import (
     ATTR_GAUGE_TYPE,
     ATTR_GREEN,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HUMIDIFIER_TYPE,
     ATTR_INPUT_NUMBER,
     ATTR_INTENSITY,
     ATTR_INTENSITY_MIN,
@@ -71,6 +72,7 @@ from .const import (
     ATTR_PHASE_CONTROL,
     ATTR_POWER_SUPPLY,
     ATTR_RED,
+    ATTR_REFUEL,
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT,
@@ -90,6 +92,7 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
     DOMAIN,
     CONF_HOMEKIT_MODE,
+    CONF_IGNORE_MIWI,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NETWORK3,
@@ -99,10 +102,11 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = '3.0.0'
+VERSION = '4.0.0'
 SCAN_INTERVAL = timedelta(seconds=420)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
+IGNORE_MIWI = False
 NOTIFY = "both"
 
 PLATFORMS = [
@@ -121,6 +125,7 @@ PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 m
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
+HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
 CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
 FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
@@ -154,6 +159,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL):
             cv.time_period,
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
+            cv.boolean,
+        vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI):
             cv.boolean,
         vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL):
             vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
@@ -445,6 +452,15 @@ SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
     }
 )
 
+SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(
+            cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]
+        ),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
@@ -463,7 +479,7 @@ SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     }
 )
 
-SET_LED_COLOR_SCHEMA = vol.Schema(
+SET_LED_INDICATOR_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATE): vol.All(
@@ -729,6 +745,13 @@ SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.All(
             vol.Coerce(int), vol.In(LOW_FUEL_LEVEL)),
+    }
+)
+
+SET_REFUEL_ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_REFUEL): vol.In([True, False]),
     }
 )
 
