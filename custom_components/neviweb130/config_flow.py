@@ -41,13 +41,16 @@ from .const import (
     CONF_NETWORK2,
     CONF_NETWORK3,
     CONF_HOMEKIT_MODE,
+    CONF_IGNORE_MIWI,
     CONF_STAT_INTERVAL,
     CONF_NOTIFY,
+    STARTUP_MESSAGE,
 )
 
 from .schema import (
     CONFIG_SCHEMA,
     HOMEKIT_MODE,
+    IGNORE_MIWI,
     NOTIFY,
     PLATFORMS,
     SCAN_INTERVAL,
@@ -77,6 +80,8 @@ FLOW_SCHEMA = vol.Schema({
                 ),
             ),
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE):
+            cv.boolean,
+        vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI):
             cv.boolean,
         vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL):
             vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
@@ -122,6 +127,7 @@ async def async_validate_input(self, data: dict[str, Any]) -> Dict[str, Any]:
     net2 = data.get(CONF_NETWORK2)
     net3 = data.get(CONF_NETWORK3)
     homekit = data.get(CONF_HOMEKIT_MODE)
+    ignore = data.get(CONF_IGNORE_MIWI)
     scan = data.get(CONF_SCAN_INTERVAL)
     stat = data.get(CONF_STAT_INTERVAL)
     notif = data.get(CONF_NOTIFY)
@@ -143,6 +149,7 @@ async def async_validate_input(self, data: dict[str, Any]) -> Dict[str, Any]:
         CONF_NETWORK2: net2,
         CONF_NETWORK3: net3,
         CONF_HOMEKIT_MODE: homekit,
+        CONF_IGNORE_MIWI: ignore,
         CONF_SCAN_INTERVAL: scan,
         CONF_STAT_INTERVAL: stat,
         CONF_NOTIFY: notif,
@@ -154,13 +161,15 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
-    
+
     hass: HomeAssistant
 
     data: Optional[Dict[str, Any]]
 
     def __init__(self) -> None:
         """Initialise Neviweb130 config flow."""
+        _LOGGER.info(STARTUP_MESSAGE)
+
         self.username = None
         self.password = None
         self.network = None
@@ -168,6 +177,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         self.network3 = None
         self.scan_interval = 480
         self.homekit_mode = False
+        self.ignore_miwi = False
         self.stat_interval = 1800
         self.notify = "both"
         self._cookies = None
@@ -207,14 +217,15 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_NETWORK2] = info[CONF_NETWORK2]
                 user_input[CONF_NETWORK3] = info[CONF_NETWORK3]
                 user_input[CONF_HOMEKIT_MODE] = info[CONF_HOMEKIT_MODE]
+                user_input[CONF_IGNORE_MIWI] = info[CONF_IGNORE_MIWI]
                 user_input[CONF_SCAN_INTERVAL] = info[CONF_SCAN_INTERVAL]
                 user_input[CONF_STAT_INTERVAL] = info[CONF_STAT_INTERVAL]
                 user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
- 
+
             self.data = user_input
-            
+
             return self.async_create_entry(title="Sinope Neviweb130", data=self.data)
- 
+
         return self.async_show_form(
             step_id="user", data_schema=FLOW_SCHEMA, errors=errors
         )
@@ -227,7 +238,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Add reconfigure step to allow to reconfigure a config entry."""
         errors: dict[str, str] = {}
-        
+
         reconfigure_entry: config_entries.ConfigEntry[Any] = (
             self._get_reconfigure_entry()
         )
@@ -255,6 +266,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_NETWORK2] = info[CONF_NETWORK2]
                 user_input[CONF_NETWORK3] = info[CONF_NETWORK3]
                 user_input[CONF_HOMEKIT_MODE] = info[CONF_HOMEKIT_MODE]
+                user_input[CONF_IGNORE_MIWI] = info[CONF_IGNORE_MIWI]
                 user_input[CONF_SCAN_INTERVAL] = info[CONF_SCAN_INTERVAL]
                 user_input[CONF_STAT_INTERVAL] = info[CONF_STAT_INTERVAL]
                 user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
@@ -285,6 +297,8 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                     ),
                 ),
             vol.Optional(CONF_HOMEKIT_MODE, default=reconfigure_entry.data[CONF_HOMEKIT_MODE]):
+                cv.boolean,
+            vol.Optional(CONF_IGNORE_MIWI, default=reconfigure_entry.data[CONF_IGNORE_MIWI]):
                 cv.boolean,
             vol.Optional(CONF_STAT_INTERVAL, default=reconfigure_entry.data[CONF_STAT_INTERVAL]):
                 vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
