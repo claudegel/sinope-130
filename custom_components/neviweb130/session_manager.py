@@ -47,4 +47,4 @@ class SessionManager:
             self._session = None
             _LOGGER.debug("Neviweb session closed")
 
-session_manager = SessionManager() 
+session_manager = SessionManager()
