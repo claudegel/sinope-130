@@ -2286,10 +2286,14 @@ class Neviweb130Thermostat(ClimateEntity):
         entity = value["id"]
         status = value["status"]
         val = value["val"]
+        wifi = self._is_low_wifi
         length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
-        self._client.set_aux_cycle_output(entity, status, length)
-        self._cycle_length_output2_status = status
-        self._cycle_length_output2_value = length
+        self._client.set_aux_cycle_output(entity, status, length, wifi)
+        if wifi:
+            self._aux_cycle_length = length
+        else:
+            self._cycle_length_output2_status = status
+            self._cycle_length_output2_value = length
 
     def set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
