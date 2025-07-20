@@ -1,10 +1,38 @@
 """Constants for neviweb130 component."""
 
-DOMAIN = "neviweb130"
+import json
+import pathlib
+
+# Base component constants, some loaded directly from the manifest
+_LOADER_PATH = pathlib.Path(__loader__.path)
+_MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
+with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
+    data = json.load(json_file)
+NAME = f"{data['name']}"
+DOMAIN = f"{data['domain']}"
+VERSION = f"{data['version']}"
+ISSUE_URL = f"{data['issue_tracker']}"
+REQUIRE = f"{data['homeassistant']}"
+DOC_URL = f"{data['documentation']}"
+
+STARTUP_MESSAGE = f"""
+-------------------------------------------------------------------
+{NAME} ({DOMAIN})
+Version: {VERSION}
+Requirement: Home Assistant {REQUIRE}
+This is a custom integration!
+If you have any issues with this you need to open an issue here:
+{ISSUE_URL}
+Documentation: {DOC_URL}
+If not done yet you can delete config in configuration.yaml.
+-------------------------------------------------------------------
+"""
+
 CONF_NETWORK = 'network'
 CONF_NETWORK2 = 'network2'
 CONF_NETWORK3 = 'network3'
 CONF_HOMEKIT_MODE = 'homekit_mode'
+CONF_IGNORE_MIWI = "ignore_miwi"
 CONF_STAT_INTERVAL = 'stat_interval'
 CONF_NOTIFY = 'notify'
 
@@ -36,13 +64,14 @@ ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 ATTR_BATTERY_STATUS = "batteryStatus"
 ATTR_BATTERY_TYPE = "batteryType"
 ATTR_FLOOR_MODE = "airFloorMode"
-ATTR_FLOOR_OUTPUT2 = "loadWattOutput2" #status on/off, value=xx
+ATTR_FLOOR_OUTPUT2 = "loadWattOutput2" # status on/off, value=xx
 ATTR_FLOOR_AUX = "auxHeatConfig"
 ATTR_KEYPAD = "lockKeypad"
 ATTR_OCCUPANCY = "occupancyMode"
-ATTR_FLOOR_OUTPUT1 = "loadWattOutput1" #status on/off, value=xx
-ATTR_LIGHT_WATTAGE = "loadWattOutput1" #status on/off, value=xx
-ATTR_WIFI_WATTAGE = "loadWatt"
+ATTR_FLOOR_OUTPUT1 = "loadWattOutput1" # status on/off, value=xx
+ATTR_LIGHT_WATTAGE = "loadWattOutput1" # status on/off, value=xx
+ATTR_OUTPUT1 = "loadWattOutput1"
+ATTR_WIFI_WATTAGE = "loadWatt" # value
 ATTR_WIFI_WATT_NOW = "loadWattNow"
 ATTR_WIFI = "wifiRssi"
 ATTR_RSSI = "rssi"
@@ -69,11 +98,12 @@ ATTR_LOW_TEMP_STATUS = "alertLowTempStatus"
 ATTR_TEMPERATURE = "temperature"
 ATTR_WATER_TEMPERATURE = "waterTemperature"
 ATTR_ROOM_TEMP_ALARM = "roomTemperatureAlarmStatus"
-ATTR_VALVE_CLOSURE = "valveClosureSource" #source
+ATTR_VALVE_CLOSURE = "valveClosureSource" # source
 ATTR_LEAK_ALERT = "alertWaterLeak"
 ATTR_BATT_ALERT = "alertLowBatt"
 ATTR_TEMP_ALERT = "alertLowTemp"
 ATTR_FUEL_ALERT = "alertLowFuel"
+ATTR_REFUEL = "alertRefuel"
 ATTR_FUEL_PERCENT_ALERT = "alertLowFuelPercent"
 ATTR_CONF_CLOSURE = "cfgValveClosure"
 ATTR_MOTOR_TARGET = "motorTargetPosition"
@@ -85,10 +115,10 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
-ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" #status on/off, value (second)
-ATTR_PUMP_PROTEC = "pumpProtection" #status on/off, duration, frequency
-ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration" #status on/off, value
-ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod" #status on/off, value
+ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" # status on/off, value (second)
+ATTR_PUMP_PROTEC = "pumpProtection" # status on/off, duration, frequency
+ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration" # status on/off, value
+ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod" # status on/off, value
 ATTR_TYPE = "type"
 ATTR_PHASE_CONTROL = "phaseControl"
 ATTR_SYSTEM_MODE = "systemMode"
@@ -206,6 +236,25 @@ ATTR_COOL_MIN_TIME_OFF = "coolMinTimeOff"
 ATTR_WATER_TEMP_PROTEC = "waterTempProtectionType"
 ATTR_OUTPUT_CONNECT_STATE = "bulkOutputConnectedState"
 ATTR_HEAT_INSTALL_TYPE = "HeatInstallationType"
+ATTR_HUMIDITY = "humidity"
+ATTR_ACCESSORY_TYPE = "accessoryType"
+ATTR_HUMID_SETPOINT_OFFSET = "humiditySetpointOffset"
+ATTR_HUMID_SETPOINT_MODE = "humiditySetpointMode"
+ATTR_AIR_EX_MIN_TIME_ON = "airExchangerMinTimeOn"
+ATTR_HC_LOCK_STATUS = "heatCoolLockoutStatus"
+ATTR_DRAUXCONF = "drAuxConfig"
+ATTR_DRFANCONF = "drFanSpeedConfig"
+ATTR_DRACCESORYCONF = "drAccessoryConfig"
+ATTR_DRAIR_CURT_CONF = "drAirCurtainConfig"
+ATTR_INTERLOCK_ID = "interlockUniqueId"
+ATTR_HEAT_PURGE_TIME = "heatPurgeTime"
+ATTR_COOL_PURGE_TIME = "coolPurgeTime"
+ATTR_AIR_CONFIG = "airCurtainConfig"
+ATTR_AIR_ACTIVATION_TEMP = "airCurtainActivationTemperature"
+ATTR_AIR_MAX_POWER_TEMP = "airCurtainMaxPowerTemperature"
+ATTR_AUX_HEAT_MIN_TIMEOFF = "auxHeatMinTimeOff"
+ATTR_HEAT_MIN_TIME_ON = "heatMinTimeOn"
+ATTR_HEAT_MIN_TIME_OFF = "heatMinTimeOff"
 
 SIGNAL_EVENTS_CHANGED = f"{DOMAIN}_events_changed"
 
@@ -221,7 +270,7 @@ STATE_WATER_LEAK = "water"
 STATE_VALVE_STATUS = "open"
 STATE_KEYPAD_STATUS = "unlocked"
 
-SERVICE_SET_LED_COLOR = "set_led_color"
+SERVICE_SET_LED_INDICATOR = "set_led_indicator"
 SERVICE_SET_LED_ON_INTENSITY = "set_led_on_intensity"
 SERVICE_SET_LED_OFF_INTENSITY = "set_led_off_intensity"
 SERVICE_SET_LIGHT_MIN_INTENSITY = "set_light_min_intensity"
@@ -289,3 +338,5 @@ SERVICE_SET_AUX_HEAT_MIN_TIME_ON = "set_aux_heat_min_time_on"
 SERVICE_SET_COOL_MIN_TIME_ON = "set_cool_min_time_on"
 SERVICE_SET_COOL_MIN_TIME_OFF = "set_cool_min_time_off"
 SERVICE_SET_NEVIWEB_STATUS = "set_neviweb_status"
+SERVICE_SET_REFUEL_ALERT = "set_refuel_alert"
+SERVICE_SET_HUMIDIFIER_TYPE = "set_humidifier_type"
