@@ -25,18 +25,21 @@ from homeassistant.util import Throttle
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
-    DOMAIN,
     CONF_HOMEKIT_MODE,
+    CONF_IGNORE_MIWI,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
+    DOMAIN,
+    STARTUP_MESSAGE,
 )
 
 from .schema import (
     CONFIG_SCHEMA,
     HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE,
+    IGNORE_MIWI as DEFAULT_IGNORE_MIWI,
     NOTIFY as DEFAULT_NOTIFY,
     PLATFORMS,
     SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL,
@@ -49,14 +52,18 @@ from .coordinator import (
     async_setup_coordinator,
 )
 
+from .devices import load_devices, save_devices, device_dict
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """import neviweb130 integration from YAML if exist."""
+    _LOGGER.info(STARTUP_MESSAGE)
 
     # Register the event listener for Home Assistant stop event
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
+
+    await load_devices()
 
     neviweb130_config: Optional[ConfigType] = config.get(DOMAIN)
     _LOGGER.debug("Config found: %s", neviweb130_config)
@@ -88,12 +95,14 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.config_entries.async_update_entry(config_entry, data=dict(neviweb130_config))
     return True
 
-@callback
 async def async_shutdown(event):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
-    coordinator = event.data[DOMAIN]['coordinator']
-    await coordinator.stop()
+    await save_devices(device_dict)
+    _LOGGER.info("Energy stat data saved")
+    if DOMAIN in hass.data and "coordinator" in hass.data[DOMAIN]:
+        _LOGGER.info("Stopping coordinator")
+        await hass.data[DOMAIN]["coordinator"].stop()
 
 @callback
 def _async_find_matching_config_entry(hass):
@@ -172,13 +181,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     homekit_mode = entry.data.get(CONF_HOMEKIT_MODE, DEFAULT_HOMEKIT_MODE)
     _LOGGER.debug("Setting Homekit mode to: %s", homekit_mode)
 
+    ignore_miwi = entry.data.get(CONF_IGNORE_MIWI, DEFAULT_IGNORE_MIWI)
+    _LOGGER.debug("Setting ignore miwi mode to: %s", ignore_miwi)
+
     stat_interval = entry.data.get(CONF_STAT_INTERVAL, DEFAULT_STAT_INTERVAL)
     _LOGGER.debug("Setting stat interval to: %s", stat_interval)
 
     notify = entry.data.get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", notify)
 
-    client = Neviweb130Client(hass, username, password, network, network2, network3)
+    client = Neviweb130Client(hass, ignore_miwi, username, password, network, network2, network3)
     coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
 
     hass.data[DOMAIN][entry.entry_id] = {
@@ -186,6 +198,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "neviweb130_client": coordinator.client,
         "scan_interval": SCAN_INTERVAL,
         "homekit_mode": homekit_mode,
+        "ignore_miwi": ignore_miwi,
         "stat_interval": stat_interval,
         "notify": notify,
     }
