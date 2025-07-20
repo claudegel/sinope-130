@@ -5394,10 +5394,15 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    self._heat_cool = device_data[ATTR_HEAT_COOL]
+                    self._target_temp = (
+                        float(device_data[ATTR_COOL_SETPOINT])
+                        if self._heat_cool == "cool"
+                        else float(device_data[ATTR_ROOM_SETPOINT])
+                    )
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                    self._target_cool = float(device_data[ATTR_COOL_SETPOINT])
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._heatcool_setpoint_delta = device_data[
@@ -5438,7 +5443,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY][
                             "value"
                         ]
-                    self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._language = device_data[ATTR_LANGUAGE]
                     if ATTR_OCCUPANCY in device_data:
                         self._occupancy = device_data[ATTR_OCCUPANCY]
