@@ -78,11 +78,11 @@ set_temperature_format:
       description: Temperature format to set, «celsius» or «fahrenheit».
       example: "celsius"
 
-set_led_color:
+set_led_indicator:
   description: Set led indicator color for each light state, on/off.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 device to set the led indicator color and intensity.
+      description: Name(s) of neviweb130 device to set the led indicator color.
       example: "light.neviweb130_light_office"
     state:
       description: 0 = when light is «off», 1 = when light is «on»
@@ -526,6 +526,16 @@ set_fuel_alert:
       description: set to «True» to activate alert, or «False».
       example: True
 
+set_refuel_alert:
+  description: Set refuel alert, on/off for LM4110-ZB.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device LM4110-ZB.
+      example: "sensor.neviweb130_sensor_propane"
+    alertRefuel:
+      description: set to «True» to activate alert, or «False».
+      example: True
+
 set_battery_alert:
   description: Set battery alert, on/off for LM4110-ZB.
   fields:
@@ -739,3 +749,13 @@ set_neviweb_status:
     mode:
       description: possible values are home or away.
       example: "away"
+
+set_humidifier_type:
+  description: Set humidifier type for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF device to set the second display.
+      example: "climate.neviweb130_climate_office"
+    humidifierType:
+      description: possible values are none, steam, flowthrough.
+      example: "none"
