@@ -2050,7 +2050,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self._fan_swing_horiz = swing
 
     def turn_on(self) -> None:
-        """Turn the thermostat to HVACMode.heat  or HVACMode.COOL."""
+        """Turn the thermostat to HVACMode.heat or HVACMode.COOL."""
         if self._heat_cool == "cool":
             self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi)
             self._operation_mode = HVACMode.COOL
