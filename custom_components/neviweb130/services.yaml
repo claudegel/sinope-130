@@ -750,7 +750,7 @@ set_neviweb_status:
       description: possible values are home or away.
       example: "away"
 
-set_humiddifier_type:
+set_humidifier_type:
   description: Set humidifier type for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
