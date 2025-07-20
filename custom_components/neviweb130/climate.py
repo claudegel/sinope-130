@@ -1959,6 +1959,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return True if mode = HVACMode.HEAT."""
         if (
             self._operation_mode == HVACMode.HEAT
+            or self._operation_mode == HVACMode.COOL
+            or self._operation_mode == HVACMode.DRY
             or self._operation_mode == HVACMode.AUTO
             or self._operation_mode == MODE_MANUAL
         ):
@@ -2048,9 +2050,13 @@ class Neviweb130Thermostat(ClimateEntity):
             self._fan_swing_horiz = swing
 
     def turn_on(self) -> None:
-        """Turn the thermostat to HVACMode.heat on."""
-        self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi)
-        self._operation_mode = HVACMode.HEAT
+        """Turn the thermostat to HVACMode.heat  or HVACMode.COOL."""
+        if self._heat_cool == "cool":
+            self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi)
+            self._operation_mode = HVACMode.COOL
+        else:
+            self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi)
+            self._operation_mode = HVACMode.HEAT
 
     def turn_off(self) -> None:
         """Turn the thermostat to HVACMode.off."""
@@ -2213,6 +2219,10 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi)
         elif hvac_mode == HVACMode.AUTO:
             self._client.set_setpoint_mode(self._id, HVACMode.AUTO, self._is_wifi)
+        elif hvac_mode == HVACMode.COOL:
+            self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi)
+        elif hvac_mode == HVACMode.DRY:
+            self._client.set_setpoint_mode(self._id, HVACMode.DRY, self._is_wifi)
         elif hvac_mode == MODE_AUTO_BYPASS:
             if self._operation_mode == HVACMode.AUTO:
                 self._client.set_setpoint_mode(
