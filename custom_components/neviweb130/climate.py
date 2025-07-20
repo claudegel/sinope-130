@@ -4125,7 +4125,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._temp_display_status = None
         self._temp_display_value = None
         self._cycle_length = 0
-        self._aux_cycle_length = 0
         self._pump_protec_status = None
         self._pump_protec_duration = None
         self._pump_protec_period = None
