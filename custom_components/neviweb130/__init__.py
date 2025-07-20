@@ -951,7 +951,7 @@ class Neviweb130Client:
         if low == "voltage":
             data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": sec}}
         elif low == "wifi":
-            data = {ATTR_AUX_CYCLE: heat}
+            data = {ATTR_AUX_CYCLE: sec}
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
