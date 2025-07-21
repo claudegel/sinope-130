@@ -1864,14 +1864,14 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_modes(self):
         """Return the list of available operation modes."""
-        if self._is_wifi:
-            return SUPPORTED_HVAC_WIFI_MODES
+        if self._is_HC:
+            return SUPPORTED_HVAC_HC_MODES
         elif self._is_wifi_lite:
             return SUPPORTED_HVAC_WIFI_LITE_MODES
+        elif self._is_wifi:
+            return SUPPORTED_HVAC_WIFI_MODES
         elif self._is_h_c:
             return SUPPORTED_HVAC_H_C_MODES
-        elif self._is_HC:
-            return SUPPORTED_HVAC_HC_MODES
         elif self._is_HP:
             if self._avail_mode == "heatingOnly":
                 return SUPPORTED_HVAC_HEAT_MODES
@@ -1926,12 +1926,12 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def preset_modes(self):
         """Return available preset modes."""
-        if self._is_wifi:
+        if self._is_HC or self._is_h_c:
+            return PRESET_HC_MODES
+        elif self._is_wifi:
             return PRESET_WIFI_MODES
         elif self._is_HP:
             return PRESET_HP_MODES
-        elif self._is_HC or self._is_h_c:
-            return PRESET_HC_MODES
         else:
             return PRESET_MODES
 
