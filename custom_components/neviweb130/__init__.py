@@ -760,13 +760,16 @@ class Neviweb130Client:
         data = {ATTR_POWER_MODE: mode}
         self.set_device_attributes(device_id, data)
 
-    def set_setpoint_mode(self, device_id, mode, wifi):
+    def set_setpoint_mode(self, device_id, mode, wifi, HC):
         """Set thermostat operation mode."""
-        """Work differently for wifi and zigbee devices."""
+        """Work differently for wifi and zigbee devices and TH6250xx devices."""
         if wifi:
-            if mode in [HVACMode.HEAT, MODE_MANUAL]:
-                mode = MODE_MANUAL
-            data = {ATTR_SETPOINT_MODE: mode}
+            if HC:
+                data = {ATTR_HEAT_COOL: mode}
+            else:
+                if mode in [HVACMode.HEAT, MODE_MANUAL]:
+                    mode = MODE_MANUAL
+                data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
         self.set_device_attributes(device_id, data)
