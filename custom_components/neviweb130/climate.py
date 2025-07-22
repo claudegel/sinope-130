@@ -1956,7 +1956,7 @@ class Neviweb130Thermostat(ClimateEntity):
             elif self._operation_mode == HVACMode.AUTO:
                 submode = "(" + HVACMode.AUTO + ")"
             else:
-                submode = ""
+                submode = "(" + MODE_MANUAL + ")"
             if self._heat_cool == HVACMode.OFF:
                 return HVACAction.OFF + submode
             elif self._heat_cool == HVACMode.COOL:
