@@ -2101,7 +2101,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi, self._is_HC)
                 self._heat_cool = HVACMode.COOL
             elif self._heat_cool == HVACMode.HEAT:
-                self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi, self._is_HC)
+                self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi, self._is_HC)
                 self._heat_cool = HVACMode.HEAT
         else:
             self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi, self._is_HC)
