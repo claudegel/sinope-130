@@ -1846,20 +1846,32 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current operation."""
-        if self._operation_mode == HVACMode.OFF:
-            return HVACMode.OFF
-        elif self._operation_mode in [HVACMode.AUTO, MODE_AUTO_BYPASS]:
-            return HVACMode.AUTO
-        elif self._operation_mode == HVACMode.COOL:
-            return HVACMode.COOL
-        elif self._operation_mode == HVACMode.DRY:
-            return HVACMode.DRY
-        elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACMode.FAN_ONLY
-        elif self._operation_mode == MODE_EM_HEAT:
-            return MODE_EM_HEAT
+        if self._is_HC:
+            if self._heat_cool == HVACMode.OFF:
+                return HVACMode.OFF
+            elif self._heat_cool == HVACMode.AUTO:
+                return HVACMode.AUTO
+            elif self._heat_cool == HVACMode.COOL:
+                return HVACMode.COOL
+            elif self._heat_cool == MODE_EM_HEAT:
+                return MODE_EM_HEAT
+            else:
+                return HVACMode.HEAT
         else:
-            return HVACMode.HEAT
+            if self._operation_mode == HVACMode.OFF:
+                return HVACMode.OFF
+            elif self._operation_mode in [HVACMode.AUTO, MODE_AUTO_BYPASS]:
+                return HVACMode.AUTO
+            elif self._operation_mode == HVACMode.COOL:
+                return HVACMode.COOL
+            elif self._operation_mode == HVACMode.DRY:
+                return HVACMode.DRY
+            elif self._operation_mode == HVACMode.FAN_ONLY:
+                return HVACMode.FAN_ONLY
+            elif self._operation_mode == MODE_EM_HEAT:
+                return MODE_EM_HEAT
+            else:
+                return HVACMode.HEAT
 
     @property
     def hvac_modes(self):
@@ -1938,35 +1950,66 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if self._operation_mode == HVACMode.OFF:
-            return HVACAction.OFF
-        elif self._operation_mode == HVACMode.COOL:
-            return HVACAction.COOLING
-        elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACAction.FAN
-        elif self._operation_mode == HVACMode.DRY:
-            return HVACAction.DRYING
-        elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
-            if self._heat_level == 0:
-                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+        if self._is_HC:
+            if self._operation_mode == MODE_AUTO_BYPASS:
+                submode = "(" + MODE_AUTO_BYPASS + ")"
+            elif self._operation_mode == HVACMode.AUTO:
+                submode = "(" + HVACMode.AUTO + ")"
             else:
-                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
-        elif self._heat_level == 0:
-            return HVACAction.IDLE
+                submode = ""
+            if self._heat_cool == HVACMode.OFF:
+                return HVACAction.OFF + submode
+            elif self._heat_cool == HVACMode.COOL:
+                if self._heat_level == 0:
+                    return HVACAction.IDLE + submode
+                else:
+                    return HVACAction.COOLING + submode
+            elif self._heat_cool == HVACMode.HEAT:
+                if self._heat_level == 0:
+                    return HVACAction.IDLE + submode
+                else:
+                    return HVACAction.HEATING + submode
+            elif self._heat_cool == MODE_EM_HEAT:
+                return "Em. heating" + submode
         else:
-            return HVACAction.HEATING
+            if self._operation_mode == HVACMode.OFF:
+                return HVACAction.OFF
+            elif self._operation_mode == HVACMode.COOL:
+                return HVACAction.COOLING
+            elif self._operation_mode == HVACMode.FAN_ONLY:
+                return HVACAction.FAN
+            elif self._operation_mode == HVACMode.DRY:
+                return HVACAction.DRYING
+            elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
+                if self._heat_level == 0:
+                    return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+                else:
+                    return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
+            elif self._heat_level == 0:
+                return HVACAction.IDLE
+            else:
+                return HVACAction.HEATING
 
     @property
     def is_on(self) -> bool:
         """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
-        if (
-            self._operation_mode == HVACMode.HEAT
-            or self._operation_mode == HVACMode.COOL
-            or self._operation_mode == HVACMode.DRY
-            or self._operation_mode == HVACMode.AUTO
-            or self._operation_mode == MODE_MANUAL
-        ):
-            return True
+        if self._is_HC:
+            if (
+                self._heat_cool == HVACMode.HEAT
+                or self._heat_cool == HVACMode.COOL
+                or self._heat_cool == HVACMode.AUTO
+                or self._heat_cool == MODE_EM_HEAT
+            ):
+                return True
+        else:
+            if (
+                self._operation_mode == HVACMode.HEAT
+                or self._operation_mode == HVACMode.COOL
+                or self._operation_mode == HVACMode.DRY
+                or self._operation_mode == HVACMode.AUTO
+                or self._operation_mode == MODE_MANUAL
+            ):
+                return True
         return False
 
     @property
@@ -2053,17 +2096,24 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat or HVACMode.COOL."""
-        if self._heat_cool == "cool":
-            self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi)
-            self._operation_mode = HVACMode.COOL
+        if self._is_HC:
+            if self._heat_cool == "cool":
+                self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi, self._is_HC)
+                self._heat_cool = HVACMode.COOL
+            elif self._heat_cool == HVACMode.HEAT:
+                self._client.set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi, self._is_HC)
+                self._heat_cool = HVACMode.HEAT
         else:
-            self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi)
-            self._operation_mode = HVACMode.HEAT
+            self._client.set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi, self._is_HC)
+            self._operation_mode = HVACMode.OFF
 
     def turn_off(self) -> None:
         """Turn the thermostat to HVACMode.off."""
-        self._client.set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi)
-        self._operation_mode = HVACMode.OFF
+        self._client.set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi, self._is_HC)
+        if self._is_HC:
+            self._heat_cool = HVACMode.OFF
+        else:
+            self._operation_mode = HVACMode.OFF
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -5370,7 +5420,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_DRFANCONF,
                     ATTR_DRACCESORYCONF,
                     ATTR_DRAIR_CURT_CONF,
-                    ATTR_INTERLOCK_ID,
                     ATTR_HEAT_PURGE_TIME,
                     ATTR_COOL_PURGE_TIME,
                     ATTR_AIR_CONFIG,
@@ -5438,7 +5487,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ]["sourceType"]
                     self._heat_source_type = device_data[ATTR_HEAT_SOURCE_TYPE]
                     self._aux_heat_source_type = device_data[ATTR_AUX_HEAT_SOURCE_TYPE]
-                    self._operation_mode = device_data[ATTR_HEAT_COOL]
+                    self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
