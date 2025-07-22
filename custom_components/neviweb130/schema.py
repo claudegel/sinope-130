@@ -455,6 +455,13 @@ SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
     }
 )
 
+SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_SETPOINT): vol.In(["auto", "manual"]),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
