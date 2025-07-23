@@ -29,10 +29,10 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_OPTOUT, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
                     ATTR_PHASE_CONTROL, ATTR_POWER_SUPPLY, ATTR_RED,
                     ATTR_REFUEL, ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
-                    ATTR_SETPOINT, ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS,
-                    ATTR_TANK_HEIGHT, ATTR_TANK_TYPE, ATTR_TEMP,
-                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
-                    ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
+                    ATTR_SETPOINT, ATTR_SETPOINT_MODE, ATTR_SOUND_CONF,
+                    ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT, ATTR_TANK_TYPE,
+                    ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER,
+                    ATTR_TIMER2, ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
                     ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN)
@@ -458,7 +458,7 @@ SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
 SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_SETPOINT): vol.In(["auto", "manual"]),
+        vol.Required(ATTR_SETPOINT_MODE): vol.In(["auto", "manual"]),
     }
 )
 
