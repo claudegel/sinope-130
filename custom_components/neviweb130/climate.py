@@ -1259,7 +1259,7 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "mode": service.data[ATTR_SETPOINT],
+                    "mode": service.data[ATTR_SETPOINT_MODE],
                 }
                 thermostat.set_schedule_mode(value)
                 thermostat.schedule_update_ha_state(True)
