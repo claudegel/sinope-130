@@ -129,10 +129,11 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
                     SERVICE_SET_HUMIDIFIER_TYPE, SERVICE_SET_HVAC_DR_OPTIONS,
                     SERVICE_SET_HVAC_DR_SETPOINT, SERVICE_SET_LANGUAGE,
-                    SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SECOND_DISPLAY,
-                    SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
-                    SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
-                    SERVICE_SET_TEMPERATURE_FORMAT, SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SCHEDULE_MODE,
+                    SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
+                    SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
+                    SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
+                    SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
                      SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -151,11 +152,11 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
                      SET_HUMIDIFIER_TYPE_SCHEMA, SET_HVAC_DR_OPTIONS_SCHEMA,
                      SET_HVAC_DR_SETPOINT_SCHEMA, SET_LANGUAGE_SCHEMA,
-                     SET_PUMP_PROTECTION_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
-                     SET_SENSOR_TYPE_SCHEMA, SET_SETPOINT_MAX_SCHEMA,
-                     SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
-                     SET_TEMPERATURE_FORMAT_SCHEMA, SET_TIME_FORMAT_SCHEMA,
-                     VERSION, WIFI_FAN_SPEED)
+                     SET_PUMP_PROTECTION_SCHEMA, SET_SCHEDULE_MODE_SCHEMA,
+                     SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
+                     SET_SETPOINT_MAX_SCHEMA, SET_SETPOINT_MIN_SCHEMA,
+                     SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
+                     SET_TIME_FORMAT_SCHEMA, VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1249,7 +1250,21 @@ async def async_setup_platform(
                 thermostat.set_humidifier_type(value)
                 thermostat.schedule_update_ha_state(True)
                 break
-  
+
+    def set_schedule_mode_service(service):
+        """Set TH6500WF, TH6250WF schedule mode, manual or auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "mode": service.data[ATTR_SETPOINT],
+                }
+                thermostat.set_schedule_mode(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1486,6 +1501,13 @@ async def async_setup_platform(
         SERVICE_SET_HUMIDIFIER_TYPE,
         set_humidifier_type_service,
         schema=SET_HUMIDIFIER_TYPE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SCHEDULE_MODE,
+        set_schedule_mode_service,
+        schema=SET_SCHEDULE_MODE_SCHEMA,
     )
 
 
@@ -5434,7 +5456,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             else:
                 HC_SPECIAL_FIRMWARE = []
                 HC_43 = []
-            
+
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug(
@@ -5619,6 +5641,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         type = value["type"]
         self._client.set_humidifier_type(entity, type)
         self._humidifier_type = type
+
+    def set_schedule_mode(self, value):
+        """"Set schedule mode, manual or auto for TH6500WF, TH6250WF."""
+        entity = value["id"]
+        mode = value["mode"]
+        self._client.set_schedule_mode(entity, mode, self._is_HC)
+        self._operation_mode = mode
 
     @property
     def extra_state_attributes(self):
