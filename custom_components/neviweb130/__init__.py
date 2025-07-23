@@ -795,10 +795,21 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_humidifier_type(self, device_id, type):
-        """Set humidifier type."""
+        """Set humidifier type for TH6500WF and TH6250WF."""
         data = {ATTR_HUMIDIFIER_TYPE: type}
         self.set_device_attributes(device_id, data)
-  
+
+    def set_schedule_mode(self, device_id, mode, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_SETPOINT_MODE: mode}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                    "Warning: Service set_schedule_mode is only for "
+                    + "TH6500WF or TH6250WF thermostats."
+                )
+
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
         """Work differently for wifi and zigbee devices."""
