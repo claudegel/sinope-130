@@ -785,8 +785,13 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_temperature(self, device_id, temperature):
-        """Set device temperature."""
+        """Set device heating temperature target."""
         data = {ATTR_ROOM_SETPOINT: temperature}
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_temperature(self, device_id, temperature):
+        """Set device cooling temperature target."""
+        data = {ATTR_COOL_SETPOINT: temperature}
         self.set_device_attributes(device_id, data)
 
     def set_humidity(self, device_id, humidity):
