@@ -5649,6 +5649,17 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_schedule_mode(entity, mode, self._is_HC)
         self._operation_mode = mode
 
+    def set_temperature(self, **kwargs):
+        """Set new target temperature for cooling or heating."""
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        if temperature is None:
+            return
+        if self._heat_cool == "cool":
+            self._client.set_cool_temperature(self._id, temperature)
+        else:
+            self._client.set_temperature(self._id, temperature)
+        self._target_temp = temperature_format
+
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
