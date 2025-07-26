@@ -8,7 +8,10 @@ from datetime import timedelta
 import voluptuous as vol
 
 import homeassistant.helpers.device_registry as dr
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import (
@@ -82,6 +85,7 @@ from .const import (
     ATTR_FUEL_ALERT,
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
+    ATTR_HEAT_COOL,
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HUMIDITY,
     ATTR_HUMIDIFIER_TYPE,
@@ -751,13 +755,16 @@ class Neviweb130Client:
         data = {ATTR_POWER_MODE: mode}
         await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_setpoint_mode(self, device_id, mode, wifi):
+    async def async_set_setpoint_mode(self, device_id, mode, wifi, HC):
         """Set thermostat operation mode."""
         """Work differently for wifi and zigbee devices."""
         if wifi:
-            if mode in [HVACMode.HEAT, MODE_MANUAL]:
-                mode = MODE_MANUAL
-            data = {ATTR_SETPOINT_MODE: mode}
+            if HC:
+                data = {ATTR_HEAT_COOL: mode}
+            else:
+                if mode in [HVACMode.HEAT, MODE_MANUAL]:
+                    mode = MODE_MANUAL
+                data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
         await self.async_set_device_attributes(device_id, data)
@@ -783,9 +790,20 @@ class Neviweb130Client:
         await self.async_set_device_attributes(device_id, data)
 
     async def async_set_humidifier_type(self, device_id, type):
-        """Set humidifier type."""
+        """Set humidifier type for TH6500WF and TH6250WF."""
         data = {ATTR_HUMIDIFIER_TYPE: type}
         await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_schedule_mode(self, device_id, mode, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_SETPOINT_MODE: mode}
+            await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_schedule_mode is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
 
     async def async_set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
@@ -1393,34 +1411,49 @@ create_session = Neviweb130Client.create_session
 class Neviweb130Coordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, client: Neviweb130Client, scan_interval):
         """Initialize the Neviweb130Coordinator.timedelta(seconds=360)"""
-        self.client = client
-        #        self.devices = []
-        self.devices = {}  # device_id -> device object
 
         _LOGGER.debug("Coordinator scan interval = %s", scan_interval)
         super().__init__(
             hass,
             _LOGGER,
             name="neviweb130",
-            update_method=self.async_update_data,
-            update_interval=scan_interval,
+            update_method = self.async_update_data,
+            update_interval = scan_interval,
         )
+        self.client = client
+        self._devices: list = []  # liste des device objects
 
-    async def async_update_data(self):
-        """Fetch data from Neviweb130."""
-        # Update each registered device
-        for device in self.devices:
-            await device.async_update()
+    async def _async_update_data(self) -> dict:
+        """Call async_update() on each device and return a dict {id: device}."""
+        result = {}
+        for dev in self._devices:
+            _LOGGER.debug("Thermostat attrs: %s", dir(dev))
+            _LOGGER.debug("Thermostat __dict__: %s", vars(dev))
+            try:
+                await dev.async_update()
+                # fetch .id, or .unique_id
+                device_id = getattr(dev, "id", None) or getattr(dev, "unique_id", None)
+                if not device_id:
+                    _LOGGER.error("No ID found for %s", dev)
+                    continue
+
+                #result[str(dev.id)] = dev
+                result[str(device_id)] = dev
+            except Exception as err:
+                raise UpdateFailed(f"Eooro on update of device {dev.id}: {err}")
+        _LOGGER.debug("Coordinator data after update : %s", list(result.keys()))
+        return result
 
     def register_device(self, device):
         """Register a device to be managed by the coordinator."""
 #        self.devices.append(device)
-        self.devices[device.unique_id] = device
+        if device not in self._devices:
+            self._devices.append(device)
 
-    async def async_update_data(self):
-        """Fetch data from Neviweb130 devices."""
-        for device in self.devices.values():
-            await device.async_update()
+#    async def async_update_data(self):
+#        """Fetch data from Neviweb130 devices."""
+#        for device in self.devices.values():
+#            await device.async_update()
 
     async def async_initialize(self):
         """Initialize the coordinator."""
