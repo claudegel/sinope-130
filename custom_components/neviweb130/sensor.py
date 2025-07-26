@@ -69,7 +69,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from homeassistant.helpers.event import track_time_interval, async_track_state_change
-from homeassistant.helpers.entity import Entity
+#from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import StateType
@@ -175,7 +175,7 @@ async def async_setup_entry(
         return
 
     coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
+    await coordinator.async_config_entry_first_refresh()
 
     device_type = None
     device_registry = dr.async_get(hass)
@@ -329,7 +329,8 @@ async def async_setup_entry(
 #                            hass.data[DOMAIN]["device_specific_sensors"][device_id].append(sensor)
 #                            entities.append(sensor)
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+    hass.async_create_task(coordinator.async_request_refresh())
 
     def set_sensor_alert_service(service):
         """Set different alert and action for water leak sensor."""
@@ -765,8 +766,13 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                     )
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
+        return self._id
+
+    @property
+    def id(self) -> str:
+        """Alias pour DataUpdateCoordinator."""
         return self._id
 
     @property
@@ -1582,7 +1588,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._occupancyMode = mode
 
 
-class Neviweb130DeviceAttributeSensor(SensorEntity):
+class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
     """Representation of a specific Neviweb130 device attribute sensor."""
 
     _attr_has_entity_name = True
@@ -1601,7 +1607,7 @@ class Neviweb130DeviceAttributeSensor(SensorEntity):
         coordinator,
     ):
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        CoordinatorEntity.__init__(self, coordinator)
         self._client = client
         self._device = device
         self._id = str(device.get('id'))
@@ -1625,7 +1631,7 @@ class Neviweb130DeviceAttributeSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID."""
-        _LOGGER.debug("Device id = %s", self._device_id)
+        _LOGGER.debug("Device id = %s", self._id)
         _LOGGER.debug("Unique id = %s", self._attr_unique_id)
         return self._attr_unique_id
 
@@ -1639,7 +1645,7 @@ class Neviweb130DeviceAttributeSensor(SensorEntity):
         """Return the state of the sensor."""
         _LOGGER.debug(
             "Device %s with attribute %s have State = %s",
-            self._device,
+            self._id,
             self._attribute,
             self._state,
         )
