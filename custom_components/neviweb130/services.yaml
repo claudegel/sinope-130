@@ -737,7 +737,7 @@ set_cool_min_time_off:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     coolMinTimeOff:
-      description: possible values are 120, 180, 240, 300, 600 sec.
+      description: Possible values are 120, 180, 240, 300, 600 sec.
       example: 120
 
 set_neviweb_status:
@@ -747,7 +747,7 @@ set_neviweb_status:
       description: Name of neviweb130 gateway GT130 device.
       example: "sensor.neviweb130_sensor_gt130"
     mode:
-      description: possible values are home or away.
+      description: Possibles values are home or away.
       example: "away"
 
 set_humidifier_type:
@@ -757,5 +757,15 @@ set_humidifier_type:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     humidifierType:
-      description: possible values are none, steam, flowthrough.
+      description: Possibles values are none, steam, flowthrough.
       example: "none"
+
+set_schedule_mode:
+  description: Set schedule mode, manual or auto for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF device to set the schedule mode.
+      example: "climate.neviweb130_climate_office"
+    setpointMode:
+      description: Possibles values are manual, auto.
+      example: "auto"
