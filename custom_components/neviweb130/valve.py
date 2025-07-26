@@ -186,7 +186,7 @@ async def async_setup_entry(
         return
 
     coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
+    await coordinator.async_config_entry_first_refresh()
 
     entities = []
     device_registry = dr.async_get(hass)
@@ -255,7 +255,8 @@ async def async_setup_entry(
                         entities.append(device)
                         _LOGGER.debug("Entities are %s", entities)
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+    hass.async_create_task(coordinator.async_request_refresh())
 
     def set_valve_alert_service(service):
         """Set alert for water valve."""
@@ -630,8 +631,13 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     )
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
+        return self._id
+
+    @property
+    def id(self) -> str:
+        """Alias pour DataUpdateCoordinator."""
         return self._id
 
     @property
