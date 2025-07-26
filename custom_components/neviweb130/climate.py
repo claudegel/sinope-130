@@ -72,6 +72,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -161,10 +162,11 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
                     SERVICE_SET_HUMIDIFIER_TYPE, SERVICE_SET_HVAC_DR_OPTIONS,
                     SERVICE_SET_HVAC_DR_SETPOINT, SERVICE_SET_LANGUAGE,
-                    SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SECOND_DISPLAY,
-                    SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
-                    SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
-                    SERVICE_SET_TEMPERATURE_FORMAT, SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SCHEDULE_MODE,
+                    SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
+                    SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
+                    SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
+                    SERVICE_SET_TIME_FORMAT)
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import device_dict, save_devices
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
@@ -185,11 +187,11 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
                      SET_HUMIDIFIER_TYPE_SCHEMA, SET_HVAC_DR_OPTIONS_SCHEMA,
                      SET_HVAC_DR_SETPOINT_SCHEMA, SET_LANGUAGE_SCHEMA,
-                     SET_PUMP_PROTECTION_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
-                     SET_SENSOR_TYPE_SCHEMA, SET_SETPOINT_MAX_SCHEMA,
-                     SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
-                     SET_TEMPERATURE_FORMAT_SCHEMA, SET_TIME_FORMAT_SCHEMA,
-                     VERSION, WIFI_FAN_SPEED)
+                     SET_PUMP_PROTECTION_SCHEMA, SET_SCHEDULE_MODE_SCHEMA,
+                     SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
+                     SET_SETPOINT_MAX_SCHEMA, SET_SETPOINT_MIN_SCHEMA,
+                     SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
+                     SET_TIME_FORMAT_SCHEMA, VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -409,7 +411,7 @@ async def async_setup_entry(
         return
 
     coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
+    await coordinator.async_config_entry_first_refresh()
 
     entities = []
     device_registry = dr.async_get(hass)
@@ -550,12 +552,13 @@ async def async_setup_entry(
                             )
 
                         _LOGGER.warning("Device registered = %s", device_info["id"])
-
+                        _LOGGER.warning("Device added = %s", device)
                         coordinator.register_device(device)
                         entities.append(device)
 #                        _LOGGER.debug("Entities are %s", entities)
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+    hass.async_create_task(coordinator.async_request_refresh())
 
     def set_second_display_service(service):
         """Set to outside or setpoint temperature display for wifi thermostats."""
@@ -1038,7 +1041,21 @@ async def async_setup_entry(
                     "id": thermostat.unique_id,
                     "type": service.data[ATTR_HUMIDIFIER_TYPE],
                 }
-                thermostat.set_humidifier_type(value)
+                thermostat.async_set_humidifier_type(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_schedule_mode_service(service):
+        """Set TH6500WF, TH6250WF schedule mode, manual or auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "mode": service.data[ATTR_SETPOINT_MODE],
+                }
+                thermostat.async_set_schedule_mode(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -1278,6 +1295,13 @@ async def async_setup_entry(
         SERVICE_SET_HUMIDIFIER_TYPE,
         set_humidifier_type_service,
         schema=SET_HUMIDIFIER_TYPE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SCHEDULE_MODE,
+        set_schedule_mode_service,
+        schema=SET_SCHEDULE_MODE_SCHEMA,
     )
 
 
@@ -1551,8 +1575,13 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     )
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb130 device ID."""
+        return self._id
+
+    @property
+    def id(self) -> str:
+        """Alias pour DataUpdateCoordinator."""
         return self._id
 
     @property
@@ -1695,30 +1724,44 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current operation."""
-        if self._operation_mode == HVACMode.OFF:
-            return HVACMode.OFF
-        elif self._operation_mode in [HVACMode.AUTO, MODE_AUTO_BYPASS]:
-            return HVACMode.AUTO
-        elif self._operation_mode == HVACMode.COOL:
-            return HVACMode.COOL
-        elif self._operation_mode == HVACMode.DRY:
-            return HVACMode.DRY
-        elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACMode.FAN_ONLY
+        if self._is_HC:
+            if self._heat_cool == HVACMode.OFF:
+                return HVACMode.OFF
+            elif self._heat_cool == HVACMode.AUTO:
+                return HVACMode.AUTO
+            elif self._heat_cool == HVACMode.COOL:
+                return HVACMode.COOL
+            elif self._heat_cool == MODE_EM_HEAT:
+                return MODE_EM_HEAT
+            else:
+                return HVACMode.HEAT
         else:
-            return HVACMode.HEAT
+            if self._operation_mode == HVACMode.OFF:
+                return HVACMode.OFF
+            elif self._operation_mode in [HVACMode.AUTO, MODE_AUTO_BYPASS]:
+                return HVACMode.AUTO
+            elif self._operation_mode == HVACMode.COOL:
+                return HVACMode.COOL
+            elif self._operation_mode == HVACMode.DRY:
+                return HVACMode.DRY
+            elif self._operation_mode == HVACMode.FAN_ONLY:
+                return HVACMode.FAN_ONLY
+            elif self._operation_mode == MODE_EM_HEAT:
+                return MODE_EM_HEAT
+            else:
+                return HVACMode.HEAT
 
     @property
     def hvac_modes(self):
         """Return the list of available operation modes."""
-        if self._is_wifi:
-            return SUPPORTED_HVAC_WIFI_MODES
+        if self._is_HC:
+            return SUPPORTED_HVAC_HC_MODES
         elif self._is_wifi_lite:
             return SUPPORTED_HVAC_WIFI_LITE_MODES
+        elif self._is_wifi:
+            return SUPPORTED_HVAC_WIFI_MODES
         elif self._is_h_c:
             return SUPPORTED_HVAC_H_C_MODES
-        elif self._is_HC:
-            return SUPPORTED_HVAC_HC_MODES
         elif self._is_HP:
             if self._avail_mode == "heatingOnly":
                 return SUPPORTED_HVAC_HEAT_MODES
@@ -1773,47 +1816,78 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def preset_modes(self):
         """Return available preset modes."""
-        if self._is_wifi:
+        if self._is_HC or self._is_h_c:
+            return PRESET_HC_MODES
+        elif self._is_wifi:
             return PRESET_WIFI_MODES
         elif self._is_HP:
             return PRESET_HP_MODES
-        elif self._is_HC or self._is_h_c:
-            return PRESET_HC_MODES
         else:
             return PRESET_MODES
 
     @property
     def hvac_action(self):
         """Return current HVAC action."""
-        if self._operation_mode == HVACMode.OFF:
-            return HVACAction.OFF
-        elif self._operation_mode == HVACMode.COOL:
-            return HVACAction.COOLING
-        elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACAction.FAN
-        elif self._operation_mode == HVACMode.DRY:
-            return HVACAction.DRYING
-        elif self._operation_mode == MODE_AUTO_BYPASS:
-            if self._heat_level == 0:
-                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+        if self._is_HC:
+            if self._operation_mode == MODE_AUTO_BYPASS:
+                submode = "(" + MODE_AUTO_BYPASS + ")"
+            elif self._operation_mode == HVACMode.AUTO:
+                submode = "(" + HVACMode.AUTO + ")"
             else:
-                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
-        elif self._heat_level == 0:
-            return HVACAction.IDLE
+                submode = "(" + MODE_MANUAL + ")"
+            if self._heat_cool == HVACMode.OFF:
+                return HVACAction.OFF + submode
+            elif self._heat_cool == HVACMode.COOL:
+                if self._heat_level == 0:
+                    return HVACAction.IDLE + submode
+                else:
+                    return HVACAction.COOLING + submode
+            elif self._heat_cool == HVACMode.HEAT:
+                if self._heat_level == 0:
+                    return HVACAction.IDLE + submode
+                else:
+                    return HVACAction.HEATING + submode
+            elif self._heat_cool == MODE_EM_HEAT:
+                return "Em. heating" + submode
         else:
-            return HVACAction.HEATING
+            if self._operation_mode == HVACMode.OFF:
+                return HVACAction.OFF
+            elif self._operation_mode == HVACMode.COOL:
+                return HVACAction.COOLING
+            elif self._operation_mode == HVACMode.FAN_ONLY:
+                return HVACAction.FAN
+            elif self._operation_mode == HVACMode.DRY:
+                return HVACAction.DRYING
+            elif not self._homekit_mode and self._operation_mode == MODE_AUTO_BYPASS:
+                if self._heat_level == 0:
+                    return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+                else:
+                    return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
+            elif self._heat_level == 0:
+                return HVACAction.IDLE
+            else:
+                return HVACAction.HEATING
 
     @property
     def is_on(self) -> bool:
-        """Return True if mode = HVACMode.HEAT."""
-        if (
-            self._operation_mode == HVACMode.HEAT
-            or self._operation_mode == HVACMode.COOL
-            or self._operation_mode == HVACMode.DRY
-            or self._operation_mode == HVACMode.AUTO
-            or self._operation_mode == MODE_MANUAL
-        ):
-            return True
+        """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
+        if self._is_HC:
+            if (
+                self._heat_cool == HVACMode.HEAT
+                or self._heat_cool == HVACMode.COOL
+                or self._heat_cool == HVACMode.AUTO
+                or self._heat_cool == MODE_EM_HEAT
+            ):
+                return True
+        else:
+            if (
+                self._operation_mode == HVACMode.HEAT
+                or self._operation_mode == HVACMode.COOL
+                or self._operation_mode == HVACMode.DRY
+                or self._operation_mode == HVACMode.AUTO
+                or self._operation_mode == MODE_MANUAL
+            ):
+                return True
         return False
 
     @property
@@ -1900,21 +1974,30 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat or HVACMode.COOL."""
-        if self._heat_cool == "cool":
-            await self._client.async_set_setpoint_mode(
-                self._id, HVACMode.COOL, self._is_wifi
-            )
-            self._operation_mode = HVACMode.COOL
+        if self._is_HC:
+            if self._heat_cool == "cool":
+                await self._client.async_set_setpoint_mode(
+                    self._id, HVACMode.COOL, self._is_wifi, self._is_HC
+                )
+                self._heat_cool = HVACMode.COOL
+            elif self._heat_cool == HVACMode.HEAT:
+                await self._client.async_set_setpoint_mode(
+                    self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
+                )
+                self._heat_cool = HVACMode.HEAT
         else:
             await self._client.async_set_setpoint_mode(
-                self._id, HVACMode.HEAT, self._is_wifi
+                self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
             )
             self._operation_mode = HVACMode.HEAT
 
     async def async_turn_off(self) -> None:
         """Turn the thermostat to HVACMode.off."""
-        await self._client.async_set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi)
-        self._operation_mode = HVACMode.OFF
+        await self._client.async_set_setpoint_mode(self._id, HVACMode.OFF, self._is_wifi, self._is_HC)
+        if self._is_HC:
+            self._heat_cool = HVACMode.OFF
+        else:
+            self._operation_mode = HVACMode.OFF
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -2082,28 +2165,36 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Set new hvac mode."""
         if hvac_mode == HVACMode.OFF:
             await self._client.async_set_setpoint_mode(
-                self._id, HVACMode.OFF, self._is_wifi
+                self._id, HVACMode.OFF, self._is_wifi, self._is_HC
             )
         elif hvac_mode in [HVACMode.HEAT, MODE_MANUAL]:
             await self._client.async_set_setpoint_mode(
-                self._id, hvac_mode, self._is_wifi
+                self._id, hvac_mode, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.AUTO:
             await self._client.async_set_setpoint_mode(
-                self._id, HVACMode.AUTO, self._is_wifi
+                self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.COOL:
             await self._client.async_set_setpoint_mode(
-                self._id, HVACMode.COOL, self._is_wifi
+                self._id, HVACMode.COOL, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.DRY:
             await self._client.async_set_setpoint_mode(
-                self._id, HVACMode.DRY, self._is_wifi
+                self._id, HVACMode.DRY, self._is_wifi, self._is_HC
+            )
+        elif hvac_mode == HVACMode.FAN_ONLY:
+            await self._client.async_set_setpoint_mode(
+                self._id, HVACMode.FAN_ONLY, self._is_wifi, self._is_HC
+            )
+        elif hvac_mode == MODE_EM_HEAT:
+            await self._client.async_set_setpoint_mode(
+                self._id, MODE_EM_HEAT, self._is_wifi, self._is_HC
             )
         elif hvac_mode == MODE_AUTO_BYPASS:
             if self._operation_mode == HVACMode.AUTO:
                 await self._client.async_set_setpoint_mode(
-                    self._id, MODE_AUTO_BYPASS, self._is_wifi
+                    self._id, MODE_AUTO_BYPASS, self._is_wifi, self._is_HC
                 )
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
@@ -5665,6 +5756,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         type = value["type"]
         await self._client.async_set_humidifier_type(entity, type)
         self._humidifier_type = type
+
+    async def async_set_schedule_mode(self, value):
+        """"Set schedule mode, manual or auto for TH6500WF, TH6250WF."""
+        entity = value["id"]
+        mode = value["mode"]
+        await self._client.async_set_schedule_mode(entity, mode, self._is_HC)
+        self._operation_mode = mode
 
     @property
     def extra_state_attributes(self):
