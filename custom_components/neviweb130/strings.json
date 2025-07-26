@@ -12,6 +12,7 @@
           "network2": "Optional, Second neviweb location name",
           "network3": "Optional, Third Neviweb Location name",
           "homekit_mode": "Optional, Homekit support True/False",
+          "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
           "notify": "Optional, get notification in case of device error."
@@ -27,6 +28,7 @@
           "network2": "Optional, Second neviweb location name, or ' '.",
           "network3": "Optional, Third Neviweb Location name, or ' '.",
           "homekit_mode": "Optional, Homekit support True/False",
+          "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
           "notify": "Optional, get notification in case of device error."
@@ -54,6 +56,7 @@
           "stat_interval": "Stat Interval",
           "notify": "Notify",
           "homekit_mode": "HomeKit Mode",
+          "ignore_miwi": "Ignore miwi devices",
           "reload": "Reload Integration",
           "download_log": "Download log",
           "migrate": "Migrate numeric unique_id"
