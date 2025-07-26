@@ -201,7 +201,7 @@ async def async_setup_entry(
         return
 
     coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_initialize()
+    await coordinator.async_config_entry_first_refresh()
 
     entities = []
     device_registry = dr.async_get(hass)
@@ -290,7 +290,7 @@ async def async_setup_entry(
 
                         coordinator.register_device(device)
                         entities.append(device)
-                        _LOGGER.debug("Entities are %s", device)
+                       # _LOGGER.debug("Entities are %s", device)
 
                     if model in IMPLEMENTED_ZB_DEVICE_CONTROL:
                         device_name = f'{default_name} {device_info["name"]}'
@@ -341,7 +341,8 @@ async def async_setup_entry(
                                 )
                             )
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+    hass.async_create_task(coordinator.async_request_refresh())
 
     def set_switch_keypad_lock_service(service):
         """Lock/unlock keypad device."""
@@ -820,8 +821,13 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                     )
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
+        return self._id
+
+    @property
+    def id(self) -> str:
+        """Alias pour DataUpdateCoordinator."""
         return self._id
 
     @property
