@@ -76,6 +76,7 @@ from .const import (
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT,
+    ATTR_SETPOINT_MODE,
     ATTR_SOUND_CONF,
     ATTR_STATE,
     ATTR_STATUS,
@@ -458,6 +459,13 @@ SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
         vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(
             cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]
         ),
+    }
+)
+
+SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_SETPOINT_MODE): vol.In(["auto", "manual"]),
     }
 )
 
