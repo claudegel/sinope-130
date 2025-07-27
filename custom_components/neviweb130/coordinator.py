@@ -57,6 +57,7 @@ from .const import (
     ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_MIN_TIME_ON,
     ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_SETPOINT,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_COOL_SETPOINT_MIN,
     ATTR_CYCLE,
@@ -782,6 +783,11 @@ class Neviweb130Client:
     async def async_set_temperature(self, device_id, temperature):
         """Set device temperature."""
         data = {ATTR_ROOM_SETPOINT: temperature}
+        await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_cool_temperature(self, device_id, temperature):
+        """Set device cooling temperature target."""
+        data = {ATTR_COOL_SETPOINT: temperature}
         await self.async_set_device_attributes(device_id, data)
 
     async def async_set_humidity(self, device_id, humidity):
