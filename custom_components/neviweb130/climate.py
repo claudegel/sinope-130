@@ -5658,7 +5658,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._client.set_cool_temperature(self._id, temperature)
         else:
             self._client.set_temperature(self._id, temperature)
-        self._target_temp = temperature_format
+        self._target_temp = temperature
 
     @property
     def extra_state_attributes(self):
