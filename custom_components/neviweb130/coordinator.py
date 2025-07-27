@@ -781,7 +781,7 @@ class Neviweb130Client:
         await self.async_set_device_attributes(device_id, data)
 
     async def async_set_temperature(self, device_id, temperature):
-        """Set device temperature."""
+        """Set device heating temperature target."""
         data = {ATTR_ROOM_SETPOINT: temperature}
         await self.async_set_device_attributes(device_id, data)
 
