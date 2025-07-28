@@ -19,19 +19,19 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
                     ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
                     ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT,
-                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN,
-                    ATTR_CYCLE, ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2,
-                    ATTR_DISPLAY_CONF, ATTR_DRSETPOINT, ATTR_DRSTATUS,
-                    ATTR_EARLY_START, ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ,
-                    ATTR_FAN_SWING_VERT, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX,
-                    ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_MODE,
-                    ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_SENSOR,
-                    ATTR_FLOW_ALARM1_LENGHT, ATTR_FLOW_ALARM1_OPTION,
-                    ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ENABLED,
-                    ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
-                    ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDITY,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMID_SETPOINT,
+                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
+                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
+                    ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_EARLY_START,
+                    ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
+                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
+                    ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
+                    ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
+                    ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1_PERIOD,
+                    ATTR_FLOW_ENABLED, ATTR_FLOW_METER_CONFIG,
+                    ATTR_FLOW_THRESHOLD, ATTR_FUEL_ALERT,
+                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_HEAT_COOL,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
                     ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
@@ -812,9 +812,9 @@ class Neviweb130Client:
             self.set_device_attributes(device_id, data)
         else:
             self.notify_ha(
-                    "Warning: Service set_schedule_mode is only for "
-                    + "TH6500WF or TH6250WF thermostats."
-                )
+                "Warning: Service set_schedule_mode is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
 
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
@@ -1113,19 +1113,19 @@ class Neviweb130Client:
 
     def set_led_on_intensity(self, device_id, intensity):
         """Set devive led indicator intensity for on state."""
-        data = {ATTR_LED_ON_INTENSITY:intensity}
+        data = {ATTR_LED_ON_INTENSITY: intensity}
         self.set_device_attributes(device_id, data)
         _LOGGER.debug("led on intensity.data on = %s", data)
 
     def set_led_off_intensity(self, device_id, intensity):
         """Set devive led indicator intensity for off state."""
-        data = {ATTR_LED_OFF_INTENSITY:intensity}
+        data = {ATTR_LED_OFF_INTENSITY: intensity}
         self.set_device_attributes(device_id, data)
         _LOGGER.debug("led off intensity.data on = %s", data)
 
     def set_light_min_intensity(self, device_id, intensity):
         """Set dimmer light minimum intensity from 1 to 3000."""
-        data = {ATTR_INTENSITY_MIN:intensity}
+        data = {ATTR_INTENSITY_MIN: intensity}
         self.set_device_attributes(device_id, data)
         _LOGGER.debug("led min intensity.data on = %s", data)
 
