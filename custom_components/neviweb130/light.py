@@ -647,7 +647,6 @@ class Neviweb130Light(LightEntity):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
         state = value["state"]
         entity = value["id"]
-        value["intensity"]
         red = value["red"]
         green = value["green"]
         blue = value["blue"]
