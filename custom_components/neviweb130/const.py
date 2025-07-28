@@ -1,6 +1,32 @@
 """Constants for neviweb130 component."""
 
-DOMAIN = "neviweb130"
+import json
+import pathlib
+
+# Base component constants, some loaded directly from the manifest
+_LOADER_PATH = pathlib.Path(__loader__.path)
+_MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
+with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
+    data = json.load(json_file)
+NAME = f"{data['name']}"
+DOMAIN = f"{data['domain']}"
+VERSION = f"{data['version']}"
+ISSUE_URL = f"{data['issue_tracker']}"
+REQUIRE = f"{data['homeassistant']}"
+DOC_URL = f"{data['documentation']}"
+
+STARTUP_MESSAGE = f"""
+-------------------------------------------------------------------
+{NAME} ({DOMAIN})
+Version: {VERSION}
+Requirement: Home Assistant {REQUIRE}
+This is a custom integration!
+If you have any issues with this you need to open an issue here:
+{ISSUE_URL}
+Documentation: {DOC_URL}
+-------------------------------------------------------------------
+"""
+
 CONF_NETWORK = "network"
 CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
@@ -208,7 +234,26 @@ ATTR_COOL_MIN_TIME_ON = "coolMinTimeOn"
 ATTR_COOL_MIN_TIME_OFF = "coolMinTimeOff"
 ATTR_WATER_TEMP_PROTEC = "waterTempProtectionType"
 ATTR_OUTPUT_CONNECT_STATE = "bulkOutputConnectedState"
-ATTR_HEAT_INSTALL_TYPE = "HeatInstallationType"
+ATTR_HEAT_INSTALL_TYPE = "heatInstallationType"
+ATTR_HUMIDITY = "humidity"
+ATTR_ACCESSORY_TYPE = "accessoryType"
+ATTR_HUMID_SETPOINT_OFFSET = "humiditySetpointOffset"
+ATTR_HUMID_SETPOINT_MODE = "humiditySetpointMode"
+ATTR_AIR_EX_MIN_TIME_ON = "airExchangerMinTimeOn"
+ATTR_HC_LOCK_STATUS = "heatCoolLockoutStatus"
+ATTR_DRAUXCONF = "drAuxConfig"
+ATTR_DRFANCONF = "drFanSpeedConfig"
+ATTR_DRACCESORYCONF = "drAccessoryConfig"
+ATTR_DRAIR_CURT_CONF = "drAirCurtainConfig"
+ATTR_INTERLOCK_ID = "interlockUniqueId"
+ATTR_HEAT_PURGE_TIME = "heatPurgeTime"
+ATTR_COOL_PURGE_TIME = "coolPurgeTime"
+ATTR_AIR_CONFIG = "airCurtainConfig"
+ATTR_AIR_ACTIVATION_TEMP = "airCurtainActivationTemperature"
+ATTR_AIR_MAX_POWER_TEMP = "airCurtainMaxPowerTemperature"
+ATTR_AUX_HEAT_MIN_TIMEOFF = "auxHeatMinTimeOff"
+ATTR_HEAT_MIN_TIME_ON = "heatMinTimeOn"
+ATTR_HEAT_MIN_TIME_OFF = "heatMinTimeOff"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
@@ -223,6 +268,9 @@ STATE_VALVE_STATUS = "open"
 STATE_KEYPAD_STATUS = "unlocked"
 
 SERVICE_SET_LED_INDICATOR = "set_led_indicator"
+SERVICE_SET_LED_ON_INTENSITY = "set_led_on_intensity"
+SERVICE_SET_LED_OFF_INTENSITY = "set_led_off_intensity"
+SERVICE_SET_LIGHT_MIN_INTENSITY = "set_light_min_intensity"
 SERVICE_SET_CLIMATE_KEYPAD_LOCK = "set_climate_keypad_lock"
 SERVICE_SET_LIGHT_KEYPAD_LOCK = "set_light_keypad_lock"
 SERVICE_SET_SWITCH_KEYPAD_LOCK = "set_switch_keypad_lock"
@@ -288,3 +336,5 @@ SERVICE_SET_COOL_MIN_TIME_ON = "set_cool_min_time_on"
 SERVICE_SET_COOL_MIN_TIME_OFF = "set_cool_min_time_off"
 SERVICE_SET_NEVIWEB_STATUS = "set_neviweb_status"
 SERVICE_SET_REFUEL_ALERT = "set_refuel_alert"
+SERVICE_SET_HUMIDIFIER_TYPE = "set_humidifier_type"
+SERVICE_SET_SCHEDULE_MODE = "set_schedule_mode"

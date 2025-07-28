@@ -21,24 +21,24 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_PERIOD,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_INTENSITY, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
-                    ATTR_LIGHT_WATTAGE, ATTR_MODE, ATTR_NAME_1, ATTR_NAME_2,
-                    ATTR_ONOFF, ATTR_ONOFF_NUM, ATTR_OPTOUT,
-                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
-                    ATTR_POWER_SUPPLY, ATTR_RED, ATTR_REFUEL,
-                    ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
-                    ATTR_SETPOINT, ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS,
-                    ATTR_TANK_HEIGHT, ATTR_TANK_TYPE, ATTR_TEMP,
-                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
-                    ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
-                    ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
-                    CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN)
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD,
+                    ATTR_LANGUAGE, ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
+                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
+                    ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF, ATTR_ONOFF_NUM,
+                    ATTR_OPTOUT, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
+                    ATTR_PHASE_CONTROL, ATTR_POWER_SUPPLY, ATTR_RED,
+                    ATTR_REFUEL, ATTR_ROOM_SETPOINT_MAX,
+                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT, ATTR_SETPOINT_MODE,
+                    ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT,
+                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME,
+                    ATTR_TIMER, ATTR_TIMER2, ATTR_TRIGGER_ALARM, ATTR_TYPE,
+                    ATTR_VALUE, ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE,
+                    CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
+                    CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN)
 
 """Default parameters values."""
 
-VERSION = "3.0.5"
+VERSION = "3.0.6"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -56,6 +56,7 @@ PERIOD_VALUE = {
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
+HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
 CONTROLLED_VALUE = {
     "Hot water heater",
     "Pool pump",
@@ -444,6 +445,22 @@ SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
     }
 )
 
+SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(
+            cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]
+        ),
+    }
+)
+
+SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_SETPOINT_MODE): vol.In(["auto", "manual"]),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
@@ -464,12 +481,36 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATE): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
-        vol.Required(ATTR_INTENSITY): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=100)
-        ),
         vol.Required(ATTR_RED): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
         vol.Required(ATTR_GREEN): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
         vol.Required(ATTR_BLUE): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+    }
+)
+
+SET_LED_ON_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LED_ON_INTENSITY): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+    }
+)
+
+SET_LED_OFF_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_LED_OFF_INTENSITY): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=100)
+        ),
+    }
+)
+
+SET_LIGHT_MIN_INTENSITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_INTENSITY_MIN): vol.All(
+            vol.Coerce(int), vol.Range(min=10, max=3000)
+        ),
     }
 )
 

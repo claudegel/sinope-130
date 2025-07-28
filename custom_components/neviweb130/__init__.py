@@ -18,21 +18,23 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
                     ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
                     ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
-                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT_MAX,
-                    ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE, ATTR_CYCLE_OUTPUT2,
-                    ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRSETPOINT,
-                    ATTR_DRSTATUS, ATTR_EARLY_START, ATTR_FAN_SPEED,
-                    ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
+                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT,
+                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
+                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
+                    ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_EARLY_START,
+                    ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
                     ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
                     ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1_PERIOD,
                     ATTR_FLOW_ENABLED, ATTR_FLOW_METER_CONFIG,
                     ATTR_FLOW_THRESHOLD, ATTR_FUEL_ALERT,
-                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_INPUT_1_OFF_DELAY,
-                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
-                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_KEY_DOUBLE_UP,
+                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_HEAT_COOL,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
+                    ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
+                    ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
+                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
                     ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
                     ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
@@ -49,7 +51,7 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
                     ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL)
+                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL, STARTUP_MESSAGE)
 from .schema import CONFIG_SCHEMA as config_schema
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -72,6 +74,8 @@ NEVIWEB_LOCATION = f"{HOST}/api/location/"
 
 def setup(hass, hass_config):
     """Set up neviweb130."""
+    _LOGGER.info(STARTUP_MESSAGE)
+
     data = Neviweb130Data(hass, hass_config[DOMAIN])
     hass.data[DOMAIN] = data
 
@@ -757,13 +761,16 @@ class Neviweb130Client:
         data = {ATTR_POWER_MODE: mode}
         self.set_device_attributes(device_id, data)
 
-    def set_setpoint_mode(self, device_id, mode, wifi):
+    def set_setpoint_mode(self, device_id, mode, wifi, HC):
         """Set thermostat operation mode."""
-        """Work differently for wifi and zigbee devices."""
+        """Work differently for wifi and zigbee devices and TH6250xx devices."""
         if wifi:
-            if mode in [HVACMode.HEAT, MODE_MANUAL]:
-                mode = MODE_MANUAL
-            data = {ATTR_SETPOINT_MODE: mode}
+            if HC:
+                data = {ATTR_HEAT_COOL: mode}
+            else:
+                if mode in [HVACMode.HEAT, MODE_MANUAL]:
+                    mode = MODE_MANUAL
+                data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
         self.set_device_attributes(device_id, data)
@@ -779,9 +786,35 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_temperature(self, device_id, temperature):
-        """Set device temperature."""
+        """Set device heating temperature target."""
         data = {ATTR_ROOM_SETPOINT: temperature}
         self.set_device_attributes(device_id, data)
+
+    def set_cool_temperature(self, device_id, temperature):
+        """Set device cooling temperature target."""
+        data = {ATTR_COOL_SETPOINT: temperature}
+        self.set_device_attributes(device_id, data)
+
+    def set_humidity(self, device_id, humidity):
+        """Set device humidity target."""
+        data = {ATTR_HUMID_SETPOINT: humidity}
+        self.set_device_attributes(device_id, data)
+
+    def set_humidifier_type(self, device_id, type):
+        """Set humidifier type for TH6500WF and TH6250WF."""
+        data = {ATTR_HUMIDIFIER_TYPE: type}
+        self.set_device_attributes(device_id, data)
+
+    def set_schedule_mode(self, device_id, mode, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_SETPOINT_MODE: mode}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_schedule_mode is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
 
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
@@ -888,9 +921,12 @@ class Neviweb130Client:
         _LOGGER.debug("CoolsetpointMax.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_cycle_output(self, device_id, status, val):
+    def set_aux_cycle_output(self, device_id, status, val, wifi):
         """Set low voltage thermostat aux cycle status and length."""
-        data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
+        if wifi:
+            data = {ATTR_AUX_CYCLE: val}
+        else:
+            data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -938,7 +974,7 @@ class Neviweb130Client:
         if low == "voltage":
             data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": sec}}
         elif low == "wifi":
-            data = {ATTR_AUX_CYCLE: heat}
+            data = {ATTR_AUX_CYCLE: sec}
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
@@ -1053,7 +1089,7 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter options.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_led_indicator(self, device_id, state, intensity, red, green, blue):
+    def set_led_indicator(self, device_id, state, red, green, blue):
         """Set devive led indicator intensity and color for on and off state."""
         if state == 1:
             data = {
@@ -1063,9 +1099,7 @@ class Neviweb130Client:
                     "blue": blue,
                 }
             }
-            self.set_device_attributes(device_id, data)
-            data2 = {ATTR_LED_ON_INTENSITY: intensity}
-            self.set_device_attributes(device_id, data2)
+            _LOGGER.debug("led on color.data = %s", data)
         else:
             data = {
                 ATTR_LED_OFF_COLOR: {
@@ -1074,11 +1108,26 @@ class Neviweb130Client:
                     "blue": blue,
                 }
             }
-            self.set_device_attributes(device_id, data)
-            data2 = {ATTR_LED_OFF_INTENSITY: intensity}
-            self.set_device_attributes(device_id, data2)
-        _LOGGER.debug("led.data = %s, led.data2 = %s", data, data2)
+            _LOGGER.debug("led off color.data = %s", data)
         self.set_device_attributes(device_id, data)
+
+    def set_led_on_intensity(self, device_id, intensity):
+        """Set devive led indicator intensity for on state."""
+        data = {ATTR_LED_ON_INTENSITY: intensity}
+        self.set_device_attributes(device_id, data)
+        _LOGGER.debug("led on intensity.data on = %s", data)
+
+    def set_led_off_intensity(self, device_id, intensity):
+        """Set devive led indicator intensity for off state."""
+        data = {ATTR_LED_OFF_INTENSITY: intensity}
+        self.set_device_attributes(device_id, data)
+        _LOGGER.debug("led off intensity.data on = %s", data)
+
+    def set_light_min_intensity(self, device_id, intensity):
+        """Set dimmer light minimum intensity from 1 to 3000."""
+        data = {ATTR_INTENSITY_MIN: intensity}
+        self.set_device_attributes(device_id, data)
+        _LOGGER.debug("led min intensity.data on = %s", data)
 
     def set_wattage(self, device_id, watt):
         """Set light and dimmer watt load."""
