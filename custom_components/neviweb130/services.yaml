@@ -420,7 +420,7 @@ set_low_temp_protection:
       description: Name(s) of neviweb130 Calypso device (RM3500ZB).
       example: "switch.neviweb130_switch_hot_water"
     drConfigWaterTempMin:
-      description: set to 0, turn off protection or from 45 to 55 oC, to turn on protection level.
+      description: Set to 0, turn off protection or from 45 to 55 oC, to turn on protection level.
       example: 45
 
 set_flow_meter_model:
@@ -440,7 +440,7 @@ set_flow_meter_delay:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
       example: "switch.neviweb130_switch_VA4220ZB"
     alarm1Period:
-      description: set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h.
+      description: Set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h.
       example: "60 min"
 
 set_flow_meter_options:
@@ -453,7 +453,7 @@ set_flow_meter_options:
       description: send leak alert, on/off.
       example: "on"
     closeValve:
-      description: close the valve, on/off.
+      description: Close the valve, on/off.
       example: "on"
 
 set_floor_limit_high:
@@ -483,7 +483,7 @@ set_tank_type:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     tankType:
-      description: possible value, propane or oil.
+      description: Possible value, propane or oil.
       example: "propane"
 
 set_gauge_type:
@@ -493,7 +493,7 @@ set_gauge_type:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     gaugeType:
-      description: possible value, 595 or 1080.
+      description: Possible value, 595 or 1080.
       example: 1080
 
 set_low_fuel_alert:
@@ -503,7 +503,7 @@ set_low_fuel_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertLowFuelPercent:
-      description: possible value, 0 (off), 10, 20, 30.
+      description: Possible value, 0 (off), 10, 20, 30.
       example: 20
 
 set_tank_height:
@@ -513,7 +513,7 @@ set_tank_height:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     tankHeight:
-      description: possible value, 23, 24, 35, 38, 47, 48, 50.
+      description: Possible value, 23, 24, 35, 38, 47, 48, 50.
       example: 38
 
 set_fuel_alert:
@@ -523,7 +523,7 @@ set_fuel_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertLowFuel:
-      description: set to «True» to activate alert, or «False».
+      description: Set to «True» to activate alert, or «False».
       example: True
 
 set_refuel_alert:
@@ -543,7 +543,7 @@ set_battery_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertLowBatt:
-      description: set to «True» to activate alert, or «False».
+      description: Set to «True» to activate alert, or «False».
       example: True
 
 set_power_supply:
@@ -553,7 +553,7 @@ set_power_supply:
       description: Name(s) of neviweb130 device Sedna valve.
       example: "valve.neviweb130_valve_sedna_valve"
     backupPowerSupply:
-      description: set to "batt" for battery only, "power" for ACUPS-01 power supply only and "both" for battery and power supply together.
+      description: Set to "batt" for battery only, "power" for ACUPS-01 power supply only and "both" for battery and power supply together.
       example: "power"
 
 set_input_output_names:
@@ -563,16 +563,16 @@ set_input_output_names:
       description: Name(s) of MC3100ZB device.
       example: "switch.neviweb130_switch_MC3100ZB"
     input1name:
-      description: set the name for input 1. Max length 10 characters.
+      description: Set the name for input 1. Max length 10 characters.
       example: "alarm signal"
     input2name:
-      description: set the name for input 2. Max length 10 characters.
+      description: Set the name for input 2. Max length 10 characters.
       example: "alarm_signal_2"
     output1name:
       description: set the name for output 1. Max length 10 characters.
       example: "water_leak"
     output2name:
-      description: set the name for output 2. Max length 10 characters.
+      description: Set the name for output 2. Max length 10 characters.
       example: "Power_out"
 
 set_activation:
@@ -582,7 +582,7 @@ set_activation:
       description: Name(s) of Neviweb device.
       example: "switch.neviweb130_switch_RM3500ZB"
     active:
-      description: activate «True» or deactivate device «False».
+      description: Activate «True» or deactivate device «False».
       example: False
 
 set_key_double_up:
@@ -592,7 +592,7 @@ set_key_double_up:
       description: Name(s) of Neviweb device.
       example: "light.neviweb130_light_DN2550ZB"
     active:
-      description: activate «On» or deactivate action «Off».
+      description: Activate «On» or deactivate action «Off».
       example: Off
 
 set_sensor_type:
@@ -622,13 +622,13 @@ set_on_off_input_delay:
       description: Name(s) of neviweb130 MC3100ZB device.
       example: "switch.neviweb130_switch_MC3100ZB"
     input_number:
-      description: choose between input/output 1 or 2.
+      description: Choose between input/output 1 or 2.
       example: 1
     onOff:
-      description: set to «on», (on delay) or «off» (off delay).
+      description: Set to «on», (on delay) or «off» (off delay).
       example: "on"
     delay:
-      description: set delay to "off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "45 min", "1 h", "2 h", "3 h".
+      description: Set delay to "off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "45 min", "1 h", "2 h", "3 h".
       example: "10 min"
 
 set_em_heat:
@@ -647,7 +647,7 @@ set_heat_pump_operation_limit:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     balancePoint:
-      description: possible values, from -5 to -30
+      description: Possible values, from -5 to -30
       example: -25
 
 set_cool_lockout_temperature:
@@ -657,7 +657,7 @@ set_cool_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     coolLockoutTemperature:
-      description: possible values, from 10 to 30 oC
+      description: Possible values, from 10 to 30 oC
       example: 20
 
 set_heat_lockout_temperature:
@@ -667,7 +667,7 @@ set_heat_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     heatLockoutTemperature:
-      description: possible values, from 10 to 30 oC
+      description: Possible values, from 10 to 30 oC
       example: 22
 
 set_display_config:
@@ -677,7 +677,7 @@ set_display_config:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     displayConfig:
-      description: possible values, enabled, disabled.
+      description: Possible values, enabled, disabled.
       example: "disabled"
 
 set_sound_config:
@@ -687,7 +687,7 @@ set_sound_config:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     soundConfig:
-      description: possible values, enabled, disabled.
+      description: Possible values, enabled, disabled.
       example: "disabled"
 
 set_hc_second_display:
@@ -717,7 +717,7 @@ set_aux_heat_min_time_on:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     auxHeatMinTimeOn:
-      description: possible values are 120, 180, 240, 300, 600 sec.
+      description: Possible values are 120, 180, 240, 300, 600 sec.
       example: 120
 
 set_cool_min_time_on:
@@ -727,7 +727,7 @@ set_cool_min_time_on:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     coolMinTimeOn:
-      description: possible values are 120, 180, 240, 300, 600 sec.
+      description: Possible values are 120, 180, 240, 300, 600 sec.
       example: 120
 
 set_cool_min_time_off:
@@ -737,7 +737,7 @@ set_cool_min_time_off:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     coolMinTimeOff:
-      description: possible values are 120, 180, 240, 300, 600 sec.
+      description: Possible values are 120, 180, 240, 300, 600 sec.
       example: 120
 
 set_neviweb_status:
@@ -747,7 +747,7 @@ set_neviweb_status:
       description: Name of neviweb130 gateway GT130 device.
       example: "sensor.neviweb130_sensor_gt130"
     mode:
-      description: possible values are home or away.
+      description: Possible values are home or away.
       example: "away"
 
 set_humidifier_type:
@@ -757,7 +757,7 @@ set_humidifier_type:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     humidifierType:
-      description: possible values are none, steam, flowthrough.
+      description: Possible values are none, steam, flowthrough.
       example: "none"
 
 set_schedule_mode:
@@ -767,5 +767,5 @@ set_schedule_mode:
       description: Name(s) of neviweb130 TH6500WF, TH6250WF device to set the schedule mode.
       example: "climate.neviweb130_climate_office"
     setpointMode:
-      description: possible values are manual, auto.
+      description: Possible values are manual, auto.
       example: "auto"
