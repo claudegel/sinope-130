@@ -108,7 +108,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_SOUND_CONF, ATTR_STATUS, ATTR_SYSTEM_MODE, ATTR_TEMP,
                     ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TYPE, ATTR_VALUE,
                     ATTR_VALVE_POLARITY, ATTR_WATTAGE, ATTR_WIFI,
-                    ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
+                    ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO,
+                    MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
                     SERVICE_SET_ACTIVATION, SERVICE_SET_AIR_FLOOR_MODE,
                     SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
@@ -4396,7 +4397,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT][
                         "status"
                     ]
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
+                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC][
+                        "status"
+                    ]
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC][
                             "frequency"
@@ -5699,14 +5702,14 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return self._humid_setpoint
 
     def set_humidifier_type(self, value):
-        """ "Set humidifier type for TH6500WF."""
+        """Set humidifier type for TH6500WF."""
         entity = value["id"]
         type = value["type"]
         self._client.set_humidifier_type(entity, type)
         self._humidifier_type = type
 
     def set_schedule_mode(self, value):
-        """ "Set schedule mode, manual or auto for TH6500WF, TH6250WF."""
+        """Set schedule mode, manual or auto for TH6500WF, TH6250WF."""
         entity = value["id"]
         mode = value["mode"]
         self._client.set_schedule_mode(entity, mode, self._is_HC)
