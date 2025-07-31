@@ -833,7 +833,7 @@ class Neviweb130Valve(ValveEntity):
                 current_month = today.month
                 current_day = today.day
                 device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "%s device_monthly_stats = %s", self._name, device_monthly_stats
                 )
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
@@ -855,7 +855,7 @@ class Neviweb130Valve(ValveEntity):
                     self._month_kwh = 0
                     _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
                 device_daily_stats = self._client.get_device_daily_stats(self._id)
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "%s device_daily_stats = %s", self._name, device_daily_stats
                 )
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
@@ -885,7 +885,7 @@ class Neviweb130Valve(ValveEntity):
                     self._today_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "%s device_hourly_stats = %s", self._name, device_hourly_stats
                 )
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
