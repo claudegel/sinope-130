@@ -108,8 +108,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_SOUND_CONF, ATTR_STATUS, ATTR_SYSTEM_MODE, ATTR_TEMP,
                     ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TYPE, ATTR_VALUE,
                     ATTR_VALVE_POLARITY, ATTR_WATTAGE, ATTR_WIFI,
-                    ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO,
-                    MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
+                    ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
                     SERVICE_SET_ACTIVATION, SERVICE_SET_AIR_FLOOR_MODE,
                     SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
@@ -2552,9 +2551,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            _LOGGER.debug(
-                "%s device_daily_stats = %s", self._name, device_daily_stats
-            )
+            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
                 daily_kwh_count = 0
@@ -4397,9 +4394,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT][
                         "status"
                     ]
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC][
-                        "status"
-                    ]
+                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC][
                             "frequency"
