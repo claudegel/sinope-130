@@ -3,6 +3,8 @@
 import logging
 import aiohttp
 import json
+import time
+
 from datetime import timedelta
 
 import voluptuous as vol
@@ -1423,7 +1425,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="neviweb130",
-            update_method = self.async_update_data,
+            update_method = self._async_update_data,
             update_interval = scan_interval,
         )
         self.client = client
@@ -1431,6 +1433,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Call async_update() on each device and return a dict {id: device}."""
+        _LOGGER.debug("Nombre de devices à mettre à jour : %d", len(self._devices))
         result = {}
         for dev in self._devices:
             _LOGGER.debug("Thermostat attrs: %s", dir(dev))
@@ -1439,6 +1442,8 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
                 await dev.async_update()
                 # fetch .id, or .unique_id
                 device_id = getattr(dev, "id", None) or getattr(dev, "unique_id", None)
+                _LOGGER.debug("ID récupéré pour le device : %s", device_id)
+                result[str(device_id)] = dev
                 if not device_id:
                     _LOGGER.error("No ID found for %s", dev)
                     continue
@@ -1446,7 +1451,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
                 #result[str(dev.id)] = dev
                 result[str(device_id)] = dev
             except Exception as err:
-                raise UpdateFailed(f"Eooro on update of device {dev.id}: {err}")
+                raise UpdateFailed(f"Error on update of device {dev.id}: {err}")
         _LOGGER.debug("Coordinator data after update : %s", list(result.keys()))
         return result
 
