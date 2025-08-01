@@ -27,11 +27,13 @@ from datetime import timedelta, datetime
 
 import custom_components.neviweb130 as neviweb130
 
+from .helpers import debug_coordinator
 from .schema import VERSION
 from . import SCAN_INTERVAL
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorDeviceClass,
+    SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )
@@ -42,8 +44,11 @@ from homeassistant.const import (
     ATTR_VOLTAGE,
     CONF_UNIT_OF_MEASUREMENT,
     PERCENTAGE,
+    SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     STATE_OK,
     UnitOfTemperature,
+    UnitOfEnergy,
+    UnitOfPower,
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant
@@ -59,7 +64,6 @@ from homeassistant.helpers import (
     entity_registry,
     service,
 )
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -141,13 +145,12 @@ from .attributes import (
 )
 
 
-#@dataclass(kw_only=True, frozen=True)
+#@dataclass(frozen=True)
 #class Neviweb130SensorEntityDescription(SensorEntityDescription):
 #    """Describes a Sun sensor entity."""
 #
-#    value_fn: Callable[[], StateType | datetime]
+#    value_fn: Callable[[], Any] | None = None
 #    signal: str
-
 
 #SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
 #    Neviweb130SensorEntityDescription(
@@ -156,8 +159,138 @@ from .attributes import (
 #        translation_key="rssi",
 #        value_fn=lambda data: data.rssi,
 #        signal=SIGNAL_EVENTS_CHANGED,
+#        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+#    ),
+#    Neviweb130SensorEntityDescription(
+#        key="total_kwh_count",
+#        device_class=SensorDeviceClass.KWH,
+#        translation_key="total_kwh_count",
+#        value_fn=lambda data: data.total_kwh_count,
+#        signal=SIGNAL_EVENTS_CHANGED,
+#        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
 #    ),
 #)
+
+def determine_device_type(model):
+    if model in IMPLEMENTED_SENSOR_MODEL or model in IMPLEMENTED_NEW_SENSOR_MODEL:
+        return "leak"
+    elif model in IMPLEMENTED_TANK_MONITOR or model in IMPLEMENTED_LTE_TANK_MONITOR:
+        return "level"
+    elif model in IMPLEMENTED_CONNECTED_SENSOR or model in IMPLEMENTED_NEW_CONNECTED_SENSOR:
+        return "leak"
+    return "gateway"
+
+def get_sensor_class(model):
+    if model in IMPLEMENTED_SENSOR_MODEL or model in IMPLEMENTED_NEW_SENSOR_MODEL:
+        return Neviweb130Sensor
+    elif model in IMPLEMENTED_CONNECTED_SENSOR or model in IMPLEMENTED_NEW_CONNECTED_SENSOR:
+        return Neviweb130ConnectedSensor
+    elif model in IMPLEMENTED_TANK_MONITOR or model in IMPLEMENTED_LTE_TANK_MONITOR:
+        return Neviweb130TankSensor
+    elif model in IMPLEMENTED_GATEWAY:
+        return Neviweb130GatewaySensor
+    return None
+
+def create_physical_sensors(data, coordinator):
+    entities = []
+
+    for gateway_data, default_name in [
+        (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
+        (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
+        (data['neviweb130_client'].gateway_data3, DEFAULT_NAME_3)
+    ]:
+        if not gateway_data or gateway_data == "_":
+            continue
+
+        for device_info in gateway_data:
+            model = device_info["signature"]["model"]
+            device_name = f"{default_name} {device_info['name']}"
+            device_type = determine_device_type(model)
+
+            device_class = get_sensor_class(model)
+            if device_class:
+                if device_class == Neviweb130GatewaySensor:
+                    device = device_class(
+                        data, device_info, device_name, device_type,
+                        device_info["sku"],
+                        "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                        device_info["location$id"],
+                        coordinator,
+                    )
+                else:
+                    device = device_class(
+                        data, device_info, device_name, device_type,
+                        device_info["sku"],
+                        "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                        coordinator,
+                    )
+                coordinator.register_device(device)
+                entities.append(device)
+
+    return entities
+
+def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
+    entities = []
+
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+
+    for gateway_data, default_name in [
+        (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
+        (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
+        (data['neviweb130_client'].gateway_data3, DEFAULT_NAME_3)
+    ]:
+        if not gateway_data or gateway_data == "_":
+            continue
+
+        for device_info in gateway_data:
+            model = device_info["signature"]["model"]
+            if model not in ALL_MODEL:
+                continue
+
+            device_id = str(device_info["id"])
+            if device_id not in coordinator.data:
+                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+
+            device_name = f"{default_name} {device_info['name']}"
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, str(device_info["id"]))},
+                name=device_name,
+                manufacturer="claudegel",
+                model=model,
+                sw_version="{major}.{middle}.{minor}".format(
+                    **device_info["signature"]["softVersion"]
+                ),
+            )
+
+            attributes_name = get_attributes_for_model(model)
+            for attribute in attributes_name:
+                entities.append(
+                    Neviweb130DeviceAttributeSensor(
+                        data['neviweb130_client'],
+                        device_info,
+                        device_name,
+                        attribute,
+                       # device_entry.id,
+                        device_id,
+                        {
+                            "identifiers": device_entry.identifiers,
+                            "name": device_entry.name,
+                            "manufacturer": device_entry.manufacturer,
+                            "model": device_entry.model,
+                        },
+                        coordinator,
+                    )
+                )
+
+    return entities
+
+def get_attributes_for_model(model):
+    if model in CLIMATE_MODEL or model in LIGHT_MODEL or model in SWITCH_MODEL:
+        return [ATTR_RSSI, "total_kwh_count"]
+    elif model in VALVE_MODEL:
+        return [ATTR_RSSI]
+    return []
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -182,152 +315,16 @@ async def async_setup_entry(
 
     entities = []
 
-    for gateway_data, default_name in [
-        (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
-        (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
-        (data['neviweb130_client'].gateway_data3, DEFAULT_NAME_3)
-    ]:
-        if gateway_data is not None and gateway_data != "_":
-            for device_info in gateway_data:
-                if "signature" in device_info and "model" in device_info["signature"]:
-                    model = device_info["signature"]["model"]
-                    device_id = str(device_info["id"])
-                    _LOGGER.debug("Model = %s", model)
-                    if model in IMPLEMENTED_DEVICE_MODEL:
-                        device_name = f"{default_name} {device_info["name"]}"
-                        device_sku = device_info["sku"]
-                        location_id = device_info["location$id"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        )
+    # Add sensors
+    entities += create_physical_sensors(data, coordinator)
+    await coordinator.async_config_entry_first_refresh()
 
-                        if (
-                            device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
-                            or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
-                        ):
-                            device_type = "leak"
-                            device = Neviweb130Sensor(
-                                data,
-                                device_info,
-                                device_name,
-                                device_type,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif (
-                            device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
-                            or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
-                        ):
-                            device_type = "leak"
-                            device = Neviweb130ConnectedSensor(
-                                data,
-                                device_info,
-                                device_name,
-                                device_type,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif (
-                            device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
-                            or device_info["signature"]["model"] in IMPLEMENTED_LTE_TANK_MONITOR
-                        ):
-                            device_type = "level"
-                            device = Neviweb130TankSensor(
-                                data,
-                                device_info,
-                                device_name,
-                                device_type,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        else:
-                            device_type = "gateway"
-                            device = Neviweb130GatewaySensor(
-                                data,
-                                device_info,
-                                device_name,
-                                device_type,
-                                device_sku,
-                                device_firmware,
-                                location_id,
-                                coordinator,
-                            )
+    if not coordinator.data:
+        _LOGGER.debug("Pas de coordinator")
+        await coordinator.async_config_entry_first_refresh()
 
-                        coordinator.register_device(device)
-                        entities.append(device)
-
-                    # Add attribute sensors for each device type
-                    if model in ALL_MODEL:
-                        device_name = f'{default_name} {device_info["name"]}'
-                        master_device_name = f'{device_info["name"]}'
-                        device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        )
-
-                        # Initialize or clear the sensor list for this device
-                        #hass.data[DOMAIN]["device_specific_sensors"][device_id] = []
-
-                        # Ensure the device is registered in the device registry
-                        device_entry = device_registry.async_get_or_create(
-                            config_entry_id=entry.entry_id,
-                            identifiers={(DOMAIN, str(device_info["id"]))},
-                            name=device_name,
-                            manufacturer="claudegel",
-                            model=device_info["signature"]["model"],
-                            sw_version=device_firmware,
-                        )
-                        _LOGGER.debug("Device entry = %s", device_entry)
-                        attr_info = {
-                            "identifiers": device_entry.identifiers,
-                            "name": device_entry.name,
-                            "manufacturer": device_entry.manufacturer,
-                            "model": device_entry.model,
-                        }
-                        _LOGGER.debug("Device registry entry = %s", device_entry)
-                       # _LOGGER.debug(
-                       #      "Sub device list for device %s = %s",
-                       #      device_name,
-                       #      hass.data[DOMAIN]["device_specific_sensors"][device_entry.id],
-                       # )
-
-                        _LOGGER.debug(
-                            "Attribute found for device: %s, id: %s",
-                            master_device_name,
-                            device_entry.id,
-                        )
-                        if model in CLIMATE_MODEL:
-                            attributes_name = [ATTR_RSSI]
-                            _LOGGER.debug("Marche = 1")
-                        elif model in LIGHT_MODEL:
-                            attributes_name = [ATTR_RSSI]
-                            _LOGGER.debug("Marche = 2")
-                        elif model in SWITCH_MODEL:
-                            attributes_name = [ATTR_RSSI]
-                            _LOGGER.debug("Marche = 3")
-                        elif model in VALVE_MODEL:
-                            attributes_name = [ATTR_RSSI]
-                            _LOGGER.debug("Marche = 4")
-
-                        for attribute in attributes_name:
-                            _LOGGER.debug(f"Adding attributes sensor : {device_name} {attribute}")
-                            entities.append(
-                                Neviweb130DeviceAttributeSensor(
-                                    data['neviweb130_client'],
-                                    device_info,
-                                    device_name,
-                                    attribute,
-                                    device_entry.id,
-                                    attr_info,
-                                    coordinator,
-                                )
-                            )
-#                            sensor = Neviweb130DeviceAttributeSensor(device_info, device_name, attribute, device_entry.id)
-#                            hass.data[DOMAIN]["device_specific_sensors"][device_id].append(sensor)
-#                            entities.append(sensor)
+    # Add attribute sensors for each device type
+    entities += create_attribute_sensors(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
@@ -1588,7 +1585,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._occupancyMode = mode
 
 
-class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
+class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], SensorEntity):
     """Representation of a specific Neviweb130 device attribute sensor."""
 
     _attr_has_entity_name = True
@@ -1604,10 +1601,13 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
         attribute: str,
         device_id: str,
         attr_info: dict,
-        coordinator,
+        coordinator: Neviweb130Coordinator,
+#        entity_description: Neviweb130SensorEntityDescription,
     ):
         """Initialize the sensor."""
-        CoordinatorEntity.__init__(self, coordinator)
+        super().__init__(coordinator)
+        self.coordinator = coordinator
+#        self.entity_description = entity_description
         self._client = client
         self._device = device
         self._id = str(device.get('id'))
@@ -1620,7 +1620,7 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
         self._attr_device_info = attr_info
         self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
         self._icon = None
-        self._unit_of_measurement = None
+#        self._unit_of_measurement = entity_description.native_unit_of_measurement
 #        _LOGGER.debug("Atribute %s", attribute.replace('_', ' ').capitalize())
 
     @property
@@ -1643,12 +1643,16 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
+        debug_coordinator(self.coordinator)
+        _LOGGER.debug("Coordinator data = %s", dir(self.coordinator.data))
         _LOGGER.debug(
             "Device %s with attribute %s have State = %s",
             self._id,
             self._attribute,
             self._state,
         )
+        for device in self.coordinator.data:
+            _LOGGER.debug("Device: %s (%s)", getattr(device, "name", device), vars(device))
         return self._state
 
     @property
@@ -1659,7 +1663,9 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
     @property
     def unit_of_measurement(self):
         """Return the unit_of_measurement of the device."""
-        return self._unit_of_measurement
+        if self._attribute == "rssi":
+            return SIGNAL_STRENGTH_DECIBELS_MILLIWATT
+        return UnitOfEnergy.KILO_WATT_HOUR
 
     @property
     def extra_state_attributes(self):
@@ -1680,11 +1686,14 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
 #            _LOGGER.warning(
 #                f"The Attribute {self._attribute} not found for device : {self._id}."
 #            )
+
     async def async_update(self):
         """Fetch the latest value of the attribute from the coordinator data."""
+        _LOGGER.debug("Updating attribute data...")
+#        debug_coordinator(self.coordinator, device_id="613122")
         await self.coordinator.async_request_refresh()
-        if hasattr(self.coordinator, "devices") and self.coordinator.devices is not None:
-            device_data = self.coordinator.devices.get(self._id)
+        if hasattr(self.coordinator, "_devices") and self.coordinator._devices is not None:
+            device_data = self.coordinator._devices.get(self._id)
             if device_data and hasattr(device_data, self._attribute):
                 self._state = getattr(device_data, self._attribute)
             else:
@@ -1692,9 +1701,9 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity):
                 _LOGGER.warning(
                     f"The attribute {self._attribute} not found for device: {self._id}."
                 )
-                _LOGGER.warning("Coordinator = %s", self.coordinator.devices)
+                _LOGGER.warning("Coordinator = %s", self.coordinator._devices)
                 _LOGGER.warning("Device data = %s", device_data)
         else:
             self._state = None
             _LOGGER.warning("Coordinator data is None for device %s", self._id)
-#            _LOGGER.warning("Coordinator = %s", self.coordinator.devices)
+            _LOGGER.warning("Coordinator = %s", self.coordinator._devices)
