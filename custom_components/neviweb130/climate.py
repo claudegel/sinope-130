@@ -1473,7 +1473,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             "model": self._device_model,
             "sw_version": self._firmware,
         }
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+#        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
         if self._activ:
@@ -2422,7 +2422,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             current_month = today.month
             current_day = today.day
             device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id)
-#            _LOGGER.warning(
+#            _LOGGER.debug(
 #                "%s device_monthly_stats = %s",
 #                self._name,
 #                device_monthly_stats,
@@ -2442,7 +2442,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
-#            _LOGGER.warning(
+#            _LOGGER.debug(
 #                "%s device_daily_stats = %s",
 #                self._name,
 #                device_daily_stats,
