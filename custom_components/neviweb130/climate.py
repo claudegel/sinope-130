@@ -2552,9 +2552,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            _LOGGER.debug(
-                "%s device_daily_stats = %s", self._name, device_daily_stats
-            )
+            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
                 daily_kwh_count = 0
