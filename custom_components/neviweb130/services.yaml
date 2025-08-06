@@ -769,3 +769,13 @@ set_schedule_mode:
     setpointMode:
       description: Possible values are manual, auto.
       example: "auto"
+
+set_flow_alarm_disable_timer:
+  description: Set a timer to disable the flowmeter alarm action for second gen. valves with flowmeter.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
+      example: "valve.neviweb130_main_valve"
+    flowMeterAlarmDisableTimer:
+      description: Values in seconds from 0 to 86400 (24 hrs), 0 = disabled
+      example: 21600
