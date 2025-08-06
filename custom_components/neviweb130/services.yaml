@@ -5,7 +5,7 @@ set_climate_keypad_lock:
       description: Name(s) of neviweb130 climate device to lock/unlock the keypad.
       example: "climate.neviweb130_climate_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection. For HP6000ZB-xx devices, «partiallyLocked» is not available.
+      description: LockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection. For HP6000ZB-xx devices, «partiallyLocked» is not available.
       example: "locked"
 
 set_light_keypad_lock:
@@ -15,7 +15,7 @@ set_light_keypad_lock:
       description: Name(s) of neviweb130 light device to lock/unlock the keypad.
       example: "light.neviweb130_light_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
+      description: LockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_switch_keypad_lock:
@@ -25,7 +25,7 @@ set_switch_keypad_lock:
       description: Name(s) of neviweb130 switch device to lock/unlock the keypad.
       example: "switch.neviweb130_switch_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
+      description: LockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_light_timer:
@@ -157,7 +157,7 @@ set_wattage:
       description: Name(s) of neviweb device to set the wattageOverride (light or dimmer).
       example: "light.neviweb_light_office"
     loadWattOutput1:
-      description: wattage to set, 0-1800w light, 0-600w dimmer.
+      description: Wattage to set, 0-1800w light, 0-600w dimmer.
       example: 250
 
 set_setpoint_max:
@@ -350,7 +350,7 @@ set_aux_cycle_output:
       description: Set to «on» or «off» to change status of auxiliary cycle length.
       example: "on"
     value:
-      description: cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: Cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_battery_type:
