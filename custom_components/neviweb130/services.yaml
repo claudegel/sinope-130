@@ -428,9 +428,9 @@ set_flow_meter_model:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "switch.neviweb130_switch_VA4220ZB"
+      example: "valve.neviweb130_main_valve"
     FlowModel:
-      description: set to FS4220, or FS4221 or  No flow meter.
+      description: Set to FS4220, or FS4221 or  No flow meter.
       example: "No flow meter"
 
 set_flow_meter_delay:
@@ -438,7 +438,7 @@ set_flow_meter_delay:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "switch.neviweb130_switch_VA4220ZB"
+      example: "valve.neviweb130_main_valve"
     alarm1Period:
       description: Set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h.
       example: "60 min"
@@ -448,9 +448,9 @@ set_flow_meter_options:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "valve.neviweb130_valve_VA4220ZB"
+      example: "valve.neviweb130_main_valve"
     triggerAlarm:
-      description: send leak alert, on/off.
+      description: Send leak alert, on/off.
       example: "on"
     closeValve:
       description: Close the valve, on/off.
@@ -533,7 +533,7 @@ set_refuel_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertRefuel:
-      description: set to «True» to activate alert, or «False».
+      description: Set to «True» to activate alert, or «False».
       example: True
 
 set_battery_alert:
@@ -569,7 +569,7 @@ set_input_output_names:
       description: Set the name for input 2. Max length 10 characters.
       example: "alarm_signal_2"
     output1name:
-      description: set the name for output 1. Max length 10 characters.
+      description: Set the name for output 1. Max length 10 characters.
       example: "water_leak"
     output2name:
       description: Set the name for output 2. Max length 10 characters.
