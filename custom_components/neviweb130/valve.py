@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import logging
 import time
+
 from datetime import date, datetime, timezone
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -55,11 +56,13 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_VALVE_CLOSURE, ATTR_VALVE_INFO,
                     ATTR_WATER_LEAK_STATUS, ATTR_WIFI, DOMAIN, MODE_AUTO,
                     MODE_MANUAL, MODE_OFF, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_FLOW_ALARM_DISABLE_TIMER,
                     SERVICE_SET_FLOW_METER_DELAY, SERVICE_SET_FLOW_METER_MODEL,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
 from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
+                     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
                      SET_FLOW_METER_MODEL_SCHEMA,
                      SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
                      SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
@@ -418,6 +421,20 @@ async def async_setup_platform(
                 valve.schedule_update_ha_state(True)
                 break
 
+    def set_flow_alarm_disable_timer_service(service):
+        """Set alert for water valve temperature location."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for valve in entities:
+            if valve.entity_id == entity_id:
+                value = {
+                    "id": valve.unique_id,
+                    "timer": service.data[ATTR_FLOW_ALARM_TIMER],
+                }
+                valve.set_flow_alarm_disable_timer(value)
+                valve.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_VALVE_ALERT,
@@ -458,6 +475,13 @@ async def async_setup_platform(
         SERVICE_SET_POWER_SUPPLY,
         set_power_supply_service,
         schema=SET_POWER_SUPPLY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_ALARM_DISABLE_TIMER,
+        set_flow_alarm_disable_timer_service,
+        schema=SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
@@ -772,6 +796,13 @@ class Neviweb130Valve(ValveEntity):
         entity = value["id"]
         self._client.set_flow_meter_model(entity, model)
         self._flowmeter_model = model
+
+    def set_flow_alarm_disable_timer(self, value):
+        """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
+        entity = value["id"]
+        timer = value["timer"]
+        self._client.set_flow_alarm_timer(entity, timer)
+        self._flowmeter_timer = timer
 
     def set_flow_meter_delay(self, value):
         """Set water valve flow meter delay befor alert."""
@@ -1605,6 +1636,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "flow_meter_offset": self._flowmeter_offset,
                 "flow_meter_divisor": self._flowmeter_divisor,
                 "flow_meter_model": self._flowmeter_model,
+                "flow_meter_disable_timer": self._flowmeter_timer,
                 "flow_meter_alert_delay": neviweb_to_ha_delay(
                     self._flowmeter_alert_delay
                 ),
@@ -1854,6 +1886,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "flow_meter_offset": self._flowmeter_offset,
                 "flow_meter_divisor": self._flowmeter_divisor,
                 "flow_meter_model": self._flowmeter_model,
+                "flow_meter_disable_timer": self._flowmeter_timer,
                 "flow_meter_alert_delay": neviweb_to_ha_delay(
                     self._flowmeter_alert_delay
                 ),
