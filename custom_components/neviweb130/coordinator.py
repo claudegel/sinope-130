@@ -76,14 +76,15 @@ from .const import (
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_MAX,
     ATTR_FLOOR_MIN,
-    ATTR_FLOW_ENABLED,
-    ATTR_FLOW_METER_CONFIG,
     ATTR_FLOOR_MODE,
     ATTR_FLOOR_OUTPUT2,
     ATTR_FLOOR_SENSOR,
     ATTR_FLOW_ALARM1_LENGHT,
     ATTR_FLOW_ALARM1_OPTION,
     ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_ENABLED,
+    ATTR_FLOW_METER_CONFIG,
     ATTR_FLOW_THRESHOLD,
     ATTR_FUEL_ALERT,
     ATTR_FUEL_PERCENT_ALERT,
@@ -1084,6 +1085,12 @@ class Neviweb130Client:
             ATTR_FLOW_THRESHOLD:threshold,
         }
         _LOGGER.debug("Flowmeter options.data = %s", data)
+        await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_flow_alarm_timer(self, device_id, timer):
+        """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
+        data = {ATTR_FLOW_ALARM_TIMER: timer}
+        _LOGGER.debug("Flowmeter alarm disable timer.data = %s", data)
         await self.async_set_device_attributes(device_id, data)
 
     async def async_set_led_indicator(self, device_id, state, red, green, blue):
