@@ -29,7 +29,7 @@ import custom_components.neviweb130 as neviweb130
 
 from .helpers import debug_coordinator
 from .schema import VERSION
-from . import SCAN_INTERVAL
+#from . import SCAN_INTERVAL
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorDeviceClass,
