@@ -44,6 +44,7 @@ from .const import (
     ATTR_FLOOR_MODE,
     ATTR_FLOOR_SENSOR,
     ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM_TIMER,
     ATTR_FLOW_MODEL_CONFIG,
     ATTR_FUEL_ALERT,
     ATTR_FUEL_PERCENT_ALERT,
@@ -581,22 +582,6 @@ SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     }
 )
 
-SET_VALVE_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_BATT_ALERT): vol.In(["true", "false"]),
-    }
-)
-
-SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-    }
-)
-
 SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
@@ -640,40 +625,6 @@ SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
         vol.Required(ATTR_WATER_TEMP_MIN): vol.All(
             cv.ensure_list, [vol.In(WATER_TEMP)]
         ),
-    }
-)
-
-SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.All(
-            cv.ensure_list, [vol.In(FLOW_MODEL)]
-        ),
-    }
-)
-
-SET_FLOW_METER_DELAY_SCHEMA= vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(
-            cv.ensure_list, [vol.In(FLOW_DURATION)]
-        ),
-    }
-)
-
-SET_FLOW_METER_OPTIONS_SCHEMA= vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TRIGGER_ALARM): vol.In(["on", "off"]),
-        vol.Required(ATTR_CLOSE_VALVE): vol.In(["on", "off"]
-        ),
-    }
-)
-
-SET_POWER_SUPPLY_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_POWER_SUPPLY): vol.In(["batt", "power", "both"]),
     }
 )
 
@@ -788,5 +739,65 @@ SET_NEVIWEB_STATUS_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_MODE): vol.In(["home", "away"]),
+    }
+)
+
+"""Valve schema."""
+
+SET_POWER_SUPPLY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_POWER_SUPPLY): vol.In(["batt", "power", "both"]),
+    }
+)
+
+SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.All(
+            cv.ensure_list, [vol.In(FLOW_MODEL)]
+        ),
+    }
+)
+
+SET_FLOW_METER_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(
+            cv.ensure_list, [vol.In(FLOW_DURATION)]
+        ),
+    }
+)
+
+SET_FLOW_METER_OPTIONS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TRIGGER_ALARM): vol.In(["on", "off"]),
+        vol.Required(ATTR_CLOSE_VALVE): vol.In(["on", "off"]),
+    }
+)
+
+SET_VALVE_ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_BATT_ALERT): vol.In(["true", "false"]),
+    }
+)
+
+SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TEMP_ALERT): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=1)
+        ),
+    }
+)
+
+SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FLOW_ALARM_TIMER): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=86400)
+        ),
     }
 )
