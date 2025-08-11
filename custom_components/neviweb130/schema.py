@@ -21,7 +21,8 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_PERIOD,
                     ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_MODEL_CONFIG,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_GREEN, ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE,
+                    ATTR_GREEN, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE,
                     ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD,
                     ATTR_LANGUAGE, ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
@@ -39,7 +40,7 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
 
 """Default parameters values."""
 
-VERSION = "3.0.8"
+VERSION = "3.0.9"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -459,6 +460,15 @@ SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SETPOINT_MODE): vol.In(["auto", "manual"]),
+    }
+)
+
+SET_HEATCOOL_SETPOINT_DELTA_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HEATCOOL_SETPOINT_MIN_DELTA): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=5)
+        ),
     }
 )
 
