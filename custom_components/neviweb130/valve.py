@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import logging
 import time
-
 from datetime import date, datetime, timezone
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -61,9 +60,9 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
-from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
+from .schema import (SET_ACTIVATION_SCHEMA,
                      SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
-                     SET_FLOW_METER_MODEL_SCHEMA,
+                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
                      SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
                      SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
                      VERSION)
