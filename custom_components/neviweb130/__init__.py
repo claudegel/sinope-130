@@ -30,7 +30,8 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
                     ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
+                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HEAT_COOL,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
                     ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
@@ -813,6 +814,17 @@ class Neviweb130Client:
         else:
             self.notify_ha(
                 "Warning: Service set_schedule_mode is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+
+    def set_heatcool_delta(self, device_id, level, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_heatcool_min_delta is only for "
                 + "TH6500WF or TH6250WF thermostats."
             )
 
