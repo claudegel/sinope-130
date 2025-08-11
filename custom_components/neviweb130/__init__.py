@@ -27,10 +27,10 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
                     ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1_PERIOD,
-                    ATTR_FLOW_ENABLED, ATTR_FLOW_METER_CONFIG,
-                    ATTR_FLOW_THRESHOLD, ATTR_FUEL_ALERT,
-                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_HEAT_COOL,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
+                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
+                    ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
+                    ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
+                    ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
                     ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
@@ -1087,6 +1087,12 @@ class Neviweb130Client:
             ATTR_FLOW_THRESHOLD: threshold,
         }
         _LOGGER.debug("Flowmeter options.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_flow_alarm_timer(self, device_id, timer):
+        """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
+        data = {ATTR_FLOW_ALARM_TIMER: timer}
+        _LOGGER.debug("Flowmeter alarm disable timer.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, red, green, blue):

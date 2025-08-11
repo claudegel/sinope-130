@@ -55,12 +55,14 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_VALVE_CLOSURE, ATTR_VALVE_INFO,
                     ATTR_WATER_LEAK_STATUS, ATTR_WIFI, DOMAIN, MODE_AUTO,
                     MODE_MANUAL, MODE_OFF, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_FLOW_ALARM_DISABLE_TIMER,
                     SERVICE_SET_FLOW_METER_DELAY, SERVICE_SET_FLOW_METER_MODEL,
                     SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
                     SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
                     STATE_VALVE_STATUS)
-from .schema import (SET_ACTIVATION_SCHEMA, SET_FLOW_METER_DELAY_SCHEMA,
-                     SET_FLOW_METER_MODEL_SCHEMA,
+from .schema import (SET_ACTIVATION_SCHEMA,
+                     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
+                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
                      SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
                      SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA,
                      VERSION)
@@ -323,99 +325,113 @@ async def async_setup_platform(
         """Set alert for water valve."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "batt": service.data[ATTR_BATT_ALERT],
                 }
-                switch.set_valve_alert(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_valve_alert(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     def set_valve_temp_alert_service(service):
         """Set alert for water valve temperature location."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "temp": service.data[ATTR_TEMP_ALERT],
                 }
-                switch.set_valve_temp_alert(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_valve_temp_alert(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     def set_flow_meter_model_service(service):
         """Set the flow meter model connected to water valve."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
                 }
-                switch.set_flow_meter_model(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_flow_meter_model(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     def set_flow_meter_delay_service(service):
         """Set the flow meter delay before alert is turned on."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
                 }
-                switch.set_flow_meter_delay(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_flow_meter_delay(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     def set_flow_meter_options_service(service):
         """Set the flow meter options when leak is detected."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "alarm": service.data[ATTR_TRIGGER_ALARM],
                     "close": service.data[ATTR_CLOSE_VALVE],
                 }
-                switch.set_flow_meter_options(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_flow_meter_options(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     def set_power_supply_service(service):
         """Set power supply type for water valve."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "supply": service.data[ATTR_POWER_SUPPLY],
                 }
-                switch.set_power_supply(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_power_supply(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     def set_activation_service(service):
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
-        for switch in entities:
-            if switch.entity_id == entity_id:
+        for valve in entities:
+            if valve.entity_id == entity_id:
                 value = {
-                    "id": switch.unique_id,
+                    "id": valve.unique_id,
                     "active": service.data[ATTR_ACTIVE],
                 }
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
+                valve.set_activation(value)
+                valve.schedule_update_ha_state(True)
+                break
+
+    def set_flow_alarm_disable_timer_service(service):
+        """Set alert for water valve temperature location."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for valve in entities:
+            if valve.entity_id == entity_id:
+                value = {
+                    "id": valve.unique_id,
+                    "timer": service.data[ATTR_FLOW_ALARM_TIMER],
+                }
+                valve.set_flow_alarm_disable_timer(value)
+                valve.schedule_update_ha_state(True)
                 break
 
     hass.services.async_register(
@@ -458,6 +474,13 @@ async def async_setup_platform(
         SERVICE_SET_POWER_SUPPLY,
         set_power_supply_service,
         schema=SET_POWER_SUPPLY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FLOW_ALARM_DISABLE_TIMER,
+        set_flow_alarm_disable_timer_service,
+        schema=SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
     )
 
     hass.services.async_register(
@@ -773,6 +796,13 @@ class Neviweb130Valve(ValveEntity):
         self._client.set_flow_meter_model(entity, model)
         self._flowmeter_model = model
 
+    def set_flow_alarm_disable_timer(self, value):
+        """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
+        entity = value["id"]
+        timer = value["timer"]
+        self._client.set_flow_alarm_timer(entity, timer)
+        self._flowmeter_timer = timer
+
     def set_flow_meter_delay(self, value):
         """Set water valve flow meter delay befor alert."""
         val = value["delay"]
@@ -841,11 +871,11 @@ class Neviweb130Valve(ValveEntity):
                     monthly_kwh_count = 0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                        monthly_kwh_count += device_monthly_stats[k]["period"] / 100
                         k += 1
-                    self._monthly_kwh_count = round(monthly_kwh_count, 3)
+                    self._monthly_kwh_count = round(monthly_kwh_count, 2)
                     self._month_kwh = round(
-                        device_monthly_stats[n - 1]["period"] / 1000, 3
+                        device_monthly_stats[n - 1]["period"] / 100, 2
                     )
                     dt_month = datetime.fromisoformat(
                         device_monthly_stats[n - 1]["date"][:-1] + "+00:00"
@@ -871,11 +901,11 @@ class Neviweb130Valve(ValveEntity):
                             .month
                             == current_month
                         ):
-                            daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                            daily_kwh_count += device_daily_stats[k]["period"] / 100
                         k += 1
-                    self._daily_kwh_count = round(daily_kwh_count, 3)
+                    self._daily_kwh_count = round(daily_kwh_count, 2)
                     self._today_kwh = round(
-                        device_daily_stats[n - 1]["period"] / 1000, 3
+                        device_daily_stats[n - 1]["period"] / 100, 2
                     )
                     dt_day = datetime.fromisoformat(
                         device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00")
@@ -901,11 +931,11 @@ class Neviweb130Valve(ValveEntity):
                             ).day
                             == current_day
                         ):
-                            hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                            hourly_kwh_count += device_hourly_stats[k]["period"] / 100
                         k += 1
-                    self._hourly_kwh_count = round(hourly_kwh_count, 3)
+                    self._hourly_kwh_count = round(hourly_kwh_count, 2)
                     self._hour_kwh = round(
-                        device_hourly_stats[n - 1]["period"] / 1000, 3
+                        device_hourly_stats[n - 1]["period"] / 100, 2
                     )
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = datetime.strptime(
@@ -1072,7 +1102,7 @@ class Neviweb130Valve(ValveEntity):
 
 
 class Neviweb130WifiValve(Neviweb130Valve):
-    """Implementation of a Neviweb wifi valve switch, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
+    """Implementation of a Neviweb wifi valve, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1376,7 +1406,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
 
 
 class Neviweb130MeshValve(Neviweb130Valve):
-    """Implementation of a Neviweb mesh valve switch VA4220ZB and ACT4220ZB-M."""
+    """Implementation of a Neviweb mesh valve VA4220ZB and ACT4220ZB-M."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1523,7 +1553,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer != 0:
+                        if self._flowmeter_timer == 0:
                             self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                             self._flowmeter_alert_delay = device_data[
                                 ATTR_FLOW_ALARM1_PERIOD
@@ -1605,6 +1635,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "flow_meter_offset": self._flowmeter_offset,
                 "flow_meter_divisor": self._flowmeter_divisor,
                 "flow_meter_model": self._flowmeter_model,
+                "flow_meter_disable_timer": self._flowmeter_timer,
                 "flow_meter_alert_delay": neviweb_to_ha_delay(
                     self._flowmeter_alert_delay
                 ),
@@ -1637,7 +1668,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
 
 
 class Neviweb130WifiMeshValve(Neviweb130Valve):
-    """Implementation of a Neviweb wifi mesh valve switch, ACT4220WF-M, ACT4221WF-M."""
+    """Implementation of a Neviweb wifi mesh valve, ACT4220WF-M, ACT4221WF-M."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1789,7 +1820,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer != 0:
+                        if self._flowmeter_timer == 0:
                             self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                             self._flowmeter_alert_delay = device_data[
                                 ATTR_FLOW_ALARM1_PERIOD
@@ -1854,6 +1885,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "flow_meter_offset": self._flowmeter_offset,
                 "flow_meter_divisor": self._flowmeter_divisor,
                 "flow_meter_model": self._flowmeter_model,
+                "flow_meter_disable_timer": self._flowmeter_timer,
                 "flow_meter_alert_delay": neviweb_to_ha_delay(
                     self._flowmeter_alert_delay
                 ),

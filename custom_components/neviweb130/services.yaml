@@ -5,7 +5,7 @@ set_climate_keypad_lock:
       description: Name(s) of neviweb130 climate device to lock/unlock the keypad.
       example: "climate.neviweb130_climate_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection. For HP6000ZB-xx devices, «partiallyLocked» is not available.
+      description: LockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection. For HP6000ZB-xx devices, «partiallyLocked» is not available.
       example: "locked"
 
 set_light_keypad_lock:
@@ -15,7 +15,7 @@ set_light_keypad_lock:
       description: Name(s) of neviweb130 light device to lock/unlock the keypad.
       example: "light.neviweb130_light_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
+      description: LockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_switch_keypad_lock:
@@ -25,7 +25,7 @@ set_switch_keypad_lock:
       description: Name(s) of neviweb130 switch device to lock/unlock the keypad.
       example: "switch.neviweb130_switch_office"
     lockKeypad:
-      description: lockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
+      description: LockKeypad status to set, «locked» = Locked, «unlocked» = Unlocked, «partiallyLocked» = Tamper protection.
       example: "locked"
 
 set_light_timer:
@@ -157,7 +157,7 @@ set_wattage:
       description: Name(s) of neviweb device to set the wattageOverride (light or dimmer).
       example: "light.neviweb_light_office"
     loadWattOutput1:
-      description: wattage to set, 0-1800w light, 0-600w dimmer.
+      description: Wattage to set, 0-1800w light, 0-600w dimmer.
       example: 250
 
 set_setpoint_max:
@@ -350,7 +350,7 @@ set_aux_cycle_output:
       description: Set to «on» or «off» to change status of auxiliary cycle length.
       example: "on"
     value:
-      description: cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: Cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_battery_type:
@@ -428,9 +428,9 @@ set_flow_meter_model:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "switch.neviweb130_switch_VA4220ZB"
+      example: "valve.neviweb130_main_valve"
     FlowModel:
-      description: set to FS4220, or FS4221 or  No flow meter.
+      description: Set to FS4220, or FS4221 or  No flow meter.
       example: "No flow meter"
 
 set_flow_meter_delay:
@@ -438,7 +438,7 @@ set_flow_meter_delay:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "switch.neviweb130_switch_VA4220ZB"
+      example: "valve.neviweb130_main_valve"
     alarm1Period:
       description: Set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h.
       example: "60 min"
@@ -448,9 +448,9 @@ set_flow_meter_options:
   fields:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
-      example: "valve.neviweb130_valve_VA4220ZB"
+      example: "valve.neviweb130_main_valve"
     triggerAlarm:
-      description: send leak alert, on/off.
+      description: Send leak alert, on/off.
       example: "on"
     closeValve:
       description: Close the valve, on/off.
@@ -533,7 +533,7 @@ set_refuel_alert:
       description: Name(s) of neviweb130 device LM4110-ZB.
       example: "sensor.neviweb130_sensor_propane"
     alertRefuel:
-      description: set to «True» to activate alert, or «False».
+      description: Set to «True» to activate alert, or «False».
       example: True
 
 set_battery_alert:
@@ -569,7 +569,7 @@ set_input_output_names:
       description: Set the name for input 2. Max length 10 characters.
       example: "alarm_signal_2"
     output1name:
-      description: set the name for output 1. Max length 10 characters.
+      description: Set the name for output 1. Max length 10 characters.
       example: "water_leak"
     output2name:
       description: Set the name for output 2. Max length 10 characters.
@@ -769,3 +769,13 @@ set_schedule_mode:
     setpointMode:
       description: Possible values are manual, auto.
       example: "auto"
+
+set_flow_alarm_disable_timer:
+  description: Set a timer to disable the flowmeter alarm action for second gen. valves with flowmeter.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
+      example: "valve.neviweb130_main_valve"
+    flowMeterAlarmDisableTimer:
+      description: Values in seconds from 0 to 86400 (24 hrs), 0 = disabled
+      example: 21600
