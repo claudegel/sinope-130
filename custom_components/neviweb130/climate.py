@@ -18,6 +18,7 @@ Support for Neviweb wifi thermostats
 model 1510 = thermostat TH1123WF 3000W (wifi)
 model 1510 = thermostat TH1124WF 4000W (wifi)
 model 336 = thermostat TH1133WF 3000W (wifi lite)
+model 336 = thermostat TH1143WF 4000W (wifi lite)
 model 336 = thermostat TH1133CR Sinopé Evo 3000W (wifi lite)
 model 336 = thermostat TH1134WF 3000W (wifi lite)
 model 336 = thermostat TH1134CR Sinopé Evo 3000W (wifi lite)
@@ -47,6 +48,7 @@ from __future__ import annotations
 
 import logging
 import time
+
 from datetime import date, datetime, timezone
 
 from homeassistant.components.climate import (ClimateEntity,
@@ -63,6 +65,7 @@ from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
+
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_AIR_CONFIG, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_AIR_MAX_POWER_TEMP, ATTR_AUX_CYCLE,
@@ -124,6 +127,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_EM_HEAT, SERVICE_SET_FLOOR_AIR_LIMIT,
                     SERVICE_SET_FLOOR_LIMIT_HIGH, SERVICE_SET_FLOOR_LIMIT_LOW,
                     SERVICE_SET_HC_SECOND_DISPLAY,
+                    SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
                     SERVICE_SET_HUMIDIFIER_TYPE, SERVICE_SET_HVAC_DR_OPTIONS,
@@ -147,6 +151,7 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_EM_HEAT_SCHEMA, SET_FLOOR_AIR_LIMIT_SCHEMA,
                      SET_FLOOR_LIMIT_HIGH_SCHEMA, SET_FLOOR_LIMIT_LOW_SCHEMA,
                      SET_HC_SECOND_DISPLAY_SCHEMA,
+                     SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
                      SET_HUMIDIFIER_TYPE_SCHEMA, SET_HVAC_DR_OPTIONS_SCHEMA,
@@ -276,7 +281,7 @@ SUPPORTED_HVAC_H_C_MODES = [
 ]
 
 SUPPORTED_HVAC_HC_MODES = [
-    HVACMode.AUTO,
+    HVACMode.HEAT_COOL,
     HVACMode.COOL,
     HVACMode.HEAT,
     HVACMode.OFF,
@@ -1264,6 +1269,20 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_heatcool_setpoint_delta_service(service):
+        """Set TH6500WF, TH6250WF delta temperature between heating and cooling setpoint."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "level": service.data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA],
+                }
+                thermostat.set_heatcool_setpoint_delta(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1507,6 +1526,13 @@ async def async_setup_platform(
         SERVICE_SET_SCHEDULE_MODE,
         set_schedule_mode_service,
         schema=SET_SCHEDULE_MODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
+        set_heatcool_setpoint_delta_service,
+        schema=SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
     )
 
 
@@ -1871,7 +1897,7 @@ class Neviweb130Thermostat(ClimateEntity):
             if self._heat_cool == HVACMode.OFF:
                 return HVACMode.OFF
             elif self._heat_cool == HVACMode.AUTO:
-                return HVACMode.AUTO
+                return HVACMode.HEAT_COOL
             elif self._heat_cool == HVACMode.COOL:
                 return HVACMode.COOL
             elif self._heat_cool == MODE_EM_HEAT:
@@ -1974,8 +2000,8 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_HC:
             if self._operation_mode == MODE_AUTO_BYPASS:
                 submode = "(" + MODE_AUTO_BYPASS + ")"
-            elif self._operation_mode == HVACMode.AUTO:
-                submode = "(" + HVACMode.AUTO + ")"
+            elif self._operation_mode == HVACMode.HEAT_COOL:
+                submode = "(" + HVACMode.HEAT_COOL + ")"
             else:
                 submode = "(" + MODE_MANUAL + ")"
             if self._heat_cool == HVACMode.OFF:
@@ -2128,6 +2154,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
                 )
                 self._heat_cool = HVACMode.HEAT
+            elif self._heat_cool == HVACMode.AUTO:
+                self._client.set_setpoint_mode(
+                    self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
+                )
+                self._heat_cool = HVACMode.AUTO
         else:
             self._client.set_setpoint_mode(
                 self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
@@ -2303,8 +2334,18 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._id, hvac_mode, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.AUTO:
+            if self._is_HC:
+                self._client.set_setpoint_mode(
+                    self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
+                )
+                hvac_mode = HVACMode.HEAT_COOL
+            else:
+                self._client.set_setpoint_mode(
+                    self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
+                )
+        elif hvac_mode == HVACMode.HEAT_COOL:
             self._client.set_setpoint_mode(
-                self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
+                self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.COOL:
             self._client.set_setpoint_mode(
@@ -2546,13 +2587,15 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
                 dt_month = datetime.fromisoformat(
                     device_monthly_stats[n - 1]["date"][:-1] + "+00:00"
-                ).astimezone(timezone.utc)
+                    ).astimezone(timezone.utc)
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
+            _LOGGER.debug(
+                "%s device_daily_stats = %s", self._name, device_daily_stats
+            )
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
                 daily_kwh_count = 0
@@ -4093,7 +4136,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME]
                     if ATTR_DRSETPOINT in device_data:
-                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT][
+                            "status"
+                        ]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
                             if device_data[ATTR_DRSETPOINT]["value"] is not None
@@ -4356,7 +4401,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     ]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
-                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT][
+                            "status"
+                        ]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
                             if device_data[ATTR_DRSETPOINT]["value"] is not None
@@ -4395,7 +4442,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT][
                         "status"
                     ]
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
+                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC][
+                        "status"
+                    ]
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC][
                             "frequency"
@@ -5710,6 +5759,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         mode = value["mode"]
         self._client.set_schedule_mode(entity, mode, self._is_HC)
         self._operation_mode = mode
+
+    def set_heatcool_setpoint_delta(self, value):
+        """Set delta temperature between heating and cooling setpoint from 1 to 5 oC."""
+        entity = value["id"]
+        level = value["level"]
+        self._client.set_heatcool_delta(entity, level, self._is_HC)
+        self._heatcool_setpoint_delta = level
 
     def set_temperature(self, **kwargs):
         """Set new target temperature for cooling or heating."""
