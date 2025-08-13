@@ -2382,6 +2382,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif preset_mode == PRESET_HOME:
             self._client.set_occupancy_mode(self._id, PRESET_HOME, self._is_wifi)
         elif preset_mode == PRESET_NONE:
+            self._client.set_occupancy_mode(self._id, PRESET_NONE, self._is_wifi)
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
         else:
