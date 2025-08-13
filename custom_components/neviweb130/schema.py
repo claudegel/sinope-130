@@ -365,7 +365,7 @@ SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BALANCE_PT): vol.All(
-            vol.Coerce(int), vol.Range(min=-30, max=-5)
+            vol.Coerce(int), vol.Range(min=-30, max=0)
         ),
     }
 )
