@@ -1,45 +1,138 @@
 """
-Support for Neviweb buttons connected via GT130 ZigBee.
+Support for Neviweb attributes buttons for devices connected via GT130 and wifi devices.
 """
 
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 
-from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from dataclasses import dataclass
+from typing import Optional, Final
+
+from homeassistant.components.button import (
+    ButtonDeviceClass,
+    ButtonEntity,
+    ButtonEntityDescription,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
-    DataUpdateCoordinator,
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
 from .attributes import (
     ALL_MODEL,
     CLIMATE_MODEL,
     LIGHT_MODEL,
+    SWITCH_MODEL,
     VALVE_MODEL,
 )
+from .const import DOMAIN
+from .helpers import debug_coordinator
+
+DEFAULT_NAME = 'neviweb130 button'
+DEFAULT_NAME_2 = 'neviweb130 button 2'
+DEFAULT_NAME_3 = 'neviweb130 button 3'
 
 _LOGGER = logging.getLogger(__name__)
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
     """Class describing Neviweb130 Button entities."""
 
-    data_key: str
+    data_key: Optional[str] = None
 
-
-DEVICE_BUTTON_TYPES = Neviweb130ButtonEntityDescription(
-    key="reset_filter", #nom du bouton
-    translation_key="reset_filter", #pour traduction
-    entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-    data_key="filter_clean", #attribute name
+BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
+    Neviweb130ButtonEntityDescription(
+        key="reset_filter", #nom du bouton
+        device_class=ButtonDeviceClass.UPDATE,
+        icon="mdi:air-filter",
+        translation_key="reset_filter", #pour traduction
+        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
+        data_key="filter_clean", #attribute name
+    ),
+    Neviweb130ButtonEntityDescription(
+        key="identify", #nom du bouton
+        device_class=ButtonDeviceClass.IDENTIFY,
+        icon="mdi:crosshairs-question",
+        translation_key="identify", #pour traduction
+        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
+        data_key="Identify", #attribute name
+    ),
 )
 
+def get_attributes_for_model(model):
+    if model in CLIMATE_MODEL:
+        return ["identify", "reset_filter"]
+    elif model in LIGHT_MODEL:
+        return ["identify"]
+    elif model in SWITCH_MODEL:
+        return ["identify"]
+    elif model in VALVE_MODEL:
+        return ["identify"]
+    return []
+
+def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
+    entities = []
+    client = data['neviweb130_client']
+
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+
+    for gateway_data, default_name in [
+        (client.gateway_data, DEFAULT_NAME),
+        (client.gateway_data2, DEFAULT_NAME_2),
+        (client.gateway_data3, DEFAULT_NAME_3)
+    ]:
+        if not gateway_data or gateway_data == "_":
+            continue
+
+        for device_info in gateway_data:
+            model = device_info["signature"]["model"]
+            if model not in ALL_MODEL:
+                continue
+
+            device_id = str(device_info["id"])
+            if device_id not in coordinator.data:
+                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+
+            device_name = f"{default_name} {device_info['name']}"
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device_id)},
+                manufacturer="claudegel",
+                name=device_name,
+                model=model,
+                sw_version="{major}.{middle}.{minor}".format(
+                    **device_info["signature"]["softVersion"]
+                ),
+            )
+
+            attributes_name = get_attributes_for_model(model)
+            for attribute in attributes_name:
+                for desc in BUTTON_TYPES:
+                    if desc.key == attribute:
+                        entities.append(
+                            Neviweb130DeviceAttributeButton(
+                                client=client,
+                                device=device_info,
+                                device_name=device_name,
+                                attribute=attribute,
+                                device_id=device_id,
+                                attr_info={
+                                    "identifiers": device_entry.identifiers,
+                                    "name": device_entry.name,
+                                    "manufacturer": device_entry.manufacturer,
+                                    "model": device_entry.model,
+                                },
+                                coordinator=coordinator,
+                                entity_description=desc,
+                            )
+                        )
+
+    return entities
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -54,142 +147,71 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    entities = []
-    for gateway_data in [
-        data['neviweb130_client'].gateway_data,
-        data['neviweb130_client'].gateway_data2,
-        data['neviweb130_client'].gateway_data3
-    ]:
-        if gateway_data is not None and gateway_data != "_":
-            for device_info in gateway_data:
-                if "signature" in device_info and "model" in device_info["signature"]:
-                    model = device_info["signature"]["model"]
-                    device_id = str(device_info["id"])
-                    device_type = None
-                    if model in ALL_MODEL:
-                        device_name = f'{default_name} {device_info["name"]}'
-                        master_device_name = f'{device_info["name"]}'
-                        device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        _LOGGER.debug("device found = %s", device_name)
+    coordinator = data["coordinator"]
+    device_registry = dr.async_get(hass)
 
-                        # Ensure the device is registered in the device registry
-                        device_entry = device_registry.async_get_or_create(
-                            config_entry_id=entry.entry_id,
-                            identifiers={(DOMAIN, str(device_info["id"]))},
-                            name=device_name,
-                            manufacturer="claudegel",
-                            model=device_info["signature"]["model"],
-                            sw_version=device_firmware,
-                        )
-                        attr_info = {
-                            "identifiers": device_entry.identifiers,
-                            "name": device_entry.name,
-                            "manufacturer": device_entry.manufacturer,
-                            "model": device_entry.model,
-                        }
-                        _LOGGER.debug("Config entry = %s", device_entry)
-                        _LOGGER.debug("Attribute found for device: %s", master_device_name)
-                        if model in CLIMATE_MODEL:
-                            device_type = "climate"
-                            attributes_name = []
-                        elif model in LIGHT_MODEL:
-                            device_type = "light"
-                            attributes_name = []
-                        elif model in VALVE_MODEL:
-                            device_type = "valve"
-                            attributes_name = []
+    entities = create_attribute_buttons(hass, entry, data, coordinator, device_registry)
 
-                        for attribute in DEVICE_ATTRIBUTES.get(device_type, []):
-                            _LOGGER.debug(f"Adding button: {device_info['name']} {attribute}")
-                            entities.append(
-                                Neviweb130DeviceAttributeButton(
-                                    data['coordinator'],
-                                    device_info,
-                                    device_name,
-                                    attribute,
-                                  #  Neviweb130ButtonEntityDescription,
-                                    device_entry.id,
-                                    attr_info,
-                                )
-                            )
-
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+    hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeButton(CoordinatorEntity, ButtonEntity):
+class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], ButtonEntity):
     """Representation of a specific Neviweb130 button."""
 
-    entity_description: Neviweb130ButtonEntityDescription
+    _attr_has_entity_name = True
+    _attr_should_poll = True
+
+    _ATTRIBUTE_METHODS = {
+        "reset_filter": lambda self: self._client.async_reset_filter(self._id),
+        "identify": lambda self: self._client.async_identify(self._id),
+        # ...
+    }
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator,
+        client,
         device: dict,
         device_name: str,
         attribute: str,
         device_id: str,
         attr_info: dict,
+        coordinator,
+        entity_description: Neviweb130ButtonEntityDescription,
     ):
         """Initialize the button."""
-#        super().__init__(coordinator)
+        super().__init__(coordinator)
+        self._client = client
         self._device = device
-        self._attribute = attribute
+        self.entity_description = entity_description
+        self._id = str(device.get('id'))
         self._device_name = device_name
         self._device_id = device_id
-        self._state = None
-        self._attr_name = f"{self._attribute.replace('_', ' ').capitalize()}"
-        self._attr_unique_id = f"{self._device.get('id')}_{attribute}"
+        self._attribute = attribute
+        self._attr_unique_id = f"{self._id}_{attribute}"
         self._attr_device_info = attr_info
-        self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
-        self._icon = None
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._attr_name
+        self._attr_icon = entity_description.icon
+        self._attr_translation_key = entity_description.translation_key
+        self._attr_device_class = entity_description.device_class
+        self._attr_entity_category = entity_description.entity_category
 
     @property
     def unique_id(self):
-        """Return a unique ID."""
-        _LOGGER.debug("Device id = %s", self._device_id)
-        _LOGGER.debug("Unique id = %s", self._attr_unique_id)
+        """Return a unique ID of the button."""
         return self._attr_unique_id
 
     @property
-    def state(self):
-        """Return the state of the sensor."""
-        _LOGGER.debug(
-            "Device %s with attribute %s have State = %s",
-            self._device,
-            self._attribute,
-            self._state,
-        )
-        return state = self._device.get(self._attribute)
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend, if any."""
-        return self._icon
-
-    @property
     def extra_state_attributes(self):
-        """Return the state attributes of the sensor."""
-        return {
-            "device_name": self._attr_name,
-            ATTR_FRIENDLY_NAME: self._attr_friendly_name,
-            "device_id": self._attr_unique_id,
-        }
+        """Return the state attributes of the button."""
+        return {"device_id": self._attr_unique_id}
 
     async def async_press(self) -> None:
         """Handle the button press."""
         # Implement the button press action here
-        await self.async_send(self._master_device_id, key=self.entity_description.data_key, value=True)
-        _LOGGER.info(f"Button {self._attr_name} pressed.")
-
-    async def async_update(self):
-        """Fetch new state data for the select entity."""
-        await self.coordinator.async_request_refresh()
-        self._device = self.coordinator.data
+        handler = self._ATTRIBUTE_METHODS.get(self._attribute)
+        if handler:
+            await handler(self)
+            _LOGGER.info(f"Button {self._attr_translation_key} pressed.")
+        else:
+            _LOGGER.warning("No handler for button attribute: %s", self._attribute)
         self.async_write_ha_state()
