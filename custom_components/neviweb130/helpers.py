@@ -12,7 +12,9 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
     import pprint
 
     _LOGGER.debug("Coordinator class: %s", type(coordinator))
-    _LOGGER.debug("Attributs disponibles: %s", dir(coordinator))
+    _LOGGER.debug("Attributs disponibles: %s", dir(coordinator._devices))
+    _LOGGER.debug("Client disponible: %s", dir(coordinator.client))
+    _LOGGER.debug("Data disponible: %s", dir(coordinator.data.values))
     # Log des attributs simples sans risques de récursion
     for attr in ["data", "_devices", "update_interval"]:
         value = getattr(coordinator, attr, "<inconnu>")
