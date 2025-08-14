@@ -1438,40 +1438,39 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
         self.client = client
         self._devices: list = []  # liste des device objects
 
+        _LOGGER.debug("Coordinator instance in coordinator.py: %s", self)
+
     async def _async_update_data(self) -> dict:
         """Call async_update() on each device and return a dict {id: device}."""
         _LOGGER.debug("Nombre de devices à mettre à jour : %d", len(self._devices))
         result = {}
         for dev in self._devices:
-            _LOGGER.debug("Thermostat attrs: %s", dir(dev))
-            _LOGGER.debug("Thermostat __dict__: %s", vars(dev))
-            try:
-                await dev.async_update()
-                # fetch .id, or .unique_id
-                device_id = getattr(dev, "id", None) or getattr(dev, "unique_id", None)
-                _LOGGER.debug("ID récupéré pour le device : %s", device_id)
-                result[str(device_id)] = dev
-                if not device_id:
-                    _LOGGER.error("No ID found for %s", dev)
-                    continue
+#            _LOGGER.debug("Thermostat attrs: %s", dir(dev))
+#            _LOGGER.debug("Thermostat __dict__: %s", vars(dev))
+            await dev.async_update()
+            device_id = str(getattr(dev, "id", None) or getattr(dev, "unique_id", None))
+            if not device_id:
+                _LOGGER.error("No ID found for %s", dev)
+                continue
+            # Collect attributes you want to expose
+            result[device_id] = {
+                "rssi": getattr(dev, "rssi", None),
+                "total_kwh_count": getattr(dev, "total_kwh_count", None),
+                "monthly_kwh_count": getattr(dev, "monthly_kwh_count", None),
+                "daily_kwh_count": getattr(dev, "daily_kwh_count", None),
+                "hourly_kwh_count": getattr(dev, "hourly_kwh_count", None),
+                "current_temperature": getattr(dev, "current_temperature", None),
+            }
+#            _LOGGER.debug("Result = %s", result[device_id])
+#            _LOGGER.debug("Returning result from coordinator: %s, keys: %s", self, list(result.keys()))
+#            _LOGGER.debug("Coordinator.data set: %s, keys: %s", self, list(self.data.keys()))
 
-                #result[str(dev.id)] = dev
-                result[str(device_id)] = dev
-            except Exception as err:
-                raise UpdateFailed(f"Error on update of device {dev.id}: {err}")
-        _LOGGER.debug("Coordinator data after update : %s", list(result.keys()))
         return result
 
     def register_device(self, device):
         """Register a device to be managed by the coordinator."""
-#        self.devices.append(device)
         if device not in self._devices:
             self._devices.append(device)
-
-#    async def async_update_data(self):
-#        """Fetch data from Neviweb130 devices."""
-#        for device in self.devices.values():
-#            await device.async_update()
 
     async def async_initialize(self):
         """Initialize the coordinator."""
