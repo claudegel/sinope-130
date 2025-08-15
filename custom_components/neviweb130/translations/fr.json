@@ -66,5 +66,36 @@
     }
   },
   "reload_triggered": "La recharge a été faite.",
-  "log_downloaded": "le téléchargement des diagnostiques a été fait."
+  "log_downloaded": "le téléchargement des diagnostiques a été fait.",
+  "entity": {
+    "sensor": {
+      "rssi": {
+        "name": "Force du signal"
+      },
+      "total_kwh_count": {
+        "name": "Énergie totale"
+      },
+      "monthly_kwh_count": {
+        "name": "Énergie Mensuelle"
+      },
+      "daily_kwh_count": {
+        "name": "Énergie Quotidienne"
+      },
+      "hourly_kwh_count": {
+        "name": "Énergie Horaire"
+      },
+      "total_flow_count": {
+        "name": "Débit Total"
+      },
+      "monthly_flow_count": {
+        "name": "Débit Mensuel"
+      },
+      "daily_flow_count": {
+        "name": "Débit Quotidien"
+      },
+      "hourly_flow_count": {
+        "name": "Débit Horaire"
+      }
+    }
+  }
 }
