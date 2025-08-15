@@ -24,6 +24,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta, datetime
+from typing import Callable, Any, Optional
 
 import custom_components.neviweb130 as neviweb130
 
@@ -49,6 +50,7 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfVolume,
     EntityCategory,
 )
 from homeassistant.core import HomeAssistant
@@ -129,7 +131,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
 
-SENSOR_TYPES = {
+SENSOR_TYPE = {
     "leak": [None, None, BinarySensorDeviceClass.MOISTURE],
     "level": [PERCENTAGE, None, SensorStateClass.MEASUREMENT],
     "gateway": [None, None, BinarySensorDeviceClass.CONNECTIVITY],
@@ -140,36 +142,135 @@ from .attributes import (
     ALL_MODEL,
     CLIMATE_MODEL,
     LIGHT_MODEL,
-    VALVE_MODEL,
     SWITCH_MODEL,
+    VALVE_MODEL,
 )
 
 
-#@dataclass(frozen=True)
-#class Neviweb130SensorEntityDescription(SensorEntityDescription):
-#    """Describes a Sun sensor entity."""
-#
-#    value_fn: Callable[[], Any] | None = None
-#    signal: str
+@dataclass(frozen=True)
+class Neviweb130SensorEntityDescription(SensorEntityDescription):
+    """Describes an attribute sensor entity."""
 
-#SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
-#    Neviweb130SensorEntityDescription(
-#        key="rssi",
-#        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
-#        translation_key="rssi",
-#        value_fn=lambda data: data.rssi,
-#        signal=SIGNAL_EVENTS_CHANGED,
-#        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-#    ),
-#    Neviweb130SensorEntityDescription(
-#        key="total_kwh_count",
-#        device_class=SensorDeviceClass.KWH,
-#        translation_key="total_kwh_count",
-#        value_fn=lambda data: data.total_kwh_count,
-#        signal=SIGNAL_EVENTS_CHANGED,
-#        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-#    ),
-#)
+    value_fn: Optional[Callable[[Any], Any]] = None
+    signal: str = ""
+    icon: Optional[str] = None
+    state_class: Optional[str] = "measurement"
+    device_class: Optional[str] = None
+    native_unit_of_measurement: Optional[str] = None
+
+SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
+    Neviweb130SensorEntityDescription(
+        key="rssi",
+        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+        state_class="measurement",
+        translation_key="rssi",
+        value_fn=lambda data: data["rssi"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        icon="mdi:wifi",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="total_kwh_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total_increasing",
+        translation_key="total_kwh_count",
+        value_fn=lambda data: data["total_kwh_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="monthly_kwh_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="monthly_kwh_count",
+        value_fn=lambda data: data["monthly_kwh_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="daily_kwh_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="daily_kwh_count",
+        value_fn=lambda data: data["daily_kwh_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="hourly_kwh_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="hourly_kwh_count",
+        value_fn=lambda data: data["hourly_kwh_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="total_flow_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total_increasing",
+        translation_key="total_flow_count",
+        value_fn=lambda data: data["total_flow_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="monthly_flow_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="monthly_flow_count",
+        value_fn=lambda data: data["monthly_flow_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="daily_flow_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="daily_flow_count",
+        value_fn=lambda data: data["daily_flow_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="hourly_flow_count",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="hourly_flow_count",
+        value_fn=lambda data: data["hourly_flow_count"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        icon="mdi:lightning-bolt",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="current_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class="measurement",
+        translation_key="current_temperature",
+        value_fn=lambda data: data["current_temperature"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        icon="mdi:thermometer",
+    ),
+)
+
+def get_attributes_for_model(model):
+    if model in CLIMATE_MODEL:
+        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count", "current_temperature"]
+    elif model in LIGHT_MODEL:
+        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count"]
+    elif model in SWITCH_MODEL:
+        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count"]
+    elif model in VALVE_MODEL:
+        return [ATTR_RSSI, "total_flow_count", "monthly_flow_count", "daily_flow_count", "hourly_flow_count"]
+    return []
 
 def determine_device_type(model):
     if model in IMPLEMENTED_SENSOR_MODEL or model in IMPLEMENTED_NEW_SENSOR_MODEL:
@@ -265,32 +366,28 @@ def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
 
             attributes_name = get_attributes_for_model(model)
             for attribute in attributes_name:
-                entities.append(
-                    Neviweb130DeviceAttributeSensor(
-                        data['neviweb130_client'],
-                        device_info,
-                        device_name,
-                        attribute,
-                       # device_entry.id,
-                        device_id,
-                        {
-                            "identifiers": device_entry.identifiers,
-                            "name": device_entry.name,
-                            "manufacturer": device_entry.manufacturer,
-                            "model": device_entry.model,
-                        },
-                        coordinator,
-                    )
-                )
+                for desc in SENSOR_TYPES:
+                    if desc.key == attribute:
+                        entities.append(
+                            Neviweb130DeviceAttributeSensor(
+                                client=data['neviweb130_client'],
+                                device=device_info,
+                                device_name=device_name,
+                                attribute=attribute,
+                                device_id=device_id,
+                                attr_info={
+                                    "identifiers": device_entry.identifiers,
+                                    "name": device_entry.name,
+                                    "manufacturer": device_entry.manufacturer,
+                                    "model": device_entry.model,
+                                },
+                                coordinator=coordinator,
+                                entity_description=desc,
+                            )
+                        )
 
     return entities
 
-def get_attributes_for_model(model):
-    if model in CLIMATE_MODEL or model in LIGHT_MODEL or model in SWITCH_MODEL:
-        return [ATTR_RSSI, "total_kwh_count"]
-    elif model in VALVE_MODEL:
-        return [ATTR_RSSI]
-    return []
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -307,8 +404,7 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_config_entry_first_refresh()
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     device_type = None
     device_registry = dr.async_get(hass)
@@ -746,6 +842,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                             + self._sku
                             + ", Leak sensor disconnected"
                         )
+                    self.async_write_ha_state()
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
@@ -781,7 +878,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     def icon(self):
         """Return the icon to use in the frontend."""
         try:
-            return SENSOR_TYPES.get(self._device_type)[1]
+            return SENSOR_TYPE.get(self._device_type)[1]
         except TypeError:
             return None
 
@@ -789,7 +886,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         try:
-            return SENSOR_TYPES.get(self._device_type)[0]
+            return SENSOR_TYPE.get(self._device_type)[0]
         except TypeError:
             return None
 
@@ -797,8 +894,8 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     def device_class(self):
         """Return the device class of this entity."""
         return (
-            SENSOR_TYPES.get(self._device_type)[2]
-            if self._device_type in SENSOR_TYPES
+            SENSOR_TYPE.get(self._device_type)[2]
+            if self._device_type in SENSOR_TYPE
             else None
         )
 
@@ -1161,6 +1258,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             + self._sku
                             + ", Leak sensor disconnected"
                         )
+                    self.async_write_ha_state()
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
@@ -1345,6 +1443,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                                     + ", Sku: "
                                     + self._sku
                                 )
+                    self.async_write_ha_state()
                     return
                 _LOGGER.warning(
                     "Error in reading device %s: (%s)",
@@ -1535,6 +1634,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
             if "error" not in device_status or device_status is not None:
                 if "errorCode" not in device_status:
                     self._gateway_status = device_status[ATTR_STATUS]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device status for %s: (%s)",
@@ -1590,8 +1690,6 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
 
     _attr_has_entity_name = True
     _attr_should_poll = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-#    entity_description: Neviweb130SensorEntityDescription
 
     def __init__(
         self,
@@ -1602,37 +1700,30 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         device_id: str,
         attr_info: dict,
         coordinator: Neviweb130Coordinator,
-#        entity_description: Neviweb130SensorEntityDescription,
+        entity_description: Neviweb130SensorEntityDescription,
     ):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.coordinator = coordinator
-#        self.entity_description = entity_description
+        self.entity_description = entity_description
         self._client = client
         self._device = device
         self._id = str(device.get('id'))
         self._device_name = device_name
-        self._attribute = attribute
+        self._attribute = entity_description.key
         self._device_id = device_id
-        self._state = None
-        self._attr_name = f"{self._attribute.replace('_', ' ').capitalize()}"
-        self._attr_unique_id = f"{self._device_id}_{attribute}"
+        self._native_value = None
+        self._attr_unique_id = f"{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
-        self._icon = None
-#        self._unit_of_measurement = entity_description.native_unit_of_measurement
-#        _LOGGER.debug("Atribute %s", attribute.replace('_', ' ').capitalize())
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._attr_name
+        self._attr_icon = entity_description.icon
+        self._attr_device_class = entity_description.device_class
+        self._attr_state_class = entity_description.state_class
+        self._attr_unit_of_measurement = entity_description.native_unit_of_measurement
 
     @property
     def unique_id(self):
         """Return a unique ID."""
-        _LOGGER.debug("Device id = %s", self._id)
-        _LOGGER.debug("Unique id = %s", self._attr_unique_id)
         return self._attr_unique_id
 
     @property
@@ -1641,69 +1732,20 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         return self._device_id
 
     @property
-    def state(self):
-        """Return the state of the sensor."""
-        debug_coordinator(self.coordinator)
-        _LOGGER.debug("Coordinator data = %s", dir(self.coordinator.data))
-        _LOGGER.debug(
-            "Device %s with attribute %s have State = %s",
-            self._id,
-            self._attribute,
-            self._state,
-        )
-        for device in self.coordinator.data:
-            _LOGGER.debug("Device: %s (%s)", getattr(device, "name", device), vars(device))
-        return self._state
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend, if any."""
-        return self._icon
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit_of_measurement of the device."""
-        if self._attribute == "rssi":
-            return SIGNAL_STRENGTH_DECIBELS_MILLIWATT
-        return UnitOfEnergy.KILO_WATT_HOUR
+    def native_value(self):
+        """Return the state of the attribute sensor."""
+        device_obj = self.coordinator.data.get(self._id)
+        if device_obj and self._attribute in device_obj:
+            value = device_obj[self._attribute]
+            return value
+        else:
+            _LOGGER.warning(
+                "AttributeSensor: %s attribute %s not found for device: %s.",
+                self._attr_unique_id, self._attribute, self._id
+            )
+            return None
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        return {
-            "device_name": self._attr_name,
-            ATTR_FRIENDLY_NAME: self._attr_friendly_name,
-            "device_id": self._attr_unique_id,
-        }
-
-#    async def async_update(self):
-#        """Fetch the latest value of the attribute from the main device."""
-#        # Vérifie si l'attribut existe sur l'appareil principal
-#        await self.coordinator.async_request_refresh()
-#        if hasattr(self._id, self._attribute):
-#            self._state = getattr(self._id, self._attribute)
-#        else:
-#            _LOGGER.warning(
-#                f"The Attribute {self._attribute} not found for device : {self._id}."
-#            )
-
-    async def async_update(self):
-        """Fetch the latest value of the attribute from the coordinator data."""
-        _LOGGER.debug("Updating attribute data...")
-#        debug_coordinator(self.coordinator, device_id="613122")
-        await self.coordinator.async_request_refresh()
-        if hasattr(self.coordinator, "_devices") and self.coordinator._devices is not None:
-            device_data = self.coordinator._devices.get(self._id)
-            if device_data and hasattr(device_data, self._attribute):
-                self._state = getattr(device_data, self._attribute)
-            else:
-                self._state = None
-                _LOGGER.warning(
-                    f"The attribute {self._attribute} not found for device: {self._id}."
-                )
-                _LOGGER.warning("Coordinator = %s", self.coordinator._devices)
-                _LOGGER.warning("Device data = %s", device_data)
-        else:
-            self._state = None
-            _LOGGER.warning("Coordinator data is None for device %s", self._id)
-            _LOGGER.warning("Coordinator = %s", self.coordinator._devices)
+        return {"device_id": self._attr_unique_id}
