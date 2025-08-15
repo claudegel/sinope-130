@@ -65,5 +65,63 @@
     }
   },
   "reload_triggered": "Reload triggered successfully.",
-  "log_downloaded": "Log downloaded successfully."
+  "log_downloaded": "Log downloaded successfully.",
+  "entity": {
+    "sensor": {
+      "rssi": {
+        "name": "Signal Strength",
+        "state": {
+          "measurement": "Measurement value"
+        }
+      },
+      "total_kwh_count": {
+        "name": "Total Energy",
+        "state": {
+          "total_increasing": "Total Increasing"
+        }
+      },
+      "monthly_kwh_count": {
+        "name": "Monthly Energy",
+        "state": {
+          "total_increasing": "Total"
+        }
+      },
+      "daily_kwh_count": {
+        "name": "Daily Energy",
+        "state": {
+          "total_increasing": "Total"
+        }
+      },
+      "hourly_kwh_count": {
+        "name": "Hourly Energy",
+        "state": {
+          "total_increasing": "Total"
+        }
+      },
+      "total_flow_count": {
+        "name": "Total Flow",
+        "state": {
+          "total_increasing": "Total Increasing"
+        }
+      },
+      "monthly_flow_count": {
+        "name": "Monthly Flow",
+        "state": {
+          "total_increasing": "Total Increasing"
+        }
+      },
+      "daily_flow_count": {
+        "name": "Daily Flow",
+        "state": {
+          "total_increasing": "Total Increasing"
+        }
+      },
+      "hourly_flow_count": {
+        "name": "Hourly Flow",
+        "state": {
+          "total_increasing": "Total Increasing"
+        }
+      }
+    }
+  }
 }
