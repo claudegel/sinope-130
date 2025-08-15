@@ -22,6 +22,7 @@
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/binary_sensor.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/button.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/coordinator.py",
+            "https://github.com/claudegel/sinope-130/tree/master/custom_components/helpers.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/number.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/select.py",
             "https://github.com/claudegel/sinope-130/tree/master/custom_components/session_manager.py",
