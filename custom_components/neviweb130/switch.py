@@ -66,7 +66,7 @@ from datetime import (
     timezone,
 )
 from homeassistant.helpers.icon import icon_for_battery_level
-from . import SCAN_INTERVAL
+
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE,
@@ -200,8 +200,7 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_config_entry_first_refresh()
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = []
     device_registry = dr.async_get(hass)
@@ -802,6 +801,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 if "errorCode" not in device_data:
                     self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onoff = device_data[ATTR_ONOFF]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error reading device %s: (%s)", self._name, device_data
@@ -882,6 +882,30 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     def rssi(self):
         if self._rssi is not None:
             return self.extra_state_attributes.get("rssi")
+        return None
+
+    @property
+    def total_kwh_count(self):
+        if self._total_kwh_count is not None:
+            return self.extra_state_attributes.get("total_kwh_count")
+        return None
+
+    @property
+    def monthly_kwh_count(self):
+        if self._monthly_kwh_count is not None:
+            return self.extra_state_attributes.get("monthly_kwh_count")
+        return None
+
+    @property
+    def daily_kwh_count(self):
+        if self._daily_kwh_count is not None:
+            return self.extra_state_attributes.get("daily_kwh_count")
+        return None
+
+    @property
+    def hourly_kwh_count(self):
+        if self._hourly_kwh_count is not None:
+            return self.extra_state_attributes.get("hourly_kwh_count")
         return None
 
     @property
@@ -1126,7 +1150,6 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             if self._total_kwh_count == 0:
                 self._total_kwh_count = round(self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count, 3)
                 await async_add_data(self._id, self._total_kwh_count, self._marker)
-                self.async_write_ha_state()
                 self._mark = self._marker
             else:
                 if self._marker != self._mark:
@@ -1134,6 +1157,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                     save_data(self._id, self._total_kwh_count, self._marker)
                     self._mark = self._marker
             _LOGGER.debug("Device dict updated: %s", device_dict)
+            self.async_write_ha_state()
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
@@ -1379,6 +1403,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
@@ -1543,6 +1568,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                     if ATTR_WIFI in device_data:
                         self._wifirssi = device_data[ATTR_WIFI]
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
@@ -1762,6 +1788,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                             + self._sku
                             + ", Leak sensor disconnected."
                         )
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -2017,6 +2044,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                             + self._sku
                             + ", Leak sensor disconnected"
                         )
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -2264,6 +2292,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         self._drstatus_onOff = device_data[ATTR_DRSTATUS][
                             ATTR_ONOFF
                         ]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
@@ -2326,8 +2355,11 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         return data
 
 
-class Neviweb130DeviceAttributeSwitch(SwitchEntity):
+class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], SwitchEntity):
     """Representation of a specific Neviweb130 device attribute switch."""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = True
 
     def __init__(
         self,
@@ -2337,85 +2369,70 @@ class Neviweb130DeviceAttributeSwitch(SwitchEntity):
         attribute: str,
         device_id: str,
         device_type: str,
-        device_info: dict,
-        coordinator,
+        attr_info: dict,
+        coordinator: Neviweb130Coordinator,
+        entity_description: Neviweb130SwitchEntityDescription,
     ):
         """Initialize the switch."""
+        super().__init__(coordinator)
         self.coordinator = coordinator
+        self.entity_description = entity_description
         self._client = client
         self._device = device
+        self._id = str(device.get('id'))
         self._device_name = device_name
-        self._attribute = attribute
+        self._attribute = entity_description.key
         self._device_id = device_id
-        self._state = None
         self._device_type = device_type
-        self._switch_name = f"{self._attribute.replace('_', ' ').capitalize()}"
-        self._attr_unique_id = f"{self._device.get('id')}_{attribute}"
-        self._attr_device_info = device_info
-        self._switch_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
-        self._icon = None
-        self._unit_of_measurement = None
-        self._onoff = None
-        _LOGGER.debug("Atribute %s", attribute.replace('_', ' ').capitalize())
-
-    @property
-    def name(self):
-        """Return the name of the switch."""
-        return self._switch_name
-
-    @property
-    def icon(self):
-        """Return the icon to use in the frontend."""
-        try:
-            return SWITCH_TYPES.get(self._device_type)[0]
-        except TypeError:
-            return None
-
-    @property
-    def device_class(self):
-        """Return the device class of this entity."""
-        return SWITCH_TYPES.get(self._device_type)[1]
+        self._state = None
+        self._attr_unique_id = f"{self._device_id}_{entity_description.key}"
+        self._attr_device_info = attr_info
+        self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
+        self._attr_icon = entity_description.icon
+        self._attr_device_class = entity_description.device_class
+        self._attr_unit_of_measurement = entity_description.native_unit_of_measurement
+        self._attr_onoff = None
 
     @property
     def unique_id(self):
         """Return a unique ID."""
-        _LOGGER.debug("Switch Device id = %s", self._device_id)
-        _LOGGER.debug("Switch Device = %s", self._device)
-        _LOGGER.debug("Switch Unique id = %s", self._attr_unique_id)
         return self._attr_unique_id
 
     @property
+    def device_id(self):
+        """Return device_id."""
+        return self._device_id
+
+    @property
     def is_on(self):
-        """Return the state on/off of the switch"""
-        return self._onoff != MODE_OFF
+        """Return True if the switch is on."""
+        return self._attr_onoff != MODE_OFF
 
     @property
     def state(self):
         """Return the state of the switch."""
-        state = self._device.get(self._attribute)
-        return state
+        device_obj = self.coordinator.data.get(self._id)
+        if device_obj and self._attribute in device_obj:
+            value = device_obj[self._attribute]
+            return value
+        else:
+            _LOGGER.warning(
+                "AttributeSwitch: %s attribute %s not found for device: %s.",
+                self._attr_unique_id, self._attribute, self._id
+            )
+            return None
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the switch."""
-        return {
-            "device_name": self._switch_name,
-            ATTR_FRIENDLY_NAME: self._switch_friendly_name,
-            "device_id": self._attr_unique_id,
-        }
+        return {"device_id": self._attr_unique_id}
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch device on."""
         await self._client.async_set_onoff2(self._id, "on")
-        self._onoff = "on"
+        self._attr_onoff = "on"
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch device off."""
         await self._client.async_set_onoff2(self._id, "off")
-        self._onoff = MODE_OFF
-
-    async def async_update(self):
-        """Fetch new state data for the switch entity."""
-        await self.coordinator.async_request_refresh()
-        self._device = self.coordinator.data
-        self.async_write_ha_state()
+        self._attr_onoff = MODE_OFF
