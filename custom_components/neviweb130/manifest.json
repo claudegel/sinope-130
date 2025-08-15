@@ -7,6 +7,5 @@
   "dependencies": [],
   "requirements": [],
   "iot_class": "cloud_polling",
-  "version": "3.0.9",
-  "homeassistant": "2025.1.1"
+  "version": "3.0.9"
 }
