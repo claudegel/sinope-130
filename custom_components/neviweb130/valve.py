@@ -187,8 +187,7 @@ async def async_setup_entry(
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
-    coordinator = Neviweb130Coordinator(hass, data['neviweb130_client'], scan_interval)
-    await coordinator.async_config_entry_first_refresh()
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = []
     device_registry = dr.async_get(hass)
@@ -636,6 +635,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                         self._batt_status_normal = device_data[
                         ATTR_BATT_STATUS_NORMAL
                     ]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
@@ -727,6 +727,30 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     def rssi(self):
         if self._rssi is not None:
             return self.extra_state_attributes.get("rssi")
+        return None
+
+    @property
+    def total_flow_count(self):
+        if self._total_kwh_count is not None:
+            return self.extra_state_attributes.get("total_flow_count")
+        return None
+
+    @property
+    def monthly_flow_count(self):
+        if self._monthly_kwh_count is not None:
+            return self.extra_state_attributes.get("monthly_flow_count")
+        return None
+
+    @property
+    def daily_flow_count(self):
+        if self._daily_kwh_count is not None:
+            return self.extra_state_attributes.get("daily_flow_count")
+        return None
+
+    @property
+    def hourly_flow_count(self):
+        if self._hourly_kwh_count is not None:
+            return self.extra_state_attributes.get("hourly_flow_count")
         return None
 
     @property
@@ -871,10 +895,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     monthly_kwh_count = 0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                        monthly_kwh_count += device_monthly_stats[k]["period"] / 100
                         k += 1
-                    self._monthly_kwh_count = round(monthly_kwh_count, 3)
-                    self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
+                    self._monthly_kwh_count = round(monthly_kwh_count, 2)
+                    self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 100, 2)
                     dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + '+00:00').astimezone(timezone.utc)
                     _LOGGER.debug("stat month = %s", dt_month.month)
                 else:
@@ -888,10 +912,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     k = 0
                     while k < n:
                         if datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + '+00:00').astimezone(timezone.utc).month == current_month:
-                            daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                            daily_kwh_count += device_daily_stats[k]["period"] / 100
                         k += 1
-                    self._daily_kwh_count = round(daily_kwh_count, 3)
-                    self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+                    self._daily_kwh_count = round(daily_kwh_count, 2)
+                    self._today_kwh = round(device_daily_stats[n - 1]["period"] / 100, 2)
                     dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace('Z', '+00:00'))
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
@@ -905,10 +929,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     k = 0
                     while k < n:
                         if datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace('Z', '+00:00')).day == current_day:
-                            hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                            hourly_kwh_count += device_hourly_stats[k]["period"] / 100
                         k += 1
-                    self._hourly_kwh_count = round(hourly_kwh_count, 3)
-                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
+                    self._hourly_kwh_count = round(hourly_kwh_count, 2)
+                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 100, 2)
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
@@ -918,7 +942,6 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 if self._total_kwh_count == 0:
                     self._total_kwh_count = round(self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count, 3)
                     await async_add_data(self._id, self._total_kwh_count, self._marker)
-                    self.async_write_ha_state()
                     self._mark = self._marker
                 else:
                     if self._marker != self._mark:
@@ -926,6 +949,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                         save_data(self._id, self._total_kwh_count, self._marker)
                         self._mark = self._marker
                 _LOGGER.debug("Device dict updated: %s", device_dict)
+                self.async_write_ha_state()
                 self._energy_stat_time = time.time()
             if self._energy_stat_time == 0:
                 self._energy_stat_time = start
@@ -1296,6 +1320,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         ]
                     if ATTR_AWAY_ACTION in device_data:
                         self._away_action = device_data[ATTR_AWAY_ACTION]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
@@ -1592,6 +1617,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                             )
                     else:
                         self._error_code = 0
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error reading device %s: (%s)",
@@ -1853,6 +1879,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         self._temp_action_low = device_data[ATTR_TEMP_ACTION_LOW]
                     if ATTR_BATT_ACTION_LOW in device_data:
                         self._batt_action_low = device_data[ATTR_BATT_ACTION_LOW]
+                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)", self._name, device_data
