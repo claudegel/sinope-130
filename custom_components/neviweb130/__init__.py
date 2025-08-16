@@ -22,7 +22,8 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
                     ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
                     ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_EARLY_START,
-                    ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
+                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
+                    ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
                     ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
@@ -825,6 +826,17 @@ class Neviweb130Client:
         else:
             self.notify_ha(
                 "Warning: Service set_heatcool_min_delta is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+
+    def set_fan_filter_reminder(self, device_id, month, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_FAN_FILTER_REMAIN: month}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_fan_filter_reminder is only for "
                 + "TH6500WF or TH6250WF thermostats."
             )
 
