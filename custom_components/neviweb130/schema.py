@@ -16,11 +16,12 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
                     ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT_MAX,
                     ATTR_COOL_SETPOINT_MIN, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
-                    ATTR_DRACTIVE, ATTR_EARLY_START, ATTR_FLOOR_AIR_LIMIT,
-                    ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_MODE,
-                    ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_PERIOD,
-                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_MODEL_CONFIG,
-                    ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
+                    ATTR_DRACTIVE, ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN,
+                    ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
+                    ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM_TIMER,
+                    ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
+                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
                     ATTR_GREEN, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
                     ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE,
                     ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD,
@@ -468,6 +469,15 @@ SET_HEATCOOL_SETPOINT_DELTA_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HEATCOOL_SETPOINT_MIN_DELTA): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=5)
+        ),
+    }
+)
+
+SET_FAN_FILTER_REMINDER_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_FILTER_REMAIN): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=12)
         ),
     }
 )
