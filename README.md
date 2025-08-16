@@ -257,6 +257,7 @@ Automations require services to be able to send commande. Ex. light.turn_on. For
 - neviseb130.set_schedule_mode, to set the schedule mode, manual or auto for TH6500WF or TH6250WF.
 - neviweb130.set_flow_alarm_disable_timer, to disable abnormal fow alarm for a period from 1 sec. to 24 hrs.
 - neviweb130.set_heatcool_setpoint_delta, to set a temperature delta between heating setpoint and cooling setpoint from 1 to 5oC in auto mode for TH6xxxWF.
+- neviweb130,set_fan_filter_reminder, to set the delay between each fan filter cleaning from 1 to 12 month, for TH6xxxWF.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controler registered with Éco-Sinopé program, it is now possible to catch when Neviweb send the signal for pre-heating start period for thermostats or turn_off signal for the load controler. Seven attributes have been added for thermostats and three for load controler to know that peak period is comming and how it is managed:
