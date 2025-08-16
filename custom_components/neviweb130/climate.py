@@ -84,7 +84,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_DRACCESORYCONF, ATTR_DRACTIVE, ATTR_DRAIR_CURT_CONF,
                     ATTR_DRAUXCONF, ATTR_DRFANCONF, ATTR_DRSETPOINT,
                     ATTR_DRSTATUS, ATTR_DUAL_STATUS, ATTR_EARLY_START,
-                    ATTR_FAN_CAP, ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
+                    ATTR_FAN_CAP, ATTR_FAN_FILTER_LIFE,
+                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
                     ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ,
                     ATTR_FAN_SWING_CAP_VERT, ATTR_FAN_SWING_HORIZ,
                     ATTR_FAN_SWING_VERT, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX,
@@ -124,7 +125,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_COOL_SETPOINT_MAX,
                     SERVICE_SET_COOL_SETPOINT_MIN, SERVICE_SET_CYCLE_OUTPUT,
                     SERVICE_SET_DISPLAY_CONFIG, SERVICE_SET_EARLY_START,
-                    SERVICE_SET_EM_HEAT, SERVICE_SET_FLOOR_AIR_LIMIT,
+                    SERVICE_SET_EM_HEAT, SERVICE_SET_FAN_FILTER_REMINDER,
+                    SERVICE_SET_FLOOR_AIR_LIMIT,
                     SERVICE_SET_FLOOR_LIMIT_HIGH, SERVICE_SET_FLOOR_LIMIT_LOW,
                     SERVICE_SET_HC_SECOND_DISPLAY,
                     SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
@@ -148,7 +150,8 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_COOL_SETPOINT_MAX_SCHEMA,
                      SET_COOL_SETPOINT_MIN_SCHEMA, SET_CYCLE_OUTPUT_SCHEMA,
                      SET_DISPLAY_CONFIG_SCHEMA, SET_EARLY_START_SCHEMA,
-                     SET_EM_HEAT_SCHEMA, SET_FLOOR_AIR_LIMIT_SCHEMA,
+                     SET_EM_HEAT_SCHEMA, SET_FAN_FILTER_REMINDER_SCHEMA,
+                     SET_FLOOR_AIR_LIMIT_SCHEMA,
                      SET_FLOOR_LIMIT_HIGH_SCHEMA, SET_FLOOR_LIMIT_LOW_SCHEMA,
                      SET_HC_SECOND_DISPLAY_SCHEMA,
                      SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
@@ -1283,6 +1286,20 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_fan_filter_reminder_service(service):
+        """Set TH6500WF, TH6250WF fan filter reminder period from 1 to 12 month."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "month": service.data[ATTR_FAN_FILTER_REMAIN],
+                }
+                thermostat.set_fan_filter_reminder(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1533,6 +1550,13 @@ async def async_setup_platform(
         SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
         set_heatcool_setpoint_delta_service,
         schema=SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FAN_FILTER_REMINDER,
+        set_fan_filter_reminder_service,
+        schema=SET_FAN_FILTER_REMINDER_SCHEMA,
     )
 
 
@@ -5425,6 +5449,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._cool_min_time_off = None
         self._dual_status = None
         self._fan_filter_remain = None
+        self._fan_filter_life = None
         self._fan_speed = None
         self._balance_pt = -30
         self._occupancy = None
@@ -5511,6 +5536,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_ROOM_SETPOINT_AWAY,
                 ATTR_COOL_SETPOINT_AWAY,
                 ATTR_FAN_FILTER_REMAIN,
+                ATTR_FAN_FILTER_LIFE,
                 ATTR_AUX_HEAT_TIMEON,
                 ATTR_AUX_HEAT_START_DELAY,
                 ATTR_OUTPUT_CONNECT_STATE,
@@ -5631,6 +5657,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._rssi = device_data[ATTR_RSSI]
                     self._fan_speed = device_data[ATTR_FAN_SPEED]
                     self._fan_filter_remain = device_data[ATTR_FAN_FILTER_REMAIN]
+                    if ATTR_FAN_FILTER_LIFE in device_data:
+                        self._fan_filter_life = device_data[ATTR_FAN_FILTER_LIFE]
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY][
                             "status"
@@ -5768,6 +5796,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_heatcool_delta(entity, level, self._is_HC)
         self._heatcool_setpoint_delta = level
 
+    def set_fan_filter_reminder(self, value):
+        """Set fan filter reminder period from 1 to 12 month for TH6500WF and TH6250WF."""
+        entity = value["id"]
+        month = value["month"]*24*30
+        self._client.set_fan_filter_reminder(entity, month, self._is_HC)
+        self._fan_filter_remain = month
+
     def set_temperature(self, **kwargs):
         """Set new target temperature for cooling or heating."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
@@ -5808,6 +5843,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "heat_level_source_type": self._heat_level_source_type,
                 "aux_heat_source_type": self._aux_heat_source_type,
                 "fan_filter_remain": self._fan_filter_remain,
+                "fan_filter_life": self._fan_filter_life,
                 "cycle": self._cycle,
                 "aux_cycle": self._aux_cycle,
                 "cool_cycle_length": self._cool_cycle_length,
