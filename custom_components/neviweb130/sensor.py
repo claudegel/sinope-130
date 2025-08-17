@@ -573,7 +573,6 @@ class Neviweb130Sensor(Entity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._cur_temp = None
-        self._leak_status = None
         self._battery_voltage = None
         self._battery_status = None
         self._temp_status = None
@@ -980,7 +979,6 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._cur_temp = None
-        self._leak_status = None
         self._battery_voltage = None
         self._battery_status = None
         self._temp_status = None
