@@ -34,7 +34,7 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT, ATTR_SETPOINT_MODE,
                     ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT,
                     ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_OFFSET_HEAT,
-                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
+                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_, ATTR_2,
                     ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
                     ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE,
                     CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
@@ -95,7 +95,8 @@ DELAY = {
 TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
-POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
+TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
+POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400}
 FAN_SPEED = {"high", "medium", "low", "auto", "off"}
 WIFI_FAN_SPEED = {"auto", "on", "off"}
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
@@ -504,7 +505,7 @@ SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
 SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
@@ -580,14 +581,14 @@ SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
 SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
 SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER2): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+        vol.Required(ATTR_TIMER2): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
