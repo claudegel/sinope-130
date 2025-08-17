@@ -49,11 +49,12 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
                     ATTR_SETPOINT_MODE, ATTR_SIGNATURE, ATTR_SOUND_CONF,
                     ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT, ATTR_TANK_SIZE,
-                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME,
-                    ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
-                    ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
-                    CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL, STARTUP_MESSAGE)
+                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_OFFSET_HEAT, 
+                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
+                    ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
+                    CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
+                    CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
+                    MODE_MANUAL, STARTUP_MESSAGE)
 from .schema import CONFIG_SCHEMA as config_schema
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -837,6 +838,17 @@ class Neviweb130Client:
         else:
             self.notify_ha(
                 "Warning: Service set_fan_filter_reminder is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+
+    def set_temperature_offset(self, device_id, temp, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_TEMP_OFFSET_HEAT: temp}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_temperature_offset is only for "
                 + "TH6500WF or TH6250WF thermostats."
             )
 
