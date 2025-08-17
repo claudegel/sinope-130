@@ -138,7 +138,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
                     SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
                     SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
                      SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -163,7 +163,8 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
                      SET_SETPOINT_MAX_SCHEMA, SET_SETPOINT_MIN_SCHEMA,
                      SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
-                     SET_TIME_FORMAT_SCHEMA, VERSION, WIFI_FAN_SPEED)
+                     SET_TEMPERATURE_OFFSET_SCHEMA, SET_TIME_FORMAT_SCHEMA,
+                     VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1300,6 +1301,20 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_temperature_offset_service(service):
+        """Set TH6500WF, TH6250WF tempersture sensor offset from -2 to 2oC with a 0.5 oC increment."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "temp": service.data[ATTR_TEMP_OFFSET_HEAT],
+                }
+                thermostat.set_temperature_offset(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1557,6 +1572,13 @@ async def async_setup_platform(
         SERVICE_SET_FAN_FILTER_REMINDER,
         set_fan_filter_reminder_service,
         schema=SET_FAN_FILTER_REMINDER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_TEMPERATURE_FORMAT,
+        set_temperature_offset_service,
+        schema=SET_TEMPERATURE_OFFSET_SCHEMA,
     )
 
 
@@ -5814,6 +5836,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
 
+    def set_temperature_offset(self, value):
+        """Set thermostat sensor offset from -2 to 2oC with a 0.5 oC increment."""
+        entity = value["id"]
+        temperature = value["temp"]
+        self._client.set_temperature_offset(entity, temperature, self._is_HC)
+        self._temp_offset_heat = temperature
+
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
@@ -5844,6 +5873,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "aux_heat_source_type": self._aux_heat_source_type,
                 "fan_filter_remain": self._fan_filter_remain,
                 "fan_filter_life": self._fan_filter_life,
+                "sensor_temp_offset": self._temp_offset_heat,
                 "cycle": self._cycle,
                 "aux_cycle": self._aux_cycle,
                 "cool_cycle_length": self._cool_cycle_length,
