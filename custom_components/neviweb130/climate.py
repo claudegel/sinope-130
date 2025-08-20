@@ -2044,15 +2044,15 @@ class Neviweb130Thermostat(ClimateEntity):
     def hvac_action(self):
         """Return current HVAC action."""
         if self._is_HC:
-            if self._operation_mode == MODE_AUTO_BYPASS:
+            if self._heat_cool == MODE_AUTO_BYPASS:
                 submode = "(" + MODE_AUTO_BYPASS + ")"
-            elif self._operation_mode == HVACMode.HEAT_COOL:
+            elif self._heat_cool == HVACMode.HEAT_COOL:
                 submode = "(" + HVACMode.HEAT_COOL + ")"
-            elif self._operation_mode == HVACMode.HEAT:
+            elif self._heat_cool == HVACMode.HEAT:
                 submode = "(" + HVACMode.HEAT + ")"
-            elif self._operation_mode == HVACMode.COOL:
+            elif self._heat_cool == HVACMode.COOL:
                 submode = "(" + HVACMode.COOL + ")"
-            elif self._operation_mode == MODE_EM_HEAT:
+            elif self._heat_cool == MODE_EM_HEAT:
                 submode = "(" + MODE_EM_HEAT + ")"
             else:
                 submode = "(" + HVACMode.OFF + ")"
@@ -2063,7 +2063,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     return HVACAction.IDLE + submode
                 else:
                     return HVACAction.COOLING + submode
-            elif self._heat_cool == HVACMode.HEAT:
+            elif self._heat_cool == HVACMode.HEAT or self._heat_cool == HVACMode.HEAT_COOL:
                 if self._heat_level == 0:
                     return HVACAction.IDLE + submode
                 else:
