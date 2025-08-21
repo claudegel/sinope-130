@@ -68,33 +68,98 @@
   "reload_triggered": "La recharge a été faite.",
   "log_downloaded": "le téléchargement des diagnostiques a été fait.",
   "entity": {
+    "binary_sensor": {
+      "battery_status": {
+        "name": "Statut Batterie"
+      },
+      "leak_status": {
+        "name": "Statut Fuite"
+      },
+      "temp_alert": {
+        "name": "Alerte Temperature"
+      }
+    },
+    "button": {
+      "reset_filter": {
+        "name": "Réinitialiser Filtre"
+      }
+    },
+    "number": {
+      "brightness": {
+        "name": "Intensité"
+      },
+      "intensity_min": {
+        "name": "Intensité Minimum"
+      },
+      "led_off_intensity": {
+        "name": "Intensité DEL Off"
+      },
+      "led_on_intensity": {
+        "name": "Intensité DEL On"
+      },
+      "max_cool_temp": {
+        "name": "Consigne Clim. Max"
+      },
+      "max_temp": {
+        "name": "Consigne Maximum"
+      },
+      "min_cool_temp": {
+        "name": "Consigne Clim. Min"
+      },
+      "min_temp": {
+        "name": "Consigne Minimum"
+      },
+      "timer": {
+        "name": "Minuterie"
+      },
+      "timer2": {
+        "name": "Minuterie 2"
+      }
+    },
+    "select": {
+      "backlight": {
+        "name": "Rétroéclairage"
+      },
+      "keypad_lock": {
+        "name": "Verrouillage du clavier"
+      },
+      "led_off_color": {
+        "name": "Couleur DEL Off"
+      },
+      "led_on_color": {
+        "name": "Couleur DEL On"
+      }
+    },
     "sensor": {
-      "rssi": {
-        "name": "Force du signal"
-      },
-      "total_kwh_count": {
-        "name": "Énergie totale"
-      },
-      "monthly_kwh_count": {
-        "name": "Énergie Mensuelle"
+      "daily_flow_count": {
+        "name": "Débit Quotidien"
       },
       "daily_kwh_count": {
         "name": "Énergie Quotidienne"
       },
+      "hourly_flow_count": {
+        "name": "Débit Horaire"
+      },
       "hourly_kwh_count": {
         "name": "Énergie Horaire"
-      },
-      "total_flow_count": {
-        "name": "Débit Total"
       },
       "monthly_flow_count": {
         "name": "Débit Mensuel"
       },
-      "daily_flow_count": {
-        "name": "Débit Quotidien"
+      "monthly_kwh_count": {
+        "name": "Énergie Mensuelle"
       },
-      "hourly_flow_count": {
-        "name": "Débit Horaire"
+      "pi_heating_demand": {
+        "name": "Intensite Chauffage"
+      },
+      "rssi": {
+        "name": "Force du signal"
+      },
+      "total_flow_count": {
+        "name": "Débit Total"
+      },
+      "total_kwh_count": {
+        "name": "Énergie totale"
       }
     }
   }
