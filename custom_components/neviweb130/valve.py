@@ -543,6 +543,8 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._onoff = None
         self._reports_position = False
@@ -575,6 +577,9 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -726,31 +731,55 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     @property
     def rssi(self):
         if self._rssi is not None:
-            return self.extra_state_attributes.get("rssi")
+            return self._rssi
         return None
 
     @property
     def total_flow_count(self):
         if self._total_kwh_count is not None:
-            return self.extra_state_attributes.get("total_flow_count")
+            return self._total_kwh_count
         return None
 
     @property
     def monthly_flow_count(self):
         if self._monthly_kwh_count is not None:
-            return self.extra_state_attributes.get("monthly_flow_count")
+            return self._monthly_kwh_count
         return None
 
     @property
     def daily_flow_count(self):
         if self._daily_kwh_count is not None:
-            return self.extra_state_attributes.get("daily_flow_count")
+            return self._daily_kwh_count
         return None
 
     @property
     def hourly_flow_count(self):
         if self._hourly_kwh_count is not None:
-            return self.extra_state_attributes.get("hourly_flow_count")
+            return self._hourly_kwh_count
+        return None
+
+    @property
+    def flowmeter_timer(self):
+        if self._flowmeter_timer is not None:
+            return self._flowmeter_timer
+        return None
+
+    @property
+    def temp_alert(self):
+        if self._temp_alert is not None:
+            return self._temp_alert
+        return None
+
+    @property
+    def water_leak_status(self):
+        if self._water_leak_status is not None:
+            return self._water_leak_status
+        return None
+
+    @property
+    def battery_status(self):
+        if self._battery_status is not None:
+            return self._battery_status
         return None
 
     @property
@@ -1107,6 +1136,8 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
@@ -1170,6 +1201,9 @@ class Neviweb130WifiValve(Neviweb130Valve):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1429,6 +1463,8 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
@@ -1480,6 +1516,9 @@ class Neviweb130MeshValve(Neviweb130Valve):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1707,6 +1746,8 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
@@ -1762,6 +1803,9 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
