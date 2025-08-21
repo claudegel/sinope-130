@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import logging
 
-#import voluptuous as vol
 import time
 
 from collections.abc import Callable
@@ -30,7 +29,7 @@ import custom_components.neviweb130 as neviweb130
 
 from .helpers import debug_coordinator
 from .schema import VERSION
-#from . import SCAN_INTERVAL
+
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorDeviceClass,
@@ -75,28 +74,29 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 
 from homeassistant.helpers.event import track_time_interval, async_track_state_change
-#from homeassistant.helpers.entity import Entity
+
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import StateType
-from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT, ATTR_BATT_INFO,
-                    ATTR_BATT_PERCENT_NORMAL, ATTR_BATTERY_STATUS,
-                    ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_TYPE,
-                    ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
-                    ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
+from .const import (ALL_MODEL, ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
+                    ATTR_BATT_INFO, ATTR_BATT_PERCENT_NORMAL,
+                    ATTR_BATTERY_STATUS, ATTR_BATT_STATUS_NORMAL,
+                    ATTR_BATTERY_TYPE, ATTR_BATTERY_VOLTAGE,
+                    ATTR_CONF_CLOSURE, ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_INTENSITY,
                     ATTR_LEAK_ALERT, ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,
                     ATTR_ROOM_TEMP_ALARM, ATTR_ROOM_TEMPERATURE,
                     ATTR_SAMPLING, ATTR_STATUS, ATTR_TANK_HEIGHT,
                     ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_TEMP_ALERT,
-                    ATTR_RSSI, ATTR_WATER_LEAK_STATUS, ATTR_WIFI, DOMAIN,
-                    MODE_OFF, SIGNAL_EVENTS_CHANGED, STATE_WATER_LEAK,
+                    ATTR_RSSI, ATTR_WATER_LEAK_STATUS, ATTR_WIFI,
+                    CLIMATE_MODEL, DOMAIN, LIGHT_MODEL, MODE_OFF,
                     SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
                     SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
                     SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
                     SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_REFUEL_ALERT,
                     SERVICE_SET_SENSOR_ALERT, SERVICE_SET_TANK_HEIGHT,
-                    SERVICE_SET_TANK_TYPE)
+                    SERVICE_SET_TANK_TYPE, SIGNAL_EVENTS_CHANGED,
+                    STATE_WATER_LEAK, SWITCH_MODEL, VALVE_MODEL)
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
                      SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
@@ -138,13 +138,6 @@ SENSOR_TYPE = {
 }
 
 # Define attributes to be monitored for each device type
-from .attributes import (
-    ALL_MODEL,
-    CLIMATE_MODEL,
-    LIGHT_MODEL,
-    SWITCH_MODEL,
-    VALVE_MODEL,
-)
 
 
 @dataclass(frozen=True)
@@ -159,6 +152,7 @@ class Neviweb130SensorEntityDescription(SensorEntityDescription):
     native_unit_of_measurement: Optional[str] = None
 
 SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
+    # Common attributes
     Neviweb130SensorEntityDescription(
         key="rssi",
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
@@ -209,6 +203,28 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         icon="mdi:lightning-bolt",
     ),
+    # Climate attributes
+    Neviweb130SensorEntityDescription(
+        key="pi_heating_demand",
+        device_class=SensorDeviceClass.POWER_FACTOR,
+        state_class="measurement",
+        translation_key="pi_heating_demand",
+        value_fn=lambda data: data["pi_heating_demand"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=PERCENTAGE,
+        icon="mdi:thermometer",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="current_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class="measurement",
+        translation_key="current_temperature",
+        value_fn=lambda data: data["current_temperature"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        icon="mdi:thermometer",
+    ),
+    # Valve attributes
     Neviweb130SensorEntityDescription(
         key="total_flow_count",
         device_class=SensorDeviceClass.ENERGY,
@@ -249,21 +265,11 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfVolume.LITERS,
         icon="mdi:lightning-bolt",
     ),
-    Neviweb130SensorEntityDescription(
-        key="current_temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class="measurement",
-        translation_key="current_temperature",
-        value_fn=lambda data: data["current_temperature"],
-        signal=SIGNAL_EVENTS_CHANGED,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        icon="mdi:thermometer",
-    ),
 )
 
 def get_attributes_for_model(model):
     if model in CLIMATE_MODEL:
-        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count", "current_temperature"]
+        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count", "current_temperature", "pi_heating_demand"]
     elif model in LIGHT_MODEL:
         return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count"]
     elif model in SWITCH_MODEL:
@@ -707,9 +713,10 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._cur_temp = None
-        self._leak_status = None
         self._battery_voltage = None
         self._battery_status = None
         self._temp_status = None
@@ -754,6 +761,9 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1148,9 +1158,10 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._cur_temp = None
-        self._leak_status = None
         self._battery_voltage = None
         self._battery_status = None
         self._temp_status = None
@@ -1188,6 +1199,9 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1329,6 +1343,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._activ = True
         self._snooze = 0
@@ -1358,6 +1374,9 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1604,6 +1623,8 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._activ = True
         self._snooze = 0
@@ -1617,6 +1638,9 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1715,11 +1739,12 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         self._native_value = None
         self._attr_unique_id = f"{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
-        self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
+        self._attr_friendly_name = f"{self._device.get('friendly_name')} {attribute.replace('_', ' ').capitalize()}"
         self._attr_icon = entity_description.icon
         self._attr_device_class = entity_description.device_class
         self._attr_state_class = entity_description.state_class
         self._attr_unit_of_measurement = entity_description.native_unit_of_measurement
+        self._attr_entity_category = entity_description.entity_category
 
     @property
     def unique_id(self):
