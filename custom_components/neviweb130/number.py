@@ -14,8 +14,17 @@ from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
 )
-from homeassistant.components.number.const import NumberDeviceClass
-from homeassistant.const import ATTR_FRIENDLY_NAME, PERCENTAGE
+from homeassistant.components.number.const import (
+    NumberDeviceClass,
+    NumberMode,
+)
+from homeassistant.const import (
+    ATTR_FRIENDLY_NAME,
+    EntityCategory,
+    PERCENTAGE,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
@@ -26,19 +35,18 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    DOMAIN,
     ATTR_LED_ON_INTENSITY,
     ATTR_LED_OFF_INTENSITY,
     ATTR_INTENSITY,
     ATTR_INTENSITY_MIN,
-)
-from .attributes import (
     ALL_MODEL,
     CLIMATE_MODEL,
+    DOMAIN,
     LIGHT_MODEL,
     SWITCH_MODEL,
     VALVE_MODEL,
 )
+from .coordinator import Neviweb130Client, Neviweb130Coordinator
 
 DEFAULT_NAME = 'neviweb130 number'
 DEFAULT_NAME_2 = 'neviweb130 number 2'
@@ -53,30 +61,79 @@ class Neviweb130NumberEntityDescription(NumberEntityDescription):
     data_key: Optional[str] = None
 
 NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
+    # Climate attributes
     Neviweb130NumberEntityDescription(
-        key="intensity",
+        key="min_temp",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        mode=NumberMode.AUTO,
+        native_min_value=5,
+        native_max_value=26,
+        native_step=1,
+        translation_key="min_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="max_temp",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        mode=NumberMode.AUTO,
+        native_min_value=8,
+        native_max_value=36,
+        native_step=1,
+        translation_key="max_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="min_cool_temp",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        mode=NumberMode.AUTO,
+        native_min_value=16,
+        native_max_value=30,
+        native_step=1,
+        translation_key="min_cool_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="max_cool_temp",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        mode=NumberMode.AUTO,
+        native_min_value=16,
+        native_max_value=30,
+        native_step=1,
+        translation_key="max_cool_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    # Light attributes
+    Neviweb130NumberEntityDescription(
+        key="brightness",
         icon="mdi:light_bulb",
-        mode: NumberMode.SLIDER
+        device_class=NumberDeviceClass.POWER_FACTOR,
+        mode=NumberMode.SLIDER,
         native_min_value=0,
         native_max_value=100,
         native_step=1,
-        translation_key="intensity",
+        translation_key="brightness",
         native_unit_of_measurement=PERCENTAGE,
     ),
     Neviweb130NumberEntityDescription(
-        key="intensityMin",
+        key="intensity_min",
         icon="mdi:lightbulb-on-10",
-        mode: NumberMode.BOX
+        device_class=NumberDeviceClass.POWER_FACTOR,
+        mode=NumberMode.BOX,
         native_min_value=10,
         native_max_value=3000,
         native_step=1,
-        translation_key="intensityMin",
+        translation_key="intensity_min",
         native_unit_of_measurement=PERCENTAGE,
     ),
     Neviweb130NumberEntityDescription(
-        key="statusLedOnIntensity",
+        key="led_on_intensity",
         icon="mdi:lightbulb-on",
-        mode: NumberMode.AUTO
+        device_class=NumberDeviceClass.POWER_FACTOR,
+        mode=NumberMode.AUTO,
         native_min_value=10,
         native_max_value=100,
         native_step=1,
@@ -84,26 +141,84 @@ NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
         native_unit_of_measurement=PERCENTAGE,
     ),
     Neviweb130NumberEntityDescription(
-        key="statusLedOffIntensity",
+        key="led_off_intensity",
         icon="mdi:lightbulb-off",
-        mode: NumberMode.AUTO
+        device_class=NumberDeviceClass.POWER_FACTOR,
+        mode=NumberMode.AUTO,
         native_min_value=10,
         native_max_value=100,
         native_step=1,
         translation_key="led_off_intensity",
         native_unit_of_measurement=PERCENTAGE,
     ),
+    Neviweb130NumberEntityDescription(
+        key="light_timer",
+        icon="mdi:timer-edit-outline",
+        device_class=NumberDeviceClass.DURATION,
+        mode=NumberMode.AUTO,
+        native_min_value=0,
+        native_max_value=10800,
+        native_step=10,
+        translation_key="timer",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+    ),
+    # Switch attributes
+    Neviweb130NumberEntityDescription(
+        key="timer",
+        icon="mdi:timer-edit-outline",
+        device_class=NumberDeviceClass.DURATION,
+        mode=NumberMode.AUTO,
+        native_min_value=0,
+        native_max_value=10800,
+        native_step=10,
+        translation_key="timer",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="timer2",
+        icon="mdi:timer-edit-outline",
+        device_class=NumberDeviceClass.DURATION,
+        mode=NumberMode.AUTO,
+        native_min_value=0,
+        native_max_value=10800,
+        native_step=10,
+        translation_key="timer 2",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="power_timer",
+        icon="mdi:timer-edit-outline",
+        device_class=NumberDeviceClass.DURATION,
+        mode=NumberMode.AUTO,
+        native_min_value=0,
+        native_max_value=86400,
+        native_step=10,
+        translation_key="timer",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+    ),
+    # Valve attributes
+    Neviweb130NumberEntityDescription(
+        key="flometer_timer",
+        icon="mdi:timer-edit-outline",
+        device_class=NumberDeviceClass.DURATION,
+        mode=NumberMode.AUTO,
+        native_min_value=0,
+        native_max_value=86400,
+        native_step=10,
+        translation_key="timer",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+    ),
 )
 
 def get_attributes_for_model(model):
     if model in CLIMATE_MODEL:
-        return ["roomSetpointMin", "roomSetpointMax", "heatCoolSetpointMinDelta"]
+        return ["min_temp", "max_temp", "min_cool_temp", "max_cool_temp"]
     elif model in LIGHT_MODEL:
-        return ["intensity", "intensityMin", "statusLedOnIntensity", "statusLedOffIntensity"]
+        return ["brightness", "intensity_min", "led_on_intensity", "led_off_intensity", "light_timer"]
     elif model in SWITCH_MODEL:
-        return ["powerTimer"]
+        return ["timer", "timer2", "power_timer"]
     elif model in VALVE_MODEL:
-        return ["flowMeterAlarmDisableTimer"]
+        return ["flowmeter_timer"]
     return []
 
 def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
@@ -198,10 +313,19 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_entity_category = EntityCategory.CONFIG
 
     _ATTRIBUTE_METHODS = {
-        ATTR_LED_ON_INTENSITY: lambda self, value: self._client.async_set_led_on_intensity(self._id, value),
-        ATTR_LED_OFF_INTENSITY: lambda self, value: self._client.async_set_led_off_intensity(self._id, value),
-        ATTR_INTENSITY_MIN: lambda self, value: self._client.async_set_light_min_intensity(self._id, value),
-        ATTR_INTENSITY: lambda self, value: self._client.async_set_brightness(self._id, value),
+        "led_on_intensity": lambda self, value: self._client.async_set_led_on_intensity(self._id, value),
+        "led_off_intensity": lambda self, value: self._client.async_set_led_off_intensity(self._id, value),
+        "intensity_min": lambda self, value: self._client.async_set_light_min_intensity(self._id, value),
+        "brightness": lambda self, value: self._client.async_set_brightness(self._id, value),
+        "min_temp": lambda self, value: self._client.async_set_setpoint_min(self._id, value),
+        "max_temp": lambda self, value: self._client.async_set_setpoint_max(self._id, value),
+        "min_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_min(self._id, value),
+        "max_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_max(self._id, value),
+        "timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "timer2": lambda self, value: self._client.async_set_timer2(self._id, value),
+        "light_timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "power_timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "flowmeter_timer": lambda self, value: self._client.async_set_flow_alarm_disable_timer(self._id, value),
         # ...
     }
 
@@ -260,9 +384,20 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
     async def async_set_value(self, value: float) -> None:
         """Change the selected number value."""
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
+
         if handler:
-            await handler(self, value)
+            success = await handler(self, value)
+            if success:
+                self._native_value = value
+                self._device[self._attribute] = value
+                self.async_write_ha_state()
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning(
+                    "Failed to update attribute '%s' with value '%s'",
+                    self._attribute,
+                    value
+                )
         else:
-            _LOGGER.warning("No handler for number attribute: %s", self._attribute)
-        self._device[self._attribute] = value
-        self.async_write_ha_state()
+            _LOGGER.warning(
+                "No handler for number attribute: %s", self._attribute)
