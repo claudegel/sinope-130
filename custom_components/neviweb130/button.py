@@ -16,21 +16,25 @@ from homeassistant.components.button import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ATTR_FRIENDLY_NAME,
+    EntityCategory,
+)
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .attributes import (
+from .const import (
     ALL_MODEL,
     CLIMATE_MODEL,
+    DOMAIN,
     LIGHT_MODEL,
     SWITCH_MODEL,
     VALVE_MODEL,
 )
-from .const import DOMAIN
+from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .helpers import debug_coordinator
 
 DEFAULT_NAME = 'neviweb130 button'
@@ -46,6 +50,7 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
     data_key: Optional[str] = None
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
+    # Climate attributes
     Neviweb130ButtonEntityDescription(
         key="reset_filter", #nom du bouton
         device_class=ButtonDeviceClass.UPDATE,
@@ -54,25 +59,17 @@ BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
         entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
         data_key="filter_clean", #attribute name
     ),
-    Neviweb130ButtonEntityDescription(
-        key="identify", #nom du bouton
-        device_class=ButtonDeviceClass.IDENTIFY,
-        icon="mdi:crosshairs-question",
-        translation_key="identify", #pour traduction
-        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-        data_key="Identify", #attribute name
-    ),
 )
 
 def get_attributes_for_model(model):
     if model in CLIMATE_MODEL:
-        return ["identify", "reset_filter"]
+        return ["reset_filter"]
     elif model in LIGHT_MODEL:
-        return ["identify"]
+        return []
     elif model in SWITCH_MODEL:
-        return ["identify"]
+        return []
     elif model in VALVE_MODEL:
-        return ["identify"]
+        return []
     return []
 
 def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
@@ -164,7 +161,6 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
 
     _ATTRIBUTE_METHODS = {
         "reset_filter": lambda self: self._client.async_reset_filter(self._id),
-        "identify": lambda self: self._client.async_identify(self._id),
         # ...
     }
 
@@ -206,12 +202,17 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
         return {"device_id": self._attr_unique_id}
 
     async def async_press(self) -> None:
-        """Handle the button press."""
-        # Implement the button press action here
+        """Handle the button press and confirm success."""
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
         if handler:
-            await handler(self)
-            _LOGGER.info(f"Button {self._attr_translation_key} pressed.")
+            success = await handler(self)
+            if success:
+                _LOGGER.info(f"Button {self._attr_translation_key} pressed.")
+                self.async_write_ha_state()
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning(
+                    f"Button press failed for attribute: {self._attr_translation_key}")
         else:
-            _LOGGER.warning("No handler for button attribute: %s", self._attribute)
-        self.async_write_ha_state()
+            _LOGGER.warning(
+                "No handler for button attribute: %s", self._attribute)
