@@ -22,16 +22,21 @@ from __future__ import annotations
 
 import logging
 
-#import voluptuous as vol
 import time
+
+from dataclasses import dataclass
+from datetime import timedelta, datetime
+from typing import Callable, Any, Optional
 
 import custom_components.neviweb130 as neviweb130
 
+from .helpers import debug_coordinator
 from .schema import VERSION
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,
+    SwitchEntityDescription,
 )
 
 from homeassistant.const import (
@@ -42,6 +47,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -67,7 +73,7 @@ from datetime import (
 )
 from homeassistant.helpers.icon import icon_for_battery_level
 
-from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
+from .const import (ALL_MODEL, ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
                     ATTR_BATTERY_STATUS, ATTR_BATTERY_VOLTAGE,
                     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
@@ -91,8 +97,9 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     ATTR_WATER_TEMP_PROTEC, ATTR_WATER_TEMP_TIME,
                     ATTR_WATER_TEMPERATURE, ATTR_WATT_TIME_ON, ATTR_WATTAGE,
                     ATTR_WATTAGE_INSTANT, ATTR_WIFI, ATTR_WIFI_WATT_NOW,
-                    ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO, MODE_MANUAL,
-                    MODE_OFF, SERVICE_SET_ACTIVATION, SERVICE_SET_CONTROL_ONOFF,
+                    ATTR_WIFI_WATTAGE, CLIMATE_MODEL, DOMAIN, MODE_AUTO,
+                    MODE_MANUAL, MODE_OFF, LIGHT_MODEL,
+                    SERVICE_SET_ACTIVATION, SERVICE_SET_CONTROL_ONOFF,
                     SERVICE_SET_CONTROLLED_DEVICE,
                     SERVICE_SET_INPUT_OUTPUT_NAMES,
                     SERVICE_SET_LOAD_DR_OPTIONS,
@@ -100,7 +107,8 @@ from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_INFO,
                     SERVICE_SET_ON_OFF_INPUT_DELAY, SERVICE_SET_REMAINING_TIME,
                     SERVICE_SET_SWITCH_KEYPAD_LOCK, SERVICE_SET_SWITCH_TIMER,
                     SERVICE_SET_SWITCH_TIMER_2, SERVICE_SET_TANK_SIZE,
-                    STATE_KEYPAD_STATUS)
+                    SIGNAL_EVENTS_CHANGED, STATE_KEYPAD_STATUS, SWITCH_MODEL,
+                    VALVE_MODEL)
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import device_dict, save_devices
 from .schema import (SET_ACTIVATION_SCHEMA, SET_CONTROL_ONOFF_SCHEMA,
@@ -154,11 +162,39 @@ HA_TO_NEVIWEB_CONTROLLED = {
     "Other": "other"
 }
 
-SWITCH_TYPES = {
+SWITCH_TYPE = {
     "power": ["mdi:switch", SwitchDeviceClass.SWITCH],
     "outlet": ["mdi:power-plug", SwitchDeviceClass.OUTLET],
     "control": ["mdi:alarm", SwitchDeviceClass.SWITCH],
 }
+
+
+@dataclass(frozen=True)
+class Neviweb130SwitchEntityDescription(SwitchEntityDescription):
+    """Describes an attribute sensor entity."""
+
+    value_fn: Optional[Callable[[Any], Any]] = None
+    signal: str = ""
+    icon: Optional[str] = None
+    device_class: Optional[str] = None
+    name: Optional[str] = None
+
+SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
+    Neviweb130SwitchEntityDescription(
+        key="onOff2",
+        name="Switch 2",
+        device_class=SwitchDeviceClass.SWITCH,
+        translation_key="onOff2",
+        value_fn=lambda data: data["onOff2"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        icon="mdi:alarm",
+    ),
+)
+
+def get_attributes_for_model(model):
+    if model in SWITCH_MODEL:
+        return ["onOff2"]
+    return []
 
 SUPPORTED_WIFI_MODES = [
     MODE_AUTO,
@@ -183,6 +219,121 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_WIFI_LOAD_DEVICES
 )
 
+def determine_device_type(model):
+    if model in IMPLEMENTED_WALL_DEVICES:
+        return "outlet"
+    elif model in (
+        IMPLEMENTED_LOAD_DEVICES,
+        IMPLEMENTED_WIFI_LOAD_DEVICES,
+        IMPLEMENTED_WATER_HEATER_LOAD_MODEL,
+        IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL,
+    ):
+        return "power"
+    return "control"
+
+def get_switch_class(model):
+    if model in IMPLEMENTED_WALL_DEVICES:
+        return Neviweb130Switch
+    elif model in IMPLEMENTED_LOAD_DEVICES:
+        return Neviweb130PowerSwitch
+    elif model in IMPLEMENTED_WIFI_LOAD_DEVICES:
+        return Neviweb130WifiPowerSwitch
+    elif model in IMPLEMENTED_WATER_HEATER_LOAD_MODEL:
+        return Neviweb130TankPowerSwitch
+    elif model in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL:
+        return Neviweb130WifiTankPowerSwitch
+    elif model in IMPLEMENTED_ZB_DEVICE_CONTROL or model in IMPLEMENTED_SED_DEVICE_CONTROL:
+        return Neviweb130ControlerSwitch
+    return None
+
+def create_physical_switch(data, coordinator):
+    entities = []
+
+    for gateway_data, default_name in [
+        (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
+        (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
+        (data['neviweb130_client'].gateway_data3, DEFAULT_NAME_3)
+    ]:
+        if not gateway_data or gateway_data == "_":
+            continue
+
+        for device_info in gateway_data:
+            model = device_info["signature"]["model"]
+            device_name = f"{default_name} {device_info['name']}"
+            device_type = determine_device_type(model)
+
+            device_class = get_switch_class(model)
+            if device_class:
+                device = device_class(
+                    data, device_info, device_name,
+                    device_info["sku"],
+                    "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                    device_type,
+                    coordinator,
+                )
+                coordinator.register_device(device)
+                entities.append(device)
+
+    return entities
+
+def create_attribute_switch(hass, entry, data, coordinator, device_registry):
+    entities = []
+
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+
+    for gateway_data, default_name in [
+        (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
+        (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
+        (data['neviweb130_client'].gateway_data3, DEFAULT_NAME_3)
+    ]:
+        if not gateway_data or gateway_data == "_":
+            continue
+
+        for device_info in gateway_data:
+            model = device_info["signature"]["model"]
+            if model not in ALL_MODEL:
+                continue
+
+            device_id = str(device_info["id"])
+            if device_id not in coordinator.data:
+                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+
+            device_name = f"{default_name} {device_info['name']}"
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, str(device_info["id"]))},
+                name=device_name,
+                manufacturer="claudegel",
+                model=model,
+                sw_version="{major}.{middle}.{minor}".format(
+                    **device_info["signature"]["softVersion"]
+                ),
+            )
+
+            attributes_name = get_attributes_for_model(model)
+            for attribute in attributes_name:
+                for desc in SWITCH_TYPES:
+                    if desc.key == attribute:
+                        entities.append(
+                            Neviweb130DeviceAttributeSwitch(
+                                client=data['neviweb130_client'],
+                                device=device_info,
+                                device_name=device_name,
+                                attribute=attribute,
+                                device_id=device_id,
+                                attr_info={
+                                    "identifiers": device_entry.identifiers,
+                                    "name": device_entry.name,
+                                    "manufacturer": device_entry.manufacturer,
+                                    "model": device_entry.model,
+                                },
+                                coordinator=coordinator,
+                                entity_description=desc,
+                            )
+                        )
+
+    return entities
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -205,140 +356,16 @@ async def async_setup_entry(
     entities = []
     device_registry = dr.async_get(hass)
 
-    for gateway_data, default_name in [
-        (data['neviweb130_client'].gateway_data, DEFAULT_NAME),
-        (data['neviweb130_client'].gateway_data2, DEFAULT_NAME_2),
-        (data['neviweb130_client'].gateway_data3, DEFAULT_NAME_3)
-    ]:
-        if gateway_data is not None and gateway_data != "_":
-            for device_info in gateway_data:
-                if "signature" in device_info and "model" in device_info["signature"]:
-                    model = device_info["signature"]["model"]
-                    if model in IMPLEMENTED_DEVICE_MODEL:
-                        device_name = f'{default_name} {device_info["name"]}'
-                        device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        )
-                        if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
-                            device_type = "outlet"
-                            device = Neviweb130Switch(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                device_type,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
-                            device_type = "power"
-                            device = Neviweb130PowerSwitch(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                device_type,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES:
-                            device_type = "power"
-                            device = Neviweb130WifiPowerSwitch(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                device_type,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL:
-                            device_type = "power"
-                            device = Neviweb130TankPowerSwitch(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                device_type,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL:
-                            device_type = "power"
-                            device = Neviweb130WifiTankPowerSwitch(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                device_type,
-                                coordinator,
-                            )
-                        else:
-                            device_type = "control"
-                            device = Neviweb130ControlerSwitch(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                device_type,
-                                coordinator,
-                            )
+    # Add switch
+    entities += create_physical_switch(data, coordinator)
+    await coordinator.async_config_entry_first_refresh()
 
-                        coordinator.register_device(device)
-                        entities.append(device)
-                       # _LOGGER.debug("Entities are %s", device)
+    if not coordinator.data:
+        _LOGGER.debug("Pas de coordinator")
+        await coordinator.async_config_entry_first_refresh()
 
-                    if model in IMPLEMENTED_ZB_DEVICE_CONTROL:
-                        device_name = f'{default_name} {device_info["name"]}'
-                        device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        )
-
-                        # Ensure the device is registered in the device registry
-                        device_entry = device_registry.async_get_or_create(
-                            config_entry_id=entry.entry_id,
-                            identifiers={(DOMAIN, str(device_info["id"]))},
-                            name=device_name,
-                            manufacturer="claudegel",
-                            model=device_info["signature"]["model"],
-                            sw_version=device_firmware,
-                        )
-                        device_info = {
-                            "identifiers": device_entry.identifiers,
-                            "name": device_entry.name,
-                            "manufacturer": device_entry.manufacturer,
-                            "model": device_entry.model,
-                        }
-                        _LOGGER.debug("Config entry = %s", device_entry)
-
-                        device_name = f'{default_name} {device_info["name"]}'
-                        master_device_name = f'{device_info["name"]}'
-                        _LOGGER.debug(
-                            "Attribute found for device: %s",
-                            master_device_name,
-                        )
-                        if model in SWITCH_MODEL:
-                            attributes_name = [ATTR_ONOFF2]
-                            device_type = "control"
-
-                        for attribute in attributes_name:
-                            _LOGGER.debug(f"Adding attributes switch : {device_name} {attribute}")
-                            entities.append(
-                                Neviweb130DeviceAttributeSwitch(
-                                    data['neviweb130_client'],
-                                    device_info,
-                                    device_name,
-                                    attribute,
-                                    device_entry.id,
-                                    device_type,
-                                    device_info,
-                                    coordinator,
-                                )
-                            )
+    # Add attribute switch for each device type
+    entities += create_attribute_switch(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
@@ -739,6 +766,8 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
@@ -781,6 +810,9 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -839,14 +871,14 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     def icon(self):
         """Return the icon to use in the frontend."""
         try:
-            return SWITCH_TYPES.get(self._device_type)[0]
+            return SWITCH_TYPE.get(self._device_type)[0]
         except TypeError:
             return None
 
     @property
     def device_class(self):
         """Return the device class of this entity."""
-        return SWITCH_TYPES.get(self._device_type)[1]
+        return SWITCH_TYPE.get(self._device_type)[1]
 
     @property
     def is_on(self):
@@ -881,31 +913,49 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     @property
     def rssi(self):
         if self._rssi is not None:
-            return self.extra_state_attributes.get("rssi")
+            return self._rssi
         return None
 
     @property
     def total_kwh_count(self):
         if self._total_kwh_count is not None:
-            return self.extra_state_attributes.get("total_kwh_count")
+            return self._total_kwh_count
         return None
 
     @property
     def monthly_kwh_count(self):
         if self._monthly_kwh_count is not None:
-            return self.extra_state_attributes.get("monthly_kwh_count")
+            return self._monthly_kwh_count
         return None
 
     @property
     def daily_kwh_count(self):
         if self._daily_kwh_count is not None:
-            return self.extra_state_attributes.get("daily_kwh_count")
+            return self._daily_kwh_count
         return None
 
     @property
     def hourly_kwh_count(self):
         if self._hourly_kwh_count is not None:
-            return self.extra_state_attributes.get("hourly_kwh_count")
+            return self._hourly_kwh_count
+        return None
+
+    @property
+    def timer(self):
+        if self._timer is not None:
+            return self._timer
+        return None
+
+    @property
+    def timer2(self):
+        if self._timer2 is not None:
+            return self._timer2
+        return None
+
+    @property
+    def water_leak_status(self):
+        if self._water_leak_status is not None:
+            return self._water_leak_status
         return None
 
     @property
@@ -1311,6 +1361,8 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._current_power_w = 0
         self._wattage = 0
@@ -1324,7 +1376,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._marker = None
         self._mark = retreive_data(self._id, 2)
         self._onoff = None
-        self._timer = 0
+        self._timer = None
         self._keypad = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
@@ -1347,6 +1399,9 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1423,6 +1478,12 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     )
 
     @property
+    def power_timer(self):
+        if self._timer is not None:
+            return self._timer
+        return None
+
+    @property
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
@@ -1443,7 +1504,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
                 "keypad": lock_to_ha(self._keypad),
-                "timer": self._timer,
+                "power_timer": self._timer,
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
                 "eco_onoff": self._drstatus_onoff,
@@ -1477,6 +1538,8 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._current_power_w = 0
         self._wattage = 0
@@ -1490,7 +1553,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._marker = None
         self._mark = retreive_data(self._id, 2)
         self._onoff = None
-        self._timer = 0
+        self._timer = None
         self._keypad = None
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
@@ -1510,6 +1573,9 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1588,6 +1654,12 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                     )
 
     @property
+    def power_timer(self):
+        if self._timer is not None:
+            return self._timer
+        return None
+
+    @property
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
@@ -1606,7 +1678,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
                 "keypad": lock_to_ha(self._keypad),
-                "timer": self._timer,
+                "power_timer": self._timer,
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
                 "eco_onoff": self._drstatus_onoff,
@@ -1640,6 +1712,8 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
@@ -1683,6 +1757,9 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1870,6 +1947,8 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
@@ -1922,6 +2001,9 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -2134,6 +2216,8 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._onoff = None
         self._onoff2 = None
@@ -2175,6 +2259,9 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -2311,6 +2398,12 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                     )
 
     @property
+    def onOff2(self):
+        if self._onOff2 is not None:
+            return self._onOff2
+        return None
+
+    @property
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
@@ -2387,11 +2480,9 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         self._state = None
         self._attr_unique_id = f"{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
-        self._attr_friendly_name = f"{self._device.get("friendly_name")} {attribute.replace('_', ' ').capitalize()}"
+        self._attr_friendly_name = f"{self._device.get('friendly_name')} {attribute.replace('_', ' ').capitalize()}"
         self._attr_icon = entity_description.icon
         self._attr_device_class = entity_description.device_class
-        self._attr_unit_of_measurement = entity_description.native_unit_of_measurement
-        self._attr_onoff = None
 
     @property
     def unique_id(self):
@@ -2406,15 +2497,21 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
     @property
     def is_on(self):
         """Return True if the switch is on."""
-        return self._attr_onoff != MODE_OFF
+        device_obj = self.coordinator.data.get(self._id)
+        if device_obj and self._attribute in device_obj:
+            return device_obj[self._attribute] != MODE_OFF
+        return False
 
     @property
     def state(self):
         """Return the state of the switch."""
         device_obj = self.coordinator.data.get(self._id)
         if device_obj and self._attribute in device_obj:
-            value = device_obj[self._attribute]
-            return value
+            try:
+                return self.entity_description.value_fn(device_obj)
+            except Exception as e:
+                _LOGGER.error("Error evaluating value_fn for %s: %s", self._attr_unique_id, e)
+                return None
         else:
             _LOGGER.warning(
                 "AttributeSwitch: %s attribute %s not found for device: %s.",
@@ -2429,10 +2526,22 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch device on."""
-        await self._client.async_set_onoff2(self._id, "on")
-        self._attr_onoff = "on"
+        success = await self._client.async_set_onoff2(self._id, "on")
+        if success:
+            await self.coordinator.async_request_refresh()
+        else:
+            _LOGGER.warning(
+                    "Failed to turn on switch attribute '%s'",
+                    self._attribute
+                )
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch device off."""
-        await self._client.async_set_onoff2(self._id, "off")
-        self._attr_onoff = MODE_OFF
+        success = await self._client.async_set_onoff2(self._id, "off")
+        if success:
+            await self.coordinator.async_request_refresh()
+        else:
+            _LOGGER.warning(
+                    "Failed to turn off switch attribute '%s'",
+                    self._attribute
+                )
