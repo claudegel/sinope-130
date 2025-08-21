@@ -255,6 +255,7 @@ ATTR_AIR_MAX_POWER_TEMP = "airCurtainMaxPowerTemperature"
 ATTR_AUX_HEAT_MIN_TIMEOFF = "auxHeatMinTimeOff"
 ATTR_HEAT_MIN_TIME_ON = "heatMinTimeOn"
 ATTR_HEAT_MIN_TIME_OFF = "heatMinTimeOff"
+ATTR_COLOR = "color"
 
 SIGNAL_EVENTS_CHANGED = f"{DOMAIN}_events_changed"
 
@@ -342,3 +343,53 @@ SERVICE_SET_REFUEL_ALERT = "set_refuel_alert"
 SERVICE_SET_HUMIDIFIER_TYPE = "set_humidifier_type"
 SERVICE_SET_SCHEDULE_MODE = "set_schedule_mode"
 SERVICE_SET_FLOW_ALARM_DISABLE_TIMER = "set_flow_alarm_disable_timer"
+
+CLIMATE_MODEL = [300, 336, 737, 738, 739, 742, 1123, 1124, 1510, 1512, 6727, 6730, 6810, 6811, 6812, 7372,  7373]
+LIGHT_MODEL = [2121, 2131, 2132]
+SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 2600, 2610]
+VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
+SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
+ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
+FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
+
+#Managed device attributes by alphabetical order
+EXPOSED_ATTRIBUTES = [
+    "backlight",
+    "battery_status",
+    "brightness",
+    "current_temperature",
+    "daily_flow_count",
+    "daily_kwh_count",
+    "flowmeter_timer",
+    "hourly_flow_count",
+    "hourly_kwh_count",
+    "intensity_min",
+    "keypad",
+    "keypad_status",
+    "leak_status",
+    "led_off_color",
+    "led_off_intensity",
+    "led_on_color",
+    "led_on_intensity",
+    "light_timer",
+    "max_cool_temp",
+    "max_temp",
+    "min_cool_temp",
+    "min_temp",
+    "monthly_flow_count",
+    "monthly_kwh_count",
+    "pi_heating_demand",
+    "power_timer",
+    "reset_filter",
+    "rssi",
+    "temp_alert"
+    "timer",
+    "timer2",
+    "total_flow_count",
+    "total_kwh_count",
+    "water_leak_status",
+    # Constants
+    "is_wifi",
+    "is_HC",
+    # ... etc.
+]
