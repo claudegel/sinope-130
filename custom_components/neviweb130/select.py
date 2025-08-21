@@ -13,8 +13,10 @@ from homeassistant.components.select import (
     SelectEntity,
     SelectEntityDescription,
 )
-from homeassistant.components.select.const import SelectDeviceClass
-from homeassistant.const import ATTR_FRIENDLY_NAME
+from homeassistant.const import (
+    ATTR_FRIENDLY_NAME,
+    EntityCategory,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
@@ -24,23 +26,27 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .attributes import (
-    ALL_MODEL,
-    CLIMATE_MODEL,
-    LIGHT_MODEL,
-    SWITCH_MODEL,
-    VALVE_MODEL,
-)
 from .const import (
-    DOMAIN,
     ATTR_BACKLIGHT,
     ATTR_KEYPAD,
     ATTR_LED_ON_COLOR,
     ATTR_LED_OFF_COLOR,
+    ALL_MODEL,
+    CLIMATE_MODEL,
+    DOMAIN,
+    LIGHT_MODEL,
+    SWITCH_MODEL,
+    VALVE_MODEL,
 )
-
+from .schema import (
+    color_to_rgb,
+    rgb_to_color,
+    BACKLIGHT_LIST,
+    COLOR_LIST,
+    LOCK_LIST,
+)
+from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .helpers import debug_coordinator
-from .light import color_to_rgb, rgb_to_color
 
 DEFAULT_NAME = 'neviweb130 select'
 DEFAULT_NAME_2 = 'neviweb130 select 2'
@@ -56,40 +62,46 @@ class Neviweb130SelectEntityDescription(SelectEntityDescription):
 
 SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
     Neviweb130SelectEntityDescription(
-        key=ATTR_KEYPAD,
+        key="keypad",
         icon="mdi:dialpad",
         translation_key="keypad_lock",
-        options_list=["locked", "unlocked", "partiallyLocked"],
+        options=LOCK_LIST,
     ),
     Neviweb130SelectEntityDescription(
-        key=ATTR_LED_ON_COLOR,
+        key="led_on_color",
         icon="mdi:palette",
         translation_key="led_on_color",
-        options_list=["lime", "amber", "fushia", "perle", "blue", "red", "orange", "green"],
+        options=COLOR_LIST,
     ),
     Neviweb130SelectEntityDescription(
-        key=ATTR_LED_OFF_COLOR,
+        key="led_off_color",
         icon="mdi:palette-outline",
         translation_key="led_off_color",
-        options_list=["lime", "amber", "fushia", "perle", "blue", "red", "orange", "green"],
+        options=COLOR_LIST,
     ),
     Neviweb130SelectEntityDescription(
-        key=ATTR_BACKLIGHT,
+        key="backlight",
         icon="mdi:fullscreen",
         translation_key="backlight",
-        options_list=["auto", "on", "bedroom"],
+        options=BACKLIGHT_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="keypad_status",
+        icon="mdi:dialpad",
+        translation_key="keypad_lock",
+        options=LOCK_LIST,
     ),
 )
 
 def get_attributes_for_model(model):
     if model in CLIMATE_MODEL:
-        return [ATTR_KEYPAD, ATTR_BACKLIGHT]
+        return ["keypad", "backlight"]
     elif model in LIGHT_MODEL:
-        return [ATTR_KEYPAD, ATTR_LED_ON_COLOR, ATTR_LED_OFF_COLOR]
+        return ["keypad", "led_on_color", "led_off_color"]
     elif model in SWITCH_MODEL:
-        return [ATTR_KEYPAD]
+        return ["keypad_status"]
     elif model in VALVE_MODEL:
-        return [ATTR_KEYPAD]
+        return []
     return []
 
 def create_attribute_selects(hass, entry, data, coordinator, device_registry):
@@ -132,7 +144,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                 for desc in SELECT_TYPES:
                     if desc.key == attribute:
                         entities.append(
-                            Neviweb130DeviceAttributeNumber(
+                            Neviweb130DeviceAttributeSelect(
                                 client=client,
                                 device=device_info,
                                 device_name=device_name,
@@ -184,10 +196,11 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_entity_category = EntityCategory.CONFIG
 
     _ATTRIBUTE_METHODS = {
-        ATTR_KEYPAD: lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
-        ATTR_LED_ON_COLOR: lambda self, option: self._client.async_set_led_indicator(self._id, 1, color_to_rgb(option)),
-        ATTR_LED_OFF_COLOR: lambda self, option: self._client.async_set_led_indicator(self._id, 0, color_to_rgb(option)),
-        ATTR_BACKLIGHT: lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
+        "keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "led_on_color": lambda self, option: self._client.async_set_led_indicator(self._id, 1, option),
+        "led_off_color": lambda self, option: self._client.async_set_led_indicator(self._id, 0, option),
+        "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
+        "keypad_status": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
         # ...
     }
 
@@ -213,7 +226,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         self.entity_description = entity_description
         self._attr_icon = entity_description.icon
         self._attr_translation_key = entity_description.translation_key
-        self._attr_options = entity_description.options_list
+        self._attr_options = entity_description.options
 
     @property
     def unique_id(self):
@@ -245,11 +258,21 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         return {"device_id": self._attr_unique_id}
 
     async def async_select_option(self, option: str) -> None:
-        """Change the selected select option."""
+        """Change the selected select option if Neviweb accepts it."""
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
         if handler:
-            await handler(self, option)
+            success = await handler(self, option)
+            if success:
+                self._current_option = option
+                self._device[self._attribute] = option
+                self.async_write_ha_state()
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning(
+                    "Failed to update select attribute '%s' with option '%s'",
+                    self._attribute,
+                    option
+                )
         else:
-            _LOGGER.warning("No handler for select attribute: %s", self._attribute)
-        self._device[self._attribute] = option
-        self.async_write_ha_state()
+            _LOGGER.warning(
+                "No handler for select attribute: %s", self._attribute)
