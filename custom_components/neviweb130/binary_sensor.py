@@ -16,25 +16,28 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ATTR_FRIENDLY_NAME,
+    EntityCategory,
+)
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .attributes import (
-    ALL_MODEL,
+from .const import (
+    ATTR_TEMP_ALARM,
+    ATTR_WATER_LEAK_STATUS,
+    FULL_MODEL,
     CLIMATE_MODEL,
+    DOMAIN,
     LIGHT_MODEL,
+    SENSOR_MODEL,
     SWITCH_MODEL,
     VALVE_MODEL,
 )
-from .const import (
-    DOMAIN,
-    ATTR_TEMP_ALARM,
-    ATTR_WATER_LEAK_STATUS,
-)
+from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .helpers import debug_coordinator
 
 DEFAULT_NAME = 'neviweb130 binary_sensor'
@@ -52,26 +55,28 @@ class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
     off_icon: str = "mdi:checkbox-blank-outline"
 
 BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] = (
+    # Valve attributes
     Neviweb130BinarySensorEntityDescription(
-        key=ATTR_TEMP_ALARM,
+        key="temp_alert",
         device_class=BinarySensorDeviceClass.PROBLEM,
         on_icon="mdi:thermometer-alert",
         off_icon="mdi:thermometer",
-        translation_key="temp_alarm",
+        translation_key="temp_alert",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
     ),
     Neviweb130BinarySensorEntityDescription(
-        key=ATTR_WATER_LEAK_STATUS,
+        key="water_leak_status",
         device_class=BinarySensorDeviceClass.PROBLEM,
         on_icon="mdi:pipe-leak",
         off_icon="mdi:pipe",
         translation_key="leak_status",
         entity_category=EntityCategory.DIAGNOSTIC,
-        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "flowmeter"},
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "flowmeter", "probe"},
     ),
+    # Switch attributes
     Neviweb130BinarySensorEntityDescription(
-        key=ATTR_BATTERY_STATUS,
+        key="battery_status",
         device_class=BinarySensorDeviceClass.PROBLEM,
         on_icon="mdi:battery-80",
         off_icon="mdi:battery-alert-variant-outline",
@@ -79,13 +84,25 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
     ),
+    # Real Sensor attributes
+    Neviweb130BinarySensorEntityDescription(
+        key="leak_status",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        on_icon="mdi:pipe-leak",
+        off_icon="mdi:pipe",
+        translation_key="leak_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "probe"},
+    ),
 )
 
 def get_attributes_for_model(model):
     if model in SWITCH_MODEL:
-        return [ATTR_WATER_LEAK_STATUS]
+        return ["water_leak_status"]
     elif model in VALVE_MODEL:
-        return [ATTR_TEMP_ALARM, ATTR_WATER_LEAK_STATUS, ATTR_BATTERY_STATUS]
+        return ["temp_alert", "water_leak_status", "battery_status"]
+    elif model in SENSOR_MODEL:
+        return ["leak_status", "battery_status"]
     return []
 
 def create_attribute_binary_sensors(hass, entry, data, coordinator, device_registry):
@@ -106,7 +123,7 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
 
         for device_info in gateway_data:
             model = device_info["signature"]["model"]
-            if model not in ALL_MODEL:
+            if model not in FULL_MODEL:
                 continue
 
             device_id = str(device_info["id"])
