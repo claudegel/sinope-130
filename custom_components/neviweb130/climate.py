@@ -1319,17 +1319,30 @@ def lock_to_ha(lock):
     """Convert keypad lock state to better description."""
     match lock:
         case "locked":
-            return "Locked"
+            return "locked"
         case "lock":
-            return "Locked"
+            return "locked"
         case "unlocked":
-            return "Unlocked"
+            return "unlocked"
         case "unlock":
-            return "Unlocked"
+            return "unlocked"
         case "partiallyLocked":
-            return "Tamper protection"
+            return "tamper protection"
         case "partialLock":
-            return "Tamper protection"
+            return "tamper protection"
+
+def backlight_to_ha(back):
+    """Convert backlight value received from Neviweb to HA values."""
+    match back:
+        case "alwaysOn":
+            return "on"
+        case "onUserAction":
+            return "auto"
+        case "always":
+            return "on"
+        case "onActive":
+            return "auto"
+    return back
 
 def extract_capability_full(cap):
     """Extract swing capability which are True for each HP device and add genegal capability."""
@@ -1407,6 +1420,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -1470,6 +1485,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
 #        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1534,8 +1552,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
 
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE in device_data:
                         self._cycle_length = device_data[ATTR_CYCLE]
                     if ATTR_RSSI in device_data:
@@ -1601,32 +1619,48 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def rssi(self):
         if self._rssi is not None:
-            return self.extra_state_attributes.get("rssi")
+            return self._rssi
         return None
 
     @property
     def total_kwh_count(self):
         if self._total_kwh_count is not None:
-            return self.extra_state_attributes.get("total_kwh_count")
+            return self._total_kwh_count
         return None
 
     @property
     def monthly_kwh_count(self):
         if self._monthly_kwh_count is not None:
-            return self.extra_state_attributes.get("monthly_kwh_count")
+            return self._monthly_kwh_count
         return None
 
     @property
     def daily_kwh_count(self):
         if self._daily_kwh_count is not None:
-            return self.extra_state_attributes.get("daily_kwh_count")
+            return self._daily_kwh_count
         return None
 
     @property
     def hourly_kwh_count(self):
         if self._hourly_kwh_count is not None:
-            return self.extra_state_attributes.get("hourly_kwh_count")
+            return self._hourly_kwh_count
         return None
+
+    @property
+    def keypad(self):
+        if self._keypad is not None:
+            return self._keypad
+        return None
+
+    @property
+    def backlight(self):
+        if self._backlight is not None:
+            return self._backlight
+        return None
+
+    @property
+    def is_wifi(self):
+        return self._is_wifi
 
     @property
     def extra_state_attributes(self):
@@ -1641,7 +1675,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -2046,38 +2080,15 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on."""
         """Work differently for zigbee and wifi devices."""
         level = value["level"]
-        device = value["type"]
         entity = value["id"]
-        if level == "on":
-            if device == "wifi":
-                level_command = "alwaysOn"
-            else:
-                level_command = "always"
-            level_name = "On"
-        elif level == "bedroom":
-            level_command = "bedroom"
-            level_name = "bedroom"
-        else:
-            if device == "wifi":
-                level_command = "onUserAction"
-            else:
-                level_command = "onActive"
-            level_name = "Auto"
         await self._client.async_set_backlight(
-            entity, level_command, device)
-        self._backlight = level_name
+            entity, level, self._is_wifi)
+        self._backlight = level
 
     async def async_set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked."""
         lock = value["lock"]
         entity = value["id"]
-        if lock == "locked" and self._is_wifi:
-            lock = "lock"
-        elif lock == "partiallyLocked" and self._is_wifi:
-            lock = "partialLock"
-        else:
-            if self._is_wifi:
-                lock = "unlock"
         await self._client.async_set_keypad_lock(
             entity, lock, self._is_wifi)
         self._keypad = lock
@@ -2728,6 +2739,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -2783,6 +2796,9 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -2851,8 +2867,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     if ATTR_HEAT_LOCKOUT_TEMP in device_data:
                         self._heat_lockout_temp = device_data[ATTR_HEAT_LOCKOUT_TEMP]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE in device_data:
                         self._cycle_length = device_data[ATTR_CYCLE]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -2899,7 +2915,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -2951,6 +2967,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -3021,6 +3039,9 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -3093,8 +3114,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE in device_data:
                         self._cycle_length = device_data[ATTR_CYCLE]
                     if ATTR_RSSI in device_data:
@@ -3174,7 +3195,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "cycle_length": self._cycle_length,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -3225,6 +3246,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -3297,6 +3320,9 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -3352,8 +3378,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
@@ -3464,7 +3490,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -3518,6 +3544,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -3575,6 +3603,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -3634,8 +3665,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE in device_data:
                         self._cycle_length = device_data[ATTR_CYCLE]
                     if ATTR_RSSI in device_data:
@@ -3684,7 +3715,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -3735,6 +3766,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -3804,6 +3837,9 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -3875,9 +3911,9 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     ]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     self._rssi = device_data[ATTR_WIFI]
-                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
@@ -3939,7 +3975,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -3993,6 +4029,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -4062,6 +4100,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -4130,9 +4171,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     ]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     self._rssi = device_data[ATTR_WIFI]
-                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_OUTPUT1]
@@ -4192,7 +4233,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -4244,6 +4285,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -4326,6 +4369,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -4411,10 +4457,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     ]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     self._rssi = device_data[ATTR_WIFI]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
@@ -4509,7 +4555,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -4560,6 +4606,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -4637,6 +4685,9 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -4716,10 +4767,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     ]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     self._rssi = device_data[ATTR_WIFI]
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
@@ -4800,7 +4851,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -4851,6 +4902,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -4929,6 +4982,9 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -5011,8 +5067,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
                         self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    self._keypad = device_data[ATTR_KEYPAD]
-                    self._backlight = device_data[ATTR_BACKLIGHT]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._wattage = device_data[ATTR_WATTAGE]
@@ -5103,7 +5159,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "pi_heating_demand": self._heat_level,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "backlight": self._backlight,
                 "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
@@ -5154,6 +5210,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -5214,6 +5272,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -5297,7 +5358,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._keypad = device_data[ATTR_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._fan_speed = device_data[ATTR_FAN_SPEED]
@@ -5363,7 +5424,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 "setpoint_max": self._max_temp,
                 "setpoint_min": self._min_temp,
                 "temperature_format": self._temperature_format,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "fan_speed": self._fan_speed,
                 "fan_swing_vertical": self._fan_swing_vert,
                 "fan_capability": self._fan_cap,
@@ -5431,6 +5492,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -5529,6 +5592,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -5687,9 +5753,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._language = device_data[ATTR_LANGUAGE]
                     if ATTR_OCCUPANCY in device_data:
                         self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     if ATTR_BACK_LIGHT in device_data:
-                        self._backlight = device_data[ATTR_BACK_LIGHT]
+                        self._backlight = backlight_to_ha(device_data[ATTR_BACK_LIGHT])
                     self._backlight_auto_dim = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -5827,7 +5893,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "setpoint_min": self._min_temp,
                 "temperature_format": self._temperature_format,
                 "time_format": self._time_format,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "fan_speed": self._fan_speed,
                 "backlight": self._backlight,
                 "backlight-auto_dim": self._backlight_auto_dim,
