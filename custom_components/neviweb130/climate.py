@@ -1663,6 +1663,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return self._is_wifi
 
     @property
+    def is_HC(self):
+        return self._is_HC
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
