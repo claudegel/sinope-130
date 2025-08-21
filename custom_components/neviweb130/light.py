@@ -55,14 +55,14 @@ from datetime import (
     timezone,
 )
 
-from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
-                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
-                    ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
-                    ATTR_LIGHT_WATTAGE, ATTR_ONOFF, ATTR_PHASE_CONTROL,
-                    ATTR_RED, ATTR_RSSI, ATTR_STATE, ATTR_TIMER,
-                    ATTR_WATTAGE_INSTANT, DOMAIN, MODE_AUTO, MODE_MANUAL,
-                    MODE_OFF, SERVICE_SET_ACTIVATION,
+from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_COLOR, ATTR_ERROR_CODE_SET1,
+                    ATTR_GREEN, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
+                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LED_OFF_COLOR,
+                    ATTR_LED_OFF_INTENSITY, ATTR_LED_ON_COLOR,
+                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_ONOFF,
+                    ATTR_PHASE_CONTROL, ATTR_RED, ATTR_RSSI, ATTR_STATE,
+                    ATTR_TIMER, ATTR_WATTAGE_INSTANT, DOMAIN, MODE_AUTO,
+                    MODE_MANUAL, MODE_OFF, SERVICE_SET_ACTIVATION,
                     SERVICE_SET_KEY_DOUBLE_UP, SERVICE_SET_LED_INDICATOR,
                     SERVICE_SET_LIGHT_KEYPAD_LOCK, SERVICE_SET_LIGHT_TIMER,
                     SERVICE_SET_LED_OFF_INTENSITY, SERVICE_SET_LED_ON_INTENSITY,
@@ -70,8 +70,9 @@ from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
                     SERVICE_SET_WATTAGE)
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import device_dict, save_devices
-from .schema import (SET_ACTIVATION_SCHEMA, SET_KEY_DOUBLE_UP_SCHEMA,
-                     SET_LED_INDICATOR_SCHEMA, SET_LED_OFF_INTENSITY_SCHEMA,
+from .schema import (color_to_rgb, rgb_to_color,SET_ACTIVATION_SCHEMA,
+                     SET_KEY_DOUBLE_UP_SCHEMA, SET_LED_INDICATOR_SCHEMA,
+                     SET_LED_OFF_INTENSITY_SCHEMA,
                      SET_LED_ON_INTENSITY_SCHEMA, SET_LIGHT_KEYPAD_LOCK_SCHEMA,
                      SET_LIGHT_MIN_INTENSITY_SCHEMA, SET_LIGHT_TIMER_SCHEMA,
                      SET_PHASE_CONTROL_SCHEMA, SET_WATTAGE_SCHEMA)
@@ -219,9 +220,7 @@ async def async_setup_entry(
                 value = {
                     "id": light.unique_id,
                     "state": service.data[ATTR_STATE],
-                    "red": service.data[ATTR_RED],
-                    "green": service.data[ATTR_GREEN],
-                    "blue": service.data[ATTR_BLUE],
+                    "color": service.data[ATTR_COLOR],
                 }
                 light.set_led_indicator(value)
                 light.schedule_update_ha_state(True)
@@ -407,59 +406,17 @@ def lock_to_ha(lock):
     """Convert keypad lock state to better description."""
     match lock:
         case "locked":
-            return "Locked"
+            return "locked"
         case "lock":
-            return "Locked"
+            return "locked"
         case "unlocked":
-            return "Unlocked"
+            return "unlocked"
         case "unlock":
-            return "Unlocked"
+            return "unlocked"
         case "partiallyLocked":
-            return "Tamper protection"
+            return "tamper protection"
         case "partialLock":
-            return "Tamper protection"
-
-def color_to_rgb(color):
-    """Convert color to rgb tuple. (red,green,blue)"""
-    match color:
-        case "lime":
-            return "220,255,10"
-        case "amber":
-            return "75,10,0"
-        case "fushia":
-            return "165,0,10"
-        case "perle":
-            return "255,255,100"
-        case "blue":
-            return "0,255,255"
-        case "red":
-            return "255,0,0"
-        case "orange":
-            return "255,165,0"
-        case "green":
-            return "0,255,0"
-        case _:
-            return None
-
-def rgb_to_color(rgb):
-    """Convert rgb tuple to color. (red,green,blue)"""
-    match rgb:
-        case "220,255,10":
-            return "lime"
-        case "75,10,0":
-            return "amber"
-        case "165,0,10":
-            return "fushia"
-        case "255,255,100":
-            return "perle"
-        case "0,255,255":
-            return "blue"
-        case "255,0,0":
-            return "red"
-        case "255,165,0":
-            return "orange"
-        case _:
-            return None
+            return "tamper protection"
 
 def retreive_data(id, data):
     """Retreive device stat data from device_dict."""
@@ -518,6 +475,8 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -528,7 +487,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._marker = None
         self._mark = retreive_data(self._id, 2)
         self._brightness_pct = 0
-        self._keypad = "Unlocked"
+        self._keypad = None
         self._timer = 0
         self._led_on_color = "0,0,0"
         self._led_off_color = "0,0,0"
@@ -556,6 +515,9 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -594,7 +556,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                                 + ", Sku: "
                                 + self._sku
                             )
-                    self._keypad = device_data[ATTR_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
                     self._led_on_color = (
@@ -667,32 +629,74 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     @property
     def rssi(self):
         if self._rssi is not None:
-            return self.extra_state_attributes.get("rssi")
+            return self._rssi
         return None
 
     @property
     def total_kwh_count(self):
         if self._total_kwh_count is not None:
-            return self.extra_state_attributes.get("total_kwh_count")
+            return self._total_kwh_count
         return None
 
     @property
     def monthly_kwh_count(self):
         if self._monthly_kwh_count is not None:
-            return self.extra_state_attributes.get("monthly_kwh_count")
+            return self._monthly_kwh_count
         return None
 
     @property
     def daily_kwh_count(self):
         if self._daily_kwh_count is not None:
-            return self.extra_state_attributes.get("daily_kwh_count")
+            return self._daily_kwh_count
         return None
 
     @property
     def hourly_kwh_count(self):
         if self._hourly_kwh_count is not None:
-            return self.extra_state_attributes.get("hourly_kwh_count")
+            return self._hourly_kwh_count
         return None
+
+    @property
+    def led_on_intensity(self):
+        if self._led_on_intensity is not None:
+            return self._led_on_intensity
+        return None
+
+    @property
+    def led_off_intensity(self):
+        if self._led_off_intensity is not None:
+            return self._led_off_intensity
+        return None
+
+    @property
+    def intensity_min(self):
+        if self._intensity_min is not None:
+            return self._intensity_min
+        return None
+
+    @property
+    def light_timer(self):
+        if self._timer is not None:
+            return self._timer
+        return None
+
+    @property
+    def keypad(self):
+        if self._keypad is not None:
+            return lock_to_ha(self._keypad)
+        return None
+
+    @property
+    def led_on_color(self):
+        if self._led_on_color != "0,0,0":
+            return rgb_to_color(self._led_on_color)
+        return "0,0,0"
+
+    @property
+    def led_off_color(self):
+        if self._led_off_color != "0,0,0":
+            return rgb_to_color(self._led_off_color)
+        return "0,0,0"
 
     @property
     def extra_state_attributes(self):
@@ -704,7 +708,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 "wattage_status": self._wattage_status,
                 "error_code": self._error_code,
                 "onOff": self._onoff,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "timer": self._timer,
                 "led_on_value": self._led_on_color,
                 "led_off_value": self._led_off_color,
@@ -788,27 +792,13 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         """Set led indicator color, base on RGB red, green, blue color (0-255) for on and off state."""
         state = value["state"]
         entity = value["id"]
-        red = value["red"]
-        green = value["green"]
-        blue = value["blue"]
+        color = color_to_rgb(value["color"])
         await self._client.async_set_led_indicator(
-            entity, state, red, green, blue)
+            entity, state, color)
         if state == 0:
-            self._led_off = (
-                str(value["red"])
-                +","
-                +str(value["green"])
-                +","
-                +str(value["blue"])
-            )
+            self._led_off = color
         else:
-            self._led_on = (
-                str(value["red"])
-                +","
-                +str(value["green"])
-                +","
-                +str(value["blue"])
-            )
+            self._led_on = color
 
     async def async_set_led_on_intensity(self, value):
         """Set led indicator on intensity from 0 to 100."""
@@ -1075,6 +1065,8 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -1085,7 +1077,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._marker = None
         self._mark = retreive_data(self._id, 2)
         self._brightness_pct = 0
-        self._keypad = "Unlocked"
+        self._keypad = None
         self._timer = 0
         self._led_on_color = "0,0,0"
         self._led_off_color = "0,0,0"
@@ -1107,6 +1099,9 @@ class Neviweb130Dimmer(Neviweb130Light):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1148,7 +1143,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                                 + ", Sku: "
                                 + self._sku
                             )
-                    self._keypad = device_data[ATTR_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._timer = device_data[ATTR_TIMER]
                     self._rssi = device_data[ATTR_RSSI]
                     self._led_on_color = (
@@ -1200,7 +1195,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "wattage": self._wattage,
                 "wattage_status": self._wattage_status,
                 "onOff": self._onoff,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "timer": self._timer,
                 "led_on_color": self._led_on_color,
                 "led_off_color": self._led_off_color,
@@ -1242,6 +1237,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._hard_rev = device_info["signature"]["hardRev"]
+        self._identifier = device_info["identifier"]
         self._total_kwh_count = retreive_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
@@ -1252,7 +1249,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._marker = None
         self._mark = retreive_data(self._id, 2)
         self._brightness_pct = 0
-        self._keypad = "Unlocked"
+        self._keypad = None
         self._timer = 0
         self._led_on_color = "0,0,0"
         self._led_off_color = "0,0,0"
@@ -1280,6 +1277,9 @@ class Neviweb130NewDimmer(Neviweb130Light):
             "manufacturer": "claudegel",
             "model": self._device_model,
             "sw_version": self._firmware,
+            "hw_version": self._hard_rev,
+            "serial_number": self._identifier,
+            "configuration_url": "https://www.sinopetech.com/support",
         }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -1312,7 +1312,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                     self._phase_control = device_data[ATTR_PHASE_CONTROL]
                     self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._keypad = device_data[ATTR_KEYPAD]
+                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._wattage = device_data[ATTR_WATTAGE_INSTANT]
                     self._timer = device_data[ATTR_TIMER]
                     if (
@@ -1378,7 +1378,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "double_up_Action": self._double_up,
                 "wattage": self._wattage,
                 "onOff": self._onoff,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
                 "timer": self._timer,
                 "led_on_color": self._led_on_color,
                 "led_off_color": self._led_off_color,
