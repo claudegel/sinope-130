@@ -38,7 +38,9 @@ from homeassistant.components.climate.const import (
     PRESET_HOME,
     )
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+
 from .schema import (
+    color_to_rgb,
     CONFIG_SCHEMA,
     PLATFORMS,
     VERSION,
@@ -150,6 +152,7 @@ from .const import (
     CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
+    EXPOSED_ATTRIBUTES,
     MODE_AWAY,
     MODE_HOME,
     MODE_MANUAL,
@@ -170,6 +173,13 @@ NEVIWEB_LOCATION = f"{HOST}/api/location/"
 # "All API specific code has to be part of a third party library hosted on PyPi. 
 # Home Assistant should only interact with objects and not make direct calls to the API."
 # So all code below this line should eventually be integrated in a PyPi project.
+
+def extract_device_attributes(dev) -> dict:
+    return {
+        attr: value
+        for attr in EXPOSED_ATTRIBUTES
+        if (value := getattr(dev, attr, None)) is not None
+    }
 
 
 class PyNeviweb130Error(Exception):
@@ -732,32 +742,32 @@ class Neviweb130Client:
     async def async_set_brightness(self, device_id, brightness):
         """Set device brightness."""
         data = {ATTR_INTENSITY: brightness}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_onoff(self, device_id, onoff):
         """Set device onOff state."""
         data = {ATTR_ONOFF: onoff}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_onoff2(self, device_id, onoff):
         """Set device onOff state."""
         data = {ATTR_ONOFF2: onoff}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_light_onoff(self, device_id, onoff, brightness):
         """Set light device onOff state."""
         data = {ATTR_ONOFF: onoff, ATTR_INTENSITY: brightness}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_valve_onoff(self, device_id, onoff):
         """Set sedna valve onOff state."""
         data = {ATTR_MOTOR_TARGET: onoff}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_mode(self, device_id, mode):
         """Set device operation mode."""
         data = {ATTR_POWER_MODE: mode}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_setpoint_mode(self, device_id, mode, wifi, HC):
         """Set thermostat operation mode."""
@@ -771,7 +781,7 @@ class Neviweb130Client:
                 data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_occupancy_mode(self, device_id, mode, wifi):
         """Set thermostat preset mode."""
@@ -781,99 +791,119 @@ class Neviweb130Client:
                 data = {ATTR_OCCUPANCY: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_temperature(self, device_id, temperature):
         """Set device heating temperature target."""
         data = {ATTR_ROOM_SETPOINT: temperature}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_temperature(self, device_id, temperature):
         """Set device cooling temperature target."""
         data = {ATTR_COOL_SETPOINT: temperature}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_humidity(self, device_id, humidity):
         """Set device humidity target."""
         data = {ATTR_HUMID_SETPOINT: humidity}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_humidifier_type(self, device_id, type):
         """Set humidifier type for TH6500WF and TH6250WF."""
         data = {ATTR_HUMIDIFIER_TYPE: type}
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_schedule_mode(self, device_id, mode, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
         if HC:
             data = {ATTR_SETPOINT_MODE: mode}
-            await self.async_set_device_attributes(device_id, data)
+            return await self.async_set_device_attributes(device_id, data)
         else:
             self.notify_ha(
                 "Warning: Service set_schedule_mode is only for "
                 + "TH6500WF or TH6250WF thermostats."
             )
 
-    async def async_set_backlight(self, device_id, level, device):
+    async def async_set_backlight(self, device_id, level, wifi):
         """Set backlight intensity when idle, on or auto."""
         """Work differently for wifi and zigbee devices."""
-        if device == "wifi":
+        if wifi:
+            match level:
+                case "on":
+                    level = "alwaysOn"
+                case "auto":
+                    level = "onUserAction"
             data = {ATTR_BACKLIGHT_AUTO_DIM: level}
         else:
+            match level:
+                case "on":
+                    level = "always"
+                case "auto":
+                    level = "onActive"
             data = {ATTR_BACKLIGHT: level}
         _LOGGER.debug("backlight.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_second_display(self, device_id, display):
         """Set device second display for outside temperature or setpoint temperature."""
         data = {ATTR_DISPLAY2: display}
         _LOGGER.debug("display.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_keypad_lock(self, device_id, lock, wifi):
         """Set device keyboard locked/unlocked."""
         if wifi:
+            match lock:
+                case "locked":
+                    lock ="lock"
+                case "unlocked":
+                    lock = "unlock"
+                case "tamper protection":
+                    lock = "partialLock"
             data = {ATTR_WIFI_KEYPAD: lock}
         else:
+            match lock:
+                case "tamper protection":
+                    lock = "partiallyLocked"
             data = {ATTR_KEYPAD: lock}
         _LOGGER.debug("lock.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_phase(self, device_id, phase):
         """Set device phase control mode."""
         data = {ATTR_PHASE_CONTROL: phase}
         _LOGGER.debug("phase.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_double_up(self, device_id, double):
         """Set device key double up action."""
         data = {ATTR_KEY_DOUBLE_UP: double}
         _LOGGER.debug("double_up.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_timer(self, device_id, time):
         """Set device auto off for timer on switch and multi controller."""
         data = {ATTR_TIMER: time}
         _LOGGER.debug("timer.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_timer2(self, device_id, time):
         """Set device auto off for timer2 on multi controller."""
         data = {ATTR_TIMER2: time}
         _LOGGER.debug("timer2.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_time_format(self, device_id, time):
         """Set device time format 12h or 24h."""
         data = {ATTR_TIME: time}
         _LOGGER.debug("time.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_temperature_format(self, device_id, deg):
         """Set device temperature format: celsius or fahrenheit."""
         data = {ATTR_TEMP: deg}
         _LOGGER.debug("temperature.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_floor_air_limit(self, device_id, status, temp):
         """Set device maximum air temperature limit."""
@@ -881,43 +911,43 @@ class Neviweb130Client:
             temp = None
         data = {ATTR_FLOOR_AIR_LIMIT:{"status":status,"value":temp}}
         _LOGGER.debug("floorairlimit.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_early_start(self, device_id, start):
         """Set early start on/off for wifi thermostats."""
         data = {ATTR_EARLY_START: start}
         _LOGGER.debug("early_start.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_air_floor_mode(self, device_id, mode):
         """Switch temperature control between floor and ambiant sensor."""
         data = {ATTR_FLOOR_MODE: mode}
         _LOGGER.debug("floor_mode.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_setpoint_min(self, device_id, temp):
         """Set device setpoint minimum temperature."""
         data = {ATTR_ROOM_SETPOINT_MIN: temp}
         _LOGGER.debug("setpointMin.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_setpoint_max(self, device_id, temp):
         """Set device setpoint maximum temperature."""
         data = {ATTR_ROOM_SETPOINT_MAX: temp}
         _LOGGER.debug("setpointMax.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_setpoint_min(self, device_id, temp):
         """Set device cooling setpoint minimum temperature."""
         data = {ATTR_COOL_SETPOINT_MIN: temp}
         _LOGGER.debug("CoolsetpointMin.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_setpoint_max(self, device_id, temp):
         """Set device cooling setpoint maximum temperature."""
         data = {ATTR_COOL_SETPOINT_MAX: temp}
         _LOGGER.debug("CoolsetpointMax.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_aux_cycle_output(self, device_id, status, val, wifi):
         """Set low voltage thermostat aux cycle status and length."""
@@ -926,25 +956,25 @@ class Neviweb130Client:
         else:
             data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cycle_output(self, device_id, val):
         """Set low voltage thermostat main cycle length."""
         data = {ATTR_CYCLE:val}
         _LOGGER.debug("Cycleoutput.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_tank_size(self, device_id, val):
         """Set water heater tank size for RM3500ZB."""
         data = {ATTR_TANK_SIZE:val}
         _LOGGER.debug("TankSize.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_remaining_time(self, device_id, time):
         """Activate or deactivate calypso for time period."""
         data = {ATTR_COLD_LOAD_PICKUP_REMAIN_TIME:time}
         _LOGGER.debug("RemainingTime.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_sensor_type(self, device_id, val):
         """Set floor sensor type 10k, 12k."""
@@ -953,19 +983,19 @@ class Neviweb130Client:
             ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0},
         }
         _LOGGER.debug("sensor.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_low_temp_protection(self, device_id, val):
         """Set water heater temperature protection for RM3500ZB."""
         data = {ATTR_WATER_TEMP_MIN:val}
         _LOGGER.debug("Low temp protection.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_controlled_device(self, device_id, val):
         """Set device name controlled by RM3250ZB."""
         data = {ATTR_CONTROLLED_DEVICE:val}
         _LOGGER.debug("ControlledDevice.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_em_heat(self, device_id, heat, low, sec):
         """Set floor, low voltage, wifi floor and low voltage wifi thermostats auxiliary heat slave/off or on/off."""
@@ -976,7 +1006,7 @@ class Neviweb130Client:
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_floor_limit(self, device_id, level, low, wifi):
         """Set floor setpoint limit low and high for zigbee and wifi thermostats. (0 = off)."""
@@ -1015,7 +1045,7 @@ class Neviweb130Client:
                         ATTR_FLOOR_OUTPUT2:{ "status": "off", "value": 0},
                     }
         _LOGGER.debug("Floor limit = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_pump_protection(self, device_id, status, wifi):
         """Set low voltage thermostat pump protection status."""
@@ -1034,7 +1064,7 @@ class Neviweb130Client:
                     ATTR_PUMP_PROTEC_PERIOD:{"status": "off"},
                 }
         _LOGGER.debug("pump.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_flow_meter_model(self, device_id, model):
         """Set flow meter model connected to the Sedna valve 2e gen."""
@@ -1066,13 +1096,13 @@ class Neviweb130Client:
                 ATTR_FLOW_ENABLED: False,
             }
         _LOGGER.debug("Flowmeter model.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_flow_meter_delay(self, device_id, delay):
         """Set flow meter delay before alarm is activated on Sedna valve 2e gen."""
         data = {ATTR_FLOW_ALARM1_PERIOD:delay}
         _LOGGER.debug("Flowmeter delay.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
         """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
@@ -1085,83 +1115,85 @@ class Neviweb130Client:
             ATTR_FLOW_THRESHOLD:threshold,
         }
         _LOGGER.debug("Flowmeter options.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_flow_alarm_timer(self, device_id, timer):
         """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
         data = {ATTR_FLOW_ALARM_TIMER: timer}
         _LOGGER.debug("Flowmeter alarm disable timer.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_led_indicator(self, device_id, state, red, green, blue):
+    async def async_set_led_indicator(self, device_id, state, color):
         """Set devive led indicator color for on and off state."""
+        color = color_to_rgb(color)
+        r, g, b = map(int, color.split(','))
         if state == 1:
             data = {
                 ATTR_LED_ON_COLOR: {
-                    "red":red,
-                    "green":green,
-                    "blue":blue,
+                    "red":r,
+                    "green":g,
+                    "blue":b,
                 }
             }
             _LOGGER.debug("led on color.data = %s", data)
         else:
             data = {
                 ATTR_LED_OFF_COLOR: {
-                    "red":red,
-                    "green":green,
-                    "blue":blue,
+                    "red":r,
+                    "green":g,
+                    "blue":b,
                 }
             }
             _LOGGER.debug("led off color.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_led_on_intensity(self, device_id, intensity):
         """Set devive led indicator intensity for on state."""
         data = {ATTR_LED_ON_INTENSITY:intensity}
-        await self.async_set_device_attributes(device_id, data)
         _LOGGER.debug("led on intensity.data on = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_led_off_intensity(self, device_id, intensity):
         """Set devive led indicator intensity for off state."""
         data = {ATTR_LED_OFF_INTENSITY:intensity}
-        await self.async_set_device_attributes(device_id, data)
         _LOGGER.debug("led off intensity.data on = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_light_min_intensity(self, device_id, intensity):
         """Set dimmer light minimum intensity from 1 to 3000."""
         data = {ATTR_INTENSITY_MIN:intensity}
-        await self.async_set_device_attributes(device_id, data)
         _LOGGER.debug("led min intensity.data on = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_wattage(self, device_id, watt):
         """Set light and dimmer watt load."""
         data = {ATTR_LIGHT_WATTAGE:{"status":"on","value":watt}}
         _LOGGER.debug("wattage.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_auxiliary_load(self, device_id, status, load):
         """Set auxiliary output load in watt."""
         data = {ATTR_FLOOR_OUTPUT2:{"status":status,"value":load}}
         _LOGGER.debug("auxiliary_load.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_valve_alert(self, device_id, batt):
         """Set Sedna valve battery alert on/off."""
         data = {ATTR_BATT_ALERT: batt}
         _LOGGER.debug("valve.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_valve_temp_alert(self, device_id, temp):
         """Set Sedna valve temperature alert on/off."""
         data = {ATTR_TEMP_ALERT: temp}
         _LOGGER.debug("valve.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_battery_type(self, device_id, batt):
         """Set water leak sensor battery type, lithium or alkaline."""
         data = {ATTR_BATTERY_TYPE: batt}
         _LOGGER.debug("battery_type.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_sensor_alert(self, device_id, leak, batt, temp, close):
         """Set leak detector alert, battery, temperature, leak, Sedna valve closing."""
@@ -1172,7 +1204,7 @@ class Neviweb130Client:
             ATTR_CONF_CLOSURE: close,
         }
         _LOGGER.debug("leak.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_load_dr_options(self, device_id, onoff, optout, dr):
         """Set load controler Eco Sinope attributes."""
@@ -1184,7 +1216,7 @@ class Neviweb130Client:
             }
         }
         _LOGGER.debug("Load.DR.options = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_hvac_dr_options(self, device_id, dr, optout, setpoint):
         """Set load controler Eco Sinope attributes."""
@@ -1196,13 +1228,13 @@ class Neviweb130Client:
             }
         }
         _LOGGER.debug("hvac.DR.options = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_hvac_dr_setpoint(self, device_id, status, val):
         """Set load controler Eco Sinope attributes."""
         data = {ATTR_DRSETPOINT:{"status":status,"value":val}}
         _LOGGER.debug("hvac.DR.setpoint = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_control_onoff(self, device_id, number, status):
         """Set valve controller onOff or OnOff2 status, on or off."""
@@ -1211,55 +1243,55 @@ class Neviweb130Client:
         else:
             data = {ATTR_ONOFF2: status}
         _LOGGER.debug("control.valve.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_tank_type(self, device_id, tank):
         """Set tank type for LM4110-ZB sensor."""
         data = {ATTR_TANK_TYPE: tank}
         _LOGGER.debug("tank_type.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_gauge_type(self, device_id, gauge):
         """Set gauge type for LM4110-ZB sensor on propane tank."""
         data = {ATTR_GAUGE_TYPE: gauge}
         _LOGGER.debug("gauge_type.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_low_fuel_alert(self, device_id, alert):
         """Set low fuel alert limit for LM4110-ZB sensor."""
         data = {ATTR_FUEL_PERCENT_ALERT: alert}
         _LOGGER.debug("low_fuel_alert.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_refuel_alert(self, device_id, alert):
         """Set refuel alert for LM4110-ZB sensor."""
         data = {ATTR_REFUEL: alert}
         _LOGGER.debug("Refuel_alert.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_tank_height(self, device_id, height):
         """Set low fuel alert limit for LM4110-ZB sensor."""
         data = {ATTR_TANK_HEIGHT: height}
         _LOGGER.debug("tank_height.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_fuel_alert(self, device_id, fuel):
         """Set low fuel alert limit for LM4110-ZB sensor."""
         data = {ATTR_FUEL_ALERT: fuel}
         _LOGGER.debug("Fuel_alert.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_battery_alert(self, device_id, batt):
         """Set low fuel alert limit for LM4110-ZB sensor."""
         data = {ATTR_BATT_ALERT: batt}
         _LOGGER.debug("battery_alert.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_power_supply(self, device_id, supply):
         """Set power supply for Sedna valve."""
         data = {ATTR_POWER_SUPPLY: supply}
         _LOGGER.debug("power_supply.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
         """Set input 1 or 2 on/off delay in seconds."""
@@ -1276,7 +1308,7 @@ class Neviweb130Client:
                 case _:
                     data = {ATTR_INPUT_2_OFF_DELAY: delay}
         _LOGGER.debug("input_delay.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_input_output_names(self, device_id, in1, in2, out1, out2):
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
@@ -1298,73 +1330,73 @@ class Neviweb130Client:
         else:
             data.update({ATTR_OUTPUT_NAME_2: ""})
         _LOGGER.debug("in/out names.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_heat_pump_limit(self, device_id, temp):
         """Set minimum temperature for heat pump operation."""
         data = {ATTR_BALANCE_PT: temp}
         _LOGGER.debug("Heat pump limit value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_heat_lockout(self, device_id, temp):
         """Set maximum outside temperature limit to allow heating device operation."""
         data = {ATTR_HEAT_LOCK_TEMP: temp}
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_lockout(self, device_id, temp):
         """Set minimum outside temperature limit to allow cooling devices operation."""
         data = {ATTR_COOL_LOCK_TEMP: temp}
         _LOGGER.debug("Cool lockout limit value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_hp_display(self, device_id, display):
         """Set display on/off for heat pump."""
         data = {ATTR_DISPLAY_CONF: display}
         _LOGGER.debug("Display config value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_hp_sound(self, device_id, sound):
         """Set display on/off for heat pump."""
         data = {ATTR_SOUND_CONF: sound}
         _LOGGER.debug("Sound config value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_swing_horizontal(self, device_id, swing):
         """Set horizontal fan swing action for heat pump."""
         data = {ATTR_FAN_SWING_HORIZ: swing}
         _LOGGER.debug("Fan horizontal swing value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_swing_vertical(self, device_id, swing):
         """Set vertical fan swing action for heat pump."""
         data = {ATTR_FAN_SWING_VERT: swing}
         _LOGGER.debug("Fan vertical swing value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_fan_mode(self, device_id, speed):
         """Set fan speed (mode) for heat pump."""
         data = {ATTR_FAN_SPEED: speed}
         _LOGGER.debug("Fan speed value.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_hc_display(self, device_id, display):
         """Set device second display for outside temperature or setpoint temperature for TH1134ZB-HC."""
         data = {ATTR_DISPLAY2: display}
         _LOGGER.debug("Hc display.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_language(self, device_id, lang):
         """Set display language for TH1134ZB-HC."""
         data = {ATTR_LANGUAGE: lang}
         _LOGGER.debug("Hc language.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_aux_heat_time_on(self, device_id, time):
         """Set display language for TH1134ZB-HC."""
         data = {ATTR_AUX_HEAT_TIMEON: time}
         _LOGGER.debug("HC aux_heat_time_on.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_time(self, device_id, time, state):
         """Set display language for TH1134ZB-HC."""
@@ -1373,15 +1405,23 @@ class Neviweb130Client:
         else:
             data = {ATTR_COOL_MIN_TIME_OFF: time}
         _LOGGER.debug("HC cool_min_time_on/off.data = %s", data)
-        await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_device_attributes(self, device_id, data):
-        """Ser devices attributes."""
+    async def async_set_device_attributes(self, device_id, data) -> bool:
+        """Ser devices attributes and return True if succesful."""
         result = 1
+        success = False
+        resp = {}
         while result < 3:
 #            session = await create_session()
             try:
-                async with self._session.put(DEVICE_DATA_URL + str(device_id) + "/attribute", json=data, headers=self._headers, cookies=self._cookies, timeout=self._timeout) as response:
+                async with self._session.put(
+                    DEVICE_DATA_URL + str(device_id) + "/attribute",
+                    json=data,
+                    headers=self._headers,
+                    cookies=self._cookies,
+                    timeout=self._timeout
+                ) as response:
                     resp = await response.json()
                     _LOGGER.debug (
                         "http_request = %s%s%s %s",
@@ -1393,6 +1433,11 @@ class Neviweb130Client:
                     _LOGGER.debug("Data = %s", data)
                     _LOGGER.debug("Request response = %s", response.status)
                     _LOGGER.debug("Json Data received= %s", resp)
+
+                    if response.status == 200 and "error" not in resp:
+                        success = True
+                        break
+
             except aiohttp.ClientError as e:
                 raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data) from e
             finally:
@@ -1403,9 +1448,8 @@ class Neviweb130Client:
                         resp,
                         result,
                     )
-                    continue
-                else:
-                    break
+
+        return success
 
     async def async_post_neviweb_status(self, device_id, location, mode):
         """Send post requests to Neviweb for global occupancy mode"""
@@ -1453,17 +1497,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
                 _LOGGER.error("No ID found for %s", dev)
                 continue
             # Collect attributes you want to expose
-            result[device_id] = {
-                "rssi": getattr(dev, "rssi", None),
-                "total_kwh_count": getattr(dev, "total_kwh_count", None),
-                "monthly_kwh_count": getattr(dev, "monthly_kwh_count", None),
-                "daily_kwh_count": getattr(dev, "daily_kwh_count", None),
-                "hourly_kwh_count": getattr(dev, "hourly_kwh_count", None),
-                "current_temperature": getattr(dev, "current_temperature", None),
-            }
-#            _LOGGER.debug("Result = %s", result[device_id])
-#            _LOGGER.debug("Returning result from coordinator: %s, keys: %s", self, list(result.keys()))
-#            _LOGGER.debug("Coordinator.data set: %s, keys: %s", self, list(self.data.keys()))
+            result[device_id] = extract_device_attributes(dev)
 
         return result
 
