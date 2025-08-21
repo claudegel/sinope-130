@@ -25,6 +25,7 @@ from .const import (
     ATTR_BLUE,
     ATTR_CLOSE_VALVE,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+    ATTR_COLOR,
     ATTR_CONF_CLOSURE,
     ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_MIN_TIME_ON,
@@ -116,10 +117,10 @@ PLATFORMS = [
     Platform.SENSOR,
     Platform.SWITCH,
     Platform.VALVE,
-#    platform.BINARY_SENSOR,
-#    platform.BUTTON,
-#    platform.NUMBER,
-#    platform.SELECT,
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SELECT,
 ]
 
 PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
@@ -134,7 +135,8 @@ DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", 
 TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
-POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
+TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
+POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400}
 FAN_SPEED = {"high", "medium", "low", "auto", "off"}
 WIFI_FAN_SPEED = {"auto", "on", "off"}
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
@@ -147,6 +149,51 @@ SWING_CAPABILITY_HORIZONTAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRe
                                'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
 FULL_SWING = ['swingFullRange']
 FULL_SWING_OFF = ['off']
+LOCK_LIST = ["locked", "unlocked", "tamper protection"]
+COLOR_LIST = ["lime", "amber", "fushia", "perle", "blue", "red", "orange", "green"]
+BACKLIGHT_LIST = ["auto", "on", "bedroom"]
+
+def color_to_rgb(color):
+    """Convert color to rgb tuple. (red,green,blue)"""
+    match color:
+        case "lime":
+            return "220,255,10"
+        case "amber":
+            return "75,10,0"
+        case "fushia":
+            return "165,0,10"
+        case "perle":
+            return "255,255,100"
+        case "blue":
+            return "0,255,255"
+        case "red":
+            return "255,0,0"
+        case "orange":
+            return "255,165,0"
+        case "green":
+            return "0,255,0"
+        case _:
+            return None
+
+def rgb_to_color(rgb):
+    """Convert rgb tuple to color. (red,green,blue)"""
+    match rgb:
+        case "220,255,10":
+            return "lime"
+        case "75,10,0":
+            return "amber"
+        case "165,0,10":
+            return "fushia"
+        case "255,255,100":
+            return "perle"
+        case "0,255,255":
+            return "blue"
+        case "255,0,0":
+            return "red"
+        case "255,165,0":
+            return "orange"
+        case _:
+            return None
 
 """Config schema."""
 
@@ -184,7 +231,6 @@ SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TYPE): vol.In(["wifi", "zigbee"]),
         vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on", "bedroom"]),
     }
 )
@@ -192,7 +238,7 @@ SET_BACKLIGHT_SCHEMA = vol.Schema(
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "tamper protection"]),
     }
 )
 
@@ -482,7 +528,7 @@ SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
+            vol.Coerce(int), vol.Range(min=0, max=10800)
         ),
     }
 )
@@ -493,14 +539,8 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
         vol.Required(ATTR_STATE): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=1)
         ),
-        vol.Required(ATTR_RED): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-        vol.Required(ATTR_GREEN): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
-        ),
-        vol.Required(ATTR_BLUE): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
+        vol.Required(ATTR_COLOR): vol.All(
+            cv.ensure_list, [vol.In(COLOR_LIST)]
         ),
     }
 )
@@ -568,7 +608,7 @@ SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
+            vol.Coerce(int), vol.Range(min=0, max=10800)
         ),
     }
 )
@@ -577,7 +617,7 @@ SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER2): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=255)
+            vol.Coerce(int), vol.Range(min=0, max=10800)
         ),
     }
 )
