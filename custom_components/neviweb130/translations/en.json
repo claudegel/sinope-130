@@ -67,33 +67,98 @@
   "reload_triggered": "Reload triggered successfully.",
   "log_downloaded": "Log downloaded successfully.",
   "entity": {
+    "binary_sensor": {
+      "battery_status": {
+        "name": "Battery Status"
+      },
+      "leak_status": {
+        "name": "Leak Status"
+      },
+      "temp_alert": {
+        "name": "Temp Alert"
+      }
+    },
+    "button": {
+      "reset_filter": {
+        "name": "Reset Filter"
+      }
+    },
+    "number": {
+      "brightness": {
+        "name": "Brightness"
+      },
+      "intensity_min": {
+        "name": "Min Intensity"
+      },
+      "led_off_intensity": {
+        "name": "Led Off Intensity"
+      },
+      "led_on_intensity": {
+        "name": "Led On Intensity"
+      },
+      "max_cool_temp": {
+        "name": "Cool Setpoint Max"
+      },
+      "max_temp": {
+        "name": "Setpoint Max"
+      },
+      "min_cool_temp": {
+        "name": "Cool Setpoint Min"
+      },
+      "min_temp": {
+        "name": "Setpoint Min"
+      },
+      "timer": {
+        "name": "Timer"
+      },
+      "timer2": {
+        "name": "Timer 2"
+      }
+    },
+    "select": {
+      "backlight": {
+        "name": "Back Light"
+      },
+      "keypad_lock": {
+        "name": "Lock Keypad"
+      },
+      "led_off_color": {
+        "name": "Led Off Color"
+      },
+      "led_on_color": {
+        "name": "Led On Color"
+      }
+    },
     "sensor": {
-      "rssi": {
-        "name": "Signal Strength"
-      },
-      "total_kwh_count": {
-        "name": "Total Energy"
-      },
-      "monthly_kwh_count": {
-        "name": "Monthly Energy"
+      "daily_flow_count": {
+        "name": "Daily Flow"
       },
       "daily_kwh_count": {
         "name": "Daily Energy"
       },
+      "hourly_flow_count": {
+        "name": "Hourly Flow"
+      },
       "hourly_kwh_count": {
         "name": "Hourly Energy"
-      },
-      "total_flow_count": {
-        "name": "Total Flow"
       },
       "monthly_flow_count": {
         "name": "Monthly Flow"
       },
-      "daily_flow_count": {
-        "name": "Daily Flow"
+      "monthly_kwh_count": {
+        "name": "Monthly Energy"
       },
-      "hourly_flow_count": {
-        "name": "Hourly Flow"
+      "pi_heating_demand": {
+        "name": "Heating Demand"
+      },
+      "rssi": {
+        "name": "Signal Strength"
+      },
+      "total_flow_count": {
+        "name": "Total Flow"
+      },
+      "total_kwh_count": {
+        "name": "Total Energy"
       }
     }
   }
