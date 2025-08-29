@@ -5620,7 +5620,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             _LOGGER.debug(
-                "Updated attributes for %s: %s",
+                "Updated attributes for %s (firmware %s): %s",
                 self._name,
                 self._firmware,
                 UPDATE_HEAT_COOL_ATTRIBUTES
