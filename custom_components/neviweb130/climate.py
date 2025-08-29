@@ -1949,16 +1949,6 @@ class Neviweb130Thermostat(ClimateEntity):
             return False
 
     @property
-    def target_temperature_low(self) -> float:
-        """Return the minimum heating temperature."""
-        return self._min_temp
-
-    @property
-    def target_temperature_high(self) -> float:
-        """Return the maximum heating temperature."""
-        return self._max_temp
-
-    @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
         return self._min_temp
@@ -2061,7 +2051,12 @@ class Neviweb130Thermostat(ClimateEntity):
         return temp
 
     @property
-    def target_cool_temperature(self) -> float:
+    def target_temperature_low(self) -> float:
+        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        return self.target_temperature
+
+    @property
+    def target_temperature_high(self) -> float:
         """Return the cooling temperature we try to reach."""
         if self._target_cool is not None:
             temp = self._target_cool
@@ -6005,6 +6000,27 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         month = value["month"] * 24 * 30
         self._client.set_fan_filter_reminder(entity, month, self._is_HC)
         self._fan_filter_remain = month
+
+    def set_temperature(self, **kwargs):
+        """Set new target temperature for cooling or heating."""
+        if self.hvac_mode != HVACMode.HEAT_COOL:
+            temperature = kwargs.get(ATTR_TEMPERATURE)
+            if temperature is None:
+                return
+            if self._heat_cool == HVACMode.COOL:
+                self._client.set_cool_temperature(self._id, temperature)
+            else:
+                self._client.set_temperature(self._id, temperature)
+            self._target_temp = temperature
+        else:
+            temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
+            temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+            if temperature_low is not None:
+                self._client.set_temperature(self._id, temperature_low)
+                self._target_temp = temperature_low
+            if temperature_high is not None:
+                self._client.set_cool_temperature(self._id, temperature_high)
+                self._target_cool = temperature_high
 
     def set_temperature_offset(self, value):
         """Set thermostat sensor offset from -2 to 2oC with a 0.5 oC increment."""
