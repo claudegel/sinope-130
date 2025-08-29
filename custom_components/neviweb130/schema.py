@@ -21,11 +21,11 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
                     ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM_TIMER,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
-                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_GREEN, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE,
-                    ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD,
-                    ATTR_LANGUAGE, ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
+                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_INTENSITY_MIN,
+                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
+                    ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
                     ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF, ATTR_ONOFF_NUM,
                     ATTR_OPTOUT, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
@@ -33,12 +33,12 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_REFUEL, ATTR_ROOM_SETPOINT_MAX,
                     ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT, ATTR_SETPOINT_MODE,
                     ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT,
-                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_OFFSET_HEAT,
-                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
+                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
+                    ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
                     ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
-                    ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE,
-                    CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
-                    CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN)
+                    ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
+                    CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
+                    CONF_STAT_INTERVAL, DOMAIN)
 
 """Default parameters values."""
 
@@ -588,7 +588,9 @@ SET_SWITCH_TIMER_SCHEMA = vol.Schema(
 SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER2): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
+        vol.Required(ATTR_TIMER2): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=10800)
+        ),
     }
 )
 
