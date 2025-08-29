@@ -48,13 +48,14 @@ from __future__ import annotations
 
 import logging
 import time
-
 from datetime import date, datetime, timezone
 
 from homeassistant.components.climate import (ClimateEntity,
                                               ClimateEntityFeature, HVACAction,
                                               HVACMode)
-from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
+from homeassistant.components.climate.const import (ATTR_TARGET_TEMP_HIGH,
+                                                    ATTR_TARGET_TEMP_LOW,
+                                                    PRESET_AWAY, PRESET_HOME,
                                                     PRESET_NONE)
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
@@ -65,7 +66,6 @@ from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
-
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_AIR_CONFIG, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_AIR_MAX_POWER_TEMP, ATTR_AUX_CYCLE,
@@ -84,25 +84,24 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_DRACCESORYCONF, ATTR_DRACTIVE, ATTR_DRAIR_CURT_CONF,
                     ATTR_DRAUXCONF, ATTR_DRFANCONF, ATTR_DRSETPOINT,
                     ATTR_DRSTATUS, ATTR_DUAL_STATUS, ATTR_EARLY_START,
-                    ATTR_FAN_CAP, ATTR_FAN_FILTER_LIFE,
-                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
-                    ATTR_FAN_SWING_CAP, ATTR_FAN_SWING_CAP_HORIZ,
-                    ATTR_FAN_SWING_CAP_VERT, ATTR_FAN_SWING_HORIZ,
-                    ATTR_FAN_SWING_VERT, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX,
-                    ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_MODE,
-                    ATTR_FLOOR_OUTPUT1, ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_SENSOR,
-                    ATTR_GFCI_ALERT, ATTR_GFCI_STATUS, ATTR_HC_DEV,
-                    ATTR_HC_LOCK_STATUS, ATTR_HEAT_COOL,
-                    ATTR_HEAT_INSTALL_TYPE, ATTR_HEAT_INTERSTAGE_MIN_DELAY,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP,
-                    ATTR_HEAT_MIN_TIME_OFF, ATTR_HEAT_MIN_TIME_ON,
-                    ATTR_HEAT_PURGE_TIME, ATTR_HEAT_SOURCE_TYPE,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_DISPLAY,
-                    ATTR_HUMID_SETPOINT, ATTR_HUMID_SETPOINT_MODE,
-                    ATTR_HUMID_SETPOINT_OFFSET, ATTR_HUMIDIFIER_TYPE,
-                    ATTR_HUMIDITY, ATTR_INTERLOCK_ID, ATTR_KEYPAD,
-                    ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
-                    ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
+                    ATTR_FAN_CAP, ATTR_FAN_FILTER_LIFE, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_FAN_SPEED, ATTR_FAN_SWING_CAP,
+                    ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT,
+                    ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
+                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
+                    ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT1,
+                    ATTR_FLOOR_OUTPUT2, ATTR_FLOOR_SENSOR, ATTR_GFCI_ALERT,
+                    ATTR_GFCI_STATUS, ATTR_HC_DEV, ATTR_HC_LOCK_STATUS,
+                    ATTR_HEAT_COOL, ATTR_HEAT_INSTALL_TYPE,
+                    ATTR_HEAT_INTERSTAGE_MIN_DELAY, ATTR_HEAT_LOCK_TEMP,
+                    ATTR_HEAT_LOCKOUT_TEMP, ATTR_HEAT_MIN_TIME_OFF,
+                    ATTR_HEAT_MIN_TIME_ON, ATTR_HEAT_PURGE_TIME,
+                    ATTR_HEAT_SOURCE_TYPE, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+                    ATTR_HUMID_DISPLAY, ATTR_HUMID_SETPOINT,
+                    ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY, ATTR_INTERLOCK_ID,
+                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY,
+                    ATTR_OPTOUT, ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
                     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_PUMP_PROTEC,
                     ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
                     ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_AWAY,
@@ -126,19 +125,18 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_COOL_SETPOINT_MIN, SERVICE_SET_CYCLE_OUTPUT,
                     SERVICE_SET_DISPLAY_CONFIG, SERVICE_SET_EARLY_START,
                     SERVICE_SET_EM_HEAT, SERVICE_SET_FAN_FILTER_REMINDER,
-                    SERVICE_SET_FLOOR_AIR_LIMIT,
-                    SERVICE_SET_FLOOR_LIMIT_HIGH, SERVICE_SET_FLOOR_LIMIT_LOW,
-                    SERVICE_SET_HC_SECOND_DISPLAY,
-                    SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
+                    SERVICE_SET_FLOOR_AIR_LIMIT, SERVICE_SET_FLOOR_LIMIT_HIGH,
+                    SERVICE_SET_FLOOR_LIMIT_LOW, SERVICE_SET_HC_SECOND_DISPLAY,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
+                    SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
                     SERVICE_SET_HUMIDIFIER_TYPE, SERVICE_SET_HVAC_DR_OPTIONS,
                     SERVICE_SET_HVAC_DR_SETPOINT, SERVICE_SET_LANGUAGE,
                     SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SCHEDULE_MODE,
                     SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
                     SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
                     SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
                      SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -151,12 +149,11 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_COOL_SETPOINT_MIN_SCHEMA, SET_CYCLE_OUTPUT_SCHEMA,
                      SET_DISPLAY_CONFIG_SCHEMA, SET_EARLY_START_SCHEMA,
                      SET_EM_HEAT_SCHEMA, SET_FAN_FILTER_REMINDER_SCHEMA,
-                     SET_FLOOR_AIR_LIMIT_SCHEMA,
-                     SET_FLOOR_LIMIT_HIGH_SCHEMA, SET_FLOOR_LIMIT_LOW_SCHEMA,
-                     SET_HC_SECOND_DISPLAY_SCHEMA,
-                     SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
+                     SET_FLOOR_AIR_LIMIT_SCHEMA, SET_FLOOR_LIMIT_HIGH_SCHEMA,
+                     SET_FLOOR_LIMIT_LOW_SCHEMA, SET_HC_SECOND_DISPLAY_SCHEMA,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
+                     SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
                      SET_HUMIDIFIER_TYPE_SCHEMA, SET_HVAC_DR_OPTIONS_SCHEMA,
                      SET_HVAC_DR_SETPOINT_SCHEMA, SET_LANGUAGE_SCHEMA,
                      SET_PUMP_PROTECTION_SCHEMA, SET_SCHEDULE_MODE_SCHEMA,
@@ -201,8 +198,7 @@ SUPPORT_H_c_FLAGS = (
 )
 
 SUPPORT_HC_FLAGS = (
-    ClimateEntityFeature.TARGET_TEMPERATURE
-    | ClimateEntityFeature.TARGET_HUMIDITY
+    ClimateEntityFeature.TARGET_HUMIDITY
     | ClimateEntityFeature.PRESET_MODE
     | ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.TURN_OFF
@@ -1661,6 +1657,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
+        self._target_cool = None
         self._operation_mode = None
         self._occupancy = None
         self._wattage = 0
@@ -1883,7 +1880,9 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._is_HP:
             return SUPPORT_HP_FLAGS
         elif self._is_HC:
-            return SUPPORT_HC_FLAGS
+            if self.hvac_mode in [HVACMode.HEAT_COOL, HVACMode.AUTO]:
+                return SUPPORT_HC_FLAGS | ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+            return SUPPORT_HC_FLAGS | ClimateEntityFeature.TARGET_TEMPERATURE
         elif self._is_h_c:
             return SUPPORT_H_c_FLAGS
         else:
@@ -1900,16 +1899,6 @@ class Neviweb130Thermostat(ClimateEntity):
             return True
         else:
             return False
-
-    @property
-    def target_temperature_low(self) -> float:
-        """Return the minimum heating temperature."""
-        return self._min_temp
-
-    @property
-    def target_temperature_high(self) -> float:
-        """Return the maximum heating temperature."""
-        return self._max_temp
 
     @property
     def min_temp(self) -> float:
@@ -1942,7 +1931,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_HC:
             if self._heat_cool == HVACMode.OFF:
                 return HVACMode.OFF
-            elif self._heat_cool == HVACMode.AUTO:
+            elif self._heat_cool in [HVACMode.AUTO, HVACMode.HEAT_COOL]:
                 return HVACMode.HEAT_COOL
             elif self._heat_cool == HVACMode.COOL:
                 return HVACMode.COOL
@@ -2006,7 +1995,12 @@ class Neviweb130Thermostat(ClimateEntity):
         return temp
 
     @property
-    def target_cool_temperature(self) -> float:
+    def target_temperature_low(self) -> float:
+        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        return self.target_temperature
+
+    @property
+    def target_temperature_high(self) -> float:
         """Return the cooling temperature we try to reach."""
         if self._target_cool is not None:
             temp = self._target_cool
@@ -2046,7 +2040,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_HC:
             if self._heat_cool == MODE_AUTO_BYPASS:
                 submode = "(" + MODE_AUTO_BYPASS + ")"
-            elif self._heat_cool == HVACMode.HEAT_COOL:
+            elif self._heat_cool in [HVACMode.HEAT_COOL, HVACMode.AUTO]:
                 submode = "(" + HVACMode.HEAT_COOL + ")"
             elif self._heat_cool == HVACMode.HEAT:
                 submode = "(" + HVACMode.HEAT + ")"
@@ -2063,7 +2057,10 @@ class Neviweb130Thermostat(ClimateEntity):
                     return HVACAction.IDLE + submode
                 else:
                     return HVACAction.COOLING + submode
-            elif self._heat_cool == HVACMode.HEAT or self._heat_cool == HVACMode.HEAT_COOL:
+            elif (
+                self._heat_cool == HVACMode.HEAT
+                or self._heat_cool == HVACMode.HEAT_COOL
+            ):
                 if self._heat_level == 0:
                     return HVACAction.IDLE + submode
                 else:
@@ -2097,6 +2094,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._heat_cool == HVACMode.HEAT
                 or self._heat_cool == HVACMode.COOL
                 or self._heat_cool == HVACMode.AUTO
+                or self._heat_cool == HVACMode.HEAT_COOL
                 or self._heat_cool == MODE_EM_HEAT
             ):
                 return True
@@ -2196,7 +2194,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat or HVACMode.COOL."""
         if self._is_HC:
-            if self._heat_cool == "cool":
+            if self._heat_cool == HVACMode.COOL:
                 self._client.set_setpoint_mode(
                     self._id, HVACMode.COOL, self._is_wifi, self._is_HC
                 )
@@ -2206,11 +2204,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
                 )
                 self._heat_cool = HVACMode.HEAT
-            elif self._heat_cool == HVACMode.AUTO:
+            elif self._heat_cool in [HVACMode.AUTO, HVACMode.HEAT_COOL]:
                 self._client.set_setpoint_mode(
                     self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
                 )
-                self._heat_cool = HVACMode.AUTO
+                self._heat_cool = HVACMode.HEAT_COOL
         else:
             self._client.set_setpoint_mode(
                 self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
@@ -2386,25 +2384,15 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._id, hvac_mode, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.AUTO:
+            self._client.set_setpoint_mode(
+                self._id, hvac_mode, self._is_wifi, self._is_HC
+            )
             if self._is_HC:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
-                )
                 hvac_mode = HVACMode.HEAT_COOL
-            else:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
-                )
         elif hvac_mode == HVACMode.HEAT_COOL:
-            if self._is_HC:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
-                )
-                hvac_mode = HVACMode.HEAT_COOL
-            else:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
-                )
+            self._client.set_setpoint_mode(
+                self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
+            )
         elif hvac_mode == HVACMode.COOL:
             self._client.set_setpoint_mode(
                 self._id, HVACMode.COOL, self._is_wifi, self._is_HC
@@ -2646,15 +2634,13 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
                 dt_month = datetime.fromisoformat(
                     device_monthly_stats[n - 1]["date"][:-1] + "+00:00"
-                    ).astimezone(timezone.utc)
+                ).astimezone(timezone.utc)
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = self._client.get_device_daily_stats(self._id)
-            _LOGGER.debug(
-                "%s device_daily_stats = %s", self._name, device_daily_stats
-            )
+            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
                 daily_kwh_count = 0
@@ -4195,9 +4181,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME]
                     if ATTR_DRSETPOINT in device_data:
-                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT][
-                            "status"
-                        ]
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
                             if device_data[ATTR_DRSETPOINT]["value"] is not None
@@ -4460,9 +4444,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     ]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
-                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT][
-                            "status"
-                        ]
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
                             device_data[ATTR_DRSETPOINT]["value"]
                             if device_data[ATTR_DRSETPOINT]["value"] is not None
@@ -4501,9 +4483,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT][
                         "status"
                     ]
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC][
-                        "status"
-                    ]
+                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC][
                             "frequency"
@@ -5652,7 +5632,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
-                        if self._heat_cool == "cool"
+                        if self._heat_cool == HVACMode.COOL
                         else float(device_data[ATTR_ROOM_SETPOINT])
                     )
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
@@ -5833,20 +5813,30 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     def set_fan_filter_reminder(self, value):
         """Set fan filter reminder period from 1 to 12 month for TH6500WF and TH6250WF."""
         entity = value["id"]
-        month = value["month"]*24*30
+        month = value["month"] * 24 * 30
         self._client.set_fan_filter_reminder(entity, month, self._is_HC)
         self._fan_filter_remain = month
 
     def set_temperature(self, **kwargs):
         """Set new target temperature for cooling or heating."""
-        temperature = kwargs.get(ATTR_TEMPERATURE)
-        if temperature is None:
-            return
-        if self._heat_cool == "cool":
-            self._client.set_cool_temperature(self._id, temperature)
+        if self.hvac_mode != HVACMode.HEAT_COOL:
+            temperature = kwargs.get(ATTR_TEMPERATURE)
+            if temperature is None:
+                return
+            if self._heat_cool == HVACMode.COOL:
+                self._client.set_cool_temperature(self._id, temperature)
+            else:
+                self._client.set_temperature(self._id, temperature)
+            self._target_temp = temperature
         else:
-            self._client.set_temperature(self._id, temperature)
-        self._target_temp = temperature
+            temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
+            temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+            if temperature_low is not None:
+                self._client.set_temperature(self._id, temperature_low)
+                self._target_temp = temperature_low
+            if temperature_high is not None:
+                self._client.set_cool_temperature(self._id, temperature_high)
+                self._target_cool = temperature_high
 
     def set_temperature_offset(self, value):
         """Set thermostat sensor offset from -2 to 2oC with a 0.5 oC increment."""
