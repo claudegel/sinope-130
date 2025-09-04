@@ -98,7 +98,7 @@ WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
 POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400}
 FAN_SPEED = {"high", "medium", "low", "auto", "off"}
-WIFI_FAN_SPEED = {"auto", "on", "off"}
+WIFI_FAN_SPEED = {"auto", "on"}
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {
     "fullHorizontal",
