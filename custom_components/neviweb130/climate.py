@@ -200,7 +200,9 @@ SUPPORT_H_c_FLAGS = (
 )
 
 SUPPORT_HC_FLAGS = (
-    ClimateEntityFeature.TARGET_HUMIDITY
+    ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+    | ClimateEntityFeature.TARGET_HUMIDITY
     | ClimateEntityFeature.PRESET_MODE
     | ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.TURN_OFF
@@ -287,7 +289,6 @@ SUPPORTED_HVAC_HC_MODES = [
     HVACMode.COOL,
     HVACMode.HEAT,
     HVACMode.OFF,
-    MODE_EM_HEAT,
 ]
 
 SUPPORTED_HVAC_HP_MODES = [
@@ -1708,6 +1709,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
+        self._cool_min = self._min_temp
+        self._cool_max = self._max_temp
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._temperature = None
         self._weather_icon = None
@@ -1928,9 +1931,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._is_HP:
             return SUPPORT_HP_FLAGS
         elif self._is_HC:
-            if self.hvac_mode in [HVACMode.HEAT_COOL, HVACMode.AUTO]:
-                return SUPPORT_HC_FLAGS | ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
-            return SUPPORT_HC_FLAGS | ClimateEntityFeature.TARGET_TEMPERATURE
+            return SUPPORT_HC_FLAGS
         elif self._is_h_c:
             return SUPPORT_H_c_FLAGS
         else:
@@ -1951,22 +1952,22 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        return self._min_temp
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            return min(self._min_temp, self._cool_min)
+        elif self.hvac_mode == HVACMode.COOL:
+            return self._cool_min
+        else:
+            return self._min_temp
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        return self._max_temp
-
-    @property
-    def min_cool_temp(self) -> float:
-        """Return the minimum cooling temperature."""
-        return self._cool_min
-
-    @property
-    def max_cool_temp(self) -> float:
-        """Return the maximum cooling temperature."""
-        return self._cool_max
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            return max(self._max_temp, self._cool_max)
+        elif self.hvac_mode == HVACMode.COOL:
+            return self._cool_max
+        else:
+            return self._max_temp
 
     @property
     def temperature_unit(self):
@@ -1974,25 +1975,15 @@ class Neviweb130Thermostat(ClimateEntity):
         return UnitOfTemperature.CELSIUS
 
     @property
-    def temperature(self) -> float:
-        return self._temperature
-
-    @property
-    def weather_icon(self) -> int:
-        return self._weather_icon
-
-    @property
     def hvac_mode(self):
         """Return current operation."""
         if self._is_HC:
             if self._heat_cool == HVACMode.OFF:
                 return HVACMode.OFF
-            elif self._heat_cool in [HVACMode.AUTO, HVACMode.HEAT_COOL]:
+            elif self._heat_cool == HVACMode.AUTO:
                 return HVACMode.HEAT_COOL
             elif self._heat_cool == HVACMode.COOL:
                 return HVACMode.COOL
-            elif self._heat_cool == MODE_EM_HEAT:
-                return MODE_EM_HEAT
             else:
                 return HVACMode.HEAT
         else:
@@ -2040,33 +2031,26 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        if self._target_temp is not None:
-            temp = self._target_temp + self._drsetpoint_value
+        if self.hvac_mode == HVACMode.COOL:
+            return self.target_temperature_high
         else:
-            temp = 0
-        if temp < self._min_temp:
-            return self._min_temp
-        if temp > self._max_temp:
-            return self._max_temp
-        return temp
+            return self.target_temperature_low
 
     @property
-    def target_temperature_low(self) -> float:
+    def target_temperature_low(self) -> float | None:
         """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        return self.target_temperature
+        if self._target_temp is None:
+            return None
+
+        return self._target_temp + self._drsetpoint_value
 
     @property
-    def target_temperature_high(self) -> float:
+    def target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
-        if self._target_cool is not None:
-            temp = self._target_cool
-        else:
-            temp = 0
-        if temp < self._cool_min:
-            return self._cool_min
-        if temp > self._cool_max:
-            return self._cool_max
-        return temp
+        if self._target_cool is None:
+            return None
+
+        return self._target_cool + self._drsetpoint_value
 
     @property
     def preset_mode(self):
@@ -2094,32 +2078,16 @@ class Neviweb130Thermostat(ClimateEntity):
     def hvac_action(self):
         """Return current HVAC action."""
         if self._is_HC:
-            if self._heat_cool == MODE_AUTO_BYPASS:
-                submode = "(" + MODE_AUTO_BYPASS + ")"
-            elif self._heat_cool in [HVACMode.HEAT_COOL, HVACMode.AUTO]:
-                submode = "(" + HVACMode.HEAT_COOL + ")"
-            elif self._heat_cool == HVACMode.HEAT:
-                submode = "(" + HVACMode.HEAT + ")"
-            elif self._heat_cool == HVACMode.COOL:
-                submode = "(" + HVACMode.COOL + ")"
-            elif self._heat_cool == MODE_EM_HEAT:
-                submode = "(" + MODE_EM_HEAT + ")"
-            else:
-                submode = "(" + HVACMode.OFF + ")"
-            if self._heat_cool == HVACMode.OFF:
-                return HVACAction.OFF + submode
-            elif self._heat_cool == HVACMode.COOL:
-                if self._heat_level == 0:
-                    return HVACAction.IDLE + submode
-                else:
-                    return HVACAction.COOLING + submode
-            elif self._heat_cool == HVACMode.HEAT or self._heat_cool == HVACMode.HEAT_COOL:
-                if self._heat_level == 0:
-                    return HVACAction.IDLE + submode
-                else:
-                    return HVACAction.HEATING + submode
-            elif self._heat_cool == MODE_EM_HEAT:
-                return "Em. heating" + submode
+            if self.hvac_mode == HVACMode.OFF:
+                return HVACAction.OFF
+            sub_mode = "(" + self._heat_cool + ")"
+            if self._heat_level == 0:
+                return HVACAction.IDLE + sub_mode
+            if self._heat_cool == HVACMode.COOL:
+                return HVACAction.COOLING + sub_mode
+            if self._heat_cool == HVACMode.HEAT:
+                return HVACAction.HEATING + sub_mode
+            return None
         else:
             if self._operation_mode == HVACMode.OFF:
                 return HVACAction.OFF
@@ -2147,7 +2115,6 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._heat_cool == HVACMode.HEAT
                 or self._heat_cool == HVACMode.COOL
                 or self._heat_cool == HVACMode.AUTO
-                or self._heat_cool == HVACMode.HEAT_COOL
                 or self._heat_cool == MODE_EM_HEAT
             ):
                 return True
@@ -2247,21 +2214,11 @@ class Neviweb130Thermostat(ClimateEntity):
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat or HVACMode.COOL."""
         if self._is_HC:
-            if self._heat_cool == HVACMode.COOL:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.COOL, self._is_wifi, self._is_HC
-                )
-                self._heat_cool = HVACMode.COOL
-            elif self._heat_cool == HVACMode.HEAT:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
-                )
-                self._heat_cool = HVACMode.HEAT
-            elif self._heat_cool in [HVACMode.AUTO, HVACMode.HEAT_COOL]:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
-                )
-                self._heat_cool = HVACMode.HEAT_COOL
+            if self._heat_cool is None or self._heat_cool == HVACMode.OFF:
+                self._heat_cool = HVACMode.AUTO
+            self._client.set_setpoint_mode(
+                self._id, self._heat_cool, self._is_wifi, self._is_HC
+            )
         else:
             self._client.set_setpoint_mode(
                 self._id, HVACMode.HEAT, self._is_wifi, self._is_HC
@@ -2280,48 +2237,11 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
-        if self._is_HC:
-            if self.hvac_mode == HVACMode.HEAT_COOL:
-                temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
-                temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
-            else:
-                temperature = kwargs.get(ATTR_TEMPERATURE)
-                if self.hvac_mode == HVACMode.COOL:
-                    temperature_high = temperature
-                else:
-                    temperature_low = temperature
-            if temperature_low is not None:
-                temperature_low = max(temperature_low, self._min_temp)
-                if self.hvac_mode == HVACMode.HEAT_COOL:
-                    temperature_low = min(
-                        temperature_low, self._target_cool - self._heatcool_setpoint_delta
-                    )
-                else:
-                    temperature_low = min(temperature_low, self._max_temp)
-
-                if self._target_temp != temperature_low:
-                    self._client.set_temperature(self._id, temperature_low)
-                    self._target_temp = temperature_low
-            if temperature_high is not None:
-                temperature_high = min(temperature_high, self._cool_max)
-                if self.hvac_mode == HVACMode.HEAT_COOL:
-                    temperature_high = max(
-                        temperature_high, self._target_temp + self._heatcool_setpoint_delta
-                    )
-                else:
-                    temperature_high = max(temperature_high, self._cool_min)
-
-                if self._target_cool != temperature_high:
-                    self._client.set_cool_temperature(self._id, temperature_high)
-                    self._target_cool = temperature_high
-        else:
-            temperature = kwargs.get(ATTR_TEMPERATURE)
-            if temperature is None:
-                return
-            temperature = min(temperature, self._max_temp)
-            temperature = max(temperature, self._min_temp)
-            self._client.set_temperature(self._id, temperature)
-            self._target_temp = temperature
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        if temperature is None:
+            return
+        self._client.set_temperature(self._id, temperature)
+        self._target_temp = temperature
 
     def set_second_display(self, value):
         """Set thermostat second display between outside and setpoint temperature."""
@@ -2475,19 +2395,14 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif hvac_mode == HVACMode.AUTO:
             self._client.set_setpoint_mode(
-                self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
+                self._id, hvac_mode, self._is_wifi, self._is_HC
             )
             if self._is_HC:
                 hvac_mode = HVACMode.HEAT_COOL
         elif hvac_mode == HVACMode.HEAT_COOL:
-            if self._is_HC:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.AUTO, self._is_wifi, self._is_HC
-                )
-            else:
-                self._client.set_setpoint_mode(
-                    self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
-                )
+            self._client.set_setpoint_mode(
+                self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
+            )
         elif hvac_mode == HVACMode.COOL:
             self._client.set_setpoint_mode(
                 self._id, HVACMode.COOL, self._is_wifi, self._is_HC
@@ -5798,11 +5713,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
-                    self._target_temp = (
-                        float(device_data[ATTR_COOL_SETPOINT])
-                        if self._heat_cool == HVACMode.COOL
-                        else float(device_data[ATTR_ROOM_SETPOINT])
-                    )
+                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_cool = float(device_data[ATTR_COOL_SETPOINT])
@@ -5946,6 +5857,77 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     )
 
     @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        if not self._is_HC:
+            return super().supported_features
+
+        features = (
+            ClimateEntityFeature.PRESET_MODE
+            | ClimateEntityFeature.FAN_MODE
+            | ClimateEntityFeature.TURN_OFF
+            | ClimateEntityFeature.TURN_ON
+        )
+
+        if self._humidifier_type != "none":
+            features |= ClimateEntityFeature.TARGET_HUMIDITY
+
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+        elif self.hvac_mode != HVACMode.OFF:
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE
+
+        return features
+
+    @property
+    def hvac_action(self):
+        """Return current HVAC action."""
+        action = super().hvac_action
+        return (
+            action
+            if action is not None
+            else self._heat_level_source_type + "(" + self._heat_cool + ")"
+        )
+
+    def set_hvac_mode(self, hvac_mode):
+        """Set new hvac mode."""
+        if not self._is_HC:
+            super().set_hvac_mode(hvac_mode)
+            return
+
+        if hvac_mode == HVACMode.HEAT_COOL:
+            self._heat_cool = HVACMode.AUTO
+        elif hvac_mode == HVACMode.HEAT and self._heat_cool == MODE_EM_HEAT:
+            return
+        else:
+            self._heat_cool = hvac_mode
+
+        self._client.set_setpoint_mode(
+            self._id, self._heat_cool, self._is_wifi, self._is_HC
+        )
+
+        # Reset the preset to the occupancy
+        self.set_preset_mode(self._occupancy)
+
+    def set_preset_mode(self, preset_mode):
+        """Activate a preset."""
+        if preset_mode != PRESET_BOOST:
+            super().set_preset_mode(preset_mode)
+        else:
+            self._client.set_setpoint_mode(
+                self._id, MODE_EM_HEAT, self._is_wifi, self._is_HC
+            )
+            self._heat_cool = MODE_EM_HEAT
+
+    @property
+    def preset_mode(self):
+        """Return current preset mode."""
+        if self._heat_cool == MODE_EM_HEAT:
+            return PRESET_BOOST
+
+        return super().preset_mode
+
+    @property
     def current_humidity(self):
         """Show current humidity percent."""
         return self._humid_display
@@ -6003,22 +5985,40 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_temperature(self, **kwargs):
         """Set new target temperature for cooling or heating."""
-        if self.hvac_mode != HVACMode.HEAT_COOL:
-            temperature = kwargs.get(ATTR_TEMPERATURE)
-            if temperature is None:
-                return
-            if self._heat_cool == HVACMode.COOL:
-                self._client.set_cool_temperature(self._id, temperature)
-            else:
-                self._client.set_temperature(self._id, temperature)
-            self._target_temp = temperature
-        else:
+        temperature_low = None
+        temperature_high = None
+        if self.hvac_mode == HVACMode.HEAT_COOL:
             temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
             temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
-            if temperature_low is not None:
+        else:
+            temperature = kwargs.get(ATTR_TEMPERATURE)
+            if self.hvac_mode == HVACMode.COOL:
+                temperature_high = temperature
+            else:
+                temperature_low = temperature
+
+        if temperature_low is not None:
+            temperature_low = max(temperature_low, self._min_temp)
+            if self.hvac_mode == HVACMode.HEAT_COOL:
+                temperature_low = min(
+                    temperature_low, self._target_cool - self._heatcool_setpoint_delta
+                )
+            else:
+                temperature_low = min(temperature_low, self._max_temp)
+
+            if self._target_temp != temperature_low:
                 self._client.set_temperature(self._id, temperature_low)
                 self._target_temp = temperature_low
-            if temperature_high is not None:
+        if temperature_high is not None:
+            temperature_high = min(temperature_high, self._cool_max)
+            if self.hvac_mode == HVACMode.HEAT_COOL:
+                temperature_high = max(
+                    temperature_high, self._target_temp + self._heatcool_setpoint_delta
+                )
+            else:
+                temperature_high = max(temperature_high, self._cool_min)
+
+            if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
 
