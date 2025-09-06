@@ -1070,8 +1070,8 @@ class Neviweb130Valve(ValveEntity):
                     + "disconnected... Check your log... Neviweb update will "
                     + "be halted for 20 minutes for "
                     + self._name
-                    + " id: "
-                    + str(self._id)
+                    + ", id: "
+                    + self._id
                     + ", Sku: "
                     + self._sku
                 )
@@ -1106,6 +1106,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1410,6 +1411,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1672,6 +1674,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
