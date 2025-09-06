@@ -12,7 +12,7 @@ NAME = f"{data['name']}"
 DOMAIN = f"{data['domain']}"
 VERSION = f"{data['version']}"
 ISSUE_URL = f"{data['issue_tracker']}"
-REQUIRE = f"{data['homeassistant']}"
+REQUIRE = "2025.1.1"
 DOC_URL = f"{data['documentation']}"
 
 STARTUP_MESSAGE = f"""
