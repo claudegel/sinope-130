@@ -13,7 +13,8 @@ from homeassistant.const import (CONF_PASSWORD, CONF_SCAN_INTERVAL,
                                  CONF_USERNAME)
 from homeassistant.helpers import discovery
 
-from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
+from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
+                    ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
                     ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
                     ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
@@ -31,8 +32,8 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
                     ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HEAT_COOL,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
+                    ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP,
+                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_SETPOINT,
                     ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
@@ -49,8 +50,8 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
                     ATTR_SETPOINT_MODE, ATTR_SIGNATURE, ATTR_SOUND_CONF,
                     ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT, ATTR_TANK_SIZE,
-                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_OFFSET_HEAT, 
-                    ATTR_TEMP_ALERT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
+                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
+                    ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
                     ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
                     CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
                     CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
@@ -769,7 +770,10 @@ class Neviweb130Client:
         """Work differently for wifi and zigbee devices and TH6250xx devices."""
         if wifi:
             if HC:
-                data = {ATTR_HEAT_COOL: mode}
+                if mode == HVACMode.HEAT_COOL:
+                    data = {ATTR_HEAT_COOL: HVACMode.AUTO}
+                else:
+                    data = {ATTR_HEAT_COOL: mode}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
                     mode = MODE_MANUAL
@@ -1261,6 +1265,12 @@ class Neviweb130Client:
         """Set gauge type for LM4110-ZB sensor on propane tank."""
         data = {ATTR_GAUGE_TYPE: gauge}
         _LOGGER.debug("gauge_type.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heating_source(self, device_id, equip):
+        """Set auxilary heating source for TH6500WF and TH6250WF."""
+        data = {ATTR_AUX_HEAT_SOURCE_TYPE: equip}
+        _LOGGER.debug("aux_heating_source.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_low_fuel_alert(self, device_id, alert):
