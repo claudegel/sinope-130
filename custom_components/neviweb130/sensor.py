@@ -970,6 +970,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
+        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1144,6 +1145,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
+        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1391,6 +1393,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, location):
         """Initialize."""
+        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._name = name
         self._sku = sku
         self._location = location
