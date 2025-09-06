@@ -809,3 +809,13 @@ set_temperature_offset:
     temperatureOffsetHeat:
       description: Values from -2 to 2oC with a 0.5 delta.
       example: -0.5
+
+set_aux_heating_source:
+  description: Set auxilary heating source for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
+      example: "climate.neviweb130_climate_office"
+    auxHeatSourceType:
+      description: Possibles values, "Electric", "Fossil", "SSR".
+      example: "Electric"
