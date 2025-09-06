@@ -1686,6 +1686,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._min_temp = 5
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._temp_display_value = None
         self._display2 = None
@@ -1808,6 +1810,7 @@ class Neviweb130Thermostat(ClimateEntity):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -1956,6 +1959,14 @@ class Neviweb130Thermostat(ClimateEntity):
     def temperature_unit(self):
         """Return the unit of measurement."""
         return UnitOfTemperature.CELSIUS
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    @property
+    def weather_icon(self) -> int:
+        return self._weather_icon
 
     @property
     def hvac_mode(self):
@@ -2690,6 +2701,12 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_aux_heating_source(entity, equip)
         self._aux_heat_source_type = dev
 
+    def get_weather(self):
+        """Get weather temperature for my location."""
+        weather = self._client.get_weather()
+        self._temperature = weather["temperature"]
+        self._weather_icon = weather["icon"]
+
     def do_stat(self, start):
         """Get device energy statistic."""
         if (
@@ -3011,6 +3028,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._operation_mode = None
         self._occupancy = None
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._temp_display_value = None
         self._display2 = None
@@ -3116,6 +3135,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3211,6 +3231,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._min_temp = 5
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._temp_display_status = None
         self._temp_display_value = None
@@ -3359,6 +3381,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3464,6 +3487,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._min_temp = 5
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._backlight = None
         self._keypad = None
@@ -3629,6 +3654,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3748,6 +3774,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._backlight = None
         self._time_format = "24h"
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._temp_display_value = None
         self._cycle_length = 0
         self._cycle_length_output2_status = "off"
@@ -3848,6 +3876,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -3959,6 +3988,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._backlight = None
         self._time_format = "24h"
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._min_temp = 5
         self._max_temp = 30
         self._rssi = None
@@ -4082,6 +4113,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -4202,6 +4234,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._backlight = None
         self._time_format = "24h"
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._min_temp = 5
         self._max_temp = 30
         self._rssi = None
@@ -4322,6 +4356,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             if self._sku != "TH1133WF" and self._sku != "TH1133CR":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -4445,6 +4480,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._floor_min = None
         self._floor_min_status = "off"
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._temp_display_status = None
         self._temp_display_value = None
         self._cycle_length = 0
@@ -4608,6 +4645,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -4749,6 +4787,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._floor_min = None
         self._floor_min_status = "off"
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._error_code = None
         self._is_wifi_floor = (
             device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR
@@ -4889,6 +4929,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -5000,6 +5041,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._min_temp = 5
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._backlight = None
         self._keypad = None
@@ -5168,6 +5211,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -5277,6 +5321,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._min_temp = 16
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._keypad = None
         self._heat_level = None
         self._occupancy = None
@@ -5437,6 +5483,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
@@ -5539,6 +5586,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._min_temp = 5
         self._max_temp = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._heat_level = 0
         self._heat_level_source_type = None
@@ -5866,6 +5915,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self.get_sensor_error_code(start)
+            self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
