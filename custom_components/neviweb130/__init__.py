@@ -74,6 +74,7 @@ LOCATIONS_URL = f"{HOST}/api/locations?account$id="
 GATEWAY_DEVICE_URL = f"{HOST}/api/devices?location$id="
 DEVICE_DATA_URL = f"{HOST}/api/device/"
 NEVIWEB_LOCATION = f"{HOST}/api/location/"
+NEVIWEB_WEATHER = f"{HOST}/api/weather?code="
 
 
 def setup(hass, hass_config):
@@ -160,6 +161,7 @@ class Neviweb130Client:
         self._network_name = network
         self._network_name2 = network2
         self._network_name3 = network3
+        self._code = None
         self._ignore_miwi = ignore_miwi
         self._gateway_id = None
         self._gateway_id2 = None
@@ -286,16 +288,19 @@ class Neviweb130Client:
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
                     self._occupancyMode = networks[0]["mode"]
+                    self._code = networks[0]["postalCode"]
                     _LOGGER.debug("Selecting %s as first network", self._network_name)
                     if len(networks) > 1:
                         self._gateway_id2 = networks[1]["id"]
                         self._network_name2 = networks[1]["name"]
+                        self._code = networks[1]["postalCode"]
                         _LOGGER.debug(
                             "Selecting %s as second network", self._network_name2
                         )
                         if len(networks) > 2:
                             self._gateway_id3 = networks[2]["id"]
                             self._network_name3 = networks[2]["name"]
+                            self._code = networks[2]["postalCode"]
                             _LOGGER.debug(
                                 "Selecting %s as third network", self._network_name3
                             )
@@ -304,6 +309,7 @@ class Neviweb130Client:
                         if network["name"] == self._network_name:
                             self._gateway_id = network["id"]
                             self._occupancyMode = network["mode"]
+                            self._code = network["postalCode"]
                             _LOGGER.debug(
                                 "Selecting %s network among: %s",
                                 self._network_name,
@@ -315,6 +321,8 @@ class Neviweb130Client:
                             == self._network_name[0].lower() + self._network_name[1:]
                         ):
                             self._gateway_id = network["id"]
+                            self._occupancyMode = network["mode"]
+                            self._code = network["postalCode"]
                             _LOGGER.debug(
                                 "Please check first letter of your network "
                                 + "name, In capital letter or not? Selecting "
@@ -338,6 +346,7 @@ class Neviweb130Client:
                         ):
                             if network["name"] == self._network_name2:
                                 self._gateway_id2 = network["id"]
+                                self._code = network["postalCode"]
                                 _LOGGER.debug(
                                     "Selecting %s network among: %s",
                                     self._network_name2,
@@ -352,6 +361,7 @@ class Neviweb130Client:
                                 + self._network_name2[1:]
                             ):
                                 self._gateway_id = network["id"]
+                                self._code = network["postalCode"]
                                 _LOGGER.debug(
                                     "Please check first letter of your "
                                     + "network2 name, In capital letter or "
@@ -374,6 +384,7 @@ class Neviweb130Client:
                         ):
                             if network["name"] == self._network_name3:
                                 self._gateway_id3 = network["id"]
+                                self._code = network["postalCode"]
                                 _LOGGER.debug(
                                     "Selecting %s network among: %s",
                                     self._network_name3,
@@ -388,6 +399,7 @@ class Neviweb130Client:
                                 + self._network_name3[1:]
                             ):
                                 self._gateway_id = network["id"]
+                                self._code = network["postalCode"]
                                 _LOGGER.debug(
                                     "Please check first letter of your "
                                     + "network3 name, In capital letter or "
@@ -713,6 +725,28 @@ class Neviweb130Client:
         else:
             _LOGGER.debug("Hourly stat error: %s", data)
             return None
+
+    def get_weather(self):
+        """Get Neviweb weather for my location."""
+        # Prepare return
+        data = {}
+        # _LOGGER.debug("sent data = %s", NEVIWEB_WEATHER + self._code)
+        try:
+            raw_res = requests.get(
+                NEVIWEB_WEATHER + self._code,
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            )
+        except OSError:
+            raise PyNeviweb130Error("Cannot get Neviweb weather and icon...")
+            return None
+        # Update cookies
+        self._cookies.update(raw_res.cookies)
+        # Prepare data
+        data = raw_res.json()
+        # _LOGGER.debug("weather data: %s", data)
+        return data
 
     def get_device_sensor_error(self, device_id):
         """Get device error code status."""
