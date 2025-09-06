@@ -933,6 +933,7 @@ class Neviweb130Dimmer(Neviweb130Light):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1083,6 +1084,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
