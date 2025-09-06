@@ -1073,7 +1073,7 @@ class Neviweb130Switch(SwitchEntity):
             current_month = today.month
             current_day = today.day
             device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-            #            _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+            #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
                 monthly_kwh_count = 0
@@ -1293,6 +1293,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1443,6 +1444,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1593,6 +1595,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1808,6 +1811,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -2057,6 +2061,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
