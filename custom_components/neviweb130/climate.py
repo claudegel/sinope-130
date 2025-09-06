@@ -5606,7 +5606,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._humid_setpoint_offset = 0
         self._humidity_setpoint_mode = None
         self._air_min_timeon = 0
-        self._heatcool_lock_status = None
+        self._heatcool_lock_cool_status = None
+        self._heatcool_lock_heat_status = None
+        self._heatcool_lock_balancePoint_status = None
         self._dr_aux_config = None
         self._dr_fan_speed_conf = None
         self._dr_accessory_conf = None
@@ -5824,7 +5826,15 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             ATTR_HUMID_SETPOINT_MODE
                         ]
                         self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
-                        self._heatcool_lock_status = device_data[ATTR_HC_LOCK_STATUS]
+                        self._heatcool_lock_cool_status = (
+                            device_data[ATTR_HC_LOCK_STATUS]['cool']
+                        )
+                        self._heatcool_lock_heat_status = (
+                            device_data[ATTR_HC_LOCK_STATUS]['heat']
+                        )
+                        self._heatcool_lock_balancePoint_status = (
+                            device_data[ATTR_HC_LOCK_STATUS]['balancePoint']
+                        )
                         self._dr_aux_config = device_data[ATTR_DRAUXCONF]
                         self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
                         self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
@@ -6005,7 +6015,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "humidity_setpoint_offset": self._humid_setpoint_offset,
                     "humidity_setpoint_mode": self._humidity_setpoint_mode,
                     "exchanger_min_time_on": self._air_min_timeon,
-                    "heatcool_lock_status": self._heatcool_lock_status,
+                    "heatcool_lock_cool_status": self._heatcool_lock_cool_status,
+                    "heatcool_lock_heat_status": self._heatcool_lock_heat_status,
+                    "heatcool_lock_balancePoint_status": (
+                        self._heatcool_lock_balancePoint_status
+                    ),
                     "dr_aux_config": self._dr_aux_config,
                     "dr_fan_speed_conf": self._dr_fan_speed_conf,
                     "dr_accessory_conf": self._dr_accessory_conf,
