@@ -2088,13 +2088,12 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_HC:
             if self.hvac_mode == HVACMode.OFF:
                 return HVACAction.OFF
-            sub_mode = "(" + self._heat_cool + ")"
             if self._heat_level == 0:
-                return HVACAction.IDLE + sub_mode
+                return HVACAction.IDLE
             if self._heat_cool == HVACMode.COOL:
-                return HVACAction.COOLING + sub_mode
+                return HVACAction.COOLING
             if self._heat_cool == HVACMode.HEAT:
-                return HVACAction.HEATING + sub_mode
+                return HVACAction.HEATING
             return None
         else:
             if self._operation_mode == HVACMode.OFF:
@@ -5894,7 +5893,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return (
             action
             if action is not None
-            else self._heat_level_source_type + "(" + self._heat_cool + ")"
+            else self._heat_level_source_type
         )
 
     def set_hvac_mode(self, hvac_mode):
