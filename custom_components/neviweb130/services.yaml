@@ -819,3 +819,13 @@ set_aux_heating_source:
     auxHeatSourceType:
       description: Possibles values, "Electric", "Fossil", "SSR".
       example: "Electric"
+
+set_fan_speed:
+  description: Set fan speed for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
+      example: "climate.neviweb130_climate_office"
+    fanSpeed:
+      description: Possibles values, "On", "Auto".
+      example: "On"
