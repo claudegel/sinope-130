@@ -124,7 +124,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_COOL_SETPOINT_MAX,
                     SERVICE_SET_COOL_SETPOINT_MIN, SERVICE_SET_CYCLE_OUTPUT,
                     SERVICE_SET_DISPLAY_CONFIG, SERVICE_SET_EARLY_START,
-                    SERVICE_SET_EM_HEAT, SERVICE_SET_FAN_FILTER_REMINDER,
+                    SERVICE_SET_EM_HEAT, SERVICE_SET_FAN_SPEED,
+                    SERVICE_SET_FAN_FILTER_REMINDER,
                     SERVICE_SET_FLOOR_AIR_LIMIT, SERVICE_SET_FLOOR_LIMIT_HIGH,
                     SERVICE_SET_FLOOR_LIMIT_LOW, SERVICE_SET_HC_SECOND_DISPLAY,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
@@ -148,7 +149,8 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_COOL_SETPOINT_MAX_SCHEMA,
                      SET_COOL_SETPOINT_MIN_SCHEMA, SET_CYCLE_OUTPUT_SCHEMA,
                      SET_DISPLAY_CONFIG_SCHEMA, SET_EARLY_START_SCHEMA,
-                     SET_EM_HEAT_SCHEMA, SET_FAN_FILTER_REMINDER_SCHEMA,
+                     SET_EM_HEAT_SCHEMA, SET_FAN_SPEED_SCHEMA,
+                     SET_FAN_FILTER_REMINDER_SCHEMA,
                      SET_FLOOR_AIR_LIMIT_SCHEMA, SET_FLOOR_LIMIT_HIGH_SCHEMA,
                      SET_FLOOR_LIMIT_LOW_SCHEMA, SET_HC_SECOND_DISPLAY_SCHEMA,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
@@ -1326,6 +1328,20 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_fan_speed_service(service):
+        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "speed": service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
+                }
+                thermostat.set_fan_speed(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1597,6 +1613,13 @@ async def async_setup_platform(
         SERVICE_SET_AUX_HEATING_SOURCE,
         set_aux_heating_source_service,
         schema=SET_AUX_HEATING_SOURCE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FAN_SPEED,
+        set_fan_speed_service,
+        schema=SET_FAN_SPEED_SCHEMA,
     )
 
 
@@ -5613,7 +5636,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_filter_remain = None
         self._fan_filter_life = None
         self._fan_speed = None
-        self._balance_pt = -30
+        self._balance_pt = -15
         self._occupancy = None
         self._cycle = None
         self._aux_cycle = None
@@ -5936,6 +5959,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     def target_humidity(self) -> int:
         """Return target humidity."""
         return self._humid_setpoint
+
+    def set_fan_speed(self, value):
+        """"Set fan speed On or Auto."""
+        entity = value["id"]
+        speed = value["speed"]
+        self._client.set_fan_mode(entity, speed)
+        self._fan_speed = speed
 
     def set_humidity(self, **kwargs):
         """Set new target humidity %."""
