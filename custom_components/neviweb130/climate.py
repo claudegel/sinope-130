@@ -332,7 +332,7 @@ PRESET_HP_MODES = [
 PRESET_HC_MODES = [
     PRESET_AWAY,
     PRESET_BOOST,
-    PRESET_NONE,
+    PRESET_HOME,
 ]
 
 DEVICE_MODEL_LOW = [7372]
@@ -1975,6 +1975,14 @@ class Neviweb130Thermostat(ClimateEntity):
         return UnitOfTemperature.CELSIUS
 
     @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    @property
+    def weather_icon(self) -> int:
+        return self._weather_icon
+
+    @property
     def hvac_mode(self):
         """Return current operation."""
         if self._is_HC:
@@ -2056,7 +2064,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def preset_mode(self):
         """Return current preset mode."""
         if self._occupancy == PRESET_HOME:
-            return PRESET_NONE
+            return PRESET_HOME
         elif self._occupancy == PRESET_AWAY:
             return PRESET_AWAY
         else:
@@ -2401,7 +2409,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 hvac_mode = HVACMode.HEAT_COOL
         elif hvac_mode == HVACMode.HEAT_COOL:
             self._client.set_setpoint_mode(
-                self._id, HVACMode.HEAT_COOL, self._is_wifi, self._is_HC
+                self._id, hvac_mode, self._is_wifi, self._is_HC
             )
         elif hvac_mode == HVACMode.COOL:
             self._client.set_setpoint_mode(
@@ -5897,8 +5905,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         if hvac_mode == HVACMode.HEAT_COOL:
             self._heat_cool = HVACMode.AUTO
-        elif hvac_mode == HVACMode.HEAT and self._heat_cool == MODE_EM_HEAT:
-            return
         else:
             self._heat_cool = hvac_mode
 
@@ -5913,6 +5919,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Activate a preset."""
         if preset_mode != PRESET_BOOST:
             super().set_preset_mode(preset_mode)
+            if self._heat_cool == MODE_EM_HEAT:
+                self.set_hvac_mode(HVACMode.HEAT)
         else:
             self._client.set_setpoint_mode(
                 self._id, MODE_EM_HEAT, self._is_wifi, self._is_HC
