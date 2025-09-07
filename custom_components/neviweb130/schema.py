@@ -17,7 +17,7 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
                     ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN,
                     ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRACTIVE,
-                    ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_EARLY_START, ATTR_FAN_SPEED, ATTR_FAN_FILTER_REMAIN,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN,
                     ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
                     ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM_TIMER,
@@ -151,6 +151,9 @@ SWING_CAPABILITY_HORIZONTAL = {
 FULL_SWING = ["swingFullRange"]
 FULL_SWING_OFF = ["off"]
 AUX_HEATING = ["Electric", "Fossil", "SSR"]
+ACCESSORY = ["none", "Humidifier on heat", "Humidifier on fan", "Air Exchanger", "Dehumidifier"]
+INSTALL_TYPE = ["addOn", "Conventional"]
+AIR_MIN_TIME_ON = [0, 20, 40, 60]
 
 """Config schema."""
 
@@ -500,6 +503,13 @@ SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema(
         vol.Required(ATTR_AUX_HEAT_SOURCE_TYPE): vol.All(
             cv.ensure_list, [vol.In(AUX_HEATING)]
         ),
+    }
+)
+
+SET_FAN_SPEED_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_SPEED): vol.In(["On", "Auto"]),
     }
 )
 
