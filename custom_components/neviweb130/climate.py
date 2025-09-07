@@ -2630,7 +2630,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_aux_heating_source(self, value):
         """"Set auxilary heating device for TH6500WF and TH6250WF."""
         entity = value["id"]
-        dev = vaalue["dev"]
+        dev = value["dev"]
         match dev:
             case "Electric":
                 equip =  "hvacElectrique"
