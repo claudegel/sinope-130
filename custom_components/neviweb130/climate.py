@@ -1709,8 +1709,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
-        self._cool_min = self._min_temp
-        self._cool_max = self._max_temp
+        self._cool_min = 15
+        self._cool_max = 36
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._temperature = None
         self._weather_icon = None
@@ -6057,7 +6057,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if self._target_cool is None:
             return None
 
-        return self._target_cool + self._drsetpoint_value
+        return self._target_cool
 
     @property
     def extra_state_attributes(self):
