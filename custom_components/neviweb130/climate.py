@@ -2039,26 +2039,28 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        if self.hvac_mode == HVACMode.COOL:
-            return self.target_temperature_high
+        if self._target_temp is not None:
+            temp = self._target_temp + self._drsetpoint_value
         else:
-            return self.target_temperature_low
+            temp = 0
+        if temp < self._min_temp:
+            return self._min_temp
+        if temp > self._max_temp:
+            return self._max_temp
+        return temp
 
     @property
-    def target_temperature_low(self) -> float | None:
-        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        if self._target_temp is None:
-            return None
-
-        return self._target_temp + self._drsetpoint_value
-
-    @property
-    def target_temperature_high(self) -> float | None:
+    def target_cool_temperature(self) -> float:
         """Return the cooling temperature we try to reach."""
-        if self._target_cool is None:
-            return None
-
-        return self._target_cool + self._drsetpoint_value
+        if self._target_cool is not None:
+            temp = self._target_cool
+        else:
+            temp = 0
+        if temp < self._cool_min:
+            return self._cool_min
+        if temp > self._cool_max:
+            return self._cool_max
+        return temp
 
     @property
     def preset_mode(self):
@@ -6023,6 +6025,39 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         temperature = value["temp"]
         self._client.set_temperature_offset(entity, temperature, self._is_HC)
         self._temp_offset_heat = temperature
+
+    @property
+    def target_temperature(self) -> float | None:
+        """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        if not self._is_HC:
+            return super().target_temperature
+
+        if self.hvac_mode == HVACMode.COOL:
+            return self.target_temperature_high
+        else:
+            return self.target_temperature_low
+
+    @property
+    def target_temperature_low(self) -> float | None:
+        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        if not self._is_HC:
+            return super().target_temperature_low
+
+        if self._target_temp is None:
+            return None
+
+        return self._target_temp + self._drsetpoint_value
+
+    @property
+    def target_temperature_high(self) -> float | None:
+        """Return the cooling temperature we try to reach."""
+        if not self._is_HC:
+            return super().target_temperature_high
+
+        if self._target_cool is None:
+            return None
+
+        return self._target_cool + self._drsetpoint_value
 
     @property
     def extra_state_attributes(self):
