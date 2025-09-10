@@ -2590,7 +2590,11 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
         self._occupancy = preset_mode
 
-        if self._is_HC and preset_mode != PRESET_BOOST and self._heat_cool == MODE_EM_HEAT:
+        if (
+            self._is_HC
+            and preset_mode != PRESET_BOOST
+            and self._heat_cool == MODE_EM_HEAT
+        ):
             self.set_hvac_mode(HVACMode.HEAT)
 
     def turn_em_heat_on(self):
@@ -5944,15 +5948,15 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             ATTR_HUMID_SETPOINT_MODE
                         ]
                         self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
-                        self._heatcool_lock_cool_status = (
-                            device_data[ATTR_HC_LOCK_STATUS]['cool']
-                        )
-                        self._heatcool_lock_heat_status = (
-                            device_data[ATTR_HC_LOCK_STATUS]['heat']
-                        )
-                        self._heatcool_lock_balancePoint_status = (
-                            device_data[ATTR_HC_LOCK_STATUS]['balancePoint']
-                        )
+                        self._heatcool_lock_cool_status = device_data[
+                            ATTR_HC_LOCK_STATUS
+                        ]["cool"]
+                        self._heatcool_lock_heat_status = device_data[
+                            ATTR_HC_LOCK_STATUS
+                        ]["heat"]
+                        self._heatcool_lock_balancePoint_status = device_data[
+                            ATTR_HC_LOCK_STATUS
+                        ]["balancePoint"]
                         self._dr_aux_config = device_data[ATTR_DRAUXCONF]
                         self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
                         self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
