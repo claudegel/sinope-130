@@ -17,7 +17,7 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
                     ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN,
                     ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRACTIVE,
-                    ATTR_EARLY_START, ATTR_FAN_SPEED, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN,
                     ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
                     ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM_TIMER,
@@ -98,7 +98,7 @@ LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
 FAN_SPEED = {"high", "medium", "low", "auto", "off"}
-WIFI_FAN_SPEED = {"auto", "on", "off"}
+WIFI_FAN_SPEED = {"auto", "on"}
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {
     "fullHorizontal",
@@ -151,7 +151,13 @@ SWING_CAPABILITY_HORIZONTAL = {
 FULL_SWING = ["swingFullRange"]
 FULL_SWING_OFF = ["off"]
 AUX_HEATING = ["Electric", "Fossil", "SSR"]
-ACCESSORY = ["none", "Humidifier on heat", "Humidifier on fan", "Air Exchanger", "Dehumidifier"]
+ACCESSORY = [
+    "none",
+    "Humidifier on heat",
+    "Humidifier on fan",
+    "Air Exchanger",
+    "Dehumidifier",
+]
 INSTALL_TYPE = ["addOn", "Conventional"]
 AIR_MIN_TIME_ON = [0, 20, 40, 60]
 
@@ -594,18 +600,14 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(
-            ["locked", "unlocked", "partiallyLocked"]
-        ),
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
     }
 )
 
 SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=10800)
-        ),
+        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
