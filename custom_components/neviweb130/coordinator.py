@@ -1393,13 +1393,13 @@ class Neviweb130Client:
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_aux_heat_time_on(self, device_id, time):
-        """Set display language for TH1134ZB-HC."""
+        """Set auxiliary heating minimum time on for TH6500WF and TH6250WF."""
         data = {ATTR_AUX_HEAT_TIMEON: time}
         _LOGGER.debug("HC aux_heat_time_on.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_time(self, device_id, time, state):
-        """Set display language for TH1134ZB-HC."""
+        """Set minimum cooling time on for TH6500WF and TH6250WF."""
         if state == "on":
             data = {ATTR_COOL_MIN_TIME_ON: time}
         else:
