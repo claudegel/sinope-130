@@ -70,10 +70,16 @@
   "entity": {
     "binary_sensor": {
       "battery_status": {
-        "name": "Statut Batterie"
+        "name": "Alerte Batterie"
       },
       "leak_status": {
-        "name": "Statut Fuite"
+        "name": "Alerte Fuite"
+      },
+      "level_status": {
+        "name": "Alerte Bas Niveau"
+      },
+      "refuel_status": {
+        "name": "Alerte Remplissage"
       },
       "temp_alert": {
         "name": "Alerte Temperature"
@@ -122,6 +128,9 @@
       },
       "keypad_lock": {
         "name": "Verrouillage du clavier"
+      },
+      "language": {
+        "name": "Langue"
       },
       "led_off_color": {
         "name": "Couleur DEL Off"
