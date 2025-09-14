@@ -43,6 +43,7 @@ from .schema import (
     rgb_to_color,
     BACKLIGHT_LIST,
     COLOR_LIST,
+    LANGUAGE_LIST,
     LOCK_LIST,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
@@ -91,11 +92,17 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         translation_key="keypad_lock",
         options=LOCK_LIST,
     ),
+    Neviweb130SelectEntityDescription(
+        key="language",
+        icon="mdi:projector-screen-outline",
+        translation_key="language",
+        options=LANGUAGE_LIST,
+    ),
 )
 
 def get_attributes_for_model(model):
     if model in CLIMATE_MODEL:
-        return ["keypad", "backlight"]
+        return ["keypad", "backlight", "language"]
     elif model in LIGHT_MODEL:
         return ["keypad", "led_on_color", "led_off_color"]
     elif model in SWITCH_MODEL:
@@ -201,6 +208,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "led_off_color": lambda self, option: self._client.async_set_led_indicator(self._id, 0, option),
         "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
         "keypad_status": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "language": lambda self, option: self._client.async_set_language(self._id, option),
         # ...
     }
 
