@@ -123,35 +123,36 @@ PLATFORMS = [
     Platform.SELECT,
 ]
 
-PERIOD_VALUE = {"15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"}
+PERIOD_VALUE = {'15 sec', '5 min', '10 min', '15 min', '20 min', '25 min', '30 min'}
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
-TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
-HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
-CONTROLLED_VALUE = {"Hot water heater", "Pool pump", "Eletric vehicle charger", "Other"}
-FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
-FLOW_DURATION = {"15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "3 h", "6 h", "12 h", "24 h"}
-DELAY = {"off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 h", "2 h", "3 h"}
+TANK_VALUE = {'40 gal', '50 gal', '60 gal', '80 gal'}
+HUMIDIFIER_TYPE = {'none', 'steam', 'flowthrough'}
+CONTROLLED_VALUE = {'Hot water heater', 'Pool pump', 'Eletric vehicle charger', 'Other'}
+FLOW_MODEL = {'FS4220', 'FS4221', 'No flow meter'}
+FLOW_DURATION = {'15 min', '30 min', '45 min', '60 min', '75 min', '90 min', '3 h', '6 h', '12 h', '24 h'}
+DELAY = {'off', '1 min', '2 min', '5 min', '10 min', '15 min', '30 min', '1 h', '2 h', '3 h'}
 TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
 POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400}
-FAN_SPEED = {"high", "medium", "low", "auto", "off"}
-WIFI_FAN_SPEED = {"auto", "on", "off"}
-FAN_CAPABILITY = {"low", "med", "high", "auto"}
-FAN_SWING_CAPABILITY = {"fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"}
-DISPLAY_CAPABILITY = {"enable", "disable"}
-SOUND_CAPABILITY = {"enable", "disable"}
+FAN_SPEED = {'high', 'medium', 'low', 'auto', 'off'}
+WIFI_FAN_SPEED = {'auto', 'on'}
+FAN_CAPABILITY = {'low', 'med', 'high', 'auto'}
+FAN_SWING_CAPABILITY = {'fullHorizontal', 'autoHorizontal', 'fullVertical', 'autoVertical'}
+DISPLAY_CAPABILITY = {'enable', 'disable'}
+SOUND_CAPABILITY = {'enable', 'disable'}
 SWING_CAPABILITY_VERTICAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8', \
                              'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
 SWING_CAPABILITY_HORIZONTAL = {'swingFullRange', 'off', 'fixedRegion1', 'fixedRegion2', 'fixedRegion3', 'fixedRegion4', 'fixedRegion5', 'fixedRegion6', 'fixedRegion7', 'fixedRegion8', \
                                'swingRegion1','swingRegion2','swingRegion3','swingRegion3','swingRegion5','swingRegion6','swingRegion7','swingRegion8'}
 FULL_SWING = ['swingFullRange']
 FULL_SWING_OFF = ['off']
-LOCK_LIST = ["locked", "unlocked", "tamper protection"]
-COLOR_LIST = ["lime", "amber", "fushia", "perle", "blue", "red", "orange", "green"]
-BACKLIGHT_LIST = ["auto", "on", "bedroom"]
+LOCK_LIST = ['locked', 'unlocked', 'tamper protection']
+COLOR_LIST = ['lime', 'amber', 'fushia', 'perle', 'blue', 'red', 'orange', 'green']
+BACKLIGHT_LIST = ['auto', 'on', 'bedroom']
+LANGUAGE_LIST = ['fr', 'en']
 
 def color_to_rgb(color):
     """Convert color to rgb tuple. (red,green,blue)"""
