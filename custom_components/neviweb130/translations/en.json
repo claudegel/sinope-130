@@ -74,6 +74,12 @@
       "leak_status": {
         "name": "Leak Status"
       },
+      "level_status": {
+        "name": "Level Status"
+      },
+      "refuel_status": {
+        "name": "Refuel Status"
+      },
       "temp_alert": {
         "name": "Temp Alert"
       }
@@ -121,6 +127,9 @@
       },
       "keypad_lock": {
         "name": "Lock Keypad"
+      },
+      "language": {
+        "name": "Language"
       },
       "led_off_color": {
         "name": "Led Off Color"
