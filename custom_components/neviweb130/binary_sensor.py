@@ -94,6 +94,24 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "probe"},
     ),
+    Neviweb130BinarySensorEntityDescription(
+        key="refuel_status",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        on_icon="mdi:propane-tank",
+        off_icon="mdi:propane-tank-outline",
+        translation_key="refuel_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"refueled"},
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="level_status",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        on_icon="mdi:propane-tank-outline",
+        off_icon="mdi:propane-tank",
+        translation_key="level_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
+    ),
 )
 
 def get_attributes_for_model(model):
@@ -102,7 +120,7 @@ def get_attributes_for_model(model):
     elif model in VALVE_MODEL:
         return ["temp_alert", "water_leak_status", "battery_status"]
     elif model in SENSOR_MODEL:
-        return ["leak_status", "battery_status"]
+        return ["leak_status", "battery_status", "refuel_status", "level_status"]
     return []
 
 def create_attribute_binary_sensors(hass, entry, data, coordinator, device_registry):
