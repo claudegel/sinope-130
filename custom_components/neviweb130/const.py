@@ -366,11 +366,13 @@ EXPOSED_ATTRIBUTES = [
     "intensity_min",
     "keypad",
     "keypad_status",
+    "language",
     "leak_status",
     "led_off_color",
     "led_off_intensity",
     "led_on_color",
     "led_on_intensity",
+    "level_status",
     "light_timer",
     "max_cool_temp",
     "max_temp",
@@ -380,6 +382,7 @@ EXPOSED_ATTRIBUTES = [
     "monthly_kwh_count",
     "pi_heating_demand",
     "power_timer",
+    "refuel_status",
     "reset_filter",
     "rssi",
     "temp_alert"
@@ -391,5 +394,6 @@ EXPOSED_ATTRIBUTES = [
     # Constants
     "is_wifi",
     "is_HC",
+    "is_HP",
     # ... etc.
 ]
