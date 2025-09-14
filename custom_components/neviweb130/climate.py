@@ -1446,6 +1446,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
+        self._cool_min = 16
+        self._cool_max = 30
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._time_format = "24h"
         self._temp_display_value = None
@@ -1455,6 +1457,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._backlight = None
         self._cycle_length = 0
         self._rssi = None
+        self._language = None
         self._error_code = None
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
         self._is_h_c = device_info["signature"]["model"] in DEVICE_MODEL_HC
@@ -1623,6 +1626,12 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return None
 
     @property
+    def language(self):
+        if self._language is not None:
+            return self._language
+        return None
+
+    @property
     def total_kwh_count(self):
         if self._total_kwh_count is not None:
             return self._total_kwh_count
@@ -1665,6 +1674,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def is_HC(self):
         return self._is_HC
+
+    @property
+    def is_HP(self):
+        return self._is_HP
 
     @property
     def extra_state_attributes(self):
