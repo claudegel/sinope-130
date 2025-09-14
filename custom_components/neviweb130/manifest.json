@@ -9,5 +9,5 @@
   "requirements": [],
   "iot_class": "cloud_polling",
   "version": "4.0.0",
-  "homeassistant": "2025.1.1"
+  "integration_type": "hub"
 }
