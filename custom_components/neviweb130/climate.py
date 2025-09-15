@@ -201,7 +201,6 @@ SUPPORT_H_c_FLAGS = (
 
 SUPPORT_HC_FLAGS = (
     ClimateEntityFeature.PRESET_MODE
-    | ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.TURN_OFF
     | ClimateEntityFeature.TURN_ON
 )
@@ -283,8 +282,8 @@ SUPPORTED_HVAC_H_C_MODES = [
 
 SUPPORTED_HVAC_HC_MODES = [
     HVACMode.HEAT_COOL,
-    HVACMode.COOL,
     HVACMode.HEAT,
+    HVACMode.COOL,
     HVACMode.OFF,
 ]
 
@@ -327,9 +326,8 @@ PRESET_HP_MODES = [
 ]
 
 PRESET_HC_MODES = [
-    PRESET_AWAY,
-    PRESET_BOOST,
     PRESET_HOME,
+    PRESET_AWAY,
 ]
 
 DEVICE_MODEL_LOW = [7372]
@@ -1709,12 +1707,11 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cool_min = 15
         self._cool_max = 36
         self._temperature_format = UnitOfTemperature.CELSIUS
-        self._cycle_length = 0
-        self._heat_level = 0
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._temp_display_value = None
         self._avail_mode = None
-        self._backlight = None
         self._balance_pt = None
         self._balance_pt_low = None
         self._cool_lock_temp = None
@@ -1722,6 +1719,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cycle_length_output2_value = None
         self._display2 = None
         self._display_conf = None
+        self._heat_level = 0
         self._early_start = None
         self._em_heat = None
         self._fan_speed = None
@@ -1739,6 +1737,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._floor_sensor_type = None
         self._heat_lockout_temp = None
         self._keypad = None
+        self._backlight = None
+        self._cycle_length = 0
         self._language = None
         self._load2 = None
         self._load2_status = None
@@ -1747,8 +1747,6 @@ class Neviweb130Thermostat(ClimateEntity):
         self._pump_protec_status = None
         self._rssi = None
         self._sound_conf = None
-        self._temperature = None
-        self._weather_icon = None
         self._error_code = None
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
         self._is_h_c = device_info["signature"]["model"] in DEVICE_MODEL_HC
@@ -1975,6 +1973,16 @@ class Neviweb130Thermostat(ClimateEntity):
             return False
 
     @property
+    def target_temperature_low(self) -> float:
+        """(deprecated, use min_temp) Return the minimum heating temperature."""
+        return self._min_temp
+
+    @property
+    def target_temperature_high(self) -> float:
+        """(deprecated, use max_temp) Return the maximum heating temperature."""
+        return self._max_temp
+
+    @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
         return self._min_temp
@@ -2061,16 +2069,6 @@ class Neviweb130Thermostat(ClimateEntity):
         if temp > self._max_temp:
             return self._max_temp
         return temp
-
-    @property
-    def target_temperature_low(self) -> float | None:
-        """(deprecated, use min_temp) Return the minimum heating temperature."""
-        return self.min_temp
-
-    @property
-    def target_temperature_high(self) -> float | None:
-        """(deprecated, use max_temp) Return the maximum heating temperature."""
-        return self.max_temp
 
     @property
     def target_cool_temperature(self) -> float:
@@ -2294,9 +2292,9 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_time_format(self, value):
         """Set time format 12h or 24h."""
-        time_val = value["time"]
+        time = value["time"]
         entity = value["id"]
-        if time_val == 12:
+        if time == 12:
             time_commande = "12h"
         else:
             time_commande = "24h"
@@ -2425,7 +2423,6 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
         self._operation_mode = hvac_mode
-
         self.update()
 
     def set_preset_mode(self, preset_mode):
@@ -5816,7 +5813,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     )
 
     @property
-    def supported_features(self):
+    def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         features = SUPPORT_HC_FLAGS
 
@@ -5827,6 +5824,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
         elif self.hvac_mode != HVACMode.OFF:
             features |= ClimateEntityFeature.TARGET_TEMPERATURE
+
+        can_control_fan = self._output_connect_state["G"]
+        if can_control_fan:
+            features |= ClimateEntityFeature.FAN_MODE
 
         return features
 
@@ -5855,7 +5856,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         )
 
     @property
-    def hvac_action(self):
+    def hvac_action(self) -> HVACAction:
         """Return current HVAC action."""
         if self.hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -5868,7 +5869,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return self._heat_level_source_type
 
     @property
-    def hvac_mode(self):
+    def hvac_mode(self) -> HVACMode:
         """Return current operation."""
         if self._heat_cool == HVACMode.OFF:
             return HVACMode.OFF
@@ -5880,11 +5881,21 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return HVACMode.HEAT
 
     @property
-    def hvac_modes(self):
+    def hvac_modes(self) -> list[HVACMode]:
         """Return the list of available operation modes."""
-        return SUPPORTED_HVAC_HC_MODES
+        outputs = self._output_connect_state
 
-    def set_hvac_mode(self, hvac_mode):
+        can_cool = outputs["Y1"] or outputs["Y2"]
+        can_heat = outputs["W"] or outputs["W2"] or (outputs["OB"] and can_cool)
+
+        return (
+            ([HVACMode.HEAT_COOL] if can_heat and can_cool else [])
+            + ([HVACMode.HEAT] if can_heat else [])
+            + ([HVACMode.COOL] if can_cool else [])
+            + [HVACMode.OFF]
+        )
+
+    def set_hvac_mode(self, hvac_mode: HVACMode):
         """Set new hvac mode."""
         self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
 
@@ -5898,7 +5909,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self.update()
 
     @property
-    def preset_mode(self):
+    def preset_mode(self) -> str:
         """Return current preset mode."""
         if self._heat_cool == MODE_EM_HEAT:
             return PRESET_BOOST
@@ -5906,11 +5917,19 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return super().preset_mode
 
     @property
-    def preset_modes(self):
+    def preset_modes(self) -> list[str]:
         """Return available preset modes."""
-        return PRESET_HC_MODES
+        outputs = self._output_connect_state
 
-    def set_preset_mode(self, preset_mode):
+        can_heat_emergency = (
+            (outputs["W"] or outputs["W2"])
+            and outputs["OB"]
+            and (outputs["Y1"] or outputs["Y2"])
+        )
+
+        return PRESET_HC_MODES + ([PRESET_BOOST] if can_heat_emergency else [])
+
+    def set_preset_mode(self, preset_mode: str):
         """Activate a preset."""
 
         if preset_mode == PRESET_BOOST:
@@ -6021,10 +6040,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_aux_heat_min_time_on(self, value):
         """Set auxiliary heating minimum time."""
-        time = value["time"]
+        time_val = value["time"]
         entity = value["id"]
-        self._client.set_aux_heat_time_on(entity, time)
-        self._aux_heat_time_on = time
+        self._client.set_aux_heat_time_on(entity, time_val)
+        self._aux_heat_time_on = time_val
 
     def set_cool_min_time(self, value):
         """Set minimum cooling time."""
