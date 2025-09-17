@@ -49,6 +49,7 @@ HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 IGNORE_MIWI = False
 NOTIFY = "both"
+
 PERIOD_VALUE = {
     "15 sec",
     "5 min",
@@ -600,14 +601,18 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
+        vol.Required(ATTR_KEYPAD): vol.In(
+            ["locked", "unlocked", "partiallyLocked"]
+        ),
     }
 )
 
 SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
+        vol.Required(ATTR_TIMER): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=10800)
+        ),
     }
 )
 
