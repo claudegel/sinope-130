@@ -938,94 +938,77 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_control_onoff(self, value):
         """Set onOff or onOff2 to on or off"""
-        entity = value["id"]
-        onoff_no = value["onoff_num"]
-        status = value["status"]
-        self._client.set_control_onoff(entity, onoff_no, status)
-        if onoff_no == 1:
-            self._onoff = status
+        self._client.set_control_onoff(
+            value["id"], value["onoff_num"], value["status"]
+        )
+        if value["onoff_num"] == 1:
+            self._onoff = value["status"]
         else:
-            self._onoff2 = status
+            self._onoff2 = value["status"]
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, lock = locked, unlock = unlocked, partiallyLocked - partial lock."""
-        lock = value["lock"]
-        entity = value["id"]
         if self._is_wifi_load or self._is_wifi_tank_load:
-            self._client.set_keypad_lock(entity, lock, True)
+            self._client.set_keypad_lock(value["id"], value["lock"], True)
         else:
-            self._client.set_keypad_lock(entity, lock, False)
-        self._keypad = lock
+            self._client.set_keypad_lock(value["id"], value["lock"], False)
+        self._keypad = value["lock"]
 
     def set_timer(self, value):
         """Set device timer, 0 = off, 1 to 255 = timer length."""
-        time = value["time"]
-        entity = value["id"]
-        self._client.set_timer(entity, time)
-        self._timer = time
+        self._client.set_timer(value["id"], value["time"])
+        self._timer = value["time"]
 
     def set_timer2(self, value):
         """Set device timer 2 for Multi controller, 0 = off, 1 to 255 = timer length."""
-        time = value["time"]
-        entity = value["id"]
-        self._client.set_timer2(entity, time)
-        self._timer2 = time
+        self._client.set_timer2(value["id"], value["time"])
+        self._timer2 = value["time"]
 
     def set_load_dr_options(self, value):
         """Set load controler Éco Sinopé attributes."""
-        entity = value["id"]
-        onoff = value["onoff"]
-        optout = value["droptout"]
-        dr = value["dractive"]
-        self._client.set_load_dr_options(entity, onoff, optout, dr)
-        self._drstatus_active = dr
-        self._drstatus_optout = optout
-        self._drstatus_onoff = onoff
+        self._client.set_load_dr_options(
+            value["id"], value["onoff"], value["droptout"], value["dractive"]
+        )
+        self._drstatus_active = value["dractive"]
+        self._drstatus_optout = value["droptout"]
+        self._drstatus_onoff = value["onoff"]
 
     def set_tank_size(self, value):
         """Set water tank size for RM3500ZB Calypso controler."""
-        entity = value["id"]
         val = value["val"]
         size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == val][0]
-        self._client.set_tank_size(entity, size)
+        self._client.set_tank_size(value["id"], size)
         self._tank_size = size
 
     def set_controlled_device(self, value):
         """Set device name controlled by RM3250ZB load controler."""
-        entity = value["id"]
         val = value["val"]
         tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
-        self._client.set_controlled_device(entity, tipe)
+        self._client.set_controlled_device(value["id"], tipe)
         self._controlled_device = tipe
 
     def set_low_temp_protection(self, value):
         """Set water temperature protection for Calypso."""
-        temp = value["val"]
-        entity = value["id"]
-        self._client.set_low_temp_protection(entity, temp)
-        self._water_temp_min = temp
+        self._client.set_low_temp_protection(value["id"], value["val"])
+        self._water_temp_min = value["val"]
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._activ = action
+        self._activ = value["active"]
 
     def set_remaining_time(self, value):
         """Set coldLoadPickupRemainingTime value."""
-        time = value["time"]
-        entity = value["id"]
-        self._client.set_remaining_time(entity, time)
-        self._cold_load_remaining_time = time
+        self._client.set_remaining_time(value["id"], value["time"])
+        self._cold_load_remaining_time = value["time"]
 
     def set_on_off_input_delay(self, value):
         """Set input 1 or 2 on/off delay in seconds."""
-        entity = value["id"]
         val = value["delay"]
-        onoff = value["onoff"]
-        inputnumber = value["inputnumber"]
         delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
-        self._client.set_on_off_input_delay(entity, delay, onoff, inputnumber)
-        if inputnumber == 1:
+        self._client.set_on_off_input_delay(
+            value["id"], delay, value["onoff"], value["inputnumber"]
+        )
+        if value["inputnumber"] == 1:
             match value["onoff"]:
                 case "on":
                     self._input_1_on_delay = delay
@@ -1057,7 +1040,9 @@ class Neviweb130Switch(SwitchEntity):
         else:
             out_2 = ""
         entity = value["id"]
-        self._client.set_input_output_names(entity, in_1, in_2, out_1, out_2)
+        self._client.set_input_output_names(
+            value["id"], in_1, in_2, out_1, out_2
+        )
         self._input_name_1 = in_1
         self._input_name_2 = in_2
         self._output_name_1 = out_1
@@ -1293,7 +1278,6 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1444,7 +1428,6 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1595,7 +1578,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1811,7 +1793,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -2061,7 +2042,6 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._name = name
         self._sku = sku
         self._firmware = firmware
