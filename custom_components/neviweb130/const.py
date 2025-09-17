@@ -19,7 +19,7 @@ STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME} ({DOMAIN})
 Version: {VERSION}
-Requirement: Home Assistant {REQUIRE}
+Requirement: Home Assistant minimum version {REQUIRE}
 This is a custom integration!
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
@@ -223,7 +223,11 @@ ATTR_FAN_FILTER_LIFE = "fanFilterRemainingLife"
 ATTR_AUX_HEAT_TIMEON = "auxHeatMinTimeOn"
 ATTR_AUX_HEAT_START_DELAY = "auxHeatStartDelay"
 ATTR_HEAT_INTERSTAGE_MIN_DELAY = "heatInterstageMinDelay"
+ATTR_AUX_INTERSTAGE_MIN_DELAY = "auxInterstageMinDelay"
+ATTR_HEAT_INTERSTAGE_DELAY = "heatInterstageDelay"
+ATTR_AUX_INTERSTAGE_DELAY = "auxInterstageDelay"
 ATTR_COOL_INTERSTAGE_MIN_DELAY = "coolInterstageMinDelay"
+ATTR_COOL_INTERSTAGE_DELAY = "coolInterstageDelay"
 ATTR_BACK_LIGHT = "backlight"
 ATTR_HEAT_COOL = "heatCoolMode"
 ATTR_VALVE_POLARITY = "reversingValvePolarity"
