@@ -624,69 +624,50 @@ class Neviweb130Light(LightEntity):
 
     def set_phase_control(self, value):
         """Change phase control parameter, reverse or forward."""
-        phase = value["phase"]
-        entity = value["id"]
-        self._client.set_phase(entity, phase)
-        self._phase_control = phase
+        self._client.set_phase(value["id"], value["phase"])
+        self._phase_control = value["phase"]
 
     def set_keypad_lock(self, value):
         """Lock, unlock or partially lock device's keypad, lock = locked, unlock = unlocked, partiallyLocked = partial lock."""
-        lock = value["lock"]
-        entity = value["id"]
-        self._client.set_keypad_lock(entity, lock, False)
-        self._keypad = lock
+        self._client.set_keypad_lock(value["id"], value["lock"], False)
+        self._keypad = value["lock"]
 
     def set_timer(self, value):
         """Set device timer, 0 = off, 1 to 255 = timer length."""
-        time = value["time"]
-        entity = value["id"]
-        self._client.set_timer(entity, time)
-        self._timer = time
+        self._client.set_timer(value["id"], value["time"])
+        self._timer = value["time"]
 
     def set_led_indicator(self, value):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
-        state = value["state"]
-        entity = value["id"]
-        red = value["red"]
-        green = value["green"]
-        blue = value["blue"]
-        self._client.set_led_indicator(entity, state, red, green, blue)
-        if state == 0:
-            self._led_off = (
-                str(value["red"]) + "," + str(value["green"]) + "," + str(value["blue"])
-            )
+        self._client.set_led_indicator(
+            value["id"], value["state"], value["red"],
+            value["green"], value["blue"]
+        )
+        rgb = f'{value["red"]},{value["green"]},{value["blue"]}'
+        if value["state"] == 0:
+            self._led_off = rgb
         else:
-            self._led_on = (
-                str(value["red"]) + "," + str(value["green"]) + "," + str(value["blue"])
-            )
+            self._led_on = rgb
 
     def set_led_on_intensity(self, value):
         """Set led indicator on intensity from 0 to 100."""
-        intensity = value["led_on"]
-        entity = value["id"]
-        self._client.set_led_on_intensity(entity, intensity)
-        self._led_on_intensity = intensity
+        self._client.set_led_on_intensity(value["id"], value["led_on"])
+        self._led_on_intensity = value["led_on"]
 
     def set_led_off_intensity(self, value):
         """Set led indicator off intensity from 0 to 100."""
-        intensity = value["led_off"]
-        entity = value["id"]
-        self._client.set_led_off_intensity(entity, intensity)
-        self._led_off_intensity = intensity
+        self._client.set_led_off_intensity(value["id"], value["led_off"])
+        self._led_off_intensity = value["led_off"]
 
     def set_light_min_intensity(self, value):
         """Set dimmer light minimum intensity from 1 to 3000."""
-        intensity = value["intensity"]
-        entity = value["id"]
-        self._client.set_light_min_intensity(entity, intensity)
-        self._intensity_min = intensity
+        self._client.set_light_min_intensity(value["id"], value["intensity"])
+        self._intensity_min = value["intensity"]
 
     def set_wattage(self, value):
         """Set light device watt load."""
-        watt = value["watt"]
-        entity = value["id"]
-        self._client.set_wattage(entity, watt)
-        self._wattage = watt
+        self._client.set_wattage(value["id"], value["watt"])
+        self._wattage = value["watt"]
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
@@ -695,10 +676,8 @@ class Neviweb130Light(LightEntity):
 
     def set_key_double_up(self, value):
         """Change key double up action."""
-        double = value["double"]
-        entity = value["id"]
-        self._client.set_double_up(entity, double)
-        self._double_up = double
+        self._client.set_double_up(value["id"], value["double"])
+        self._double_up = value["double"]
 
     def do_stat(self, start):
         """Get device energy statistic."""
@@ -933,7 +912,6 @@ class Neviweb130Dimmer(Neviweb130Light):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1084,7 +1062,6 @@ class Neviweb130NewDimmer(Neviweb130Light):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
