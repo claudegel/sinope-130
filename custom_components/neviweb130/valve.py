@@ -778,37 +778,29 @@ class Neviweb130Valve(ValveEntity):
                 batt = 0
         else:
             batt = value["batt"]
-        entity = value["id"]
-        self._client.set_valve_alert(entity, batt)
+        self._client.set_valve_alert(value["id"], batt)
         self._battery_alert = batt
 
     def set_valve_temp_alert(self, value):
         """Set valve temperature alert action."""
-        temp = value["temp"]
-        entity = value["id"]
-        self._client.set_valve_temp_alert(entity, temp)
-        self._temp_alert = temp
+        self._client.set_valve_temp_alert(value["id"], value["temp"])
+        self._temp_alert = value["temp"]
 
     def set_flow_meter_model(self, value):
         """Set water valve flow meter model connected."""
-        model = value["model"]
-        entity = value["id"]
-        self._client.set_flow_meter_model(entity, model)
-        self._flowmeter_model = model
+        self._client.set_flow_meter_model(value["id"], value["model"])
+        self._flowmeter_model = value["model"]
 
     def set_flow_alarm_disable_timer(self, value):
         """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
-        entity = value["id"]
-        timer = value["timer"]
-        self._client.set_flow_alarm_timer(entity, timer)
-        self._flowmeter_timer = timer
+        self._client.set_flow_alarm_timer(value["id"], value["timer"])
+        self._flowmeter_timer = value["timer"]
 
     def set_flow_meter_delay(self, value):
         """Set water valve flow meter delay befor alert."""
         val = value["delay"]
         delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
-        entity = value["id"]
-        self._client.set_flow_meter_delay(entity, delay)
+        self._client.set_flow_meter_delay(value["id"], delay)
         self._flowmeter_alert_delay = val
 
     def set_power_supply(self, value):
@@ -821,7 +813,7 @@ class Neviweb130Valve(ValveEntity):
             case _:
                 sup = "both"
         entity = value["id"]
-        self._client.set_power_supply(entity, sup)
+        self._client.set_power_supply(value["id"], sup)
         self._power_supply = sup
 
     def set_flow_meter_options(self, value):
@@ -840,8 +832,9 @@ class Neviweb130Valve(ValveEntity):
         else:
             lenght = 60
             threshold = 1
-        entity = value["id"]
-        self._client.set_flow_meter_options(entity, alarm, action, lenght, threshold)
+        self._client.set_flow_meter_options(
+            value["id"], alarm, action, lenght, threshold
+        )
         self._flowmeter_opt_alarm = alarm
         self._flowmeter_opt_action = action
         self._flowmeter_threshold = threshold
@@ -849,8 +842,7 @@ class Neviweb130Valve(ValveEntity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._activ = action
+        self._activ = value["active"]
 
     def do_stat(self, start):
         """Get device flow statistic."""
