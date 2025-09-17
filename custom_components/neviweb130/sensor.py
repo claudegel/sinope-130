@@ -815,28 +815,23 @@ class Neviweb130Sensor(Entity):
 
     def set_sensor_alert(self, value):
         """Set water leak sensor alert and action."""
-        leak = value["leak"]
-        batt = value["batt"]
-        temp = value["temp"]
-        close = value["close"]
-        entity = value["id"]
-        self._client.set_sensor_alert(entity, leak, batt, temp, close)
-        self._leak_alert = True if leak == 1 else False
-        self._temp_alert = True if temp == 1 else False
-        self._battery_alert = True if batt == 1 else False
-        self._closure_action = close
+        self._client.set_sensor_alert(
+            value["id"], value["leak"], value["batt"], value["temp"],
+            value["close"]
+        )
+        self._leak_alert = True if value["leak"] == 1 else False
+        self._temp_alert = True if value["temp"] == 1 else False
+        self._battery_alert = True if value["batt"] == 1 else False
+        self._closure_action = value["close"]
 
     def set_battery_type(self, value):
         """Set battery type, alkaline or lithium for water leak sensor."""
-        batt = value["type"]
-        entity = value["id"]
-        self._client.set_battery_type(entity, batt)
-        self._battery_type = batt
+        self._client.set_battery_type(value["id"], value["type"])
+        self._battery_type = value["type"]
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._activ = action
+        self._activ = value["active"]
 
     def notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
         """Notify user via HA web frontend."""
@@ -970,7 +965,6 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
-        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1145,7 +1139,6 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
-        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -1340,52 +1333,38 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     def set_tank_type(self, value):
         """Set tank type for LM4110-ZB sensor."""
-        tank = value["type"]
-        entity = value["id"]
-        self._client.set_tank_type(entity, tank)
-        self._tank_type = tank
+        self._client.set_tank_type(value["id"], value["type"])
+        self._tank_type = value["type"]
 
     def set_gauge_type(self, value):
         """Set gauge type for LM4110-ZB sensor."""
-        gauge = str(value["gauge"])
-        entity = value["id"]
-        self._client.set_gauge_type(entity, gauge)
-        self._gauge_type = gauge
+        self._client.set_gauge_type(value["id"], str(value["gauge"]))
+        self._gauge_type = str(value["gauge"])
 
     def set_low_fuel_alert(self, value):
         """Set low fuel alert limit LM4110-ZB sensor."""
-        alert = value["low"]
-        entity = value["id"]
-        self._client.set_low_fuel_alert(entity, alert)
-        self._fuel_percent_alert = alert
+        self._client.set_low_fuel_alert(value["id"], value["low"])
+        self._fuel_percent_alert = value["low"]
 
     def set_refuel_alert(self, value):
         """ "Set refuel alert for LM4110-ZB sensor True/False."""
-        alert = value["refuel"]
-        entity = value["id"]
-        self._client.set_refuel_alert(entity, alert)
-        self._refuel = alert
+        self._client.set_refuel_alert(value["id"], value["refuel"])
+        self._refuel = value["refuel"]
 
     def set_tank_height(self, value):
         """Set low fuel alert LM4110-ZB sensor."""
-        height = value["height"]
-        entity = value["id"]
-        self._client.set_tank_height(entity, height)
-        self._tank_height = height
+        self._client.set_tank_height(value["id"], value["height"])
+        self._tank_height = value["height"]
 
     def set_fuel_alert(self, value):
         """Set low fuel alert LM4110-ZB sensor."""
-        fuel = value["fuel"]
-        entity = value["id"]
-        self._client.set_fuel_alert(entity, fuel)
-        self._fuel_alert = fuel
+        self._client.set_fuel_alert(value["id"], value["fuel"])
+        self._fuel_alert = value["fuel"]
 
     def set_battery_alert(self, value):
         """Set low battery alert LM4110-ZB sensor."""
-        batt = value["batt"]
-        entity = value["id"]
-        self._client.set_battery_alert(entity, batt)
-        self._battery_alert = batt
+        self._client.set_battery_alert(value["id"], value["batt"])
+        self._battery_alert = value["batt"]
 
 
 class Neviweb130GatewaySensor(Neviweb130Sensor):
@@ -1393,7 +1372,6 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._name = name
         self._sku = sku
         self._location = location
@@ -1467,7 +1445,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     def set_neviweb_status(self, value):
         """Set Neviweb global mode away or home"""
-        mode = value["mode"]
-        entity = value["id"]
-        self._client.post_neviweb_status(entity, str(self._location), mode)
-        self._occupancyMode = mode
+        self._client.post_neviweb_status(
+            value["id"], str(self._location), value["mode"]
+        )
+        self._occupancyMode = value["mode"]
