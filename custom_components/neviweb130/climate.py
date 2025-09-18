@@ -137,7 +137,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
                     SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
                     SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_TIME_FORMAT, ATTR_AUX_INTERSTAGE_MIN_DELAY, ATTR_HEAT_INTERSTAGE_DELAY,
+                    ATTR_AUX_INTERSTAGE_DELAY, ATTR_COOL_INTERSTAGE_DELAY)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
                      SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -5519,6 +5520,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_offset_heat = None
         self._heat_interstage_delay = None
         self._cool_interstage_delay = None
+        self._aux_interstage_delay = None
+        self._heat_interstage_min_delay = None
+        self._cool_interstage_min_delay = None
+        self._aux_interstage_min_delay = None
         self._aux_heat_time_on = None
         self._aux_heat_start_delay = None
         self._valve_polarity = None
@@ -5603,6 +5608,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 HC_EXTRA = [
                     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
                     ATTR_COOL_INTERSTAGE_MIN_DELAY,
+                    ATTR_AUX_INTERSTAGE_MIN_DELAY,
+                    ATTR_HEAT_INTERSTAGE_DELAY,
+                    ATTR_COOL_INTERSTAGE_DELAY,
+                    ATTR_AUX_INTERSTAGE_DELAY,
                     ATTR_DRSETPOINT,
                     ATTR_DRSTATUS,
                 ]
@@ -5738,13 +5747,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
                     self._aux_heat_time_on = device_data[ATTR_AUX_HEAT_TIMEON]
                     self._aux_heat_start_delay = device_data[ATTR_AUX_HEAT_START_DELAY]
-                    if ATTR_HEAT_INTERSTAGE_MIN_DELAY in device_data:
-                        self._heat_interstage_delay = device_data[
-                            ATTR_HEAT_INTERSTAGE_MIN_DELAY
-                        ]
-                        self._cool_interstage_delay = device_data[
-                            ATTR_COOL_INTERSTAGE_MIN_DELAY
-                        ]
+                    self._heat_interstage_delay = device_data.get(ATTR_HEAT_INTERSTAGE_DELAY)
+                    self._aux_interstage_delay = device_data.get(ATTR_AUX_INTERSTAGE_DELAY)
+                    self._cool_interstage_delay = device_data.get(ATTR_COOL_INTERSTAGE_DELAY)
+                    self._heat_interstage_min_delay = device_data.get(ATTR_HEAT_INTERSTAGE_MIN_DELAY)
+                    self._aux_interstage_min_delay = device_data.get(ATTR_AUX_INTERSTAGE_MIN_DELAY)
+                    self._cool_interstage_min_delay = device_data.get(ATTR_COOL_INTERSTAGE_MIN_DELAY)
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
@@ -6139,10 +6147,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         data.update(
             {
                 "error_code": self._error_code,
-                "operation modes": self._operation_mode,
-                "cool setpoint": self._target_cool,
-                "cool setpoint min": self._cool_min,
-                "cool setpoint max": self._cool_max,
+                "operation_mode": self._operation_mode,
+                "cool_setpoint": self._target_cool,
+                "cool_setpoint_min": self._cool_min,
+                "cool_setpoint_max": self._cool_max,
                 "setpoint_max": self._max_temp,
                 "setpoint_min": self._min_temp,
                 "temperature_format": self._temperature_format,
@@ -6150,7 +6158,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "keypad": lock_to_ha(self._keypad),
                 "fan_speed": self._fan_speed,
                 "backlight": self._backlight,
-                "backlight-auto_dim": self._backlight_auto_dim,
+                "backlight_auto_dim": self._backlight_auto_dim,
                 "early_start": self._early_start,
                 "target_temp_away": self._target_temp_away,
                 "cool_target_temp_away": self._cool_target_temp_away,
@@ -6196,7 +6204,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if self._device_model == 6727:
             data.update(
                 {
+                    "heat_interstage_min_delay": self._heat_interstage_min_delay,
                     "heat_interstage_delay": self._heat_interstage_delay,
+                    "aux_interstage_min_delay": self._aux_interstage_min_delay,
+                    "aux_interstage_delay": self._aux_interstage_delay,
+                    "cool_interstage_min_delay": self._cool_interstage_min_delay,
                     "cool_interstage_delay": self._cool_interstage_delay,
                     "eco_status": self._drstatus_active,
                     "eco_optOut": self._drstatus_optout,
