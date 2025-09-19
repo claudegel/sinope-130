@@ -872,7 +872,8 @@ class Neviweb130Client:
     def set_fan_filter_reminder(self, device_id, month, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
         if HC:
-            data = {ATTR_FAN_FILTER_REMAIN: month}
+            month_val = month * 720
+            data = {ATTR_FAN_FILTER_REMAIN: month_val}
             self.set_device_attributes(device_id, data)
         else:
             self.notify_ha(
