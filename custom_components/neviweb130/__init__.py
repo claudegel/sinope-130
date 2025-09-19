@@ -34,6 +34,7 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
                     ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP,
                     ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_SETPOINT,
+                    ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
                     ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
@@ -890,6 +891,28 @@ class Neviweb130Client:
                 + "TH6500WF or TH6250WF thermostats."
             )
 
+    def set_humidity_offset(self, device_id, offset, HC):
+        """Set humidity setpoint offset for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_HUMID_SETPOINT_OFFSET: offset}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_humidity_offset is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+
+    def set_humidity_mode(self, device_id, mode, HC):
+        """Set humidity setpoint mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_HUMID_SETPOINT_OFFSET: mode}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_humidity_mode is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+  
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
         """Work differently for wifi and zigbee devices."""
