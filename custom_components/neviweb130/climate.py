@@ -136,7 +136,10 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
                     SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
-                    SERVICE_SET_HUMIDIFIER_TYPE, SERVICE_SET_HVAC_DR_OPTIONS,
+                    SERVICE_SET_HUMIDIFIER_TYPE,
+                    SERVICE_SET_HUMIDITY_SETPOINT_MODE,
+                    SERVICE_SET_HUMIDITY_SETPOINT_OFFSET,
+                    SERVICE_SET_HVAC_DR_OPTIONS,
                     SERVICE_SET_HVAC_DR_SETPOINT, SERVICE_SET_LANGUAGE,
                     SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SCHEDULE_MODE,
                     SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
@@ -161,7 +164,10 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
                      SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
-                     SET_HUMIDIFIER_TYPE_SCHEMA, SET_HVAC_DR_OPTIONS_SCHEMA,
+                     SET_HUMIDIFIER_TYPE_SCHEMA,
+                     SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
+                     SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA,
+                     SET_HVAC_DR_OPTIONS_SCHEMA,
                      SET_HVAC_DR_SETPOINT_SCHEMA, SET_LANGUAGE_SCHEMA,
                      SET_PUMP_PROTECTION_SCHEMA, SET_SCHEDULE_MODE_SCHEMA,
                      SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
@@ -1342,12 +1348,40 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "speed": service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
+                    "speed": service.data[ATTR_FAN_SPEED],
                 }
                 thermostat.set_fan_speed(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_humidity_offset_service(service):
+        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "offset": service.data[ATTR_HUMID_SETPOINT_OFFSET],
+                }
+                thermostat.set_humidity_offset(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_humidity_mode_service(service):
+        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "mode": service.data[ATTR_HUMID_SETPOINT_MODE],
+                }
+                thermostat.set_humidity_mode(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+  
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1626,6 +1660,20 @@ async def async_setup_platform(
         SERVICE_SET_FAN_SPEED,
         set_fan_speed_service,
         schema=SET_FAN_SPEED_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HUMIDITY_SETPOINT_OFFSET,
+        set_humidity_offset_service,
+        schema=SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HUMIDITY_SETPOINT_MODE,
+        set_humidity_mode_service,
+        schema=SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
     )
 
 
@@ -5507,7 +5555,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._activ = True
         self._accessory = None
         self._humid_setpoint_offset = 0
-        self._humidity_setpoint_mode = None
+        self._humid_setpoint_mode = None
         self._air_min_timeon = 0
         self._heatcool_lock_cool_status = None
         self._heatcool_lock_heat_status = None
@@ -5737,7 +5785,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._humid_setpoint_offset = device_data[
                             ATTR_HUMID_SETPOINT_OFFSET
                         ]
-                        self._humidity_setpoint_mode = device_data[
+                        self._humid_setpoint_mode = device_data[
                             ATTR_HUMID_SETPOINT_MODE
                         ]
                         self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
@@ -6104,6 +6152,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         )
         self._temp_offset_heat = value["temp"]
 
+    def set_humidity_offset(self, value):
+        """Set thermostat humidity setpoint offset from -10 to 10 with a 1.0 oC increment."""
+        self._client.set_humidity_offset(
+            value["id"], value["offset"], self._is_HC
+        )
+        self._humid_setpoint_offset = value["offset"]
+
+    def set_humidity_mode(self, value):
+        """Set thermostat humidity setpoint mode, defog or manual"""
+        self._client.set_humidity_mode(
+            value["id"], value["mode"], self._is_HC
+        )
+        self._humid_setpoint_mode = value["mode"]
+
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
@@ -6190,7 +6252,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 {
                     "accessory": self._accessory,
                     "humidity_setpoint_offset": self._humid_setpoint_offset,
-                    "humidity_setpoint_mode": self._humidity_setpoint_mode,
+                    "humidity_setpoint_mode": self._humid_setpoint_mode,
                     "exchanger_min_time_on": self._air_min_timeon,
                     "heatcool_lock_cool_status": self._heatcool_lock_cool_status,
                     "heatcool_lock_heat_status": self._heatcool_lock_heat_status,
