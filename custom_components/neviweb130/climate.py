@@ -320,8 +320,8 @@ SUPPORTED_HVAC_COOL_MODES = [
 ]
 
 PRESET_WIFI_MODES = [
-    PRESET_AWAY,
     PRESET_HOME,
+    PRESET_AWAY,
     PRESET_NONE,
 ]
 
@@ -331,8 +331,8 @@ PRESET_MODES = [
 ]
 
 PRESET_HP_MODES = [
-    PRESET_AWAY,
     PRESET_HOME,
+    PRESET_AWAY,
     PRESET_NONE,
 ]
 
@@ -342,8 +342,8 @@ PRESET_HC_MODES = [
 ]
 
 PRESET_h_c_MODES = [
-    PRESET_AWAY,
     PRESET_HOME,
+    PRESET_AWAY,
 ]
 
 DEVICE_MODEL_LOW = [7372]
@@ -6141,9 +6141,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_fan_filter_reminder(self, value):
         """Set fan filter reminder period from 1 to 12 month."""
-        month = value["month"] * 24 * 30
-        self._client.set_fan_filter_reminder(value["id"], month, self._is_HC)
-        self._fan_filter_remain = month
+        self._client.set_fan_filter_reminder(value["id"], value["month"], self._is_HC)
+        self._fan_filter_remain = value["month"]
 
     def set_temperature_offset(self, value):
         """Set thermostat sensor offset from -2 to 2oC with a 0.5 oC increment."""
