@@ -533,6 +533,7 @@ SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HUMID_SETPOINT_OFFSET): vol.All(
             vol.Coerce(int), vol.Range(min=-10, max=10)
+        ),
     }
 )
 
