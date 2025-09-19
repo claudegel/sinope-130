@@ -337,8 +337,8 @@ PRESET_HP_MODES = [
 ]
 
 PRESET_HC_MODES = [
-    PRESET_AWAY,
     PRESET_HOME,
+    PRESET_AWAY,
 ]
 
 PRESET_h_c_MODES = [
@@ -1381,7 +1381,7 @@ async def async_setup_platform(
                 thermostat.set_humidity_mode(value)
                 thermostat.schedule_update_ha_state(True)
                 break
-  
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1675,7 +1675,6 @@ async def async_setup_platform(
         set_humidity_mode_service,
         schema=SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
     )
-
 
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
