@@ -829,3 +829,23 @@ set_fan_speed:
     fanSpeed:
       description: Possibles values, "On", "Auto".
       example: "On"
+
+set_humidity_offset:
+  description: Set humidity setpoint offset for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
+      example: "climate.neviweb130_climate_office"
+    humiditySetpointOffset:
+      description: Numeric values from -10 to 10.
+      example: 2
+
+set_humidity_mode:
+  description: Set humidity setpoint mode for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
+      example: "climate.neviweb130_climate_office"
+    humiditySetpointMode:
+      description: Possibles values, "defog", "manual".
+      example: "manual"
