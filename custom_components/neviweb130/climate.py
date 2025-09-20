@@ -1705,6 +1705,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
         case "partialLock":
             return "Tamper protection"
+    return None
 
 
 def extract_capability_full(cap):
@@ -2332,6 +2333,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked."""
+        lock = None
         if value["lock"] == "locked" and self._is_wifi:
             lock = "lock"
         elif value["lock"] == "partiallyLocked" and self._is_wifi:
@@ -6085,6 +6087,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_aux_heating_source(self, value):
         """Set auxiliary heating device."""
+        equip = None
         match value["dev"]:
             case "Electric":
                 equip = "hvacElectrique"
