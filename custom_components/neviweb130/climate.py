@@ -1780,6 +1780,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._heat_level = 0
         self._early_start = None
         self._em_heat = None
+        self._aux_cycle_length = None
         self._fan_speed = None
         self._fan_swing_cap = None
         self._fan_swing_cap_horiz = None
