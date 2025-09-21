@@ -13,10 +13,11 @@ from homeassistant.const import (CONF_PASSWORD, CONF_SCAN_INTERVAL,
                                  CONF_USERNAME)
 from homeassistant.helpers import discovery
 
-from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
-                    ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
-                    ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+from .const import (ATTR_AUX_CYCLE, ATTR_AIR_EX_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_TIMEON,
+                    ATTR_BACKLIGHT, ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
+                    ATTR_BATT_ALERT, ATTR_BATTERY_TYPE,
+                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
                     ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
                     ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
                     ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT,
@@ -913,7 +914,28 @@ class Neviweb130Client:
                 "Warning: Service set_humidity_mode is only for "
                 + "TH6500WF or TH6250WF thermostats."
             )
-  
+
+    def set_air_ex_time_on(self, device_id, time, HC):
+        """Set humidity setpoint mode for TH6500WF and TH6250WF."""
+        if HC:
+            time_val = None
+            match time:
+                case "Off":
+                    time_val = 0
+                case "20 min":
+                    time_val = 20
+                case "40 min":
+                    time_val = 40
+                case "Continuous":
+                    time_val = 60
+            data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_air_ex_time_on is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
         """Work differently for wifi and zigbee devices."""
