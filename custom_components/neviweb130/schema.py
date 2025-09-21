@@ -9,8 +9,9 @@ from homeassistant.const import (ATTR_ENTITY_ID, CONF_PASSWORD,
                                  CONF_SCAN_INTERVAL, CONF_USERNAME)
 from homeassistant.helpers import config_validation as cv
 
-from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT, ATTR_BALANCE_PT,
+from .const import (ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_TIMEON,
+                    ATTR_BACKLIGHT, ATTR_BALANCE_PT,
                     ATTR_BATT_ALERT, ATTR_BATTERY_TYPE, ATTR_BLUE,
                     ATTR_CLOSE_VALVE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
                     ATTR_CONF_CLOSURE, ATTR_COOL_LOCK_TEMP,
@@ -161,7 +162,7 @@ ACCESSORY = [
     "Dehumidifier",
 ]
 INSTALL_TYPE = ["addOn", "Conventional"]
-AIR_MIN_TIME_ON = [0, 20, 40, 60]
+AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 
 """Config schema."""
 
@@ -533,6 +534,15 @@ SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA = vol.Schema(
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HUMID_SETPOINT_OFFSET): vol.All(
             vol.Coerce(int), vol.Range(min=-10, max=10)
+        ),
+    }
+)
+
+SET_AIR_EX_MIN_TIME_ON_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_AIR_EX_MIN_TIME_ON): vol.All(
+            cv.ensure_list, [vol.In(AIR_EX_MIN_TIME_ON)]
         ),
     }
 )
