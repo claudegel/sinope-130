@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import logging
 import time
-
 from datetime import date, datetime, timezone
 
 from homeassistant.components.light import (ATTR_BRIGHTNESS,
@@ -641,8 +640,7 @@ class Neviweb130Light(LightEntity):
     def set_led_indicator(self, value):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
         self._client.set_led_indicator(
-            value["id"], value["state"], value["red"],
-            value["green"], value["blue"]
+            value["id"], value["state"], value["red"], value["green"], value["blue"]
         )
         rgb = f'{value["red"]},{value["green"]},{value["blue"]}'
         if value["state"] == 0:

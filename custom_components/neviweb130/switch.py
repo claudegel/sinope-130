@@ -938,9 +938,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_control_onoff(self, value):
         """Set onOff or onOff2 to on or off"""
-        self._client.set_control_onoff(
-            value["id"], value["onoff_num"], value["status"]
-        )
+        self._client.set_control_onoff(value["id"], value["onoff_num"], value["status"])
         if value["onoff_num"] == 1:
             self._onoff = value["status"]
         else:
@@ -1039,10 +1037,8 @@ class Neviweb130Switch(SwitchEntity):
             out_2 = value["output2"]
         else:
             out_2 = ""
-        entity = value["id"]
-        self._client.set_input_output_names(
-            value["id"], in_1, in_2, out_1, out_2
-        )
+        value["id"]
+        self._client.set_input_output_names(value["id"], in_1, in_2, out_1, out_2)
         self._input_name_1 = in_1
         self._input_name_2 = in_2
         self._output_name_1 = out_1

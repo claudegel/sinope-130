@@ -57,10 +57,8 @@ from homeassistant.components.climate.const import (ATTR_TARGET_TEMP_HIGH,
                                                     ATTR_TARGET_TEMP_LOW,
                                                     PRESET_AWAY, PRESET_BOOST,
                                                     PRESET_HOME, PRESET_NONE)
-from homeassistant.components.persistent_notification import (
-    async_create,
-    DOMAIN as PN_DOMAIN,
-)
+from homeassistant.components.persistent_notification import \
+    DOMAIN as PN_DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
                                  UnitOfTemperature)
@@ -78,18 +76,17 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
                     ATTR_BALANCE_PT_TEMP_HIGH, ATTR_BALANCE_PT_TEMP_LOW,
                     ATTR_COLD_LOAD_PICKUP, ATTR_COOL_CYCLE_LENGTH,
-                    ATTR_COOL_INTERSTAGE_DELAY,
-                    ATTR_COOL_INTERSTAGE_MIN_DELAY, ATTR_COOL_LOCK_TEMP,
-                    ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
-                    ATTR_COOL_PURGE_TIME, ATTR_COOL_SETPOINT,
-                    ATTR_COOL_SETPOINT_AWAY, ATTR_COOL_SETPOINT_MAX,
-                    ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE, ATTR_CYCLE_OUTPUT2,
-                    ATTR_DISPLAY2, ATTR_DISPLAY_CAP, ATTR_DISPLAY_CONF,
-                    ATTR_DRACCESORYCONF, ATTR_DRACTIVE, ATTR_DRAIR_CURT_CONF,
-                    ATTR_DRAUXCONF, ATTR_DRFANCONF, ATTR_DRSETPOINT,
-                    ATTR_DRSTATUS, ATTR_DUAL_STATUS, ATTR_EARLY_START,
-                    ATTR_FAN_CAP, ATTR_FAN_FILTER_LIFE, ATTR_FAN_FILTER_REMAIN,
-                    ATTR_FAN_SPEED, ATTR_FAN_SWING_CAP,
+                    ATTR_COOL_INTERSTAGE_DELAY, ATTR_COOL_INTERSTAGE_MIN_DELAY,
+                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
+                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_PURGE_TIME,
+                    ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_AWAY,
+                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
+                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CAP,
+                    ATTR_DISPLAY_CONF, ATTR_DRACCESORYCONF, ATTR_DRACTIVE,
+                    ATTR_DRAIR_CURT_CONF, ATTR_DRAUXCONF, ATTR_DRFANCONF,
+                    ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_DUAL_STATUS,
+                    ATTR_EARLY_START, ATTR_FAN_CAP, ATTR_FAN_FILTER_LIFE,
+                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED, ATTR_FAN_SWING_CAP,
                     ATTR_FAN_SWING_CAP_HORIZ, ATTR_FAN_SWING_CAP_VERT,
                     ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
@@ -101,12 +98,12 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP,
                     ATTR_HEAT_MIN_TIME_OFF, ATTR_HEAT_MIN_TIME_ON,
                     ATTR_HEAT_PURGE_TIME, ATTR_HEAT_SOURCE_TYPE,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-                    ATTR_HUMID_DISPLAY, ATTR_HUMID_SETPOINT,
-                    ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY, ATTR_INTERLOCK_ID,
-                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY,
-                    ATTR_OPTOUT, ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
+                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_DISPLAY,
+                    ATTR_HUMID_SETPOINT, ATTR_HUMID_SETPOINT_MODE,
+                    ATTR_HUMID_SETPOINT_OFFSET, ATTR_HUMIDIFIER_TYPE,
+                    ATTR_HUMIDITY, ATTR_INTERLOCK_ID, ATTR_KEYPAD,
+                    ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
+                    ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
                     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_PUMP_PROTEC,
                     ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
                     ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_AWAY,
@@ -139,12 +136,12 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HUMIDIFIER_TYPE,
                     SERVICE_SET_HUMIDITY_SETPOINT_MODE,
                     SERVICE_SET_HUMIDITY_SETPOINT_OFFSET,
-                    SERVICE_SET_HVAC_DR_OPTIONS,
-                    SERVICE_SET_HVAC_DR_SETPOINT, SERVICE_SET_LANGUAGE,
-                    SERVICE_SET_PUMP_PROTECTION, SERVICE_SET_SCHEDULE_MODE,
-                    SERVICE_SET_SECOND_DISPLAY, SERVICE_SET_SENSOR_TYPE,
-                    SERVICE_SET_SETPOINT_MAX, SERVICE_SET_SETPOINT_MIN,
-                    SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
+                    SERVICE_SET_HVAC_DR_OPTIONS, SERVICE_SET_HVAC_DR_SETPOINT,
+                    SERVICE_SET_LANGUAGE, SERVICE_SET_PUMP_PROTECTION,
+                    SERVICE_SET_SCHEDULE_MODE, SERVICE_SET_SECOND_DISPLAY,
+                    SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
+                    SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
+                    SERVICE_SET_TEMPERATURE_FORMAT,
                     SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_EX_MIN_TIME_ON_SCHEMA,
@@ -167,12 +164,12 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HUMIDIFIER_TYPE_SCHEMA,
                      SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
                      SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA,
-                     SET_HVAC_DR_OPTIONS_SCHEMA,
-                     SET_HVAC_DR_SETPOINT_SCHEMA, SET_LANGUAGE_SCHEMA,
-                     SET_PUMP_PROTECTION_SCHEMA, SET_SCHEDULE_MODE_SCHEMA,
-                     SET_SECOND_DISPLAY_SCHEMA, SET_SENSOR_TYPE_SCHEMA,
-                     SET_SETPOINT_MAX_SCHEMA, SET_SETPOINT_MIN_SCHEMA,
-                     SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
+                     SET_HVAC_DR_OPTIONS_SCHEMA, SET_HVAC_DR_SETPOINT_SCHEMA,
+                     SET_LANGUAGE_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
+                     SET_SCHEDULE_MODE_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
+                     SET_SENSOR_TYPE_SCHEMA, SET_SETPOINT_MAX_SCHEMA,
+                     SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
+                     SET_TEMPERATURE_FORMAT_SCHEMA,
                      SET_TEMPERATURE_OFFSET_SCHEMA, SET_TIME_FORMAT_SCHEMA,
                      VERSION, WIFI_FAN_SPEED)
 
@@ -1697,6 +1694,7 @@ async def async_setup_platform(
         schema=SET_AIR_EX_MIN_TIME_ON_SCHEMA,
     )
 
+
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
     if keys:
@@ -2430,9 +2428,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_hvac_dr_setpoint(self, value):
         """Set thermostat DR setpoint values for Eco Sinope."""
-        self._client.set_hvac_dr_setpoint(
-            value["id"], value["status"], value["val"]
-        )
+        self._client.set_hvac_dr_setpoint(value["id"], value["status"], value["val"])
         self._drsetpoint_status = value["status"]
         self._drsetpoint_value = value["val"]
 
@@ -2441,23 +2437,35 @@ class Neviweb130Thermostat(ClimateEntity):
 
         # Simple modes, we call directly set_point_mode
         simple_modes = [
-            HVACMode.OFF, HVACMode.HEAT, MODE_MANUAL,
-            HVACMode.COOL, HVACMode.DRY, HVACMode.FAN_ONLY,
-            MODE_EM_HEAT
+            HVACMode.OFF,
+            HVACMode.HEAT,
+            MODE_MANUAL,
+            HVACMode.COOL,
+            HVACMode.DRY,
+            HVACMode.FAN_ONLY,
+            MODE_EM_HEAT,
         ]
 
         if hvac_mode in simple_modes:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+            self._client.set_setpoint_mode(
+                self._id, hvac_mode, self._is_wifi, self._is_HC
+            )
 
         elif hvac_mode == HVACMode.AUTO:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+            self._client.set_setpoint_mode(
+                self._id, hvac_mode, self._is_wifi, self._is_HC
+            )
 
         elif hvac_mode == HVACMode.HEAT_COOL:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+            self._client.set_setpoint_mode(
+                self._id, hvac_mode, self._is_wifi, self._is_HC
+            )
 
         elif hvac_mode == MODE_AUTO_BYPASS:
             if self._operation_mode == HVACMode.AUTO:
-                self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+                self._client.set_setpoint_mode(
+                    self._id, hvac_mode, self._is_wifi, self._is_HC
+                )
 
         else:
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
@@ -2517,9 +2525,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_auxiliary_load(self, value):
         """Set thermostat auxiliary output status and load."""
-        self._client.set_auxiliary_load(
-            value["id"], value["status"], value["val"]
-        )
+        self._client.set_auxiliary_load(value["id"], value["status"], value["val"])
         self._load2_status = value["status"]
         self._load2 = value["val"]
 
@@ -2567,9 +2573,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             if temp > 0 and temp < 7:
                 temp = 7
-        self._client.set_floor_limit(
-            value["id"], temp, limit, self._is_wifi_floor
-        )
+        self._client.set_floor_limit(value["id"], temp, limit, self._is_wifi_floor)
         if limit == "low":
             self._floor_min = temp if temp != 0 else None
             self._floor_min_status = "on"
@@ -4530,9 +4534,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                     status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
                     self._floor_air_limit_status = status
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC][
-                        "status"
-                    ]
+                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
                     if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
                         self._pump_protec_period = device_data[ATTR_PUMP_PROTEC][
                             "frequency"
@@ -5814,13 +5816,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
                         self._heatcool_lock_cool_status = device_data[
                             ATTR_HC_LOCK_STATUS
-                        ]['cool']
+                        ]["cool"]
                         self._heatcool_lock_heat_status = device_data[
                             ATTR_HC_LOCK_STATUS
-                        ]['heat']
+                        ]["heat"]
                         self._heatcool_lock_balancePoint_status = device_data[
                             ATTR_HC_LOCK_STATUS
-                        ]['balancePoint']
+                        ]["balancePoint"]
                         self._dr_aux_config = device_data[ATTR_DRAUXCONF]
                         self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
                         self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
@@ -6109,9 +6111,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_cool_min_time(self, value):
         """Set minimum cooling time."""
-        self._client.set_cool_time(
-            value["id"], value["time"], value["state"]
-        )
+        self._client.set_cool_time(value["id"], value["time"], value["state"])
         if value["state"] == "on":
             self._cool_min_time_on = value["time"]
         else:
@@ -6151,16 +6151,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_schedule_mode(self, value):
         """Set schedule mode, manual or auto."""
-        self._client.set_schedule_mode(
-            value["id"], value["mode"], self._is_HC
-        )
+        self._client.set_schedule_mode(value["id"], value["mode"], self._is_HC)
         self._operation_mode = value["mode"]
 
     def set_heatcool_setpoint_delta(self, value):
         """Set delta temperature between heating and cooling setpoint from 1 to 5 oC."""
-        self._client.set_heatcool_delta(
-            value["id"], value["level"], self._is_HC
-        )
+        self._client.set_heatcool_delta(value["id"], value["level"], self._is_HC)
         self._heatcool_setpoint_delta = value["level"]
 
     def set_fan_filter_reminder(self, value):
@@ -6170,30 +6166,22 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_temperature_offset(self, value):
         """Set thermostat sensor offset from -2 to 2oC with a 0.5 oC increment."""
-        self._client.set_temperature_offset(
-            value["id"], value["temp"], self._is_HC
-        )
+        self._client.set_temperature_offset(value["id"], value["temp"], self._is_HC)
         self._temp_offset_heat = value["temp"]
 
     def set_humidity_offset(self, value):
         """Set thermostat humidity setpoint offset from -10 to 10 with a 1.0 oC increment."""
-        self._client.set_humidity_offset(
-            value["id"], value["offset"], self._is_HC
-        )
+        self._client.set_humidity_offset(value["id"], value["offset"], self._is_HC)
         self._humid_setpoint_offset = value["offset"]
 
     def set_humidity_mode(self, value):
         """Set thermostat humidity setpoint mode, defog or manual"""
-        self._client.set_humidity_mode(
-            value["id"], value["mode"], self._is_HC
-        )
+        self._client.set_humidity_mode(value["id"], value["mode"], self._is_HC)
         self._humid_setpoint_mode = value["mode"]
 
     def set_air_ex_time_on(self, value):
         """Set air exchanger minimum time on, off = 0, continuous = 60."""
-        self._client.set_air_ex_time_on(
-            value["id"], value["time"], self._is_HC
-        )
+        self._client.set_air_ex_time_on(value["id"], value["time"], self._is_HC)
         self._air_min_timeon = value["time"]
 
     @property

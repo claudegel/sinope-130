@@ -816,8 +816,7 @@ class Neviweb130Sensor(Entity):
     def set_sensor_alert(self, value):
         """Set water leak sensor alert and action."""
         self._client.set_sensor_alert(
-            value["id"], value["leak"], value["batt"], value["temp"],
-            value["close"]
+            value["id"], value["leak"], value["batt"], value["temp"], value["close"]
         )
         self._leak_alert = True if value["leak"] == 1 else False
         self._temp_alert = True if value["temp"] == 1 else False
