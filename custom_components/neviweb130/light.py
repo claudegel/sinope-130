@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import time
+
 from datetime import date, datetime, timezone
 
 from homeassistant.components.light import (ATTR_BRIGHTNESS,
@@ -671,8 +672,7 @@ class Neviweb130Light(LightEntity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._activ = action
+        self._activ = value["active"]
 
     def set_key_double_up(self, value):
         """Change key double up action."""
