@@ -118,8 +118,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_VALVE_POLARITY, ATTR_WATTAGE, ATTR_WIFI,
                     ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN,
                     MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
-                    SERVICE_SET_ACTIVATION, SERVICE_SET_AIR_FLOOR_MODE,
-                    SERVICE_SET_AUX_CYCLE_OUTPUT,
+                    SERVICE_SET_ACTIVATION, SERVICE_SET_AIR_EX_MIN_TIME_ON,
+                    SERVICE_SET_AIR_FLOOR_MODE, SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
                     SERVICE_SET_AUX_HEATING_SOURCE, SERVICE_SET_AUXILIARY_LOAD,
                     SERVICE_SET_BACKLIGHT, SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -147,8 +147,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_SOUND_CONFIG, SERVICE_SET_TEMPERATURE_FORMAT,
                     SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
-                     SET_ACTIVATION_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
-                     SET_AUX_CYCLE_OUTPUT_SCHEMA,
+                     SET_ACTIVATION_SCHEMA, SET_AIR_EX_MIN_TIME_ON_SCHEMA,
+                     SET_AIR_FLOOR_MODE_SCHEMA, SET_AUX_CYCLE_OUTPUT_SCHEMA,
                      SET_AUX_HEAT_MIN_TIME_ON_SCHEMA,
                      SET_AUX_HEATING_SOURCE_SCHEMA, SET_AUXILIARY_LOAD_SCHEMA,
                      SET_BACKLIGHT_SCHEMA, SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
@@ -1382,6 +1382,20 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_air_ex_min_time_on_service(service):
+        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "time": service.data[ATTR_AIR_EX_MIN_TIME_ON],
+                }
+                thermostat.set_air_ex_time_on(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1674,6 +1688,13 @@ async def async_setup_platform(
         SERVICE_SET_HUMIDITY_SETPOINT_MODE,
         set_humidity_mode_service,
         schema=SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AIR_EX_MIN_TIME_ON,
+        set_air_ex_min_time_on_service,
+        schema=SET_AIR_EX_MIN_TIME_ON_SCHEMA,
     )
 
 def neviweb_to_ha(value):
@@ -5872,20 +5893,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             or self._heat_cool == MODE_EM_HEAT
         )
 
-    def turn_on(self) -> None:
-        """Turn the thermostat to HVACMode.HEAT_COOL."""
-        self._heat_cool = HVACMode.AUTO
-        self._client.set_setpoint_mode(
-            self._id, self._heat_cool, self._is_wifi, self._is_HC
-        )
-
-    def turn_off(self) -> None:
-        """Turn the thermostat to HVACMode.OFF."""
-        self._heat_cool = HVACMode.OFF
-        self._client.set_setpoint_mode(
-            self._id, self._heat_cool, self._is_wifi, self._is_HC
-        )
-
     @property
     def hvac_action(self) -> HVACAction:
         """Return current HVAC action."""
@@ -5926,19 +5933,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             + [HVACMode.OFF]
         )
 
-    def set_hvac_mode(self, hvac_mode: HVACMode):
-        """Set new hvac mode."""
-        self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
-
-        self._heat_cool = (
-            hvac_mode if hvac_mode != HVACMode.HEAT_COOL else HVACMode.AUTO
-        )
-
-        # Reset the preset to the occupancy
-        self.set_preset_mode(self._occupancy)
-
-        self.update()
-
     @property
     def preset_mode(self) -> str:
         """Return current preset mode."""
@@ -5959,21 +5953,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         )
 
         return PRESET_HC_MODES + ([PRESET_BOOST] if can_heat_emergency else [])
-
-    def set_preset_mode(self, preset_mode: str):
-        """Activate a preset."""
-
-        if preset_mode == PRESET_BOOST:
-            self._heat_cool = MODE_EM_HEAT
-            self._client.set_setpoint_mode(
-                self._id, self._heat_cool, self._is_wifi, self._is_HC
-            )
-        else:
-            self._occupancy = preset_mode
-            self._client.set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
-
-            if self._heat_cool == MODE_EM_HEAT:
-                self.set_hvac_mode(HVACMode.HEAT)
 
     @property
     def is_em_heat(self) -> bool:
@@ -6028,6 +6007,58 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return None
 
         return self._target_cool
+
+    @property
+    def current_humidity(self):
+        """Show current humidity percent."""
+        return self._humid_display
+
+    @property
+    def target_humidity(self) -> int:
+        """Return target humidity."""
+        return self._humid_setpoint
+
+    def turn_on(self) -> None:
+        """Turn the thermostat to HVACMode.HEAT_COOL."""
+        self._heat_cool = HVACMode.AUTO
+        self._client.set_setpoint_mode(
+            self._id, self._heat_cool, self._is_wifi, self._is_HC
+        )
+
+    def turn_off(self) -> None:
+        """Turn the thermostat to HVACMode.OFF."""
+        self._heat_cool = HVACMode.OFF
+        self._client.set_setpoint_mode(
+            self._id, self._heat_cool, self._is_wifi, self._is_HC
+        )
+
+    def set_hvac_mode(self, hvac_mode: HVACMode):
+        """Set new hvac mode."""
+        self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+
+        self._heat_cool = (
+            hvac_mode if hvac_mode != HVACMode.HEAT_COOL else HVACMode.AUTO
+        )
+
+        # Reset the preset to the occupancy
+        self.set_preset_mode(self._occupancy)
+
+        self.update()
+
+    def set_preset_mode(self, preset_mode: str):
+        """Activate a preset."""
+
+        if preset_mode == PRESET_BOOST:
+            self._heat_cool = MODE_EM_HEAT
+            self._client.set_setpoint_mode(
+                self._id, self._heat_cool, self._is_wifi, self._is_HC
+            )
+        else:
+            self._occupancy = preset_mode
+            self._client.set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
+
+            if self._heat_cool == MODE_EM_HEAT:
+                self.set_hvac_mode(HVACMode.HEAT)
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -6099,16 +6130,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_aux_heating_source(value["id"], equip)
         self._aux_heat_source_type = value["dev"]
 
-    @property
-    def current_humidity(self):
-        """Show current humidity percent."""
-        return self._humid_display
-
-    @property
-    def target_humidity(self) -> int:
-        """Return target humidity."""
-        return self._humid_setpoint
-
     def set_fan_speed(self, value):
         """Set fan speed On or Auto."""
         self._client.set_fan_mode(value["id"], value["speed"])
@@ -6167,6 +6188,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             value["id"], value["mode"], self._is_HC
         )
         self._humid_setpoint_mode = value["mode"]
+
+    def set_air_ex_time_on(self, value):
+        """Set air exchanger minimum time on, off = 0, continuous = 60."""
+        self._client.set_air_ex_time_on(
+            value["id"], value["time"], self._is_HC
+        )
+        self._air_min_timeon = value["time"]
 
     @property
     def extra_state_attributes(self):
