@@ -1037,7 +1037,6 @@ class Neviweb130Switch(SwitchEntity):
             out_2 = value["output2"]
         else:
             out_2 = ""
-        value["id"]
         self._client.set_input_output_names(value["id"], in_1, in_2, out_1, out_2)
         self._input_name_1 = in_1
         self._input_name_2 = in_2
