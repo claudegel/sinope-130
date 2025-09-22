@@ -343,6 +343,7 @@ SERVICE_SET_REFUEL_ALERT = "set_refuel_alert"
 SERVICE_SET_HUMIDIFIER_TYPE = "set_humidifier_type"
 SERVICE_SET_SCHEDULE_MODE = "set_schedule_mode"
 SERVICE_SET_FLOW_ALARM_DISABLE_TIMER = "set_flow_alarm_disable_timer"
+SERVICE_SET_FAN_FILTER_REMINDER = "set_fan_filter_reminder"
 
 CLIMATE_MODEL = [300, 336, 737, 738, 739, 742, 1123, 1124, 1510, 1512, 6727, 6730, 6810, 6811, 6812, 7372,  7373]
 LIGHT_MODEL = [2121, 2131, 2132]
@@ -352,15 +353,700 @@ SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
 FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
 
+# list attributs availables for each device model
+MODEL_ATTRIBUTES = {
+    # thermostats
+    300: { # TH1123ZB-G2 3000W, 4000W
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [
+            "is_heating",
+        ],
+        "button": [],
+    },
+    336: { # TH1133CR, TH1134WF, TH1134CR
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "pi_heating_demand",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    737: { # TH1300ZB 3600W, TH1320ZB-04, OTH3600-GA-ZB
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    738: { # TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort, concerto connect FLP55
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    739: { # TH1400WF low voltage
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    742: { # TH1500WF double pole
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    1123: { # TH1123ZB 3000W
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    1124: { # TH1124ZB 4000W
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    1510: { # TH1123WF 3000W, 4000W
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    1512: { # TH1134ZB-HC
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+            "language",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    6727: { # TH6500WF, TH6510WF
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "fan_filter_remain",
+            "max_cool_temp",
+            "min_cool_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+            "language",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    6730: { # TH6250WF, TH6250WF-PRO
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "fan_filter_remain",
+            "max_cool_temp",
+            "max_temp",
+            "min_cool_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+            "language",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    6810: { # HP6000ZB-GE
+        "sensor": [ATTR_RSSI],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad"],
+        "binary_sensor": [],
+        "button": [],
+    },
+    6811: { # HP6000ZB-MA
+        "sensor": [ATTR_RSSI],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad"],
+        "binary_sensor": [],
+        "button": [],
+    },
+    6812: { # HP6000ZB-HS
+        "sensor": [ATTR_RSSI],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad"],
+        "binary_sensor": [],
+        "button": [],
+    },
+    7372: { # TH1400ZB low voltage, TH1420ZB-01 Nordik
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    7373: { # TH1500ZB double pole
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    # Lights
+    2121: { # SW2500ZB, SW2500ZB-G2
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [
+            "brightness",
+            "intensity_min",
+            "light_timer",
+            "led_off_intensity",
+            "led_on_intensity",
+        ],
+        "select": [
+            "keypad",
+            "led_off_color",
+            "led_on_color",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2131: { # DM2500ZB, DM2500ZB-G2
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [
+            "brightness",
+            "intensity_min",
+            "light_timer",
+            "led_off_intensity",
+            "led_on_intensity",
+        ],
+        "select": [
+            "keypad",
+            "led_off_color",
+            "led_on_color",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2132: { # DM2550ZB, DM2550ZB-G2
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [
+            "brightness",
+            "intensity_min",
+            "light_timer",
+            "led_off_intensity",
+            "led_on_intensity",
+        ],
+        "select": [
+            "keypad",
+            "led_off_color",
+            "led_on_color",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    # Switch
+    346: { # RM3250WF, 50A, wifi
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": ["power_timer"],
+        "select": ["keypad_status"],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2151: { # RM3500ZB 20,8A, Zigbee
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["water_leak_status"],
+        "button": [],
+    },
+    2152: { # RM3500WF 20,8A, wifi, RM3510WF 20,8A, wifi
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["water_leak_status"],
+        "button": [],
+    },
+    2180: { # MC3100ZB connected to GT130
+        "sensor": [ATTR_RSSI],
+        "number": [
+            "timer",
+            "timer2",
+        ],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2181: { # MC3100ZB connected to Sedna valve
+        "sensor": [ATTR_RSSI],
+        "number": [
+            "timer",
+            "timer2",
+        ],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2506: { # RM3250ZB, 50A, Zigbee
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": ["power_timer"],
+        "select": ["keypad_status"],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2600: { # SP2600ZB
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    2610: { # SP2610ZB
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    #Valves
+    3150: { # VA4201WZ, VA4200WZ, VA4220WZ, VA4220WF, VA4221WZ, VA4221WF
+        "sensor": [ATTR_RSSI],
+        "number": [],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    3151: { # VA4200ZB
+        "sensor": [ATTR_RSSI],
+        "number": [],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    3153: { # VA4220ZB 2e gen
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": ["flowmeter_timer"],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "temp_alert",
+            "water_leak_status",
+        ],
+        "button": [],
+    },
+    3155: { # ACT4221WF-M, ACT4220WF-M
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": ["flowmeter_timer"],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "temp_alert",
+            "water_leak_status",
+        ],
+        "button": [],
+    },
+    31532: { # ACT4221ZB-M, ACT4220ZB-M
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": ["flowmeter_timer"],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "temp_alert",
+            "water_leak_status",
+        ],
+        "button": [],
+    },
+    # sensors
+    130: { # GT130
+        "sensor": ["gateway_status"],
+        "number": [],
+        "select": ["occupancy_mode"],
+        "binary_sensor": [],
+        "button": [],
+    },
+    4210: { # WL4210, WL4210S connected to GT130
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+    },
+    5050: { # WL4200, WL4210 and WL4200S,
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+    },
+    5051: { # WL4200, WL4200C and WL4200S
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+    },
+    5052: { # WL4200C, perimeter cable water leak detector connected to Sedna
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+    },
+    5053: { # WL4200C, perimeter cable water leak detector connected to GT130
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+    },
+    5055: { # LM4110-LTE
+        "sensor": [ATTR_RSSI],
+        "number": [],
+        "select": [],
+        "binary_sensor": [],
+        "button": [],
+    },
+    5056: { # LM4110-ZB
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+            "gauge_angle",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "level_status",
+            "refuel_status",
+        ],
+        "button": [],
+    },
+    42102: { # WL4210, WL4210S connected to sedna valve
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+    },
+}
+
 #Managed device attributes by alphabetical order
 EXPOSED_ATTRIBUTES = [
     "backlight",
+    "battery_level",
     "battery_status",
+    "battery_voltage",
     "brightness",
     "current_temperature",
     "daily_flow_count",
     "daily_kwh_count",
+    "fan_filter_remain",
     "flowmeter_timer",
+    "gateway_status",
+    "gauge_angle",
     "hourly_flow_count",
     "hourly_kwh_count",
     "intensity_min",
@@ -380,10 +1066,10 @@ EXPOSED_ATTRIBUTES = [
     "min_temp",
     "monthly_flow_count",
     "monthly_kwh_count",
+    "occupancy_mode",
     "pi_heating_demand",
     "power_timer",
     "refuel_status",
-    "reset_filter",
     "rssi",
     "temp_alert"
     "timer",
