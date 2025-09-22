@@ -37,6 +37,7 @@ from .const import (
     ATTR_DISPLAY_CONF,
     ATTR_DRACTIVE,
     ATTR_EARLY_START,
+    ATTR_FAN_FILTER_REMAIN,
     ATTR_FAN_SWING_HORIZ,
     ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AIR_LIMIT,
@@ -153,6 +154,7 @@ LOCK_LIST = ['locked', 'unlocked', 'tamper protection']
 COLOR_LIST = ['lime', 'amber', 'fushia', 'perle', 'blue', 'red', 'orange', 'green']
 BACKLIGHT_LIST = ['auto', 'on', 'bedroom']
 LANGUAGE_LIST = ['fr', 'en']
+OCCUPANCY_LIST = ['home', 'away']
 
 def color_to_rgb(color):
     """Convert color to rgb tuple. (red,green,blue)"""
@@ -513,6 +515,15 @@ SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SETPOINT_MODE): vol.In(["auto", "manual"]),
+    }
+)
+
+SET_FAN_FILTER_REMINDER_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_FILTER_REMAIN): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=12)
+        ),
     }
 )
 
