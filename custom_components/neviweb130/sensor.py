@@ -90,13 +90,14 @@ from .const import (ALL_MODEL, ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_TEMP_ALERT,
                     ATTR_RSSI, ATTR_WATER_LEAK_STATUS, ATTR_WIFI,
                     CLIMATE_MODEL, DOMAIN, LIGHT_MODEL, MODE_OFF,
-                    SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
-                    SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
-                    SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
-                    SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_REFUEL_ALERT,
-                    SERVICE_SET_SENSOR_ALERT, SERVICE_SET_TANK_HEIGHT,
-                    SERVICE_SET_TANK_TYPE, SIGNAL_EVENTS_CHANGED,
-                    STATE_WATER_LEAK, SWITCH_MODEL, VALVE_MODEL)
+                    MODEL_ATTRIBUTES, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_BATTERY_ALERT, SERVICE_SET_BATTERY_TYPE,
+                    SERVICE_SET_FUEL_ALERT, SERVICE_SET_GAUGE_TYPE,
+                    SERVICE_SET_LOW_FUEL_ALERT, SERVICE_SET_NEVIWEB_STATUS,
+                    SERVICE_SET_REFUEL_ALERT, SERVICE_SET_SENSOR_ALERT,
+                    SERVICE_SET_TANK_HEIGHT, SERVICE_SET_TANK_TYPE,
+                    SIGNAL_EVENTS_CHANGED, STATE_WATER_LEAK, SWITCH_MODEL,
+                    VALVE_MODEL)
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
                      SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
@@ -265,18 +266,21 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfVolume.LITERS,
         icon="mdi:lightning-bolt",
     ),
+    # Sensor
+    Neviweb130SensorEntityDescription(
+        key="gateway_status",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="measurement",
+        translation_key="gateway_status",
+        value_fn=lambda data: data["gateway_status"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=None,
+        icon="mdi:lightning-bolt",
+    ),
 )
 
 def get_attributes_for_model(model):
-    if model in CLIMATE_MODEL:
-        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count", "current_temperature", "pi_heating_demand"]
-    elif model in LIGHT_MODEL:
-        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count"]
-    elif model in SWITCH_MODEL:
-        return [ATTR_RSSI, "total_kwh_count", "monthly_kwh_count", "daily_kwh_count", "hourly_kwh_count"]
-    elif model in VALVE_MODEL:
-        return [ATTR_RSSI, "total_flow_count", "monthly_flow_count", "daily_flow_count", "hourly_flow_count"]
-    return []
+    return MODEL_ATTRIBUTES.get(model, {}).get("sensor", [])
 
 def determine_device_type(model):
     if model in IMPLEMENTED_SENSOR_MODEL or model in IMPLEMENTED_NEW_SENSOR_MODEL:
@@ -351,7 +355,7 @@ def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
 
         for device_info in gateway_data:
             model = device_info["signature"]["model"]
-            if model not in ALL_MODEL:
+            if model not in FULL_MODEL: # ALL_MODEL
                 continue
 
             device_id = str(device_info["id"])
@@ -1500,6 +1504,21 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             return "Normal"
 
     @property
+    def gauge_angle(self):
+        """Return gauge angle."""
+        return self._angle
+
+    @property
+    def battery_level(self):
+        """Return gauge angle."""
+        return voltage_to_percentage(self._battery_voltage, "lithium"),
+
+    @property
+    def battery_voltage(self):
+        """Return battery voltage."""
+        return self._battery_voltage
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
@@ -1608,7 +1627,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
 
 class Neviweb130GatewaySensor(Neviweb130Sensor):
-    """Implementation of a Neviweb gateway sensor."""
+    """Implementation of a Neviweb gateway sensor, GT130."""
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, location, coordinator):
         """Initialize."""
@@ -1679,6 +1698,16 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
     def state(self):
         """Return the state of the gateway."""
         return self._gateway_status
+
+    @property
+    def occupancy_mode(self):
+        """Return the state of the gateway."""
+        return self._occupancyMode
+
+    @property
+    def location(self):
+        """Return Neviweb location ID."""
+        return self._location
 
     @property
     def extra_state_attributes(self):
