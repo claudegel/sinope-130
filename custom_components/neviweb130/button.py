@@ -31,6 +31,7 @@ from .const import (
     CLIMATE_MODEL,
     DOMAIN,
     LIGHT_MODEL,
+    MODEL_ATTRIBUTES,
     SWITCH_MODEL,
     VALVE_MODEL,
 )
@@ -51,26 +52,18 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
     # Climate attributes
-    Neviweb130ButtonEntityDescription(
-        key="reset_filter", #nom du bouton
-        device_class=ButtonDeviceClass.UPDATE,
-        icon="mdi:air-filter",
-        translation_key="reset_filter", #pour traduction
-        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-        data_key="filter_clean", #attribute name
-    ),
+#    Neviweb130ButtonEntityDescription(
+#        key="fan_filter_remain", #nom du bouton
+#        device_class=ButtonDeviceClass.UPDATE,
+#        icon="mdi:air-filter",
+#        translation_key="reset_filter", #pour traduction
+#        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
+#        data_key="filter_clean", #attribute name
+#    ),
 )
 
 def get_attributes_for_model(model):
-    if model in CLIMATE_MODEL:
-        return ["reset_filter"]
-    elif model in LIGHT_MODEL:
-        return []
-    elif model in SWITCH_MODEL:
-        return []
-    elif model in VALVE_MODEL:
-        return []
-    return []
+    return MODEL_ATTRIBUTES.get(model, {}).get("button", [])
 
 def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     entities = []
@@ -160,7 +153,7 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_should_poll = True
 
     _ATTRIBUTE_METHODS = {
-        "reset_filter": lambda self: self._client.async_reset_filter(self._id),
+        #"fan_filter_remain": lambda self: self._client.async_set_fan_filter_reminder(self._id),
         # ...
     }
 
