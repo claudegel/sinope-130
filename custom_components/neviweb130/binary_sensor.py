@@ -33,6 +33,7 @@ from .const import (
     CLIMATE_MODEL,
     DOMAIN,
     LIGHT_MODEL,
+    MODEL_ATTRIBUTES,
     SENSOR_MODEL,
     SWITCH_MODEL,
     VALVE_MODEL,
@@ -115,13 +116,7 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
 )
 
 def get_attributes_for_model(model):
-    if model in SWITCH_MODEL:
-        return ["water_leak_status"]
-    elif model in VALVE_MODEL:
-        return ["temp_alert", "water_leak_status", "battery_status"]
-    elif model in SENSOR_MODEL:
-        return ["leak_status", "battery_status", "refuel_status", "level_status"]
-    return []
+    return MODEL_ATTRIBUTES.get(model, {}).get("binary_sensor", [])
 
 def create_attribute_binary_sensors(hass, entry, data, coordinator, device_registry):
     entities = []
