@@ -43,6 +43,7 @@ from .const import (
     CLIMATE_MODEL,
     DOMAIN,
     LIGHT_MODEL,
+    MODEL_ATTRIBUTES,
     SWITCH_MODEL,
     VALVE_MODEL,
 )
@@ -105,6 +106,17 @@ NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
         native_step=1,
         translation_key="max_cool_temp",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="fan_filter_remain",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.DURATION,
+        mode=NumberMode.AUTO,
+        native_min_value=1,
+        native_max_value=12,
+        native_step=1,
+        translation_key="fan_filter_remain",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
     ),
     # Light attributes
     Neviweb130NumberEntityDescription(
@@ -211,15 +223,7 @@ NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
 )
 
 def get_attributes_for_model(model):
-    if model in CLIMATE_MODEL:
-        return ["min_temp", "max_temp", "min_cool_temp", "max_cool_temp"]
-    elif model in LIGHT_MODEL:
-        return ["brightness", "intensity_min", "led_on_intensity", "led_off_intensity", "light_timer"]
-    elif model in SWITCH_MODEL:
-        return ["timer", "timer2", "power_timer"]
-    elif model in VALVE_MODEL:
-        return ["flowmeter_timer"]
-    return []
+    return MODEL_ATTRIBUTES.get(model, {}).get("number", [])
 
 def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
     entities = []
@@ -326,6 +330,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         "light_timer": lambda self, value: self._client.async_set_timer(self._id, value),
         "power_timer": lambda self, value: self._client.async_set_timer(self._id, value),
         "flowmeter_timer": lambda self, value: self._client.async_set_flow_alarm_disable_timer(self._id, value),
+        "fan_filter_remain": lambda self, value: self._client.async_set_fan_filter_reminder(self._id, value, self.is_HC),
         # ...
     }
 
@@ -362,6 +367,12 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
     def unique_id(self):
         """Return a unique ID."""
         return self._attr_unique_id
+
+    @property
+    def is_HC(self):
+        """Return True if device is a HC device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_HC", False) if device_obj else False
 
     @property
     def native_value(self) -> float | None:
