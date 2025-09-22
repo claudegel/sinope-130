@@ -156,7 +156,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_COOL_SETPOINT_MAX,
                     SERVICE_SET_COOL_SETPOINT_MIN, SERVICE_SET_CYCLE_OUTPUT,
                     SERVICE_SET_DISPLAY_CONFIG, SERVICE_SET_EARLY_START,
-                    SERVICE_SET_EM_HEAT, SERVICE_SET_FLOOR_AIR_LIMIT,
+                    SERVICE_SET_EM_HEAT, SERVICE_SET_FAN_FILTER_REMINDER,
+                    SERVICE_SET_FLOOR_AIR_LIMIT,
                     SERVICE_SET_FLOOR_LIMIT_HIGH, SERVICE_SET_FLOOR_LIMIT_LOW,
                     SERVICE_SET_HC_SECOND_DISPLAY,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
@@ -181,7 +182,8 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_COOL_SETPOINT_MAX_SCHEMA,
                      SET_COOL_SETPOINT_MIN_SCHEMA, SET_CYCLE_OUTPUT_SCHEMA,
                      SET_DISPLAY_CONFIG_SCHEMA, SET_EARLY_START_SCHEMA,
-                     SET_EM_HEAT_SCHEMA, SET_FLOOR_AIR_LIMIT_SCHEMA,
+                     SET_EM_HEAT_SCHEMA, SET_FAN_FILTER_REMINDER_SCHEMA,
+                     SET_FLOOR_AIR_LIMIT_SCHEMA,
                      SET_FLOOR_LIMIT_HIGH_SCHEMA, SET_FLOOR_LIMIT_LOW_SCHEMA,
                      SET_HC_SECOND_DISPLAY_SCHEMA,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
@@ -1057,6 +1059,20 @@ async def async_setup_entry(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_fan_filter_reminder_service(service):
+        """Set TH6500WF, TH6250WF fan filter reminder period from 1 to 12 month."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        value = {}
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "month": service.data[ATTR_FAN_FILTER_REMAIN],
+                }
+                thermostat.async_set_fan_filter_reminder(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1300,6 +1316,13 @@ async def async_setup_entry(
         SERVICE_SET_SCHEDULE_MODE,
         set_schedule_mode_service,
         schema=SET_SCHEDULE_MODE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FAN_FILTER_REMINDER,
+        set_fan_filter_reminder_service,
+        schema=SET_FAN_FILTER_REMINDER_SCHEMA,
     )
 
 
@@ -5859,6 +5882,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Return target humidity."""
         return self._humid_setpoint
 
+    @property
+    def fan_filter_remain(self) -> int:
+        """Return target humidity."""
+        return self._fan_filter_remain
+
     async def async_set_humidity(self, **kwargs):
         """Set new target humidity %."""
         humidity = kwargs.get(ATTR_HUMIDITY)
@@ -5894,6 +5922,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         else:
             await self._client.async_set_temperature(self._id, temperature)
         self._target_temp = temperature
+
+    async def async_set_fan_filter_reminder(self, value):
+        """Set fan filter reminder period from 1 to 12 month."""
+        self._client.async_set_fan_filter_reminder(value["id"], value["month"], self._is_HC)
+        self._fan_filter_remain = value["month"]
 
     @property
     def extra_state_attributes(self):
