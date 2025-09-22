@@ -35,6 +35,7 @@ from .const import (
     CLIMATE_MODEL,
     DOMAIN,
     LIGHT_MODEL,
+    MODEL_ATTRIBUTES,
     SWITCH_MODEL,
     VALVE_MODEL,
 )
@@ -45,6 +46,7 @@ from .schema import (
     COLOR_LIST,
     LANGUAGE_LIST,
     LOCK_LIST,
+    OCCUPANCY_LIST,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .helpers import debug_coordinator
@@ -98,18 +100,16 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         translation_key="language",
         options=LANGUAGE_LIST,
     ),
+    Neviweb130SelectEntityDescription(
+        key="occupancy_mode",
+        icon="mdi:projector-screen-outline",
+        translation_key="occupancy_mode",
+        options=OCCUPANCY_LIST,
+    ),
 )
 
 def get_attributes_for_model(model):
-    if model in CLIMATE_MODEL:
-        return ["keypad", "backlight", "language"]
-    elif model in LIGHT_MODEL:
-        return ["keypad", "led_on_color", "led_off_color"]
-    elif model in SWITCH_MODEL:
-        return ["keypad_status"]
-    elif model in VALVE_MODEL:
-        return []
-    return []
+    return MODEL_ATTRIBUTES.get(model, {}).get("select", [])
 
 def create_attribute_selects(hass, entry, data, coordinator, device_registry):
     entities = []
@@ -209,6 +209,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
         "keypad_status": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
         "language": lambda self, option: self._client.async_set_language(self._id, option),
+        "occupancy_mode": lambda self, option: self._client.async_post_neviweb_status(self._id, self.location , option),
         # ...
     }
 
@@ -246,6 +247,18 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         """Return True if device is a wifi device"""
         device_obj = self.coordinator.data.get(self._id)
         return device_obj.get("is_wifi", False) if device_obj else False
+
+    @property
+    def location(self):
+        """Return location id"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("location", False) if device_obj else False
+
+    @property
+    def is_HC(self):
+        """Return True if device is a HC device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_HC", False) if device_obj else False
 
     @property
     def current_option(self):
