@@ -72,6 +72,7 @@ from .const import (
     ATTR_DRSTATUS,
     ATTR_EARLY_START,
     ATTR_FAN_SPEED,
+    ATTR_FAN_FILTER_REMAIN,
     ATTR_FAN_SWING_HORIZ,
     ATTR_FAN_SWING_VERT,
     ATTR_FLOOR_AUX,
@@ -168,11 +169,6 @@ GATEWAY_DEVICE_URL = f"{HOST}/api/devices?location$id="
 DEVICE_DATA_URL = f"{HOST}/api/device/"
 NEVIWEB_LOCATION = f"{HOST}/api/location/"
 
-# According to HA: 
-# https://developers.home-assistant.io/docs/en/creating_component_code_review.html
-# "All API specific code has to be part of a third party library hosted on PyPi. 
-# Home Assistant should only interact with objects and not make direct calls to the API."
-# So all code below this line should eventually be integrated in a PyPi project.
 
 def extract_device_attributes(dev) -> dict:
     return {
@@ -821,6 +817,18 @@ class Neviweb130Client:
         else:
             self.notify_ha(
                 "Warning: Service set_schedule_mode is only for "
+                + "TH6500WF or TH6250WF thermostats."
+            )
+
+    async def async_set_fan_filter_reminder(self, device_id, month, HC):
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            month_val = month * 720
+            data = {ATTR_FAN_FILTER_REMAIN: month_val}
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha(
+                "Warning: Service set_fan_filter_reminder is only for "
                 + "TH6500WF or TH6250WF thermostats."
             )
 
