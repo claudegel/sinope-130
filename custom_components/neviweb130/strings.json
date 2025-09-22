@@ -96,6 +96,9 @@
       "intensity_min": {
         "name": "Min Intensity"
       },
+      "fan_filter_remain": {
+        "name": "Fan Filter Remainder"
+      },
       "led_off_intensity": {
         "name": "Led Off Intensity"
       },
@@ -148,6 +151,9 @@
       },
       "led_on_color": {
         "name": "Led On Color"
+      },
+      "occupancy_mode": {
+        "name": "Occupancy Mode"
       }
     },
     "sensor": {
