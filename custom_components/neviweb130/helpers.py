@@ -1,12 +1,12 @@
 """Helpers function to help debug neviweb130"""
 
-import logging
-import os
 import json
+import logging
 
 _LOGGER = logging.getLogger(__name__)
 
 DEBUG_FILE_PATH = "neviweb130_debug.txt"  # dans /config
+
 
 def debug_coordinator(coordinator, device_id=None, device_name=None):
     import pprint
@@ -40,11 +40,17 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
                 break
 
     if target_device:
-        _LOGGER.debug("Device ciblé (%s):\n%s", 
-                      getattr(target_device, "name", "inconnu"), 
-                      pprint.pformat(vars(target_device)))
+        _LOGGER.debug(
+            "Device ciblé (%s):\n%s",
+            getattr(target_device, "name", "inconnu"),
+            pprint.pformat(vars(target_device)),
+        )
     else:
-        _LOGGER.warning("Device non trouvé avec ID '%s' ou nom '%s'", device_id, device_name)
+        _LOGGER.warning(
+            "Device non trouvé avec ID '%s' ou nom '%s'",
+            device_id,
+            device_name,
+        )
 
 
 def write_debug_file(hass, content: dict):

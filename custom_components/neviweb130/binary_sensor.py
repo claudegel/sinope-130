@@ -5,47 +5,27 @@ Support for Neviweb attributes binary sensors for devices connected via GT130 an
 from __future__ import annotations
 
 import logging
-
 from dataclasses import dataclass
-from typing import Callable, Optional, Final
+from typing import Callable, Final
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-    BinarySensorEntityDescription,
-)
-from homeassistant.core import HomeAssistant
+    BinarySensorDeviceClass, BinarySensorEntity, BinarySensorEntityDescription)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_FRIENDLY_NAME,
-    EntityCategory,
-)
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    ATTR_TEMP_ALARM,
-    ATTR_WATER_LEAK_STATUS,
-    FULL_MODEL,
-    CLIMATE_MODEL,
-    DOMAIN,
-    LIGHT_MODEL,
-    MODEL_ATTRIBUTES,
-    SENSOR_MODEL,
-    SWITCH_MODEL,
-    VALVE_MODEL,
-)
-from .coordinator import Neviweb130Client, Neviweb130Coordinator
-from .helpers import debug_coordinator
+from .const import (DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES)
+from .coordinator import Neviweb130Coordinator
 
-DEFAULT_NAME = 'neviweb130 binary_sensor'
-DEFAULT_NAME_2 = 'neviweb130 binary_sensor 2'
-DEFAULT_NAME_3 = 'neviweb130 binary_sensor 3'
+DEFAULT_NAME = "neviweb130 binary_sensor"
+DEFAULT_NAME_2 = "neviweb130 binary_sensor 2"
+DEFAULT_NAME_3 = "neviweb130 binary_sensor 3"
 
 _LOGGER = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
@@ -55,7 +35,10 @@ class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
     on_icon: str = "mdi:checkbox-marked"
     off_icon: str = "mdi:checkbox-blank-outline"
 
-BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] = (
+
+BINARY_SENSOR_TYPES: Final[
+    tuple[Neviweb130BinarySensorEntityDescription, ...]
+] = (
     # Valve attributes
     Neviweb130BinarySensorEntityDescription(
         key="temp_alert",
@@ -73,7 +56,8 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         off_icon="mdi:pipe",
         translation_key="leak_status",
         entity_category=EntityCategory.DIAGNOSTIC,
-        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "flowmeter", "probe"},
+        is_on_fn=lambda data, attr: str(data[attr]).lower()
+        in {"water", "leak", "flowmeter", "probe"},
     ),
     # Switch attributes
     Neviweb130BinarySensorEntityDescription(
@@ -93,7 +77,8 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         off_icon="mdi:pipe",
         translation_key="leak_status",
         entity_category=EntityCategory.DIAGNOSTIC,
-        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "probe"},
+        is_on_fn=lambda data, attr: str(data[attr]).lower()
+        in {"water", "leak", "probe"},
     ),
     Neviweb130BinarySensorEntityDescription(
         key="refuel_status",
@@ -115,14 +100,20 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
     ),
 )
 
+
 def get_attributes_for_model(model):
     return MODEL_ATTRIBUTES.get(model, {}).get("binary_sensor", [])
 
-def create_attribute_binary_sensors(hass, entry, data, coordinator, device_registry):
-    entities = []
-    client = data['neviweb130_client']
 
-    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+def create_attribute_binary_sensors(
+    hass, entry, data, coordinator, device_registry
+):
+    entities = []
+    client = data["neviweb130_client"]
+
+    _LOGGER.debug(
+        "Keys dans coordinator.data : %s", list(coordinator.data.keys())
+    )
 
     gateway_datas = [
         (client.gateway_data, DEFAULT_NAME),
@@ -141,7 +132,9 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+                _LOGGER.warning(
+                    "Device %s pas encore dans coordinator.data", device_id
+                )
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -179,6 +172,7 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
 
     return entities
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -188,20 +182,24 @@ async def async_setup_entry(
     """Set up the Neviweb binary sensor."""
     data = hass.data[DOMAIN][entry.entry_id]
 
-    if 'neviweb130_client' not in data:
+    if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
         return
 
     coordinator = data["coordinator"]
     device_registry = dr.async_get(hass)
 
-    entities = create_attribute_binary_sensors(hass, entry, data, coordinator, device_registry)
+    entities = create_attribute_binary_sensors(
+        hass, entry, data, coordinator, device_registry
+    )
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordinator], BinarySensorEntity):
+class Neviweb130DeviceAttributeBinarySensor(
+    CoordinatorEntity[Neviweb130Coordinator], BinarySensorEntity
+):
     """Representation of a specific Neviweb130 binary sensor."""
 
     _attr_has_entity_name = True
@@ -223,7 +221,7 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         self._client = client
         self._device = device
         self.entity_description = entity_description
-        self._id = str(device.get('id'))
+        self._id = str(device.get("id"))
         self._device_name = device_name
         self._device_id = device_id
         self._attribute = attribute
@@ -257,13 +255,21 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         device_obj = self.coordinator.data.get(self._id)
         if device_obj and self.entity_description.is_on_fn:
             try:
-                return self.entity_description.is_on_fn(device_obj, self._attribute)
+                return self.entity_description.is_on_fn(
+                    device_obj, self._attribute
+                )
             except Exception as exc:
-                _LOGGER.error("Error evaluating is_on for %s: %s", self._attr_unique_id, exc)
+                _LOGGER.error(
+                    "Error evaluating is_on for %s: %s",
+                    self._attr_unique_id,
+                    exc,
+                )
                 return None
         _LOGGER.warning(
             "AttributeBinarySensor: %s attribute %s not found for device: %s.",
-            self._attr_unique_id, self._attribute, self._id
+            self._attr_unique_id,
+            self._attribute,
+            self._id,
         )
         return None
 

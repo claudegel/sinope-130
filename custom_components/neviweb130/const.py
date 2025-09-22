@@ -28,13 +28,13 @@ If not done yet you can delete config in configuration.yaml.
 -------------------------------------------------------------------
 """
 
-CONF_NETWORK = 'network'
-CONF_NETWORK2 = 'network2'
-CONF_NETWORK3 = 'network3'
-CONF_HOMEKIT_MODE = 'homekit_mode'
+CONF_NETWORK = "network"
+CONF_NETWORK2 = "network2"
+CONF_NETWORK3 = "network3"
+CONF_HOMEKIT_MODE = "homekit_mode"
 CONF_IGNORE_MIWI = "ignore_miwi"
-CONF_STAT_INTERVAL = 'stat_interval'
-CONF_NOTIFY = 'notify'
+CONF_STAT_INTERVAL = "stat_interval"
+CONF_NOTIFY = "notify"
 
 ATTR_ALERT = "alert"
 ATTR_SIGNATURE = "signature"
@@ -64,14 +64,14 @@ ATTR_BATTERY_VOLTAGE = "batteryVoltage"
 ATTR_BATTERY_STATUS = "batteryStatus"
 ATTR_BATTERY_TYPE = "batteryType"
 ATTR_FLOOR_MODE = "airFloorMode"
-ATTR_FLOOR_OUTPUT2 = "loadWattOutput2" # status on/off, value=xx
+ATTR_FLOOR_OUTPUT2 = "loadWattOutput2"  # status on/off, value=xx
 ATTR_FLOOR_AUX = "auxHeatConfig"
 ATTR_KEYPAD = "lockKeypad"
 ATTR_OCCUPANCY = "occupancyMode"
-ATTR_FLOOR_OUTPUT1 = "loadWattOutput1" # status on/off, value=xx
-ATTR_LIGHT_WATTAGE = "loadWattOutput1" # status on/off, value=xx
+ATTR_FLOOR_OUTPUT1 = "loadWattOutput1"  # status on/off, value=xx
+ATTR_LIGHT_WATTAGE = "loadWattOutput1"  # status on/off, value=xx
 ATTR_OUTPUT1 = "loadWattOutput1"
-ATTR_WIFI_WATTAGE = "loadWatt" # value
+ATTR_WIFI_WATTAGE = "loadWatt"  # value
 ATTR_WIFI_WATT_NOW = "loadWattNow"
 ATTR_WIFI = "wifiRssi"
 ATTR_RSSI = "rssi"
@@ -98,7 +98,7 @@ ATTR_LOW_TEMP_STATUS = "alertLowTempStatus"
 ATTR_TEMPERATURE = "temperature"
 ATTR_WATER_TEMPERATURE = "waterTemperature"
 ATTR_ROOM_TEMP_ALARM = "roomTemperatureAlarmStatus"
-ATTR_VALVE_CLOSURE = "valveClosureSource" # source
+ATTR_VALVE_CLOSURE = "valveClosureSource"  # source
 ATTR_LEAK_ALERT = "alertWaterLeak"
 ATTR_BATT_ALERT = "alertLowBatt"
 ATTR_TEMP_ALERT = "alertLowTemp"
@@ -115,10 +115,10 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE = "auxCycleLength"
 ATTR_CYCLE = "cycleLength"
-ATTR_CYCLE_OUTPUT2= "cycleLengthOutput2" # status on/off, value (second)
-ATTR_PUMP_PROTEC = "pumpProtection" # status on/off, duration, frequency
-ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration" # status on/off, value
-ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod" # status on/off, value
+ATTR_CYCLE_OUTPUT2 = "cycleLengthOutput2"  # status on/off, value (second)
+ATTR_PUMP_PROTEC = "pumpProtection"  # status on/off, duration, frequency
+ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration"  # status on/off, value
+ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod"  # status on/off, value
 ATTR_TYPE = "type"
 ATTR_PHASE_CONTROL = "phaseControl"
 ATTR_SYSTEM_MODE = "systemMode"
@@ -345,18 +345,38 @@ SERVICE_SET_SCHEDULE_MODE = "set_schedule_mode"
 SERVICE_SET_FLOW_ALARM_DISABLE_TIMER = "set_flow_alarm_disable_timer"
 SERVICE_SET_FAN_FILTER_REMINDER = "set_fan_filter_reminder"
 
-CLIMATE_MODEL = [300, 336, 737, 738, 739, 742, 1123, 1124, 1510, 1512, 6727, 6730, 6810, 6811, 6812, 7372,  7373]
+CLIMATE_MODEL = [
+    300,
+    336,
+    737,
+    738,
+    739,
+    742,
+    1123,
+    1124,
+    1510,
+    1512,
+    6727,
+    6730,
+    6810,
+    6811,
+    6812,
+    7372,
+    7373,
+]
 LIGHT_MODEL = [2121, 2131, 2132]
 SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 2600, 2610]
 VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
 SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
-FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
+FULL_MODEL = (
+    CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
+)
 
 # list attributs availables for each device model
 MODEL_ATTRIBUTES = {
     # thermostats
-    300: { # TH1123ZB-G2 3000W, 4000W
+    300: {  # TH1123ZB-G2 3000W, 4000W
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -379,7 +399,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    336: { # TH1133CR, TH1134WF, TH1134CR
+    336: {  # TH1133CR, TH1134WF, TH1134CR
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -396,28 +416,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    737: { # TH1300ZB 3600W, TH1320ZB-04, OTH3600-GA-ZB
-        "sensor": [
-            ATTR_RSSI,
-            "current_temperature",
-            "daily_kwh_count",
-            "hourly_kwh_count",
-            "monthly_kwh_count",
-            "pi_heating_demand",
-            "total_kwh_count",
-        ],
-        "number": [
-            "max_temp",
-            "min_temp",
-        ],
-        "select": [
-            "backlight",
-            "keypad",
-        ],
-        "binary_sensor": [],
-        "button": [],
-    },
-    738: { # TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort, concerto connect FLP55
+    737: {  # TH1300ZB 3600W, TH1320ZB-04, OTH3600-GA-ZB
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -438,7 +437,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    739: { # TH1400WF low voltage
+    738: {  # TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort, concerto connect FLP55
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -459,7 +458,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    742: { # TH1500WF double pole
+    739: {  # TH1400WF low voltage
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -480,7 +479,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    1123: { # TH1123ZB 3000W
+    742: {  # TH1500WF double pole
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -501,7 +500,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    1124: { # TH1124ZB 4000W
+    1123: {  # TH1123ZB 3000W
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -522,7 +521,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    1510: { # TH1123WF 3000W, 4000W
+    1124: {  # TH1124ZB 4000W
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -543,7 +542,28 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    1512: { # TH1134ZB-HC
+    1510: {  # TH1123WF 3000W, 4000W
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad",
+        ],
+        "binary_sensor": [],
+        "button": [],
+    },
+    1512: {  # TH1134ZB-HC
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -565,7 +585,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    6727: { # TH6500WF, TH6510WF
+    6727: {  # TH6500WF, TH6510WF
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -590,7 +610,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    6730: { # TH6250WF, TH6250WF-PRO
+    6730: {  # TH6250WF, TH6250WF-PRO
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -615,7 +635,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    6810: { # HP6000ZB-GE
+    6810: {  # HP6000ZB-GE
         "sensor": [ATTR_RSSI],
         "number": [
             "max_temp",
@@ -625,7 +645,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    6811: { # HP6000ZB-MA
+    6811: {  # HP6000ZB-MA
         "sensor": [ATTR_RSSI],
         "number": [
             "max_temp",
@@ -635,7 +655,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    6812: { # HP6000ZB-HS
+    6812: {  # HP6000ZB-HS
         "sensor": [ATTR_RSSI],
         "number": [
             "max_temp",
@@ -645,7 +665,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    7372: { # TH1400ZB low voltage, TH1420ZB-01 Nordik
+    7372: {  # TH1400ZB low voltage, TH1420ZB-01 Nordik
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -666,7 +686,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    7373: { # TH1500ZB double pole
+    7373: {  # TH1500ZB double pole
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -688,7 +708,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
     },
     # Lights
-    2121: { # SW2500ZB, SW2500ZB-G2
+    2121: {  # SW2500ZB, SW2500ZB-G2
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -711,7 +731,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2131: { # DM2500ZB, DM2500ZB-G2
+    2131: {  # DM2500ZB, DM2500ZB-G2
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -734,7 +754,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2132: { # DM2550ZB, DM2550ZB-G2
+    2132: {  # DM2550ZB, DM2550ZB-G2
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -758,7 +778,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
     },
     # Switch
-    346: { # RM3250WF, 50A, wifi
+    346: {  # RM3250WF, 50A, wifi
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -771,7 +791,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2151: { # RM3500ZB 20,8A, Zigbee
+    2151: {  # RM3500ZB 20,8A, Zigbee
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -784,7 +804,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": ["water_leak_status"],
         "button": [],
     },
-    2152: { # RM3500WF 20,8A, wifi, RM3510WF 20,8A, wifi
+    2152: {  # RM3500WF 20,8A, wifi, RM3510WF 20,8A, wifi
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -797,7 +817,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": ["water_leak_status"],
         "button": [],
     },
-    2180: { # MC3100ZB connected to GT130
+    2180: {  # MC3100ZB connected to GT130
         "sensor": [ATTR_RSSI],
         "number": [
             "timer",
@@ -807,7 +827,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2181: { # MC3100ZB connected to Sedna valve
+    2181: {  # MC3100ZB connected to Sedna valve
         "sensor": [ATTR_RSSI],
         "number": [
             "timer",
@@ -817,7 +837,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2506: { # RM3250ZB, 50A, Zigbee
+    2506: {  # RM3250ZB, 50A, Zigbee
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -830,7 +850,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2600: { # SP2600ZB
+    2600: {  # SP2600ZB
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -843,7 +863,7 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    2610: { # SP2610ZB
+    2610: {  # SP2610ZB
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -856,22 +876,22 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [],
         "button": [],
     },
-    #Valves
-    3150: { # VA4201WZ, VA4200WZ, VA4220WZ, VA4220WF, VA4221WZ, VA4221WF
+    # Valves
+    3150: {  # VA4201WZ, VA4200WZ, VA4220WZ, VA4220WF, VA4221WZ, VA4221WF
         "sensor": [ATTR_RSSI],
         "number": [],
         "select": [],
         "binary_sensor": [],
         "button": [],
     },
-    3151: { # VA4200ZB
+    3151: {  # VA4200ZB
         "sensor": [ATTR_RSSI],
         "number": [],
         "select": [],
         "binary_sensor": [],
         "button": [],
     },
-    3153: { # VA4220ZB 2e gen
+    3153: {  # VA4220ZB 2e gen
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -888,7 +908,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    3155: { # ACT4221WF-M, ACT4220WF-M
+    3155: {  # ACT4221WF-M, ACT4220WF-M
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -905,7 +925,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    31532: { # ACT4221ZB-M, ACT4220ZB-M
+    31532: {  # ACT4221ZB-M, ACT4220ZB-M
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -923,14 +943,14 @@ MODEL_ATTRIBUTES = {
         "button": [],
     },
     # sensors
-    130: { # GT130
+    130: {  # GT130
         "sensor": ["gateway_status"],
         "number": [],
         "select": ["occupancy_mode"],
         "binary_sensor": [],
         "button": [],
     },
-    4210: { # WL4210, WL4210S connected to GT130
+    4210: {  # WL4210, WL4210S connected to GT130
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -943,7 +963,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    5050: { # WL4200, WL4210 and WL4200S,
+    5050: {  # WL4200, WL4210 and WL4200S,
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -956,7 +976,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    5051: { # WL4200, WL4200C and WL4200S
+    5051: {  # WL4200, WL4200C and WL4200S
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -969,7 +989,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    5052: { # WL4200C, perimeter cable water leak detector connected to Sedna
+    5052: {  # WL4200C, perimeter cable water leak detector connected to Sedna
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -982,7 +1002,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    5053: { # WL4200C, perimeter cable water leak detector connected to GT130
+    5053: {  # WL4200C, perimeter cable water leak detector connected to GT130
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -995,14 +1015,14 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    5055: { # LM4110-LTE
+    5055: {  # LM4110-LTE
         "sensor": [ATTR_RSSI],
         "number": [],
         "select": [],
         "binary_sensor": [],
         "button": [],
     },
-    5056: { # LM4110-ZB
+    5056: {  # LM4110-ZB
         "sensor": [
             ATTR_RSSI,
             "battery_level",
@@ -1018,7 +1038,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
     },
-    42102: { # WL4210, WL4210S connected to sedna valve
+    42102: {  # WL4210, WL4210S connected to sedna valve
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -1033,7 +1053,7 @@ MODEL_ATTRIBUTES = {
     },
 }
 
-#Managed device attributes by alphabetical order
+# Managed device attributes by alphabetical order
 EXPOSED_ATTRIBUTES = [
     "backlight",
     "battery_level",
@@ -1071,8 +1091,7 @@ EXPOSED_ATTRIBUTES = [
     "power_timer",
     "refuel_status",
     "rssi",
-    "temp_alert"
-    "timer",
+    "temp_alert" "timer",
     "timer2",
     "total_flow_count",
     "total_kwh_count",
