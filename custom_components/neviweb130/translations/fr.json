@@ -97,6 +97,9 @@
       "intensity_min": {
         "name": "Intensité Minimum"
       },
+      "fan_filter_remain": {
+        "name": "Rappel Nettoyage Filtre"
+      },
       "led_off_intensity": {
         "name": "Intensité DEL Off"
       },
@@ -137,6 +140,9 @@
       },
       "led_on_color": {
         "name": "Couleur DEL On"
+      },
+      "occupancy_mode": {
+        "name": "Présence"
       }
     },
     "sensor": {
