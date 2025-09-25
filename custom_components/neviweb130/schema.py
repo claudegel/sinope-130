@@ -24,7 +24,7 @@ from .const import (ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
                     ATTR_HEAT_LOCK_TEMP, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-                    ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
+                    ATTR_HUMIDITY_SETPOINT_MODE, ATTR_HUMIDITY_SETPOINT_OFFSET,
                     ATTR_INTENSITY_MIN,
                     ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
                     ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
@@ -521,16 +521,7 @@ SET_FAN_SPEED_SCHEMA = vol.Schema(
 SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HUMID_SETPOINT_MODE): vol.In(["defog", "manual"]),
-    }
-)
-
-SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HUMID_SETPOINT_OFFSET): vol.All(
-            vol.Coerce(int), vol.Range(min=-10, max=10)
-        ),
+        vol.Required(ATTR_HUMIDITY_SETPOINT_MODE): vol.In(["defog", "manual"]),
     }
 )
 

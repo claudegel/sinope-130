@@ -49,6 +49,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from typing import override, Any
 
 from homeassistant.components.climate import (ClimateEntity,
                                               ClimateEntityFeature, HVACAction,
@@ -98,10 +99,10 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP,
                     ATTR_HEAT_MIN_TIME_OFF, ATTR_HEAT_MIN_TIME_ON,
                     ATTR_HEAT_PURGE_TIME, ATTR_HEAT_SOURCE_TYPE,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_DISPLAY,
-                    ATTR_HUMID_SETPOINT, ATTR_HUMID_SETPOINT_MODE,
-                    ATTR_HUMID_SETPOINT_OFFSET,
-                    ATTR_HUMIDITY, ATTR_INTERLOCK_ID, ATTR_KEYPAD,
+                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY_DISPLAY,
+                    ATTR_HUMIDITY_SETPOINT, ATTR_HUMIDITY_SETPOINT_MODE,
+                    ATTR_HUMIDITY_SETPOINT_OFFSET,
+                    ATTR_INTERLOCK_ID, ATTR_KEYPAD,
                     ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
                     ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
                     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_PUMP_PROTEC,
@@ -134,7 +135,6 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
                     SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
                     SERVICE_SET_HUMIDITY_SETPOINT_MODE,
-                    SERVICE_SET_HUMIDITY_SETPOINT_OFFSET,
                     SERVICE_SET_HVAC_DR_OPTIONS, SERVICE_SET_HVAC_DR_SETPOINT,
                     SERVICE_SET_LANGUAGE, SERVICE_SET_PUMP_PROTECTION,
                     SERVICE_SET_SCHEDULE_MODE, SERVICE_SET_SECOND_DISPLAY,
@@ -161,7 +161,6 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
                      SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
                      SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
-                     SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA,
                      SET_HVAC_DR_OPTIONS_SCHEMA, SET_HVAC_DR_SETPOINT_SCHEMA,
                      SET_LANGUAGE_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
                      SET_SCHEDULE_MODE_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
@@ -1349,20 +1348,6 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_humidity_offset_service(service):
-        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "offset": service.data[ATTR_HUMID_SETPOINT_OFFSET],
-                }
-                thermostat.set_humidity_offset(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
     def set_humidity_mode_service(service):
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         entity_id = service.data[ATTR_ENTITY_ID]
@@ -1371,7 +1356,7 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "mode": service.data[ATTR_HUMID_SETPOINT_MODE],
+                    "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
                 }
                 thermostat.set_humidity_mode(value)
                 thermostat.schedule_update_ha_state(True)
@@ -1673,13 +1658,6 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_HUMIDITY_SETPOINT_OFFSET,
-        set_humidity_offset_service,
-        schema=SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
         SERVICE_SET_HUMIDITY_SETPOINT_MODE,
         set_humidity_mode_service,
         schema=SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
@@ -1741,7 +1719,6 @@ class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
     _enable_turn_on_off_backwards_compatibility = False
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = 0.1
     _attr_target_temperature_step = 0.5
 
@@ -1781,7 +1758,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._max_temp = 30
         self._cool_min = 15
         self._cool_max = 36
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celcius"
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
@@ -1960,7 +1937,7 @@ class Neviweb130Thermostat(ClimateEntity):
         return self._name
 
     @property
-    def unit_of_measurement(self):
+    def temperature_unit(self) -> str:
         """Return the unit of measurement of this entity, if any."""
         return temp_format_to_ha(self._temperature_format)
 
@@ -2079,11 +2056,6 @@ class Neviweb130Thermostat(ClimateEntity):
     def max_cool_temp(self) -> float:
         """Return the maximum cooling temperature."""
         return self._cool_max
-
-    @property
-    def temperature_unit(self):
-        """Return the unit of measurement."""
-        return UnitOfTemperature.CELSIUS
 
     @property
     def outdoor_temp(self) -> float:
@@ -2272,6 +2244,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             return None
 
+    @override
     def set_fan_mode(self, speed: str) -> None:
         """Set new fan mode."""
         if speed is None:
@@ -2279,6 +2252,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.set_fan_mode(self._id, speed)
         self._fan_speed = speed
 
+    @override
     def set_swing_mode(self, swing: str) -> None:
         """Set new vertical swing mode."""
         if swing is None:
@@ -2287,6 +2261,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.set_swing_vertical(self._id, swing)
             self._fan_swing_vert = swing
 
+    @override
     def set_swing_horizontal_mode(self, swing: str) -> None:
         """Set new horizontal swing mode."""
         if swing is None:
@@ -2295,6 +2270,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self._client.set_swing_horizontal(self._id, swing)
             self._fan_swing_horiz = swing
 
+    @override
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT."""
         self._client.set_setpoint_mode(
@@ -2302,6 +2278,7 @@ class Neviweb130Thermostat(ClimateEntity):
         )
         self._operation_mode = HVACMode.HEAT
 
+    @override
     def turn_off(self) -> None:
         """Turn the thermostat to HVACMode.OFF."""
         self._client.set_setpoint_mode(
@@ -2309,7 +2286,8 @@ class Neviweb130Thermostat(ClimateEntity):
         )
         self._operation_mode = HVACMode.OFF
 
-    def set_temperature(self, **kwargs):
+    @override
+    def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
@@ -2430,7 +2408,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._drsetpoint_status = value["status"]
         self._drsetpoint_value = value["val"]
 
-    def set_hvac_mode(self, hvac_mode):
+    @override
+    def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new hvac mode."""
 
         # Simple modes, we call directly set_point_mode
@@ -2471,7 +2450,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._operation_mode = hvac_mode
         self.update()
 
-    def set_preset_mode(self, preset_mode):
+    @override
+    def set_preset_mode(self, preset_mode: str) -> None:
         """Activate a preset."""
         if preset_mode == self.preset_mode:
             return
@@ -5539,10 +5519,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._cycle = None
         self._aux_cycle = None
         self._cool_cycle_length = 0
-        self._humid_min = 30
-        self._humid_max = 99
-        self._humid_display = None
-        self._humid_setpoint = None
+        self._humidity_display = None
+        self._humidity_setpoint = None
         self._accessory_type = "none"
         self._heat_inst_type = None
         self._heat_lock_temp = None
@@ -5576,8 +5554,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._humid_setpoint_offset = 0
-        self._humid_setpoint_mode = None
+        self._humidity_setpoint_offset = 0
+        self._humidity_setpoint_mode = None
         self._air_min_timeon = 0
         self._heatcool_lock_cool_status = None
         self._heatcool_lock_heat_status = None
@@ -5611,13 +5589,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_HEAT_LOCK_TEMP,
                 ATTR_COOL_LOCK_TEMP,
                 ATTR_VALVE_POLARITY,
-                ATTR_HUMID_SETPOINT,
+                ATTR_HUMIDITY_SETPOINT,
                 ATTR_COOL_CYCLE_LENGTH,
                 ATTR_CYCLE,
                 ATTR_AUX_CYCLE,
                 ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
                 ATTR_TEMP_OFFSET_HEAT,
-                ATTR_HUMID_DISPLAY,
+                ATTR_HUMIDITY_DISPLAY,
                 ATTR_DUAL_STATUS,
                 ATTR_EARLY_START,
                 ATTR_ROOM_SETPOINT_AWAY,
@@ -5651,8 +5629,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_HEAT_MIN_TIME_ON,
                     ATTR_HEAT_MIN_TIME_OFF,
                     ATTR_ACCESSORY_TYPE,
-                    ATTR_HUMID_SETPOINT_OFFSET,
-                    ATTR_HUMID_SETPOINT_MODE,
+                    ATTR_HUMIDITY_SETPOINT_OFFSET,
+                    ATTR_HUMIDITY_SETPOINT_MODE,
                     ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_HC_LOCK_STATUS,
                     ATTR_DRAUXCONF,
@@ -5767,8 +5745,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
-                    self._humid_display = device_data[ATTR_HUMID_DISPLAY]
-                    self._humid_setpoint = device_data[ATTR_HUMID_SETPOINT]
+                    self._humidity_display = device_data[ATTR_HUMIDITY_DISPLAY]
+                    self._humidity_setpoint = device_data[ATTR_HUMIDITY_SETPOINT]
                     self._cycle = device_data[ATTR_CYCLE]
                     self._aux_cycle = device_data[ATTR_AUX_CYCLE]
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
@@ -5804,11 +5782,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         accessory_type = [str(accessory_type).removesuffix("Standalone") for accessory_type, value
                                           in device_data[ATTR_ACCESSORY_TYPE].items() if value]
                         self._accessory_type = accessory_type[0] if accessory_type else "none"
-                        self._humid_setpoint_offset = device_data[
-                            ATTR_HUMID_SETPOINT_OFFSET
+                        self._humidity_setpoint_offset = device_data[
+                            ATTR_HUMIDITY_SETPOINT_OFFSET
                         ]
-                        self._humid_setpoint_mode = device_data[
-                            ATTR_HUMID_SETPOINT_MODE
+                        self._humidity_setpoint_mode = device_data[
+                            ATTR_HUMIDITY_SETPOINT_MODE
                         ]
                         self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
                         self._heatcool_lock_cool_status = device_data[
@@ -6008,15 +5986,18 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return self._target_cool
 
     @property
-    def current_humidity(self):
+    def current_humidity(self) -> float | None:
         """Show current humidity percent."""
-        return self._humid_display
+        return self._humidity_display
 
     @property
-    def target_humidity(self) -> int:
+    def target_humidity(self) -> float | None:
         """Return target humidity."""
-        return self._humid_setpoint
+        if self._humidity_setpoint_mode == "defog":
+            return self._humidity_setpoint_offset
+        return self._humidity_setpoint
 
+    @override
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT_COOL."""
         self._heat_cool = HVACMode.AUTO
@@ -6024,6 +6005,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._id, self._heat_cool, self._is_wifi, self._is_HC
         )
 
+    @override
     def turn_off(self) -> None:
         """Turn the thermostat to HVACMode.OFF."""
         self._heat_cool = HVACMode.OFF
@@ -6031,7 +6013,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._id, self._heat_cool, self._is_wifi, self._is_HC
         )
 
-    def set_hvac_mode(self, hvac_mode: HVACMode):
+    @override
+    def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new hvac mode."""
         self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
 
@@ -6044,7 +6027,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         self.update()
 
-    def set_preset_mode(self, preset_mode: str):
+    @override
+    def set_preset_mode(self, preset_mode: str) -> None:
         """Activate a preset."""
 
         if preset_mode == PRESET_BOOST:
@@ -6059,7 +6043,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             if self._heat_cool == MODE_EM_HEAT:
                 self.set_hvac_mode(HVACMode.HEAT)
 
-    def set_temperature(self, **kwargs):
+    @override
+    def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         temperature_low = None
         temperature_high = None
@@ -6132,14 +6117,29 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_fan_mode(value["id"], value["speed"])
         self._fan_speed = value["speed"]
 
-    def set_humidity(self, **kwargs):
+    @property
+    def min_humidity(self) -> float | None:
+        if self._humidity_setpoint_mode == "defog":
+            return -10
+        else:
+            return 10
+
+    @property
+    def max_humidity(self) -> float | None:
+        if self._humidity_setpoint_mode == "defog":
+            return 10
+        else:
+            return 70
+
+    @override
+    def set_humidity(self, humidity: int) -> None:
         """Set new target humidity %."""
-        humidity = kwargs.get(ATTR_HUMIDITY)
-        if humidity is None:
-            return
-        if self._accessory_type != "none":
+        if self._humidity_setpoint_mode == "defog":
+            self._client.set_humidity_offset(self._id, humidity, self._is_HC)
+            self._humidity_setpoint_offset = humidity
+        else:
             self._client.set_humidity(self._id, humidity)
-            self._humid_setpoint = humidity
+            self._humidity_setpoint = humidity
 
     def set_accessory_type(self, value):
         """Set accessory (humidifier, dehumidifier, air exchanger) type for TH6500WF."""
@@ -6166,15 +6166,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_temperature_offset(value["id"], value["temp"], self._is_HC)
         self._temp_offset_heat = value["temp"]
 
-    def set_humidity_offset(self, value):
-        """Set thermostat humidity setpoint offset from -10 to 10 with a 1.0 oC increment."""
-        self._client.set_humidity_offset(value["id"], value["offset"], self._is_HC)
-        self._humid_setpoint_offset = value["offset"]
-
     def set_humidity_mode(self, value):
         """Set thermostat humidity setpoint mode, defog or manual"""
         self._client.set_humidity_mode(value["id"], value["mode"], self._is_HC)
-        self._humid_setpoint_mode = value["mode"]
+        self._humidity_setpoint_mode = value["mode"]
 
     def set_air_ex_time_on(self, value):
         """Set air exchanger minimum time on, off = 0, continuous = 60."""
@@ -6215,8 +6210,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "cycle": self._cycle,
                 "aux_cycle": self._aux_cycle,
                 "cool_cycle_length": self._cool_cycle_length,
-                "humid_display": self._humid_display,
-                "humid_setpoint": self._humid_setpoint,
+                "humidity_display": self._humidity_display,
+                "humidity_setpoint": self._humidity_setpoint,
                 "accessory_type": self._accessory_type,
                 "heat_cool": self._heat_cool,
                 "temp_offset_heat": self._temp_offset_heat,
@@ -6265,8 +6260,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if self._firmware == "4.2.1" or self._firmware == "4.3.0":
             data.update(
                 {
-                    "humidity_setpoint_offset": self._humid_setpoint_offset,
-                    "humidity_setpoint_mode": self._humid_setpoint_mode,
+                    "humidity_setpoint_offset": self._humidity_setpoint_offset,
+                    "humidity_setpoint_mode": self._humidity_setpoint_mode,
                     "exchanger_min_time_on": self._air_min_timeon,
                     "heatcool_lock_cool_status": self._heatcool_lock_cool_status,
                     "heatcool_lock_heat_status": self._heatcool_lock_heat_status,
