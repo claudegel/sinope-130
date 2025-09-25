@@ -1940,7 +1940,8 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement of this entity, if any."""
-        return temp_format_to_ha(self._temperature_format)
+        # Will always send Celsius values even if it's configured to display in Fahrenheit
+        return UnitOfTemperature.CELSIUS
 
     @property
     def device_class(self):
