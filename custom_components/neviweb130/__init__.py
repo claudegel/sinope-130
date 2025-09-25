@@ -35,7 +35,7 @@ from .const import (ATTR_AIR_EX_MIN_TIME_ON, ATTR_AUX_CYCLE,
                     ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP,
                     ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_SETPOINT,
                     ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMIDITY,
+                    ATTR_HUMIDITY,
                     ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
                     ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
                     ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
@@ -56,7 +56,7 @@ from .const import (ATTR_AIR_EX_MIN_TIME_ON, ATTR_AUX_CYCLE,
                     ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
                     CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
                     CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
-                    MODE_MANUAL, STARTUP_MESSAGE)
+                    MODE_MANUAL, STARTUP_MESSAGE, ATTR_ACCESSORY_TYPE)
 from .schema import CONFIG_SCHEMA as config_schema
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -842,9 +842,15 @@ class Neviweb130Client:
         data = {ATTR_HUMID_SETPOINT: humidity}
         self.set_device_attributes(device_id, data)
 
-    def set_humidifier_type(self, device_id, type):
-        """Set humidifier type for TH6500WF and TH6250WF."""
-        data = {ATTR_HUMIDIFIER_TYPE: type}
+    def set_accessory_type(self, device_id, accessory_type):
+        """Set accessory (humidifier, dehumidifier, air exchanger) type for TH6500WF and TH6250WF."""
+        data = {ATTR_ACCESSORY_TYPE: {
+            "humOnHeat": accessory_type == "humOnHeat",
+            "humOnFan": accessory_type == "humOnFan",
+            "humStandalone": False,
+            "dehumStandalone": accessory_type == "dehum",
+            "airExchangerStandalone": accessory_type == "airExchanger"
+        }}
         self.set_device_attributes(device_id, data)
 
     def set_schedule_mode(self, device_id, mode, HC):

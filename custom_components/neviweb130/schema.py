@@ -25,7 +25,7 @@ from .const import (ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
                     ATTR_HEAT_LOCK_TEMP, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
                     ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_INTENSITY_MIN,
+                    ATTR_INTENSITY_MIN,
                     ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
                     ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
@@ -40,7 +40,7 @@ from .const import (ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
                     ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN)
+                    CONF_STAT_INTERVAL, DOMAIN, ATTR_ACCESSORY_TYPE)
 
 """Default parameters values."""
 
@@ -63,7 +63,6 @@ PERIOD_VALUE = {
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
-HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
 CONTROLLED_VALUE = {
     "Hot water heater",
     "Pool pump",
@@ -155,10 +154,10 @@ FULL_SWING_OFF = ["off"]
 AUX_HEATING = ["Electric", "Fossil", "SSR"]
 ACCESSORY = [
     "none",
-    "Humidifier on heat",
-    "Humidifier on fan",
-    "Air Exchanger",
-    "Dehumidifier",
+    "humOnHeat",
+    "humOnFan",
+    "dehum",
+    "airExchanger",
 ]
 INSTALL_TYPE = ["addOn", "Conventional"]
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
@@ -462,12 +461,10 @@ SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
     }
 )
 
-SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
+SET_ACCESSORY_TYPE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(
-            cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]
-        ),
+        vol.Required(ATTR_ACCESSORY_TYPE): vol.In(ACCESSORY),
     }
 )
 
@@ -540,9 +537,7 @@ SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA = vol.Schema(
 SET_AIR_EX_MIN_TIME_ON_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AIR_EX_MIN_TIME_ON): vol.All(
-            cv.ensure_list, [vol.In(AIR_EX_MIN_TIME_ON)]
-        ),
+        vol.Required(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
     }
 )
 

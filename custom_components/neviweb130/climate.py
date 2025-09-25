@@ -100,7 +100,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_HEAT_PURGE_TIME, ATTR_HEAT_SOURCE_TYPE,
                     ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMID_DISPLAY,
                     ATTR_HUMID_SETPOINT, ATTR_HUMID_SETPOINT_MODE,
-                    ATTR_HUMID_SETPOINT_OFFSET, ATTR_HUMIDIFIER_TYPE,
+                    ATTR_HUMID_SETPOINT_OFFSET,
                     ATTR_HUMIDITY, ATTR_INTERLOCK_ID, ATTR_KEYPAD,
                     ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
                     ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
@@ -133,7 +133,6 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
                     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
                     SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
-                    SERVICE_SET_HUMIDIFIER_TYPE,
                     SERVICE_SET_HUMIDITY_SETPOINT_MODE,
                     SERVICE_SET_HUMIDITY_SETPOINT_OFFSET,
                     SERVICE_SET_HVAC_DR_OPTIONS, SERVICE_SET_HVAC_DR_SETPOINT,
@@ -142,7 +141,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
                     SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
                     SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
+                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT, SERVICE_SET_ACCESSORY_TYPE)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACTIVATION_SCHEMA, SET_AIR_EX_MIN_TIME_ON_SCHEMA,
                      SET_AIR_FLOOR_MODE_SCHEMA, SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -161,7 +160,6 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
                      SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
                      SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
-                     SET_HUMIDIFIER_TYPE_SCHEMA,
                      SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
                      SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA,
                      SET_HVAC_DR_OPTIONS_SCHEMA, SET_HVAC_DR_SETPOINT_SCHEMA,
@@ -171,7 +169,7 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
                      SET_TEMPERATURE_FORMAT_SCHEMA,
                      SET_TEMPERATURE_OFFSET_SCHEMA, SET_TIME_FORMAT_SCHEMA,
-                     VERSION, WIFI_FAN_SPEED)
+                     VERSION, WIFI_FAN_SPEED, SET_ACCESSORY_TYPE_SCHEMA)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1253,17 +1251,17 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_humidifier_type_service(service):
-        """Set TH6500WF humidifier type."""
+    def set_accessory_type_service(service):
+        """Set TH6500WF accessory (humidifier, dehumidifier, air exchanger) type."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "type": service.data[ATTR_HUMIDIFIER_TYPE],
+                    "type": service.data[ATTR_ACCESSORY_TYPE],
                 }
-                thermostat.set_humidifier_type(value)
+                thermostat.set_accessory_type(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -1626,9 +1624,9 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_HUMIDIFIER_TYPE,
-        set_humidifier_type_service,
-        schema=SET_HUMIDIFIER_TYPE_SCHEMA,
+        SERVICE_SET_ACCESSORY_TYPE,
+        set_accessory_type_service,
+        schema=SET_ACCESSORY_TYPE_SCHEMA,
     )
 
     hass.services.async_register(
@@ -5545,7 +5543,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._humid_max = 99
         self._humid_display = None
         self._humid_setpoint = None
-        self._humidifier_type = "none"
+        self._accessory_type = "none"
         self._heat_inst_type = None
         self._heat_lock_temp = None
         self._cool_lock_temp = None
@@ -5578,7 +5576,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._accessory = None
         self._humid_setpoint_offset = 0
         self._humid_setpoint_mode = None
         self._air_min_timeon = 0
@@ -5614,7 +5611,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_HEAT_LOCK_TEMP,
                 ATTR_COOL_LOCK_TEMP,
                 ATTR_VALVE_POLARITY,
-                ATTR_HUMIDIFIER_TYPE,
                 ATTR_HUMID_SETPOINT,
                 ATTR_COOL_CYCLE_LENGTH,
                 ATTR_CYCLE,
@@ -5773,7 +5769,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
                     self._humid_display = device_data[ATTR_HUMID_DISPLAY]
                     self._humid_setpoint = device_data[ATTR_HUMID_SETPOINT]
-                    self._humidifier_type = device_data[ATTR_HUMIDIFIER_TYPE]
                     self._cycle = device_data[ATTR_CYCLE]
                     self._aux_cycle = device_data[ATTR_AUX_CYCLE]
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
@@ -5806,7 +5801,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
                     if self._firmware == "4.2.1" or self._firmware == "4.3.0":
-                        self._accessory = device_data[ATTR_ACCESSORY_TYPE]
+                        accessory_type = [str(accessory_type).removesuffix("Standalone") for accessory_type, value
+                                          in device_data[ATTR_ACCESSORY_TYPE].items() if value]
+                        self._accessory_type = accessory_type[0] if accessory_type else "none"
                         self._humid_setpoint_offset = device_data[
                             ATTR_HUMID_SETPOINT_OFFSET
                         ]
@@ -5871,7 +5868,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Return the list of supported features."""
         features = SUPPORT_HC_FLAGS
 
-        if self._humidifier_type != "none":
+        if self._accessory_type != "none":
             features |= ClimateEntityFeature.TARGET_HUMIDITY
 
         if self.hvac_mode == HVACMode.HEAT_COOL:
@@ -6140,14 +6137,14 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         humidity = kwargs.get(ATTR_HUMIDITY)
         if humidity is None:
             return
-        if self._humidifier_type != "none":
+        if self._accessory_type != "none":
             self._client.set_humidity(self._id, humidity)
             self._humid_setpoint = humidity
 
-    def set_humidifier_type(self, value):
-        """Set humidifier type for TH6500WF."""
-        self._client.set_humidifier_type(value["id"], value["type"])
-        self._humidifier_type = value["type"]
+    def set_accessory_type(self, value):
+        """Set accessory (humidifier, dehumidifier, air exchanger) type for TH6500WF."""
+        self._client.set_accessory_type(value["id"], value["type"])
+        self._accessory_type = value["type"]
 
     def set_schedule_mode(self, value):
         """Set schedule mode, manual or auto."""
@@ -6220,7 +6217,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "cool_cycle_length": self._cool_cycle_length,
                 "humid_display": self._humid_display,
                 "humid_setpoint": self._humid_setpoint,
-                "humidifier_type": self._humidifier_type,
+                "accessory_type": self._accessory_type,
                 "heat_cool": self._heat_cool,
                 "temp_offset_heat": self._temp_offset_heat,
                 "cool_min_time_on": self._cool_min_time_on,
@@ -6268,7 +6265,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if self._firmware == "4.2.1" or self._firmware == "4.3.0":
             data.update(
                 {
-                    "accessory": self._accessory,
                     "humidity_setpoint_offset": self._humid_setpoint_offset,
                     "humidity_setpoint_mode": self._humid_setpoint_mode,
                     "exchanger_min_time_on": self._air_min_timeon,
