@@ -49,7 +49,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
-from typing import override, Any
+from typing import Any, override
 
 from homeassistant.components.climate import (ClimateEntity,
                                               ClimateEntityFeature, HVACAction,
@@ -101,10 +101,9 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_HEAT_PURGE_TIME, ATTR_HEAT_SOURCE_TYPE,
                     ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY_DISPLAY,
                     ATTR_HUMIDITY_SETPOINT, ATTR_HUMIDITY_SETPOINT_MODE,
-                    ATTR_HUMIDITY_SETPOINT_OFFSET,
-                    ATTR_INTERLOCK_ID, ATTR_KEYPAD,
-                    ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY, ATTR_OPTOUT,
-                    ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
+                    ATTR_HUMIDITY_SETPOINT_OFFSET, ATTR_INTERLOCK_ID,
+                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_MODEL, ATTR_OCCUPANCY,
+                    ATTR_OPTOUT, ATTR_OUTPUT1, ATTR_OUTPUT_CONNECT_STATE,
                     ATTR_OUTPUT_PERCENT_DISPLAY, ATTR_PUMP_PROTEC,
                     ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
                     ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_AWAY,
@@ -116,8 +115,9 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_VALVE_POLARITY, ATTR_WATTAGE, ATTR_WIFI,
                     ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN,
                     MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
-                    SERVICE_SET_ACTIVATION, SERVICE_SET_AIR_EX_MIN_TIME_ON,
-                    SERVICE_SET_AIR_FLOOR_MODE, SERVICE_SET_AUX_CYCLE_OUTPUT,
+                    SERVICE_SET_ACCESSORY_TYPE, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_AIR_EX_MIN_TIME_ON, SERVICE_SET_AIR_FLOOR_MODE,
+                    SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
                     SERVICE_SET_AUX_HEATING_SOURCE, SERVICE_SET_AUXILIARY_LOAD,
                     SERVICE_SET_BACKLIGHT, SERVICE_SET_CLIMATE_KEYPAD_LOCK,
@@ -141,10 +141,11 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
                     SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
                     SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT, SERVICE_SET_ACCESSORY_TYPE)
+                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
-                     SET_ACTIVATION_SCHEMA, SET_AIR_EX_MIN_TIME_ON_SCHEMA,
-                     SET_AIR_FLOOR_MODE_SCHEMA, SET_AUX_CYCLE_OUTPUT_SCHEMA,
+                     SET_ACCESSORY_TYPE_SCHEMA, SET_ACTIVATION_SCHEMA,
+                     SET_AIR_EX_MIN_TIME_ON_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
+                     SET_AUX_CYCLE_OUTPUT_SCHEMA,
                      SET_AUX_HEAT_MIN_TIME_ON_SCHEMA,
                      SET_AUX_HEATING_SOURCE_SCHEMA, SET_AUXILIARY_LOAD_SCHEMA,
                      SET_BACKLIGHT_SCHEMA, SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
@@ -168,7 +169,7 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
                      SET_TEMPERATURE_FORMAT_SCHEMA,
                      SET_TEMPERATURE_OFFSET_SCHEMA, SET_TIME_FORMAT_SCHEMA,
-                     VERSION, WIFI_FAN_SPEED, SET_ACCESSORY_TYPE_SCHEMA)
+                     VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -5779,9 +5780,16 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
                     if self._firmware == "4.2.1" or self._firmware == "4.3.0":
-                        accessory_type = [str(accessory_type).removesuffix("Standalone") for accessory_type, value
-                                          in device_data[ATTR_ACCESSORY_TYPE].items() if value]
-                        self._accessory_type = accessory_type[0] if accessory_type else "none"
+                        accessory_type = [
+                            str(accessory_type).removesuffix("Standalone")
+                            for accessory_type, value in device_data[
+                                ATTR_ACCESSORY_TYPE
+                            ].items()
+                            if value
+                        ]
+                        self._accessory_type = (
+                            accessory_type[0] if accessory_type else "none"
+                        )
                         self._humidity_setpoint_offset = device_data[
                             ATTR_HUMIDITY_SETPOINT_OFFSET
                         ]

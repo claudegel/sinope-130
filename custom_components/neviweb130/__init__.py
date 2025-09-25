@@ -13,18 +13,19 @@ from homeassistant.const import (CONF_PASSWORD, CONF_SCAN_INTERVAL,
                                  CONF_USERNAME)
 from homeassistant.helpers import discovery
 
-from .const import (ATTR_AIR_EX_MIN_TIME_ON, ATTR_AUX_CYCLE,
-                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_TIMEON,
-                    ATTR_BACKLIGHT, ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
-                    ATTR_BATT_ALERT, ATTR_BATTERY_TYPE,
-                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
-                    ATTR_CONTROLLED_DEVICE, ATTR_COOL_LOCK_TEMP,
-                    ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
-                    ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MAX,
-                    ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE, ATTR_CYCLE_OUTPUT2,
-                    ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRSETPOINT,
-                    ATTR_DRSTATUS, ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
-                    ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
+from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
+                    ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
+                    ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
+                    ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
+                    ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+                    ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
+                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
+                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT,
+                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
+                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
+                    ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_EARLY_START,
+                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
+                    ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
                     ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
@@ -33,30 +34,29 @@ from .const import (ATTR_AIR_EX_MIN_TIME_ON, ATTR_AUX_CYCLE,
                     ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
                     ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY_SETPOINT,
-                    ATTR_HUMIDITY_SETPOINT_MODE, ATTR_HUMIDITY_SETPOINT_OFFSET,
-                    ATTR_HUMIDITY,
-                    ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
-                    ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
-                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
-                    ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
-                    ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
-                    ATTR_LIGHT_WATTAGE, ATTR_MODE, ATTR_MOTOR_TARGET,
-                    ATTR_NAME_1, ATTR_NAME_2, ATTR_OCCUPANCY, ATTR_ONOFF,
-                    ATTR_ONOFF2, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
-                    ATTR_PHASE_CONTROL, ATTR_POWER_MODE, ATTR_POWER_SUPPLY,
-                    ATTR_PUMP_PROTEC, ATTR_PUMP_PROTEC_DURATION,
-                    ATTR_PUMP_PROTEC_PERIOD, ATTR_REFUEL, ATTR_ROOM_SETPOINT,
-                    ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
-                    ATTR_SETPOINT_MODE, ATTR_SIGNATURE, ATTR_SOUND_CONF,
-                    ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT, ATTR_TANK_SIZE,
-                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
+                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY,
+                    ATTR_HUMIDITY_SETPOINT, ATTR_HUMIDITY_SETPOINT_MODE,
+                    ATTR_HUMIDITY_SETPOINT_OFFSET, ATTR_INPUT_1_OFF_DELAY,
+                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
+                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
+                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
+                    ATTR_LEAK_ALERT, ATTR_LED_OFF_COLOR,
+                    ATTR_LED_OFF_INTENSITY, ATTR_LED_ON_COLOR,
+                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
+                    ATTR_MOTOR_TARGET, ATTR_NAME_1, ATTR_NAME_2,
+                    ATTR_OCCUPANCY, ATTR_ONOFF, ATTR_ONOFF2,
+                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
+                    ATTR_POWER_MODE, ATTR_POWER_SUPPLY, ATTR_PUMP_PROTEC,
+                    ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
+                    ATTR_REFUEL, ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_MAX,
+                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT_MODE, ATTR_SIGNATURE,
+                    ATTR_SOUND_CONF, ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT,
+                    ATTR_TANK_SIZE, ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
                     ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
                     ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
                     CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
                     CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
-                    MODE_MANUAL, STARTUP_MESSAGE, ATTR_ACCESSORY_TYPE)
+                    MODE_MANUAL, STARTUP_MESSAGE)
 from .schema import CONFIG_SCHEMA as config_schema
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -844,13 +844,15 @@ class Neviweb130Client:
 
     def set_accessory_type(self, device_id, accessory_type):
         """Set accessory (humidifier, dehumidifier, air exchanger) type for TH6500WF and TH6250WF."""
-        data = {ATTR_ACCESSORY_TYPE: {
-            "humOnHeat": accessory_type == "humOnHeat",
-            "humOnFan": accessory_type == "humOnFan",
-            "humStandalone": False,
-            "dehumStandalone": accessory_type == "dehum",
-            "airExchangerStandalone": accessory_type == "airExchanger"
-        }}
+        data = {
+            ATTR_ACCESSORY_TYPE: {
+                "humOnHeat": accessory_type == "humOnHeat",
+                "humOnFan": accessory_type == "humOnFan",
+                "humStandalone": False,
+                "dehumStandalone": accessory_type == "dehum",
+                "airExchangerStandalone": accessory_type == "airExchanger",
+            }
+        }
         self.set_device_attributes(device_id, data)
 
     def set_schedule_mode(self, device_id, mode, HC):
