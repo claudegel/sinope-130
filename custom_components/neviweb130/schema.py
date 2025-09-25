@@ -9,23 +9,23 @@ from homeassistant.const import (ATTR_ENTITY_ID, CONF_PASSWORD,
                                  CONF_SCAN_INTERVAL, CONF_USERNAME)
 from homeassistant.helpers import config_validation as cv
 
-from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT, ATTR_BALANCE_PT,
-                    ATTR_BATT_ALERT, ATTR_BATTERY_TYPE, ATTR_BLUE,
-                    ATTR_CLOSE_VALVE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
-                    ATTR_CONF_CLOSURE, ATTR_COOL_LOCK_TEMP,
-                    ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
-                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN,
-                    ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRACTIVE,
-                    ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
-                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN,
-                    ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
+from .const import (ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_TIMEON,
+                    ATTR_BACKLIGHT, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
+                    ATTR_BATTERY_TYPE, ATTR_BLUE, ATTR_CLOSE_VALVE,
+                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
+                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
+                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT_MAX,
+                    ATTR_COOL_SETPOINT_MIN, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
+                    ATTR_DRACTIVE, ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_FAN_SPEED, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX,
+                    ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
                     ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM_TIMER,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
                     ATTR_HEAT_LOCK_TEMP, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_HUMID_SETPOINT_MODE,
-                    ATTR_HUMID_SETPOINT_OFFSET, ATTR_INTENSITY_MIN,
+                    ATTR_HUMID_SETPOINT_MODE, ATTR_HUMID_SETPOINT_OFFSET,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_INTENSITY_MIN,
                     ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
                     ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
                     ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
@@ -161,7 +161,7 @@ ACCESSORY = [
     "Dehumidifier",
 ]
 INSTALL_TYPE = ["addOn", "Conventional"]
-AIR_MIN_TIME_ON = [0, 20, 40, 60]
+AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 
 """Config schema."""
 
@@ -537,6 +537,15 @@ SET_HUMIDITY_SETPOINT_OFFSET_SCHEMA = vol.Schema(
     }
 )
 
+SET_AIR_EX_MIN_TIME_ON_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_AIR_EX_MIN_TIME_ON): vol.All(
+            cv.ensure_list, [vol.In(AIR_EX_MIN_TIME_ON)]
+        ),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
@@ -618,18 +627,14 @@ SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
 SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(
-            ["locked", "unlocked", "partiallyLocked"]
-        ),
+        vol.Required(ATTR_KEYPAD): vol.In(["locked", "unlocked", "partiallyLocked"]),
     }
 )
 
 SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=10800)
-        ),
+        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 

@@ -640,8 +640,7 @@ class Neviweb130Light(LightEntity):
     def set_led_indicator(self, value):
         """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
         self._client.set_led_indicator(
-            value["id"], value["state"], value["red"],
-            value["green"], value["blue"]
+            value["id"], value["state"], value["red"], value["green"], value["blue"]
         )
         rgb = f'{value["red"]},{value["green"]},{value["blue"]}'
         if value["state"] == 0:
@@ -671,8 +670,7 @@ class Neviweb130Light(LightEntity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._activ = action
+        self._activ = value["active"]
 
     def set_key_double_up(self, value):
         """Change key double up action."""

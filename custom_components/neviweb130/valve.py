@@ -702,6 +702,11 @@ class Neviweb130Valve(ValveEntity):
         """Return current position True or False."""
         return self._reports_position
 
+    @property
+    def valve_status(self):
+        """Return current valve status, open or closed."""
+        return self._valve_status is not None
+
     def open_valve(self, **kwargs):
         """Open the valve."""
         if self._is_wifi_valve or self._is_wifi_mesh_valve:
@@ -723,11 +728,6 @@ class Neviweb130Valve(ValveEntity):
             if self._is_zb_valve or self._is_zb_mesh_valve:
                 self._valve_status = "closed"
         self._onoff = MODE_OFF
-
-    @property
-    def valve_status(self):
-        """Return current valve status, open or closed."""
-        return self._valve_status is not None
 
     @property
     def extra_state_attributes(self):
@@ -812,7 +812,6 @@ class Neviweb130Valve(ValveEntity):
                 sup = "acups-01"
             case _:
                 sup = "both"
-        entity = value["id"]
         self._client.set_power_supply(value["id"], sup)
         self._power_supply = sup
 
@@ -1332,6 +1331,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
         data = {}
         data.update(
             {
+                "valve_status": self._valve_status,
                 "temperature_alert": self._temp_alert,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
@@ -1341,7 +1341,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "battery_alert": self._battery_alert,
                 "motor_target_position": self._motor_target,
                 "water_leak_status": self._water_leak_status,
-                "valve_status": self._valve_info_status,
+                "valve_info_status": self._valve_info_status,
                 "valve_cause": self._valve_info_cause,
                 "valve_info_id": self._valve_info_id,
                 "alert_motor_jam": self._stm8Error_motorJam,
@@ -1402,7 +1402,6 @@ class Neviweb130MeshValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-
         self._name = name
         self._sku = sku
         self._firmware = firmware

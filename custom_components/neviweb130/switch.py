@@ -755,7 +755,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
 
 
-def remainig_time(time):
+def remaining_time(time):
     """Convert time countdown for RM3500ZB."""
     if time == 65535:
         return "off"
@@ -938,9 +938,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_control_onoff(self, value):
         """Set onOff or onOff2 to on or off"""
-        self._client.set_control_onoff(
-            value["id"], value["onoff_num"], value["status"]
-        )
+        self._client.set_control_onoff(value["id"], value["onoff_num"], value["status"])
         if value["onoff_num"] == 1:
             self._onoff = value["status"]
         else:
@@ -1039,10 +1037,7 @@ class Neviweb130Switch(SwitchEntity):
             out_2 = value["output2"]
         else:
             out_2 = ""
-        entity = value["id"]
-        self._client.set_input_output_names(
-            value["id"], in_1, in_2, out_1, out_2
-        )
+        self._client.set_input_output_names(value["id"], in_1, in_2, out_1, out_2)
         self._input_name_1 = in_1
         self._input_name_2 = in_2
         self._output_name_1 = out_1
@@ -1759,7 +1754,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "water_leak_status": self._water_leak_status,
                 "water_temperature": self._water_temp,
                 "cold_load_pickup_status": self._cold_load_status,
-                "cold_load_remaining_time": remainig_time(
+                "cold_load_remaining_time": remaining_time(
                     self._cold_load_remaining_time
                 ),
                 "tank_size": neviweb_to_ha(self._tank_size),
@@ -2002,7 +1997,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "water_leak_closure_config": self._water_leak_closure_conf,
                 "water_temperature": self._water_temp,
                 "cold_load_pickup_status": self._cold_load_status,
-                "cold_load_remaining_time": remainig_time(
+                "cold_load_remaining_time": remaining_time(
                     self._cold_load_remaining_time
                 ),
                 "cold_load_temperature": self._cold_load_temp,
