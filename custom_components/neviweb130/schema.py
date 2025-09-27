@@ -10,7 +10,7 @@ from homeassistant.const import (ATTR_ENTITY_ID, CONF_PASSWORD,
 from homeassistant.helpers import config_validation as cv
 
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
-                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_TIMEON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_MIN_TIME_ON,
                     ATTR_BACKLIGHT, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
                     ATTR_BATTERY_TYPE, ATTR_BLUE, ATTR_CLOSE_VALVE,
                     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
@@ -39,7 +39,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_TRIGGER_ALARM, ATTR_TYPE, ATTR_VALUE,
                     ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI,
                     CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN)
+                    CONF_STAT_INTERVAL, DOMAIN, ATTR_HEAT_MIN_TIME_ON,
+                    ATTR_HEAT_MIN_TIME_OFF, ATTR_AUX_HEAT_MIN_TIME_OFF)
 
 """Default parameters values."""
 
@@ -435,28 +436,22 @@ SET_LANGUAGE_SCHEMA = vol.Schema(
     }
 )
 
-SET_AUX_HEAT_MIN_TIME_ON_SCHEMA = vol.Schema(
+SET_MIN_TIME_ON_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AUX_HEAT_TIMEON): vol.All(cv.ensure_list, [vol.In(MIN_TIME)]),
+        vol.Optional(ATTR_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AUX_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_COOL_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
     }
 )
 
-SET_COOL_MIN_TIME_ON_SCHEMA = vol.Schema(
+SET_MIN_TIME_OFF_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_MIN_TIME_ON): vol.All(
-            cv.ensure_list, [vol.In(MIN_TIME)]
-        ),
-    }
-)
-
-SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_MIN_TIME_OFF): vol.All(
-            cv.ensure_list, [vol.In(MIN_TIME)]
-        ),
+        vol.Optional(ATTR_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AUX_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
+        vol.Optional(ATTR_COOL_MIN_TIME_OFF): vol.In(MIN_TIME),
     }
 )
 
@@ -521,13 +516,6 @@ SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HUMIDITY_SETPOINT_MODE): vol.In(["defog", "manual"]),
-    }
-)
-
-SET_AIR_EX_MIN_TIME_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
     }
 )
 

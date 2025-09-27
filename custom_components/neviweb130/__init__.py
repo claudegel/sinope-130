@@ -15,7 +15,7 @@ from homeassistant.helpers import discovery
 
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
+                    ATTR_AUX_HEAT_MIN_TIME_ON, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
                     ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
                     ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
@@ -56,16 +56,15 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
                     CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
                     CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
-                    MODE_MANUAL, STARTUP_MESSAGE)
-from .schema import CONFIG_SCHEMA as config_schema
+                    MODE_MANUAL, STARTUP_MESSAGE, ATTR_HEAT_MIN_TIME_ON, ATTR_HEAT_MIN_TIME_OFF,
+                    ATTR_AUX_HEAT_MIN_TIME_OFF)
+from .schema import CONFIG_SCHEMA
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 from .schema import VERSION
-
-CONFIG_SCHEMA = config_schema
 _LOGGER = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = 30
@@ -76,6 +75,12 @@ GATEWAY_DEVICE_URL = f"{HOST}/api/devices?location$id="
 DEVICE_DATA_URL = f"{HOST}/api/device/"
 NEVIWEB_LOCATION = f"{HOST}/api/location/"
 NEVIWEB_WEATHER = f"{HOST}/api/weather?code="
+
+SCAN_INTERVAL = DEFAULT_SCAN_INTERVAL
+HOMEKIT_MODE = DEFAULT_HOMEKIT_MODE
+IGNORE_MIWI = DEFAULT_IGNORE_MIWI
+STAT_INTERVAL = DEFAULT_STAT_INTERVAL
+NOTIFY = DEFAULT_NOTIFY
 
 
 def setup(hass, hass_config):
@@ -531,8 +536,6 @@ class Neviweb130Client:
 
     def get_device_attributes(self, device_id, attributes):
         """Get device attributes."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -564,8 +567,6 @@ class Neviweb130Client:
 
     def get_device_status(self, device_id):
         """Get device status for the GT130."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -592,8 +593,6 @@ class Neviweb130Client:
 
     def get_neviweb_status(self, location):
         """Get neviweb occupancyMode status."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -619,8 +618,6 @@ class Neviweb130Client:
 
     def get_device_alert(self, device_id):
         """Get device alert for Sedna valve."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -651,8 +648,6 @@ class Neviweb130Client:
 
     def get_device_monthly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 months."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -663,7 +658,6 @@ class Neviweb130Client:
             )
         except OSError:
             raise PyNeviweb130Error("Cannot get device monthly stats...")
-            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -677,8 +671,6 @@ class Neviweb130Client:
 
     def get_device_daily_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 30 days."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -689,7 +681,6 @@ class Neviweb130Client:
             )
         except OSError:
             raise PyNeviweb130Error("Cannot get device daily stats...")
-            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -703,8 +694,6 @@ class Neviweb130Client:
 
     def get_device_hourly_stats(self, device_id):
         """Get device power consumption (in Wh) for the last 24 hours."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -715,7 +704,6 @@ class Neviweb130Client:
             )
         except OSError:
             raise PyNeviweb130Error("Cannot get device hourly stats...")
-            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -729,8 +717,6 @@ class Neviweb130Client:
 
     def get_weather(self):
         """Get Neviweb weather for my location."""
-        # Prepare return
-        data = {}
         # _LOGGER.debug("sent data = %s", NEVIWEB_WEATHER + self._code)
         try:
             raw_res = requests.get(
@@ -741,7 +727,6 @@ class Neviweb130Client:
             )
         except OSError:
             raise PyNeviweb130Error("Cannot get Neviweb weather and icon...")
-            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -751,8 +736,6 @@ class Neviweb130Client:
 
     def get_device_sensor_error(self, device_id):
         """Get device error code status."""
-        # Prepare return
-        data = {}
         # Http requests
         try:
             raw_res = requests.get(
@@ -765,7 +748,6 @@ class Neviweb130Client:
             )
         except OSError:
             raise PyNeviweb130Error("Cannot get device error code status...")
-            return None
         # Update cookies
         self._cookies.update(raw_res.cookies)
         # Prepare data
@@ -823,6 +805,8 @@ class Neviweb130Client:
         if wifi:
             if mode in [PRESET_AWAY, PRESET_HOME]:
                 data = {ATTR_OCCUPANCY: mode}
+            else:
+                return
         else:
             data = {ATTR_SYSTEM_MODE: mode}
         self.set_device_attributes(device_id, data)
@@ -922,8 +906,8 @@ class Neviweb130Client:
                 + "TH6500WF or TH6250WF thermostats."
             )
 
-    def set_air_ex_time_on(self, device_id, time, HC):
-        """Set humidity setpoint mode for TH6500WF and TH6250WF."""
+    def set_air_ex_min_time_on(self, device_id, time, HC):
+        """Set minimum time the air exchanger is on per hour."""
         if HC:
             time_val = None
             match time:
@@ -1398,18 +1382,11 @@ class Neviweb130Client:
 
     def set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
         """Set input 1 or 2 on/off delay in seconds."""
-        if inputnumber == 1:
-            match onoff:
-                case "on":
-                    data = {ATTR_INPUT_1_ON_DELAY: delay}
-                case _:
-                    data = {ATTR_INPUT_1_OFF_DELAY: delay}
-        else:
-            match onoff:
-                case "on":
-                    data = {ATTR_INPUT_2_ON_DELAY: delay}
-                case _:
-                    data = {ATTR_INPUT_2_OFF_DELAY: delay}
+        match onoff:
+            case "on":
+                data = {ATTR_INPUT_1_ON_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_ON_DELAY: delay}
+            case _:
+                data = {ATTR_INPUT_1_OFF_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_OFF_DELAY: delay}
         _LOGGER.debug("input_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1495,24 +1472,52 @@ class Neviweb130Client:
         _LOGGER.debug("Hc language.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heat_time_on(self, device_id, time):
-        """Set display language for TH1134ZB-HC."""
-        data = {ATTR_AUX_HEAT_TIMEON: time}
-        _LOGGER.debug("HC aux_heat_time_on.data = %s", data)
+    def set_heat_min_time_on(self, device_id, time: int):
+        """Set minimum time the heater is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_HEAT_MIN_TIME_ON: time}
+        _LOGGER.debug("HC heat_min_time_on.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_cool_time(self, device_id, time, state):
-        """Set display language for TH1134ZB-HC."""
-        if state == "on":
-            data = {ATTR_COOL_MIN_TIME_ON: time}
-        else:
-            data = {ATTR_COOL_MIN_TIME_OFF: time}
-        _LOGGER.debug("HC cool_min_time_on/off.data = %s", data)
+    def set_heat_min_time_off(self, device_id, time: int):
+        """Set minimum time the heater is off before letting it be on again (cooldown time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_HEAT_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC heat_min_time_off.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_min_time_on(self, device_id, time: int):
+        """Set minimum time the cooler is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_COOL_MIN_TIME_ON: time}
+        _LOGGER.debug("HC cool_min_time_on.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_min_time_off(self, device_id, time: int):
+        """Set minimum time the cooler is off before letting it be on again (cooldown time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_COOL_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC cool_min_time_off.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heat_min_time_on(self, device_id, time: int):
+        """Set minimum time the auxiliary heater is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_AUX_HEAT_MIN_TIME_ON: time}
+        _LOGGER.debug("HC aux_heat_min_time_on.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heat_min_time_off(self, device_id, time: int):
+        """Set minimum time the auxiliary heater is off before letting it be on again (cooldown time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_AUX_HEAT_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC aux_heat_min_time_off.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
         """Ser devices attributes."""
         result = 1
+        resp = None
         while result < 4:
             try:
                 resp = requests.put(
@@ -1534,6 +1539,9 @@ class Neviweb130Client:
                 _LOGGER.debug("Json Data received= %s", resp.json())
                 _LOGGER.debug("Content = %s", resp.content)
                 _LOGGER.debug("Text = %s", resp.text)
+
+                if "error" not in resp.json():
+                    break
             except OSError:
                 raise PyNeviweb130Error(
                     "Cannot set device %s attributes: %s", device_id, data
@@ -1547,10 +1555,8 @@ class Neviweb130Client:
                         result,
                     )
                     continue
-                else:
-                    break
 
-    def post_neviweb_status(self, device_id, location, mode):
+    def post_neviweb_status(self, location, mode):
         """Send post requests to Neviweb for global occupancy mode"""
         data = {ATTR_MODE: mode}
         try:
