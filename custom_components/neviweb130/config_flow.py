@@ -23,7 +23,8 @@ from . import async_migrate_unique_ids, async_shutdown
 from .const import (CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NETWORK,
                     CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
                     CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE)
-from .coordinator import PyNeviweb130Error
+from .coordinator import PyNeviweb130Error, create_session
+from homeassistant.exceptions import HomeAssistantError
 from .schema import (HOMEKIT_MODE, IGNORE_MIWI, NOTIFY,
                      SCAN_INTERVAL, STAT_INTERVAL)
 from .session_manager import session_manager
@@ -106,7 +107,6 @@ async def async_test_connect(self, user: str, passwd: str) -> bool:
     return True
 
 
-# async def async_validate_input(data, hass: core.HomeAssistant, cookies, timeout) -> None:
 async def async_validate_input(self, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input configuration."""
     user = data.get(CONF_USERNAME)
