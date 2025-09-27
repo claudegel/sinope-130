@@ -38,10 +38,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (ATTR_ENTITY_ID)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
-# from . import SCAN_INTERVAL
 from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
                     ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
@@ -1463,6 +1462,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
         data = {}
         data.update(
             {
+                "valve_status": self._valve_status,
                 "temperature_alert": self._temp_alert,
                 "battery_level": voltage_to_percentage(
                     self._battery_voltage, 4
@@ -2085,6 +2085,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
+                "valve_status": self._valve_status,
                 "motor_target_position": self._motor_target,
                 "temperature_alert": self._temp_alert,
                 "valve_status": self._valve_info_status,
