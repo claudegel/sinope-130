@@ -17,7 +17,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES)
+from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
 DEFAULT_NAME = "neviweb130 binary_sensor"
