@@ -29,23 +29,23 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
                     ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_INPUT_1_OFF_DELAY, ATTR_INPUT_1_ON_DELAY,
-                    ATTR_INPUT_2_OFF_DELAY, ATTR_INPUT_2_ON_DELAY,
-                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LANGUAGE, ATTR_LEAK_ALERT,
-                    ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
-                    ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
-                    ATTR_LIGHT_WATTAGE, ATTR_MODE, ATTR_MOTOR_TARGET,
-                    ATTR_NAME_1, ATTR_NAME_2, ATTR_OCCUPANCY, ATTR_ONOFF,
-                    ATTR_ONOFF2, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
-                    ATTR_PHASE_CONTROL, ATTR_POWER_MODE, ATTR_POWER_SUPPLY,
-                    ATTR_PUMP_PROTEC, ATTR_PUMP_PROTEC_DURATION,
-                    ATTR_PUMP_PROTEC_PERIOD, ATTR_REFUEL, ATTR_ROOM_SETPOINT,
-                    ATTR_ROOM_SETPOINT_MAX, ATTR_ROOM_SETPOINT_MIN,
-                    ATTR_SETPOINT_MODE, ATTR_SIGNATURE, ATTR_SOUND_CONF,
-                    ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT, ATTR_TANK_SIZE,
-                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME,
-                    ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
+                    ATTR_HUMIDIFIER_TYPE, ATTR_INPUT_1_OFF_DELAY,
+                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
+                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
+                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
+                    ATTR_LEAK_ALERT, ATTR_LED_OFF_COLOR,
+                    ATTR_LED_OFF_INTENSITY, ATTR_LED_ON_COLOR,
+                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
+                    ATTR_MOTOR_TARGET, ATTR_NAME_1, ATTR_NAME_2,
+                    ATTR_OCCUPANCY, ATTR_ONOFF, ATTR_ONOFF2,
+                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
+                    ATTR_POWER_MODE, ATTR_POWER_SUPPLY, ATTR_PUMP_PROTEC,
+                    ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
+                    ATTR_REFUEL, ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_MAX,
+                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT_MODE, ATTR_SIGNATURE,
+                    ATTR_SOUND_CONF, ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT,
+                    ATTR_TANK_SIZE, ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
+                    ATTR_TIME, ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
                     ATTR_WIFI_KEYPAD, EXPOSED_ATTRIBUTES, MODE_MANUAL)
 from .schema import VERSION, color_to_rgb
 from .session_manager import session_manager
@@ -187,7 +187,7 @@ class Neviweb130Client:
             ) from e
 
         # Update session
-        #        _LOGGER.debug("cookies = %s", response)
+        # _LOGGER.debug("cookies = %s", response)
         self._cookies = response.cookies
         data = raw_res
         _LOGGER.debug("Login response: %s", data)
