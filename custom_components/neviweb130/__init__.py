@@ -143,6 +143,30 @@ async def async_unload_entry(hass, entry):
             entry, "valve"
         )
     )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "binary_sensor"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "button"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "number"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "select"
+        )
+    )
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
