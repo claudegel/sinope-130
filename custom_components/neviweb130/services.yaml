@@ -770,3 +770,13 @@ set_flow_alarm_disable_timer:
     flowMeterAlarmDisableTimer:
       description: Values in seconds from 0 to 86400 (24 hrs), 0 = disabled
       example: 21600
+
+set_fan_filter_reminder:
+  description: Set fan filter reminder period for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
+      example: "climate.neviweb130_climate_office"
+    fanFilterReminderPeriod:
+      description: Values from 1 to 12 month.
+      example: 4
