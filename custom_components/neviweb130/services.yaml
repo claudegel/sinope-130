@@ -710,34 +710,48 @@ set_language:
       description: «fr» = french language, «en» for english.
       example: "en"
 
-set_aux_heat_min_time_on:
-  description: Set auxiliary heating time on for TH6500WF and TH6250WF thermostats.
+set_min_time_on:
+  description: Set minimum time the device is on before letting be off again (run-on time) for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
+      required: true
       example: "climate.neviweb130_climate_office"
+    heatMinTimeOn:
+      description: Possible values are 120, 180, 240, 300, 600 sec.
+      required: false
+      example: 120
     auxHeatMinTimeOn:
       description: Possible values are 120, 180, 240, 300, 600 sec.
+      required: false
       example: 120
-
-set_cool_min_time_on:
-  description: Set cooling minimum time on for TH6500WF and TH6250WF thermostats.
-  fields:
-    entity_id:
-      description: Name(s) of neviweb130 TH6500WF device to set the second display.
-      example: "climate.neviweb130_climate_office"
     coolMinTimeOn:
       description: Possible values are 120, 180, 240, 300, 600 sec.
+      required: false
       example: 120
+    airExchangerMinTimeOn:
+      description: Possibles values, "Off", "20 min", "40 min", "Continuous".
+      required: false
+      example: "40 min"
 
-set_cool_min_time_off:
-  description: Set cooling minimum time off for TH6500WF and TH6250WF thermostats.
+set_min_time_off:
+  description: Set minimum time the device is off before letting it be on again (cooldown time) for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
+      required: true
       example: "climate.neviweb130_climate_office"
+    heatMinTimeOff:
+      description: Possible values are 120, 180, 240, 300, 600 sec.
+      required: false
+      example: 120
+    auxHeatMinTimeOff:
+      description: Possible values are 120, 180, 240, 300, 600 sec.
+      required: false
+      example: 120
     coolMinTimeOff:
       description: Possible values are 120, 180, 240, 300, 600 sec.
+      required: false
       example: 120
 
 set_neviweb_status:
@@ -839,13 +853,3 @@ set_humidity_mode:
     humiditySetpointMode:
       description: Possibles values, "defog", "manual".
       example: "manual"
-
-set_air_ex_min_time_on:
-  description: Set air exchanger mode for TH6500WF and TH6250WF thermostats.
-  fields:
-    entity_id:
-      description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
-      example: "climate.neviweb130_climate_office"
-    airExchangerMinTimeOn:
-      description: Possibles values, "Off", "20 min", "40 min", "Continuous".
-      example: "40 min"

@@ -70,8 +70,8 @@ from . import STAT_INTERVAL
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_AIR_CONFIG, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_AIR_MAX_POWER_TEMP, ATTR_AUX_CYCLE,
-                    ATTR_AUX_HEAT_MIN_TIMEOFF, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_TIMEON,
+                    ATTR_AUX_HEAT_MIN_TIME_OFF, ATTR_AUX_HEAT_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_START_DELAY,
                     ATTR_AUX_INTERSTAGE_DELAY, ATTR_AUX_INTERSTAGE_MIN_DELAY,
                     ATTR_AVAIL_MODE, ATTR_BACK_LIGHT, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
@@ -116,14 +116,10 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN,
                     MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
                     SERVICE_SET_ACCESSORY_TYPE, SERVICE_SET_ACTIVATION,
-                    SERVICE_SET_AIR_EX_MIN_TIME_ON, SERVICE_SET_AIR_FLOOR_MODE,
-                    SERVICE_SET_AUX_CYCLE_OUTPUT,
-                    SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
+                    SERVICE_SET_AIR_FLOOR_MODE, SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEATING_SOURCE, SERVICE_SET_AUXILIARY_LOAD,
                     SERVICE_SET_BACKLIGHT, SERVICE_SET_CLIMATE_KEYPAD_LOCK,
                     SERVICE_SET_COOL_LOCKOUT_TEMPERATURE,
-                    SERVICE_SET_COOL_MIN_TIME_OFF,
-                    SERVICE_SET_COOL_MIN_TIME_ON,
                     SERVICE_SET_COOL_SETPOINT_MAX,
                     SERVICE_SET_COOL_SETPOINT_MIN, SERVICE_SET_CYCLE_OUTPUT,
                     SERVICE_SET_DISPLAY_CONFIG, SERVICE_SET_EARLY_START,
@@ -136,7 +132,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
                     SERVICE_SET_HUMIDITY_SETPOINT_MODE,
                     SERVICE_SET_HVAC_DR_OPTIONS, SERVICE_SET_HVAC_DR_SETPOINT,
-                    SERVICE_SET_LANGUAGE, SERVICE_SET_PUMP_PROTECTION,
+                    SERVICE_SET_LANGUAGE, SERVICE_SET_MIN_TIME_OFF,
+                    SERVICE_SET_MIN_TIME_ON, SERVICE_SET_PUMP_PROTECTION,
                     SERVICE_SET_SCHEDULE_MODE, SERVICE_SET_SECOND_DISPLAY,
                     SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
                     SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
@@ -144,13 +141,10 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACCESSORY_TYPE_SCHEMA, SET_ACTIVATION_SCHEMA,
-                     SET_AIR_EX_MIN_TIME_ON_SCHEMA, SET_AIR_FLOOR_MODE_SCHEMA,
-                     SET_AUX_CYCLE_OUTPUT_SCHEMA,
-                     SET_AUX_HEAT_MIN_TIME_ON_SCHEMA,
+                     SET_AIR_FLOOR_MODE_SCHEMA, SET_AUX_CYCLE_OUTPUT_SCHEMA,
                      SET_AUX_HEATING_SOURCE_SCHEMA, SET_AUXILIARY_LOAD_SCHEMA,
                      SET_BACKLIGHT_SCHEMA, SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
                      SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA,
-                     SET_COOL_MIN_TIME_OFF_SCHEMA, SET_COOL_MIN_TIME_ON_SCHEMA,
                      SET_COOL_SETPOINT_MAX_SCHEMA,
                      SET_COOL_SETPOINT_MIN_SCHEMA, SET_CYCLE_OUTPUT_SCHEMA,
                      SET_DISPLAY_CONFIG_SCHEMA, SET_EARLY_START_SCHEMA,
@@ -163,7 +157,8 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
                      SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
                      SET_HVAC_DR_OPTIONS_SCHEMA, SET_HVAC_DR_SETPOINT_SCHEMA,
-                     SET_LANGUAGE_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
+                     SET_LANGUAGE_SCHEMA, SET_MIN_TIME_OFF_SCHEMA,
+                     SET_MIN_TIME_ON_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
                      SET_SCHEDULE_MODE_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
                      SET_SENSOR_TYPE_SCHEMA, SET_SETPOINT_MAX_SCHEMA,
                      SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
@@ -1207,47 +1202,21 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_aux_heat_min_time_on_service(service):
-        """Set auxiliary minimum heating time on for TH6500WF and TH6250WF thermostat."""
+    def set_min_time_on_service(service):
+        """Set minimum time the device is on before letting be off again (run-on time) for TH6500WF and TH6250WF thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "time": service.data[ATTR_AUX_HEAT_TIMEON],
-                }
-                thermostat.set_aux_heat_min_time_on(value)
+                thermostat.set_min_time_on(service.data)
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_cool_min_time_on_service(service):
-        """Set auxiliary minimum heating time on for TH6500WF and TH6250WF thermostat."""
+    def set_min_time_off_service(service):
+        """Set minimum time the device is off before letting it be on again (cooldown time) for TH6500WF and TH6250WF thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "time": service.data[ATTR_COOL_MIN_TIME_ON],
-                    "state": "on",
-                }
-                thermostat.set_cool_min_time(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
-    def set_cool_min_time_off_service(service):
-        """Set auxiliary minimum heating time on for TH6500WF and TH6250WF thermostat."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "time": service.data[ATTR_COOL_MIN_TIME_OFF],
-                    "state": "off",
-                }
-                thermostat.set_cool_min_time(value)
+                thermostat.set_min_time_off(service.data)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -1360,20 +1329,6 @@ async def async_setup_platform(
                     "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
                 }
                 thermostat.set_humidity_mode(value)
-                thermostat.schedule_update_ha_state(True)
-                break
-
-    def set_air_ex_min_time_on_service(service):
-        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "time": service.data[ATTR_AIR_EX_MIN_TIME_ON],
-                }
-                thermostat.set_air_ex_time_on(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
@@ -1589,23 +1544,16 @@ async def async_setup_platform(
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
-        set_aux_heat_min_time_on_service,
-        schema=SET_AUX_HEAT_MIN_TIME_ON_SCHEMA,
+        SERVICE_SET_MIN_TIME_ON,
+        set_min_time_on_service,
+        schema=SET_MIN_TIME_ON_SCHEMA,
     )
 
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SET_COOL_MIN_TIME_ON,
-        set_cool_min_time_on_service,
-        schema=SET_COOL_MIN_TIME_ON_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_COOL_MIN_TIME_OFF,
-        set_cool_min_time_off_service,
-        schema=SET_COOL_MIN_TIME_OFF_SCHEMA,
+        SERVICE_SET_MIN_TIME_OFF,
+        set_min_time_off_service,
+        schema=SET_MIN_TIME_OFF_SCHEMA,
     )
 
     hass.services.async_register(
@@ -1662,13 +1610,6 @@ async def async_setup_platform(
         SERVICE_SET_HUMIDITY_SETPOINT_MODE,
         set_humidity_mode_service,
         schema=SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_AIR_EX_MIN_TIME_ON,
-        set_air_ex_min_time_on_service,
-        schema=SET_AIR_EX_MIN_TIME_ON_SCHEMA,
     )
 
 
@@ -5535,7 +5476,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._aux_interstage_delay = None
         self._cool_interstage_min_delay = None
         self._cool_interstage_delay = None
-        self._aux_heat_time_on = None
+        self._aux_heat_min_time_on = None
+        self._air_ex_min_time_on = None
         self._aux_heat_start_delay = None
         self._valve_polarity = None
         self._error_code = None
@@ -5604,7 +5546,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_COOL_SETPOINT_AWAY,
                 ATTR_FAN_FILTER_REMAIN,
                 ATTR_FAN_FILTER_LIFE,
-                ATTR_AUX_HEAT_TIMEON,
+                ATTR_AUX_HEAT_MIN_TIME_ON,
                 ATTR_AUX_HEAT_START_DELAY,
                 ATTR_OUTPUT_CONNECT_STATE,
                 ATTR_COOL_MIN_TIME_ON,
@@ -5644,7 +5586,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_AIR_CONFIG,
                     ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_AIR_MAX_POWER_TEMP,
-                    ATTR_AUX_HEAT_MIN_TIMEOFF,
+                    ATTR_AUX_HEAT_MIN_TIME_OFF,
                 ]
                 if self._firmware == "4.3.0":
                     HC_43 = [ATTR_INTERLOCK_ID]
@@ -5753,7 +5695,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._aux_cycle = device_data[ATTR_AUX_CYCLE]
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
-                    self._aux_heat_time_on = device_data[ATTR_AUX_HEAT_TIMEON]
+                    self._aux_heat_min_time_on = device_data[ATTR_AUX_HEAT_MIN_TIME_ON]
                     self._aux_heat_start_delay = device_data[ATTR_AUX_HEAT_START_DELAY]
                     if ATTR_HEAT_INTERSTAGE_MIN_DELAY in device_data:
                         self._heat_interstage_min_delay = device_data[
@@ -5797,7 +5739,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._humidity_setpoint_mode = device_data[
                             ATTR_HUMIDITY_SETPOINT_MODE
                         ]
-                        self._air_min_timeon = device_data[ATTR_AIR_EX_MIN_TIME_ON]
+                        self._air_ex_min_time_on = device_data[ATTR_AIR_EX_MIN_TIME_ON]
                         self._heatcool_lock_cool_status = device_data[
                             ATTR_HC_LOCK_STATUS
                         ]["cool"]
@@ -5819,7 +5761,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         ]
                         self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
                         self._aux_heat_min_time_off = device_data[
-                            ATTR_AUX_HEAT_MIN_TIMEOFF
+                            ATTR_AUX_HEAT_MIN_TIME_OFF
                         ]
                         self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                         self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
@@ -6093,20 +6035,43 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
 
-    def set_aux_heat_min_time_on(self, value):
-        """Set auxiliary heating minimum time."""
-        time_val = value["time"]
-        entity = value["id"]
-        self._client.set_aux_heat_time_on(entity, time_val)
-        self._aux_heat_time_on = time_val
+    def set_min_time_on(self, value):
+        """Set minimum time the device is on before letting be off again (run-on time)"""
+        heat_min_time_on = value.get(ATTR_HEAT_MIN_TIME_ON)
+        cool_min_time_on = value.get(ATTR_COOL_MIN_TIME_ON)
+        aux_heat_min_time_on = value.get(ATTR_AUX_HEAT_MIN_TIME_ON)
+        air_ex_min_time_on = value.get(ATTR_AIR_EX_MIN_TIME_ON)
 
-    def set_cool_min_time(self, value):
-        """Set minimum cooling time."""
-        self._client.set_cool_time(value["id"], value["time"], value["state"])
-        if value["state"] == "on":
-            self._cool_min_time_on = value["time"]
-        else:
-            self._cool_min_time_off = value["time"]
+        if heat_min_time_on is not None:
+            self._client.set_heat_min_time_on(self.unique_id, heat_min_time_on)
+            self._heat_min_time_on = heat_min_time_on
+        if cool_min_time_on is not None:
+            self._client.set_cool_min_time_on(self.unique_id, cool_min_time_on)
+            self._cool_min_time_on = cool_min_time_on
+        if aux_heat_min_time_on is not None:
+            self._client.set_aux_heat_min_time_on(self.unique_id, aux_heat_min_time_on)
+            self._aux_heat_min_time_on = aux_heat_min_time_on
+        if air_ex_min_time_on is not None:
+            self._client.set_air_ex_min_time_on(self.unique_id, air_ex_min_time_on)
+            self._air_ex_min_time_on = air_ex_min_time_on
+
+    def set_min_time_off(self, value):
+        """Set minimum time the device is off before letting it be on again (cooldown time)"""
+        heat_min_time_off = value.get(ATTR_HEAT_MIN_TIME_OFF)
+        cool_min_time_off = value.get(ATTR_COOL_MIN_TIME_OFF)
+        aux_heat_min_time_off = value.get(ATTR_AUX_HEAT_MIN_TIME_OFF)
+
+        if heat_min_time_off is not None:
+            self._client.set_heat_min_time_off(self.unique_id, heat_min_time_off)
+            self._heat_min_time_off = heat_min_time_off
+        if cool_min_time_off is not None:
+            self._client.set_cool_min_time_off(self.unique_id, cool_min_time_off)
+            self._cool_min_time_off = cool_min_time_off
+        if aux_heat_min_time_off is not None:
+            self._client.set_aux_heat_min_time_off(
+                self.unique_id, aux_heat_min_time_off
+            )
+            self._aux_heat_min_time_off = aux_heat_min_time_off
 
     def set_aux_heating_source(self, value):
         """Set auxiliary heating device."""
@@ -6180,11 +6145,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_humidity_mode(value["id"], value["mode"], self._is_HC)
         self._humidity_setpoint_mode = value["mode"]
 
-    def set_air_ex_time_on(self, value):
-        """Set air exchanger minimum time on, off = 0, continuous = 60."""
-        self._client.set_air_ex_time_on(value["id"], value["time"], self._is_HC)
-        self._air_min_timeon = value["time"]
-
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
@@ -6211,6 +6171,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "language": self._language,
                 "occupancy": self._occupancy,
                 "heat_source_type": self._heat_source_type,
+                "heat_level": self._heat_level,
                 "heat_level_source_type": self._heat_level_source_type,
                 "aux_heat_source_type": self._aux_heat_source_type,
                 "fan_filter_remain": self._fan_filter_remain,
@@ -6227,7 +6188,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "cool_min_time_on": self._cool_min_time_on,
                 "cool_min_time_off": self._cool_min_time_off,
                 "heat_installation_type": self._heat_inst_type,
-                "aux_heat_time_on": self._aux_heat_time_on,
+                "aux_heat_min_time_on": self._aux_heat_min_time_on,
                 "aux_heat_start_delay": self._aux_heat_start_delay,
                 "valve_polarity": self._valve_polarity,
                 "temp_display_status": self._temp_display_status,

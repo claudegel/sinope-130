@@ -10,20 +10,22 @@ from homeassistant.const import (ATTR_ENTITY_ID, CONF_PASSWORD,
 from homeassistant.helpers import config_validation as cv
 
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_EX_MIN_TIME_ON,
-                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_TIMEON,
-                    ATTR_BACKLIGHT, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
-                    ATTR_BATTERY_TYPE, ATTR_BLUE, ATTR_CLOSE_VALVE,
-                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
-                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
-                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT_MAX,
-                    ATTR_COOL_SETPOINT_MIN, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
-                    ATTR_DRACTIVE, ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
-                    ATTR_FAN_SPEED, ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX,
-                    ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
+                    ATTR_AUX_HEAT_MIN_TIME_OFF, ATTR_AUX_HEAT_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_BACKLIGHT, ATTR_BALANCE_PT,
+                    ATTR_BATT_ALERT, ATTR_BATTERY_TYPE, ATTR_BLUE,
+                    ATTR_CLOSE_VALVE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+                    ATTR_CONF_CLOSURE, ATTR_COOL_LOCK_TEMP,
+                    ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
+                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN,
+                    ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRACTIVE,
+                    ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
+                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_MAX, ATTR_FLOOR_MIN,
+                    ATTR_FLOOR_MODE, ATTR_FLOOR_SENSOR,
                     ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM_TIMER,
                     ATTR_FLOW_MODEL_CONFIG, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_GREEN,
-                    ATTR_HEAT_LOCK_TEMP, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+                    ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_MIN_TIME_OFF,
+                    ATTR_HEAT_MIN_TIME_ON, ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
                     ATTR_HUMIDITY_SETPOINT_MODE, ATTR_INTENSITY_MIN,
                     ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
                     ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
@@ -435,28 +437,22 @@ SET_LANGUAGE_SCHEMA = vol.Schema(
     }
 )
 
-SET_AUX_HEAT_MIN_TIME_ON_SCHEMA = vol.Schema(
+SET_MIN_TIME_ON_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AUX_HEAT_TIMEON): vol.All(cv.ensure_list, [vol.In(MIN_TIME)]),
+        vol.Optional(ATTR_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AUX_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_COOL_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
     }
 )
 
-SET_COOL_MIN_TIME_ON_SCHEMA = vol.Schema(
+SET_MIN_TIME_OFF_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_MIN_TIME_ON): vol.All(
-            cv.ensure_list, [vol.In(MIN_TIME)]
-        ),
-    }
-)
-
-SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_MIN_TIME_OFF): vol.All(
-            cv.ensure_list, [vol.In(MIN_TIME)]
-        ),
+        vol.Optional(ATTR_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AUX_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
+        vol.Optional(ATTR_COOL_MIN_TIME_OFF): vol.In(MIN_TIME),
     }
 )
 
@@ -521,13 +517,6 @@ SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HUMIDITY_SETPOINT_MODE): vol.In(["defog", "manual"]),
-    }
-)
-
-SET_AIR_EX_MIN_TIME_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
     }
 )
 
