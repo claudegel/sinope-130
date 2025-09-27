@@ -31,7 +31,9 @@ from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
                                              SensorStateClass)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (ATTR_ENTITY_ID, PERCENTAGE,
-                                 SIGNAL_STRENGTH_DECIBELS_MILLIWATT, UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
+                                 SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+                                 UnitOfEnergy, UnitOfTemperature,
+                                 UnitOfVolume)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -43,19 +45,19 @@ from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
                     ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
                     ATTR_BATTERY_TYPE, ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
                     ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
-                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_LEAK_ALERT, ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,
+                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_LEAK_ALERT,
+                    ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,
                     ATTR_ROOM_TEMP_ALARM, ATTR_ROOM_TEMPERATURE, ATTR_RSSI,
                     ATTR_SAMPLING, ATTR_STATUS, ATTR_TANK_HEIGHT,
                     ATTR_TANK_PERCENT, ATTR_TANK_TYPE, ATTR_TEMP_ALERT,
-                    ATTR_WATER_LEAK_STATUS, DOMAIN,
-                    MODEL_ATTRIBUTES,
-                    SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
-                    SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
-                    SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
-                    SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_REFUEL_ALERT,
-                    SERVICE_SET_SENSOR_ALERT, SERVICE_SET_TANK_HEIGHT,
-                    SERVICE_SET_TANK_TYPE, SIGNAL_EVENTS_CHANGED,
-                    STATE_WATER_LEAK)
+                    ATTR_WATER_LEAK_STATUS, DOMAIN, FULL_MODEL,
+                    MODEL_ATTRIBUTES, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_BATTERY_ALERT, SERVICE_SET_BATTERY_TYPE,
+                    SERVICE_SET_FUEL_ALERT, SERVICE_SET_GAUGE_TYPE,
+                    SERVICE_SET_LOW_FUEL_ALERT, SERVICE_SET_NEVIWEB_STATUS,
+                    SERVICE_SET_REFUEL_ALERT, SERVICE_SET_SENSOR_ALERT,
+                    SERVICE_SET_TANK_HEIGHT, SERVICE_SET_TANK_TYPE,
+                    SIGNAL_EVENTS_CHANGED, STATE_WATER_LEAK)
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
                      SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
@@ -285,6 +287,7 @@ def get_sensor_class(model):
 
 def create_physical_sensors(data, coordinator):
     entities = []
+    device_type = None
 
     for gateway_data, default_name in [
         (data["neviweb130_client"].gateway_data, DEFAULT_NAME),
@@ -1644,7 +1647,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._fuel_percent_alert = alert
 
     async def async_set_refuel_alert(self, value):
-        """ "Set refuel alert for LM4110-ZB sensor True/False."""
+        """Set refuel alert for LM4110-ZB sensor True/False."""
         alert = value["refuel"]
         entity = value["id"]
         await self._client.async_set_refuel_alert(entity, alert)
