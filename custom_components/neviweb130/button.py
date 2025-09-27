@@ -8,9 +8,10 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from homeassistant.components.button import (ButtonEntity,
-                                             ButtonEntityDescription)
+from homeassistant.components.button import (ButtonDeviceClass,
+    ButtonEntity, ButtonEntityDescription)
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -34,15 +35,15 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
-    # Climate attributes
-    #    Neviweb130ButtonEntityDescription(
-    #        key="fan_filter_remain", #nom du bouton
-    #        device_class=ButtonDeviceClass.UPDATE,
-    #        icon="mdi:air-filter",
-    #        translation_key="reset_filter", #pour traduction
-    #        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-    #        data_key="filter_clean", #attribute name
-    #    ),
+    Climate attributes
+       Neviweb130ButtonEntityDescription(
+           key="fan_filter_remain", #nom du bouton
+           device_class=ButtonDeviceClass.UPDATE,
+           icon="mdi:air-filter",
+           translation_key="reset_filter", #pour traduction
+           entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
+           data_key="filter_clean", #attribute name
+       ),
 )
 
 
