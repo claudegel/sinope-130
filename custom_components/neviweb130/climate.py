@@ -70,8 +70,8 @@ from . import STAT_INTERVAL
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_AIR_CONFIG, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_AIR_MAX_POWER_TEMP, ATTR_AUX_CYCLE,
-                    ATTR_AUX_HEAT_MIN_TIME_OFF, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_START_DELAY, ATTR_AUX_HEAT_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_MIN_TIME_OFF, ATTR_AUX_HEAT_MIN_TIME_ON,
+                    ATTR_AUX_HEAT_SOURCE_TYPE, ATTR_AUX_HEAT_START_DELAY,
                     ATTR_AUX_INTERSTAGE_DELAY, ATTR_AUX_INTERSTAGE_MIN_DELAY,
                     ATTR_AVAIL_MODE, ATTR_BACK_LIGHT, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
@@ -116,8 +116,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN,
                     MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
                     SERVICE_SET_ACCESSORY_TYPE, SERVICE_SET_ACTIVATION,
-                    SERVICE_SET_AIR_FLOOR_MODE,
-                    SERVICE_SET_AUX_CYCLE_OUTPUT,
+                    SERVICE_SET_AIR_FLOOR_MODE, SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEATING_SOURCE, SERVICE_SET_AUXILIARY_LOAD,
                     SERVICE_SET_BACKLIGHT, SERVICE_SET_CLIMATE_KEYPAD_LOCK,
                     SERVICE_SET_COOL_LOCKOUT_TEMPERATURE,
@@ -133,17 +132,16 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     SERVICE_SET_HEATCOOL_SETPOINT_DELTA,
                     SERVICE_SET_HUMIDITY_SETPOINT_MODE,
                     SERVICE_SET_HVAC_DR_OPTIONS, SERVICE_SET_HVAC_DR_SETPOINT,
-                    SERVICE_SET_LANGUAGE, SERVICE_SET_PUMP_PROTECTION,
+                    SERVICE_SET_LANGUAGE, SERVICE_SET_MIN_TIME_OFF,
+                    SERVICE_SET_MIN_TIME_ON, SERVICE_SET_PUMP_PROTECTION,
                     SERVICE_SET_SCHEDULE_MODE, SERVICE_SET_SECOND_DISPLAY,
                     SERVICE_SET_SENSOR_TYPE, SERVICE_SET_SETPOINT_MAX,
                     SERVICE_SET_SETPOINT_MIN, SERVICE_SET_SOUND_CONFIG,
                     SERVICE_SET_TEMPERATURE_FORMAT,
-                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT,
-                    SERVICE_SET_MIN_TIME_ON, SERVICE_SET_MIN_TIME_OFF)
+                    SERVICE_SET_TEMPERATURE_OFFSET, SERVICE_SET_TIME_FORMAT)
 from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_ACCESSORY_TYPE_SCHEMA, SET_ACTIVATION_SCHEMA,
-                     SET_AIR_FLOOR_MODE_SCHEMA,
-                     SET_AUX_CYCLE_OUTPUT_SCHEMA,
+                     SET_AIR_FLOOR_MODE_SCHEMA, SET_AUX_CYCLE_OUTPUT_SCHEMA,
                      SET_AUX_HEATING_SOURCE_SCHEMA, SET_AUXILIARY_LOAD_SCHEMA,
                      SET_BACKLIGHT_SCHEMA, SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
                      SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA,
@@ -159,13 +157,14 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_HEATCOOL_SETPOINT_DELTA_SCHEMA,
                      SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
                      SET_HVAC_DR_OPTIONS_SCHEMA, SET_HVAC_DR_SETPOINT_SCHEMA,
-                     SET_LANGUAGE_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
+                     SET_LANGUAGE_SCHEMA, SET_MIN_TIME_OFF_SCHEMA,
+                     SET_MIN_TIME_ON_SCHEMA, SET_PUMP_PROTECTION_SCHEMA,
                      SET_SCHEDULE_MODE_SCHEMA, SET_SECOND_DISPLAY_SCHEMA,
                      SET_SENSOR_TYPE_SCHEMA, SET_SETPOINT_MAX_SCHEMA,
                      SET_SETPOINT_MIN_SCHEMA, SET_SOUND_CONFIG_SCHEMA,
                      SET_TEMPERATURE_FORMAT_SCHEMA,
                      SET_TEMPERATURE_OFFSET_SCHEMA, SET_TIME_FORMAT_SCHEMA,
-                     VERSION, WIFI_FAN_SPEED, SET_MIN_TIME_ON_SCHEMA, SET_MIN_TIME_OFF_SCHEMA)
+                     VERSION, WIFI_FAN_SPEED)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -5761,7 +5760,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             ATTR_AIR_ACTIVATION_TEMP
                         ]
                         self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
-                        self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
+                        self._aux_heat_min_time_off = device_data[
+                            ATTR_AUX_HEAT_MIN_TIME_OFF
+                        ]
                         self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                         self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
                         if self._firmware == "4.3.0":
@@ -6067,7 +6068,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._client.set_cool_min_time_off(self.unique_id, cool_min_time_off)
             self._cool_min_time_off = cool_min_time_off
         if aux_heat_min_time_off is not None:
-            self._client.set_aux_heat_min_time_off(self.unique_id, aux_heat_min_time_off)
+            self._client.set_aux_heat_min_time_off(
+                self.unique_id, aux_heat_min_time_off
+            )
             self._aux_heat_min_time_off = aux_heat_min_time_off
 
     def set_aux_heating_source(self, value):

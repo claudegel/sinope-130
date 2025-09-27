@@ -14,18 +14,18 @@ from homeassistant.const import (CONF_PASSWORD, CONF_SCAN_INTERVAL,
 from homeassistant.helpers import discovery
 
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
-                    ATTR_AUX_CYCLE, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_AUX_HEAT_MIN_TIME_ON, ATTR_BACKLIGHT,
-                    ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
-                    ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
-                    ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
-                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
-                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT,
-                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
-                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
-                    ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_EARLY_START,
-                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
-                    ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
+                    ATTR_AUX_CYCLE, ATTR_AUX_HEAT_MIN_TIME_OFF,
+                    ATTR_AUX_HEAT_MIN_TIME_ON, ATTR_AUX_HEAT_SOURCE_TYPE,
+                    ATTR_BACKLIGHT, ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
+                    ATTR_BATT_ALERT, ATTR_BATTERY_TYPE,
+                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
+                    ATTR_CONTROLLED_DEVICE, ATTR_COOL_LOCK_TEMP,
+                    ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
+                    ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MAX,
+                    ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE, ATTR_CYCLE_OUTPUT2,
+                    ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRSETPOINT,
+                    ATTR_DRSTATUS, ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
+                    ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
                     ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
                     ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
                     ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
@@ -34,6 +34,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
                     ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
                     ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP,
+                    ATTR_HEAT_MIN_TIME_OFF, ATTR_HEAT_MIN_TIME_ON,
                     ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY,
                     ATTR_HUMIDITY_SETPOINT, ATTR_HUMIDITY_SETPOINT_MODE,
                     ATTR_HUMIDITY_SETPOINT_OFFSET, ATTR_INPUT_1_OFF_DELAY,
@@ -56,8 +57,7 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
                     ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
                     CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
                     CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
-                    MODE_MANUAL, STARTUP_MESSAGE, ATTR_HEAT_MIN_TIME_ON, ATTR_HEAT_MIN_TIME_OFF,
-                    ATTR_AUX_HEAT_MIN_TIME_OFF)
+                    MODE_MANUAL, STARTUP_MESSAGE)
 from .schema import CONFIG_SCHEMA
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -65,6 +65,7 @@ from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 from .schema import VERSION
+
 _LOGGER = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = 30
@@ -1384,9 +1385,17 @@ class Neviweb130Client:
         """Set input 1 or 2 on/off delay in seconds."""
         match onoff:
             case "on":
-                data = {ATTR_INPUT_1_ON_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_ON_DELAY: delay}
+                data = (
+                    {ATTR_INPUT_1_ON_DELAY: delay}
+                    if inputnumber == 1
+                    else {ATTR_INPUT_2_ON_DELAY: delay}
+                )
             case _:
-                data = {ATTR_INPUT_1_OFF_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_OFF_DELAY: delay}
+                data = (
+                    {ATTR_INPUT_1_OFF_DELAY: delay}
+                    if inputnumber == 1
+                    else {ATTR_INPUT_2_OFF_DELAY: delay}
+                )
         _LOGGER.debug("input_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
