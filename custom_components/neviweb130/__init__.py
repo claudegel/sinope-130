@@ -162,11 +162,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info("Migrating neviweb130 unique_id to string...")
     await async_migrate_unique_ids(hass)
 
-    username = entry.data.get("username")
-    password = entry.data.get("password")
-    network = entry.data.get("network")
-    network2 = entry.data.get("network2")
-    network3 = entry.data.get("network3")
+    username: str | None = entry.data.get("username")
+    password: str | None = entry.data.get("password")
+    network: str | None = entry.data.get("network")
+    network2: str | None = entry.data.get("network2")
+    network3: str | None = entry.data.get("network3")
+
+    if username is None:
+        raise TypeError("username is None")
+    if password is None:
+        raise TypeError("password is None")
+    if network is None:
+        raise TypeError("network is None")
 
     global SCAN_INTERVAL
     SCAN_INTERVAL = get_scan_interval(entry)
