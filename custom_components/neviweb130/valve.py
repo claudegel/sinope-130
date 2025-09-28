@@ -664,11 +664,11 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend."""
-        device_type = VALVE_TYPES.get(self._device_type)
-        if device_type is None:
+        device_info = VALVE_TYPES.get(self._device_type)
+        if device_info is None:
             return None
 
-        return device_type[0]
+        return device_info[0]
 
     @property
     def device_class(self):
