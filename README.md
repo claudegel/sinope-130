@@ -70,10 +70,10 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch Wi-Fi
   - Sinopé VA4200ZB, sedna valve 3/4 inch zigbee
   - Sinopé VA4220WZ, sedna 2e gen 3/4 inch
-  - Sinopé VA4220WF, sedna 2e gen 3/4 inch, wifi
+  - Sinopé VA4220WF, sedna 2e gen 3/4 inch, Wi-Fi
   - Sinopé VA4220ZB, sedna 2e gen 3/4 inch, zigbee
   - Sinopé VA4221WZ, sedna 2e gen 1 inch
-  - Sinopé VA4221WF, sedna 2e gen 1 inch, wifi
+  - Sinopé VA4221WF, sedna 2e gen 1 inch, Wi-Fi
   - Sinopé VA4221ZB, sedna 2e gen 1 inch, zigbee
   - Sinopé WL4200,   water leak detector
   - Sinopé WL4200S,  water leak detector with sensor
@@ -84,9 +84,9 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé WL4210C,  perimeter cable water leak detector
   - Sinopé WL4210ZB, water leak detector
   - Sinopé WL4200ZB, connected to Sedna valve
-  - Sinopé ACT4220WF-M, VA4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
+  - Sinopé ACT4220WF-M, VA4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, Wi-Fi
   - Sinopé ACT4220ZB-M, VA4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
-  - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
+  - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, Wi-Fi
   - Sinopé ACT4221ZB-M, VA4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
 - Flow sensor: (supported as attribute for the 2e gen Sedna valves)
   - Sinopé FS4220, 3/4 inch flow sensor
@@ -174,7 +174,7 @@ neviweb130:
  - extract and export all neviweb130 logging from home-assistant.log to a file neviweb130_log.txt.
  - migrate old numeric unique_id to new strings unique_id as required by HA.
 
-Networks names are the names found on top of first page after logging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or Wi-Fi devices. Both device type must be on same network to work in neviweb130. If you have two networks for two GT130 or two wifi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and zigbee/wifi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
+Networks names are the names found on top of first page after logging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or Wi-Fi devices. Both device type must be on same network to work in neviweb130. If you have two networks for two GT130 or two Wi-Fi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and zigbee/Wi-Fi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
 
 ![network](www/network.jpg)
 
@@ -184,9 +184,9 @@ Networks names are the names found on top of first page after logging into Neviw
 |-------------------|----------|--------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **username**      | yes      |                                                                                                                    | Your email address used to log in Neviweb.                                                                                                                                                                                   |
 | **password**      | yes      |                                                                                                                    | Your Neviweb password.                                                                                                                                                                                                       |
-| **network**       | no       | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control. | Network name is the location name in Neviweb written on top center of first page, where your wifi or zigbee devices are registered.                                                                                          |
-| **network2**      | no       | 2nd location found                                                                                                 | The name of the second location you want to control (zigbee and/or wifi only). Don't add it if you have only one network.                                                                                                    |
-| **network3**      | no       | 3rd location found                                                                                                 | The name of the third location you want to control (zigbee and/or wifi only). Don't add it if you have only one network.                                                                                                     |
+| **network**       | no       | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control. | Network name is the location name in Neviweb written on top center of first page, where your Wi-Fi or zigbee devices are registered.                                                                                          |
+| **network2**      | no       | 2nd location found                                                                                                 | The name of the second location you want to control (zigbee and/or Wi-Fi only). Don't add it if you have only one network.                                                                                                    |
+| **network3**      | no       | 3rd location found                                                                                                 | The name of the third location you want to control (zigbee and/or Wi-Fi only). Don't add it if you have only one network.                                                                                                     |
 | **scan_interval** | no       | 540                                                                                                                | The number of seconds between each access to Neviweb to update device state. Sinopé asked for a minimum of 5 minutes between polling now so you can reduce scan_interval to 300. Don't go over 600, the session will expire. |
 | **homekit_mode**  | no       | False                                                                                                              | Add support for Homekit specific values. Not needed if you don't use homekit.                                                                                                                                                |
 | **stat_interval** | no       | 1800                                                                                                               | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.                                          |

@@ -1096,7 +1096,7 @@ EXPOSED_ATTRIBUTES = [
     "total_kwh_count",
     "water_leak_status",
     # Constants
-    "is_wifi",
+    "is_Wi-Fi",
     "is_HC",
     "is_HP",
     # ... etc.

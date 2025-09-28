@@ -172,8 +172,8 @@ POWER_TIMER = {
     43200,
     86400,
 }
-FAN_SPEED = {"high", "medium", "low", "auto", "off"}
-WIFI_FAN_SPEED = {"auto", "on"}
+FAN_SPEED = ["high", "medium", "low", "auto", "off"]
+WIFI_FAN_SPEED = ["auto", "on"]
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {
     "fullHorizontal",

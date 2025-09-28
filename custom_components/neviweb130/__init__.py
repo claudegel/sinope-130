@@ -83,6 +83,8 @@ def _async_find_matching_config_entry(hass):
         if entry.source == config_entries.SOURCE_IMPORT:
             return entry
 
+    return None
+
 
 async def async_remove_entry(hass, entry) -> None:
     """Handle removal of an entry."""
@@ -192,11 +194,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Setting notification method to: %s", notify)
 
     client = Neviweb130Client(hass, ignore_miwi, username, password, network, network2, network3)
-    coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
+    initialized_coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
 
     hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        "neviweb130_client": coordinator.client,
+        "coordinator": initialized_coordinator,
+        "neviweb130_client": initialized_coordinator.client,
         "scan_interval": SCAN_INTERVAL,
         "homekit_mode": homekit_mode,
         "ignore_miwi": ignore_miwi,

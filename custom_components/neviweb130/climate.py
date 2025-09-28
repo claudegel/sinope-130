@@ -13,24 +13,24 @@ model 1124 = thermostat OTH4000-ZB Ouellet
 model 737 = thermostat OTH3600-GA-ZB Ouellet
 model 1512 = Thermostat TH1134ZB-HC for heating/cooling interlocking
 
-Support for Neviweb wifi thermostats
-model 1510 = thermostat TH1123WF 3000W (wifi)
-model 1510 = thermostat TH1124WF 4000W (wifi)
-model 336 = thermostat TH1133WF 3000W (wifi lite)
-model 336 = thermostat TH1133CR Sinopé Evo 3000W (wifi lite)
-model 336 = thermostat TH1134WF 3000W (wifi lite)
-model 336 = thermostat TH1134CR Sinopé Evo 3000W (wifi lite)
-model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (wifi floor)
-model 739 = thermostat TH1400WF low voltage (wifi)
-model 742 = thermostat TH1500WF double pole thermostat (wifi)
-model 6727 = thermostat TH6500WF heat/cool (wifi)
-model 6727 = thermostat TH6510WF heat/cool (wifi)
-model 6730 = thermostat TH6250WF heat/cool (wifi)
-model 6730 = thermostat TH6250WF-PRO keat/cool (wifi)
-model xxxx = thermostat THE-WF (stripped wifi)
+Support for Neviweb Wi-Fi thermostats
+model 1510 = thermostat TH1123WF 3000W (Wi-Fi)
+model 1510 = thermostat TH1124WF 4000W (Wi-Fi)
+model 336 = thermostat TH1133WF 3000W (Wi-Fi lite)
+model 336 = thermostat TH1133CR Sinopé Evo 3000W (Wi-Fi lite)
+model 336 = thermostat TH1134WF 3000W (Wi-Fi lite)
+model 336 = thermostat TH1134CR Sinopé Evo 3000W (Wi-Fi lite)
+model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (Wi-Fi floor)
+model 739 = thermostat TH1400WF low voltage (Wi-Fi)
+model 742 = thermostat TH1500WF double pole thermostat (Wi-Fi)
+model 6727 = thermostat TH6500WF heat/cool (Wi-Fi)
+model 6727 = thermostat TH6510WF heat/cool (Wi-Fi)
+model 6730 = thermostat TH6250WF heat/cool (Wi-Fi)
+model 6730 = thermostat TH6250WF-PRO keat/cool (Wi-Fi)
+model xxxx = thermostat THE-WF (stripped Wi-Fi)
 
-Support for Flextherm wifi thermostat
-model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor), (sku: FLP55), no energy stats
+Support for Flextherm Wi-Fi thermostat
+model 738 = Thermostat Flextherm concerto connect FLP55 (Wi-Fi floor), (sku: FLP55), no energy stats
 
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
@@ -57,6 +57,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -139,7 +140,6 @@ from .const import (
     ATTR_HUMID_SETPOINT_MODE,
     ATTR_HUMID_SETPOINT_OFFSET,
     ATTR_HUMIDIFIER_TYPE,
-    ATTR_HUMIDITY,
     ATTR_INTERLOCK_ID,
     ATTR_KEYPAD,
     ATTR_LANGUAGE,
@@ -466,11 +466,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN][entry.entry_id]
-    data["scan_interval"]
-    data["homekit_mode"]
-    data["ignore_miwi"]
-    data["stat_interval"]
-    data["notify"]
+    # data["scan_interval"]
+    # data["homekit_mode"]
+    # data["ignore_miwi"]
+    # data["stat_interval"]
+    # data["notify"]
 
     #    _LOGGER.debug("data climate = %s", hass.data[DOMAIN][entry.entry_id])
     #    _LOGGER.debug("Network data = %s", data['neviweb130_client'])
@@ -481,154 +481,155 @@ async def async_setup_entry(
 
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    entities = []
     device_registry = dr.async_get(hass)
 
-    for gateway_data, default_name in [
-        (data["neviweb130_client"].gateway_data, DEFAULT_NAME),
-        (data["neviweb130_client"].gateway_data2, DEFAULT_NAME_2),
-        (data["neviweb130_client"].gateway_data3, DEFAULT_NAME_3),
-    ]:
-        if gateway_data is not None and gateway_data != "_":
-            for device_info in gateway_data:
-                if "signature" in device_info and "model" in device_info["signature"]:
-                    model = device_info["signature"]["model"]
-                    if model in IMPLEMENTED_DEVICE_MODEL:
-                        device_name = f'{default_name} {device_info["name"]}'
-                        device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
-                        # Ensure the device is registered in the device registry
-                        device_entry = device_registry.async_get_or_create(
-                            config_entry_id=entry.entry_id,
-                            identifiers={(DOMAIN, str(device_info["id"]))},
-                            name=device_name,
-                            manufacturer="claudegel",
-                            model=device_info["signature"]["model"],
-                            sw_version=device_firmware,
-                        )
-
-                        if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
-                            device = Neviweb130Thermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
+    def get_entities():
+        for gateway_data, default_name in [
+            (data["neviweb130_client"].gateway_data, DEFAULT_NAME),
+            (data["neviweb130_client"].gateway_data2, DEFAULT_NAME_2),
+            (data["neviweb130_client"].gateway_data3, DEFAULT_NAME_3),
+        ]:
+            if gateway_data is not None and gateway_data != "_":
+                for device_info in gateway_data:
+                    if "signature" in device_info and "model" in device_info["signature"]:
+                        model = device_info["signature"]["model"]
+                        if model in IMPLEMENTED_DEVICE_MODEL:
+                            device_name = f'{default_name} {device_info["name"]}'
+                            device_sku = device_info["sku"]
+                            device_firmware = "{major}.{middle}.{minor}".format(
+                                **device_info["signature"]["softVersion"]
                             )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
-                            device = Neviweb130G2Thermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
-                            device = Neviweb130FloorThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
-                            device = Neviweb130LowThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
-                            device = Neviweb130DoubleThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
-                            _LOGGER.debug("Device id = %s", device_entry.id)
-                            device = Neviweb130WifiThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
-                            device = Neviweb130WifiLiteThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
-                            device = Neviweb130LowWifiThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
-                            device = Neviweb130WifiFloorThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
-                            device = Neviweb130HcThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
-                            device = Neviweb130HPThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
-                            )
-                        else:
-                            device = Neviweb130HeatCoolThermostat(
-                                data,
-                                device_info,
-                                device_name,
-                                device_sku,
-                                device_firmware,
-                                coordinator,
+                            # Ensure the device is registered in the device registry
+                            device_entry = device_registry.async_get_or_create(
+                                config_entry_id=entry.entry_id,
+                                identifiers={(DOMAIN, str(device_info["id"]))},
+                                name=device_name,
+                                manufacturer="claudegel",
+                                model=device_info["signature"]["model"],
+                                sw_version=device_firmware,
                             )
 
-                        _LOGGER.warning("Device registered = %s", device_info["id"])
-                        coordinator.register_device(device)
-                        entities.append(device)
+                            if device_info["signature"]["model"] in DEVICE_MODEL_HEAT:
+                                device = Neviweb130Thermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
+                                device = Neviweb130G2Thermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
+                                device = Neviweb130FloorThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
+                                device = Neviweb130LowThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
+                                device = Neviweb130DoubleThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
+                                _LOGGER.debug("Device id = %s", device_entry.id)
+                                device = Neviweb130WifiThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
+                                device = Neviweb130WifiLiteThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
+                                device = Neviweb130LowWifiThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
+                                device = Neviweb130WifiFloorThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
+                                device = Neviweb130HcThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
+                                device = Neviweb130HPThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
+                            else:
+                                device = Neviweb130HeatCoolThermostat(
+                                    data,
+                                    device_info,
+                                    device_name,
+                                    device_sku,
+                                    device_firmware,
+                                    coordinator,
+                                )
 
-    async_add_entities(entities)
+                            _LOGGER.warning("Device registered = %s", device_info["id"])
+                            coordinator.register_device(device)
+                            yield device
+
+    async_add_entities(get_entities())
     hass.async_create_task(coordinator.async_request_refresh())
 
     def set_second_display_service(service):
-        """Set to outside or setpoint temperature display for wifi thermostats."""
+        """Set to outside or setpoint temperature display for Wi-Fi thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -641,8 +642,7 @@ async def async_setup_entry(
     def set_backlight_service(service):
         """Set backlight always on or auto."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -656,8 +656,7 @@ async def async_setup_entry(
     def set_climate_keypad_lock_service(service):
         """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -670,8 +669,7 @@ async def async_setup_entry(
     def set_time_format_service(service):
         """Set time format 12h or 24h."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -684,8 +682,7 @@ async def async_setup_entry(
     def set_temperature_format_service(service):
         """Set temperature format, celsius or fahrenheit."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -698,8 +695,7 @@ async def async_setup_entry(
     def set_setpoint_max_service(service):
         """Set maximum setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -712,8 +708,7 @@ async def async_setup_entry(
     def set_setpoint_min_service(service):
         """Set minimum setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -726,8 +721,7 @@ async def async_setup_entry(
     def set_floor_air_limit_service(service):
         """Set minimum setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -738,10 +732,9 @@ async def async_setup_entry(
                 break
 
     def set_early_start_service(service):
-        """Set early heating on/off for wifi thermostat."""
+        """Set early heating on/off for Wi-Fi thermostat."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -752,10 +745,9 @@ async def async_setup_entry(
                 break
 
     def set_air_floor_mode_service(service):
-        """Switch between ambiant or floor temperature sensor."""
+        """Switch between ambient or floor temperature sensor."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -768,8 +760,7 @@ async def async_setup_entry(
     def set_hvac_dr_options_service(service):
         """Set options for hvac dr in Eco Sinope."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -784,8 +775,7 @@ async def async_setup_entry(
     def set_hvac_dr_setpoint_service(service):
         """Set options for hvac dr setpoint in Eco Sinope."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -799,8 +789,7 @@ async def async_setup_entry(
     def set_auxiliary_load_service(service):
         """Set options for auxiliary heating."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -814,8 +803,7 @@ async def async_setup_entry(
     def set_aux_cycle_output_service(service):
         """Set options for auxiliary cycle length for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -829,8 +817,7 @@ async def async_setup_entry(
     def set_cycle_output_service(service):
         """Set options for main cycle length for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -843,8 +830,7 @@ async def async_setup_entry(
     def set_pump_protection_service(service):
         """Set status of pump protection for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -857,8 +843,7 @@ async def async_setup_entry(
     def set_cool_setpoint_max_service(service):
         """Set maximum cooling setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -871,8 +856,7 @@ async def async_setup_entry(
     def set_cool_setpoint_min_service(service):
         """Set minimum cooling setpoint for device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -885,8 +869,7 @@ async def async_setup_entry(
     def set_floor_limit_high_service(service):
         """Set maximum floor heating limit for floor device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -900,8 +883,7 @@ async def async_setup_entry(
     def set_floor_limit_low_service(service):
         """Set minimum floor heating limit for floor device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -915,8 +897,7 @@ async def async_setup_entry(
     def set_activation_service(service):
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -929,8 +910,7 @@ async def async_setup_entry(
     def set_sensor_type_service(service):
         """Set floor sensor type."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -943,7 +923,7 @@ async def async_setup_entry(
     def set_em_heat_service(service):
         """Set emergency heat on/off for thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 if service.data[ATTR_VALUE] == "on":
                     thermostat.async_turn_em_heat_on()
@@ -955,8 +935,7 @@ async def async_setup_entry(
     def set_heat_pump_operation_limit_service(service):
         """Set minimum temperature for heat pump device operation."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -969,8 +948,7 @@ async def async_setup_entry(
     def set_heat_lockout_temperature_service(service):
         """Set maximum outside temperature limit to allow heating device operation."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -983,8 +961,7 @@ async def async_setup_entry(
     def set_cool_lockout_temperature_service(service):
         """Set minimum outside temperature limit to allow cooling device operation."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -997,8 +974,7 @@ async def async_setup_entry(
     def set_display_config_service(service):
         """Set display on/off for heat pump."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1011,8 +987,7 @@ async def async_setup_entry(
     def set_sound_config_service(service):
         """Set sound on/off for heat pump."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1025,8 +1000,7 @@ async def async_setup_entry(
     def set_hc_second_display_service(service):
         """Set second display for TH1134ZB-HC thermostat."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1039,8 +1013,7 @@ async def async_setup_entry(
     def set_language_service(service):
         """Set display language for TH1134ZB-HC thermostat."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1053,8 +1026,7 @@ async def async_setup_entry(
     def set_aux_heat_min_time_on_service(service):
         """Set auxiliary minimum heating time on for TH6500WF and TH6250WF thermostat."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1067,8 +1039,7 @@ async def async_setup_entry(
     def set_cool_min_time_on_service(service):
         """Set auxiliary minimum heating time on for TH6500WF and TH6250WF thermostat."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1082,8 +1053,7 @@ async def async_setup_entry(
     def set_cool_min_time_off_service(service):
         """Set auxiliary minimum heating time on for TH6500WF and TH6250WF thermostat."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1094,25 +1064,23 @@ async def async_setup_entry(
                 thermostat.schedule_update_ha_state(True)
                 break
 
-    def set_humidifier_type_service(service):
+    async def set_humidifier_type_service(service):
         """Set TH6500WF humidifier type."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
                     "type": service.data[ATTR_HUMIDIFIER_TYPE],
                 }
-                thermostat.async_set_humidifier_type(value)
+                await thermostat.async_set_humidifier_type(value)
                 thermostat.schedule_update_ha_state(True)
                 break
 
     def set_schedule_mode_service(service):
         """Set TH6500WF, TH6250WF schedule mode, manual or auto."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1125,8 +1093,7 @@ async def async_setup_entry(
     def set_fan_filter_reminder_service(service):
         """Set TH6500WF, TH6250WF fan filter reminder period from 1 to 12 month."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
-        for thermostat in entities:
+        for thermostat in get_entities():
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
@@ -1418,6 +1385,7 @@ def lock_to_ha(lock):
             return "tamper protection"
         case "partialLock":
             return "tamper protection"
+    return None
 
 
 def backlight_to_ha(back):
@@ -1446,7 +1414,7 @@ def extract_capability(cap):
     return sorted(value)
 
 
-def retreive_data(id, data):
+def retrieve_data(id, data):
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
@@ -1487,7 +1455,7 @@ async def async_add_data(id, data, mark):
         save_data(id, data, mark)
         return
     device_dict[id] = [id, data, mark]
-    await save_devices()  # Persist changes
+    await save_devices(data)  # Persist changes
     _LOGGER.debug("Data added for %s", id)
 
 
@@ -1516,7 +1484,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1524,7 +1493,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -1535,21 +1504,54 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._cur_temp = None
         self._cur_temp_before = None
         self._target_temp = None
+        self._target_cool = None
         self._operation_mode = None
         self._occupancy = None
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
-        self._cool_min = 16
-        self._cool_max = 30
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._cool_min: float | None = 16
+        self._cool_max: float | None = 30
+        self._temperature_format = "celsius"
+        self._temperature = None
+        self._weather_icon = None
         self._time_format = "24h"
         self._temp_display_value = None
+        self._avail_mode = None
+        self._balance_pt = None
+        self._balance_pt_low = None
+        self._cool_lock_temp = None
+        self._cycle_length_output2_status = None
+        self._cycle_length_output2_value = None
         self._display2 = None
-        self._heat_level = 0
+        self._display_conf = None
+        self._heat_level: int | None = 0
+        self._early_start = None
+        self._em_heat = None
+        self._aux_cycle_length = 0
+        self._fan_speed = None
+        self._fan_swing_cap = None
+        self._fan_swing_cap_horiz = None
+        self._fan_swing_cap_vert = None
+        self._fan_swing_horiz = None
+        self._fan_swing_vert = None
+        self._floor_air_limit = None
+        self._floor_max = None
+        self._floor_max_status = None
+        self._floor_min = None
+        self._floor_min_status = None
+        self._floor_mode = None
+        self._floor_sensor_type = None
+        self._heat_lockout_temp = None
         self._keypad = None
         self._backlight = None
         self._cycle_length = 0
+        self._language = None
+        self._load2 = None
+        self._load2_status = None
+        self._pump_protec_duration = None
+        self._pump_protec_period = None
+        self._pump_protec_status = None
         self._rssi = None
         self._language = None
         self._error_code = None
@@ -1570,23 +1572,24 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
         self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
         self._energy_stat_time = time.time() - 1500
-        self._snooze = 0
-        self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
+        self._snooze: float = 0.0
+        self._active = True
+        self._heat_cool: HVACMode | str | None = None
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, self._id)},
+            name=self._name,
+            manufacturer="claudegel",
+            model=self._device_model,
+            sw_version=self._firmware,
+            hw_version=self._hard_rev,
+            serial_number=self._identifier,
+            configuration_url="https://www.sinopetech.com/support",
+        )
 
     #        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
-        if self._activ:
+        if self._active:
             HEAT_ATTRIBUTES = [
                 ATTR_WATTAGE,
                 ATTR_KEYPAD,
@@ -1675,7 +1678,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             await self.async_get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
@@ -1805,14 +1808,14 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": self._id,
             }
         )
         return data
 
     @property
-    def pi_heating_demand(self) -> int:
+    def pi_heating_demand(self) -> int | None:
         """Heating demand."""
         return self._heat_level
 
@@ -1863,12 +1866,12 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return self._max_temp
 
     @property
-    def min_cool_temp(self) -> float:
+    def min_cool_temp(self) -> float | None:
         """Return the minimum cooling temperature."""
         return self._cool_min
 
     @property
-    def max_cool_temp(self) -> float:
+    def max_cool_temp(self) -> float | None:
         """Return the maximum cooling temperature."""
         return self._cool_max
 
@@ -1929,7 +1932,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             return SUPPORTED_HVAC_MODES
 
     @property
-    def current_temperature(self) -> float:
+    def current_temperature(self) -> float | None:
         """Return the room current temperature."""
         return self._cur_temp
 
@@ -1953,9 +1956,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             temp = self._target_cool
         else:
             temp = 0
-        if temp < self._cool_min:
+        if self._cool_min is not None and temp < self._cool_min:
             return self._cool_min
-        if temp > self._cool_max:
+        if self._cool_max is not None and temp > self._cool_max:
             return self._cool_max
         return temp
 
@@ -2052,7 +2055,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return self._fan_speed
 
     @property
-    def fan_modes(self) -> set[str] | None:
+    def fan_modes(self) -> list[str] | None:
         """Return available fan modes."""
         if self._is_HP or self._is_h_c:
             return FAN_SPEED
@@ -2074,7 +2077,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_HP or self._is_h_c:
             if self._fan_swing_cap is None or self._fan_swing_cap_vert is None:
                 return None
-            elif extract_capability(self._fan_swing_cap) == []:
+            elif not extract_capability(self._fan_swing_cap):
                 return None
             elif "fullVertical" in extract_capability(self._fan_swing_cap):
                 return FULL_SWING + extract_capability_full(self._fan_swing_cap_vert)
@@ -2096,7 +2099,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_HP or self._is_h_c:
             if self._fan_swing_cap is None or self._fan_swing_cap_horiz is None:
                 return None
-            elif extract_capability(self._fan_swing_cap) == []:
+            elif not extract_capability(self._fan_swing_cap):
                 return None
             elif "fullHorizontal" in extract_capability(self._fan_swing_cap):
                 return FULL_SWING + extract_capability_full(self._fan_swing_cap_horiz)
@@ -2168,7 +2171,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on."""
-        """Work differently for zigbee and wifi devices."""
+        """Work differently for zigbee and Wi-Fi devices."""
         level = value["level"]
         entity = value["id"]
         await self._client.async_set_backlight(entity, level, self._is_wifi)
@@ -2200,7 +2203,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._temperature_format = temp
 
     async def async_set_air_floor_mode(self, value):
-        """Switch temperature control between floor and ambiant sensor."""
+        """Switch temperature control between floor and ambient sensor."""
         mode = value["mode"]
         entity = value["id"]
         await self._client.async_set_air_floor_mode(entity, mode)
@@ -2246,7 +2249,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._floor_air_limit = temp
 
     async def async_set_early_start(self, value):
-        """Set early heating on/off for wifi thermostat."""
+        """Set early heating on/off for Wi-Fi thermostat."""
         start = value["start"]
         entity = value["id"]
         await self._client.async_set_early_start(entity, start)
@@ -2320,8 +2323,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             sec = self._cycle_length_output2_value
             self._cycle_length_output2_status = "on"
         elif self._is_low_wifi:
-            value = self._aux_cycle_length
-            low = "wifi"
+            value = str(self._aux_cycle_length)
+            low = "Wi-Fi"
             sec = self._aux_cycle_length
         else:
             value = "slave"
@@ -2337,7 +2340,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             self._cycle_length_output2_status = "off"
             sec = self._cycle_length_output2_value
         elif self._is_low_wifi:
-            low = "wifi"
+            low = "Wi-Fi"
             self._aux_cycle_length = 0
             sec = 0
         else:
@@ -2416,7 +2419,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
         action = value["active"]
-        self._activ = action
+        self._active = action
 
     async def async_set_heat_pump_operation_limit(self, value):
         """Set minimum temperature for heat pump operation."""
@@ -2711,7 +2714,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     + ", Sku: "
                     + self._sku
                 )
-            self._activ = False
+            self._active = False
             self._snooze = time.time()
         elif error_data == "DVCERR":
             _LOGGER.warning(
@@ -2758,21 +2761,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -2780,7 +2770,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -2821,16 +2811,6 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -2981,21 +2961,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3003,7 +2970,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3059,16 +3026,6 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -3253,21 +3210,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3275,7 +3218,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3332,21 +3275,11 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._is_floor = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
-        if self._activ:
+        if self._active:
             LOW_VOLTAGE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_KEYPAD,
@@ -3457,7 +3390,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             await self.async_get_sensor_error_code(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
@@ -3518,7 +3451,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": self._id,
             }
         )
@@ -3531,21 +3464,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3553,7 +3473,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3596,16 +3516,6 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -3749,21 +3659,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3771,7 +3668,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3826,16 +3723,6 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -4001,20 +3888,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4022,7 +3897,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4075,16 +3950,6 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -4240,21 +4105,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4262,7 +4113,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4328,16 +4179,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -4539,21 +4380,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4561,7 +4389,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4622,16 +4450,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -4821,21 +4639,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4843,7 +4648,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4907,16 +4712,6 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -5125,20 +4920,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
+
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -5193,16 +4975,6 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
         self._activ = True
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -5399,20 +5171,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
-        self._device = device_info
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data["neviweb130_client"]
-        self._homekit_mode = data["homekit_mode"]
-        self._stat_interval = data["stat_interval"]
-        self._notify = data["notify"]
-        self._ignore_miwi = data["ignore_miwi"]
-        self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
-        self._identifier = device_info["identifier"]
+
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -5505,16 +5264,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._air_curt_activation_temp = None
         self._air_curt_max_temp = None
         self._aux_heat_min_time_off = 0
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
-            "manufacturer": "claudegel",
-            "model": self._device_model,
-            "sw_version": self._firmware,
-            "hw_version": self._hard_rev,
-            "serial_number": self._identifier,
-            "configuration_url": "https://www.sinopetech.com/support",
-        }
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -5737,32 +5486,31 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return self._humid_display
 
     @property
-    def target_humidity(self) -> int:
+    def target_humidity(self) -> int | None:
         """Return target humidity."""
         return self._humid_setpoint
 
     @property
-    def fan_filter_remain(self) -> int:
+    def fan_filter_remain(self) -> int | None:
         """Return target humidity."""
         return self._fan_filter_remain
 
-    async def async_set_humidity(self, **kwargs):
+    async def async_set_humidity(self, humidity: int):
         """Set new target humidity %."""
-        humidity = kwargs.get(ATTR_HUMIDITY)
         if humidity is None:
-            return
+            return None
         if self._humidifier_type != "none":
             await self._client.async_set_humidity(self._id, humidity)
             self._humid_setpoint = humidity
-        else:
-            return self._humid_setpoint
+
+        return self._humid_setpoint
 
     async def async_set_humidifier_type(self, value):
         """Set humidifier type for TH6500WF."""
         entity = value["id"]
-        type = value["type"]
-        await self._client.async_set_humidifier_type(entity, type)
-        self._humidifier_type = type
+        type_val = value["type"]
+        await self._client.async_set_humidifier_type(entity, type_val)
+        self._humidifier_type = type_val
 
     async def async_set_schedule_mode(self, value):
         """Set schedule mode, manual or auto for TH6500WF, TH6250WF."""

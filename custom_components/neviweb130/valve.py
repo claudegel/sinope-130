@@ -1,18 +1,18 @@
 """
-Support for Neviweb zigbee valve connected via GT130 and wifi valves.
+Support for Neviweb zigbee valve connected via GT130 and Wi-Fi valves.
 
 Water valves
-model 3150 = VA4201WZ, sedna valve 1 inch via wifi
-model 3150 = VA4200WZ, sedna valve 3/4 inch via wifi
+model 3150 = VA4201WZ, sedna valve 1 inch via Wi-Fi
+model 3150 = VA4200WZ, sedna valve 3/4 inch via Wi-Fi
 model 3151 = VA4200ZB, sedna valve 3/4 inch via GT130, zigbee
 model 3153 = VA4220ZB, sedna 2e generation 3/4 inch, zigbee
 model 3150 = VA4220WZ, sedna 2e gen 3/4 inch
-model 3155 = ACT4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, wifi
+model 3155 = ACT4220WF-M, sedna multi-residential master valve 2e gen 3/4 inch, Wi-Fi
 model 31532 = ACT4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, zigbee
-model 3150 = VA4220WF, sedna 2e generation 3/4 inch, wifi
+model 3150 = VA4220WF, sedna 2e generation 3/4 inch, Wi-Fi
 model 3150 = VA4221WZ, sedna 2e gen 1 inch
-model 3150 = VA4221WF, sedna 2e generation 1 inch, wifi
-model 3155 = ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, wifi
+model 3150 = VA4221WF, sedna 2e generation 1 inch, Wi-Fi
+model 3155 = ACT4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, Wi-Fi
 model 31532 = ACT4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, zigbee
 
 Flow sensors
@@ -1108,7 +1108,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
 
 class Neviweb130WifiValve(Neviweb130Valve):
-    """Implementation of a Neviweb wifi valve, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
+    """Implementation of a Neviweb Wi-Fi valve, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
         """Initialize."""
@@ -1610,7 +1610,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
 
 
 class Neviweb130WifiMeshValve(Neviweb130Valve):
-    """Implementation of a Neviweb wifi mesh valve, ACT4220WF-M, ACT4221WF-M."""
+    """Implementation of a Neviweb Wi-Fi mesh valve, ACT4220WF-M, ACT4221WF-M."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
         """Initialize."""

@@ -1,7 +1,7 @@
 [project]
 name = "Sinope Neviweb130"
 dynamic = ["version"]
-description = "Home assistant custom_components to manage Sinopé zigbee and wifi devices."
+description = "Home assistant custom_components to manage Sinopé zigbee and Wi-Fi devices."
 urls = { repository = "https://github.com/claudegel/sinope-130" }
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
 readme = "README.md"
