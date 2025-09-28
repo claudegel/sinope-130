@@ -206,9 +206,9 @@ SUPPORT_HC_FLAGS = (
     | ClimateEntityFeature.TURN_ON
 )
 
-DEFAULT_NAME = "neviweb130 climate"
-DEFAULT_NAME_2 = "neviweb130 climate 2"
-DEFAULT_NAME_3 = "neviweb130 climate 3"
+DEFAULT_NAME = f"{DOMAIN} climate"
+DEFAULT_NAME_2 = f"{DOMAIN} climate 2"
+DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
@@ -1700,7 +1700,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._max_temp = 30
         self._cool_min = 15
         self._cool_max = 36
-        self._temperature_format = "celcius"
+        self._temperature_format = UnitOfTemperature.CELSIUS
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
@@ -1877,6 +1877,11 @@ class Neviweb130Thermostat(ClimateEntity):
     def name(self):
         """Return the name of the thermostat."""
         return self._name
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of this entity, if any."""
+        return temp_format_to_ha(self._temperature_format)
 
     @property
     def temperature_unit(self) -> str:
@@ -5948,6 +5953,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return self._humidity_setpoint_offset
         return self._humidity_setpoint
 
+    @property
+    def min_humidity(self) -> float | None:
+        if self._humidity_setpoint_mode == "defog":
+            return -10
+        else:
+            return 10
+
+    @property
+    def max_humidity(self) -> float | None:
+        if self._humidity_setpoint_mode == "defog":
+            return 10
+        else:
+            return 70
+
     @override
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT_COOL."""
@@ -6090,20 +6109,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Set fan speed On or Auto."""
         self._client.set_fan_mode(value["id"], value["speed"])
         self._fan_speed = value["speed"]
-
-    @property
-    def min_humidity(self) -> float | None:
-        if self._humidity_setpoint_mode == "defog":
-            return -10
-        else:
-            return 10
-
-    @property
-    def max_humidity(self) -> float | None:
-        if self._humidity_setpoint_mode == "defog":
-            return 10
-        else:
-            return 70
 
     @override
     def set_humidity(self, humidity: int) -> None:
