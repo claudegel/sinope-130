@@ -31,6 +31,11 @@ repos:
     hooks:
       - id: codespell
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.8
+    hooks:
+      - id: ruff
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.17.1
     hooks:
@@ -38,8 +43,3 @@ repos:
         additional_dependencies:
           - homeassistant-stubs
           - types-aiofiles
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.8
-    hooks:
-      - id: ruff
