@@ -4,7 +4,7 @@ import json
 import pathlib
 
 # Base component constants, some loaded directly from the manifest
-_LOADER_PATH = pathlib.Path(__loader__.path)
+_LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore
 _MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
 with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
     data = json.load(json_file)
@@ -369,11 +369,9 @@ SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 2600, 2610]
 VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
 SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
-FULL_MODEL = (
-    CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
-)
+FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
 
-# list attributs availables for each device model
+# list attributes available for each device model
 MODEL_ATTRIBUTES = {
     # thermostats
     300: {  # TH1123ZB-G2 3000W, 4000W

@@ -3,7 +3,6 @@ repos:
     rev: v3.20.0
     hooks:
       - id: pyupgrade
-        args: [--py38-plus]
 
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.3.1
@@ -24,24 +23,23 @@ repos:
     rev: 7.3.0
     hooks:
       - id: flake8
-        additional_dependencies: 
-          - Flake8-pyproject==1.2.3
+        additional_dependencies:
+          - Flake8-pyproject
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
       - id: codespell
-        additional_dependencies:
-          - tomli
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
-    hooks:
-      - id: mypy
+#  - repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: v1.17.1
+#    hooks:
+#      - id: mypy
+#        additional_dependencies:
+#          - homeassistant-stubs
+#          - types-aiofiles
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.8
     hooks:
       - id: ruff
-        args:
-          - --fix

@@ -10,9 +10,8 @@ requires-python = ">=3.12"
 dependencies = []
 
 [tool.poetry.dependencies]
-python = "^3.10"
-requests = "^2.31.0"
-homeassistant = "^2025.1.1"
+python = "^3.13"
+homeassistant = "^2025.2.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -20,7 +19,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 120
-target-version = ["py311"]
+target-version = ["py313"]
 
 [tool.isort]
 profile = "black"
@@ -28,16 +27,21 @@ line_length = 120
 
 [tool.flake8]
 max-line-length = 120
-extend-ignore = ["E203", "W503"]
+
+[tool.mypy]
+python_version = "3.13"
+check_untyped_defs = true
+warn_unused_ignores = true
+show_error_codes = true
 
 [tool.ruff]
 line-length = 120
-extend = ["E203", "W503"]
+fix = true
 
 [tool.pyupgrade]
-py38-plus = true
+py313plus = true
 
 [tool.codespell]
-skip = "Contributors.md"
+skip = "Contributors.md,custom_components/neviweb130/translations/*.json"
 ignore-words-list = "hass"
 quiet-level = 2

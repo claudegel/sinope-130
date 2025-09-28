@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from typing import Any
 
 import aiofiles
 
@@ -9,11 +10,10 @@ _LOGGER = logging.getLogger(__name__)
 CONFDIR = "/config/.storage/"
 
 CONF_FILE = CONFDIR + "neviweb130.json"
-device_dict = {}
+device_dict: dict[Any, Any] = {}
 
 
 async def load_devices():
-    global device_dict
     device_dict.clear()
     if not os.path.exists(CONF_FILE):
         # File does not exist, create an empty file

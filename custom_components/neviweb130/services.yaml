@@ -379,7 +379,7 @@ set_controlled_device:
   fields:
     entity_id:
       description: Name(s) of neviweb130 switch.
-      example: "switch.neviweb130_switch_load_controler"
+      example: "switch.neviweb130_switch_load_controller"
     value:
       description: Device type name. Accepted values are "Hot water heater", "Pool pump", "Electric vehicle charger", "Other".
       example: "Pool pump"
