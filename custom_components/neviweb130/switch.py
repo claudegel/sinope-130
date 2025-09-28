@@ -75,9 +75,9 @@ from .schema import (SET_ACTIVATION_SCHEMA, SET_CONTROL_ONOFF_SCHEMA,
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "neviweb130 switch"
-DEFAULT_NAME_2 = "neviweb130 switch 2"
-DEFAULT_NAME_3 = "neviweb130 switch 3"
+DEFAULT_NAME = f"{DOMAIN} switch"
+DEFAULT_NAME_2 = f"{DOMAIN} switch 2"
+DEFAULT_NAME_3 = f"{DOMAIN} switch 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
