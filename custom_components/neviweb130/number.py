@@ -1,5 +1,5 @@
 """
-Support for Neviweb attributes numbers for devices connected via GT130 and wifi devices.
+Support for Neviweb attributes numbers for devices connected via GT130 and Wi-Fi devices.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -183,7 +184,7 @@ NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
     ),
     # Valve attributes
     Neviweb130NumberEntityDescription(
-        key="flometer_timer",
+        key="flowmeter_timer",
         icon="mdi:timer-edit-outline",
         device_class=NumberDeviceClass.DURATION,
         mode=NumberMode.AUTO,
@@ -315,7 +316,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         device_name: str,
         attribute: str,
         device_id: str,
-        attr_info: dict,
+        attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130NumberEntityDescription,
     ):
@@ -330,12 +331,15 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         self.entity_description = entity_description
         self._attr_icon = entity_description.icon
         self._attr_device_class = entity_description.device_class
-        self._attr_unit_of_measurement = entity_description.native_unit_of_measurement
         self._attr_translation_key = entity_description.translation_key
-        self._attr_native_min_value = entity_description.native_min_value
-        self._attr_native_max_value = entity_description.native_max_value
-        self._attr_native_step = entity_description.native_step
-        self._attr_mode = entity_description.mode
+        if entity_description.native_min_value is not None:
+            self._attr_native_min_value = entity_description.native_min_value
+        if entity_description.native_max_value is not None:
+            self._attr_native_max_value = entity_description.native_max_value
+        if entity_description.native_step is not None:
+            self._attr_native_step = entity_description.native_step
+        if entity_description.mode is not None:
+            self._attr_mode = entity_description.mode
 
     @property
     def unique_id(self):
@@ -368,22 +372,22 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         """Return the state attributes of the number."""
         return {"device_id": self._attr_unique_id}
 
-    async def async_set_value(self, value: float) -> None:
-        """Change the selected number value."""
-        handler = self._ATTRIBUTE_METHODS.get(self._attribute)
-
-        if handler:
-            success = await handler(self, value)
-            if success:
-                self._native_value = value
-                self._device[self._attribute] = value
-                self.async_write_ha_state()
-                await self.coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning(
-                    "Failed to update attribute '%s' with value '%s'",
-                    self._attribute,
-                    value,
-                )
-        else:
-            _LOGGER.warning("No handler for number attribute: %s", self._attribute)
+    # async def async_set_value(self, value: float) -> None:
+    #    """Change the selected number value."""
+    #    handler = self._ATTRIBUTE_METHODS.get(self._attribute)#
+    #
+    #    if handler:
+    #        success = await handler(self, value)
+    #        if success:
+    #            self._native_value = value
+    #            self._device[self._attribute] = value
+    #            self.async_write_ha_state()
+    #            await self.coordinator.async_request_refresh()
+    #        else:
+    #            _LOGGER.warning(
+    #                "Failed to update attribute '%s' with value '%s'",
+    #                self._attribute,
+    #                value,
+    #             )
+    #    else:
+    #        _LOGGER.warning("No handler for number attribute: %s", self._attribute)
