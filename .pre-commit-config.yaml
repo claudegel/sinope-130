@@ -39,10 +39,10 @@ repos:
     hooks:
       - id: ruff
 
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.17.1
     hooks:
       - id: mypy
-        name: mypy (local only)
-        entry: uv run --active mypy
-        language: system
-        types: [python]
+        additional_dependencies:
+          - homeassistant-stubs
+          - types-aiofiles
