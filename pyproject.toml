@@ -1,29 +1,32 @@
 [project]
 name = "neviweb130"
-description = "Home assistant custom_components to manage Sinopé ZigBee and Wi-Fi devices."
 version = "2.0"
-dynamic = ["version"]
-urls = { repository = "https://github.com/claudegel/sinope-130" }
+description = "Home assistant custom_components to manage Sinopé ZigBee and Wi-Fi devices."
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
+requires-python = ">=3.13"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.13"
+dependencies = ["homeassistant>=2025.2.0"]
 
-[tool.poetry]
-packages = [ { include = "custom_components" } ]
+[project.urls]
+repository = "https://github.com/claudegel/sinope-130"
 
-[tool.poetry.dependencies]
-python = "^3.13"
-homeassistant = "^2025.2.0"
+[dependency-groups]
+dev = [
+    "mypy>=1.17.1",
+    "homeassistant-stubs>=2025.2.0",
+    "types-aiofiles>=23.1.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-mypy = "^1.17.1"
-homeassistant-stubs = "^2025.2.0"
-types-aiofiles = "^23.1.0"
+[tool.hatch.build.targets.sdist]
+include = ["custom_components"]
+
+[tool.hatch.build.targets.wheel]
+include = ["custom_components"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.black]
 line-length = 120
