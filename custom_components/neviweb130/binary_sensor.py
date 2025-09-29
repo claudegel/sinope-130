@@ -1,5 +1,5 @@
 """
-Support for Neviweb attributes binary sensors for devices connected via GT130 and wifi devices.
+Support for Neviweb attributes binary sensors for devices connected via GT130 and Wi-Fi devices.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -199,7 +200,7 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         device_name: str,
         attribute: str,
         device_id: str,
-        attr_info: dict,
+        attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130BinarySensorEntityDescription,
     ):
@@ -207,7 +208,7 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         super().__init__(coordinator)
         self._client = client
         self._device = device
-        self.entity_description = entity_description
+        self.entity_description: Neviweb130BinarySensorEntityDescription = entity_description
         self._id = str(device.get("id"))
         self._device_name = device_name
         self._device_id = device_id
