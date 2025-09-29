@@ -1,5 +1,5 @@
 """
-Support for Neviweb attributes buttons for devices connected via GT130 and wifi devices.
+Support for Neviweb attributes buttons for devices connected via GT130 and Wi-Fi devices.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -36,11 +37,11 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
     # Climate attributes
     Neviweb130ButtonEntityDescription(
-        key="fan_filter_remain",  # nom du bouton
+        key="fan_filter_remain",  # Button name
         device_class=ButtonDeviceClass.UPDATE,
         icon="mdi:air-filter",
-        translation_key="reset_filter",  # pour traduction
-        entity_category=EntityCategory.CONFIG,  # pour mettre dans diagnostic
+        translation_key="reset_filter",  # to translate
+        entity_category=EntityCategory.CONFIG,  # to add to diagnostic
         data_key="filter_clean",  # attribute name
     ),
 )
@@ -148,7 +149,7 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
         device_name: str,
         attribute: str,
         device_id: str,
-        attr_info: dict,
+        attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130ButtonEntityDescription,
     ):
