@@ -132,7 +132,7 @@ async def async_setup_entry(
                     if "signature" in device_info and "model" in device_info["signature"]:
                         model = device_info["signature"]["model"]
                         if model in IMPLEMENTED_DEVICE_MODEL:
-                            device_name = f'{default_name} {device_info["name"]}'
+                            device_name = f"{default_name} {device_info['name']}"
                             device_sku = device_info["sku"]
                             device_firmware = "{major}.{middle}.{minor}".format(
                                 **device_info["signature"]["softVersion"]
