@@ -3,7 +3,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Neviweb130: gestion Sinopé zigbee et Wi-Fi.",
+        "title": "Neviweb130: gestion Sinopé ZigBee et Wi-Fi.",
         "description": "Entrer les informations pour la connection à Neviweb, nom d'utilisateur (courriel), mot de passe, emplacements (3 possibles) pour parametres network, network2 et network3, Scan_interval, Support pour Homekit, stat_interval et Notifications.",
         "data": {
           "username": "Courriel pour Neviweb",

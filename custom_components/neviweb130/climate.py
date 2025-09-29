@@ -2171,7 +2171,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on."""
-        """Work differently for zigbee and Wi-Fi devices."""
+        """Work differently for ZigBee and Wi-Fi devices."""
         level = value["level"]
         entity = value["id"]
         await self._client.async_set_backlight(entity, level, self._is_wifi)

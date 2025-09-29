@@ -500,7 +500,7 @@ class Neviweb130Client:
                             + " miwi. If this location contain only miwi devices "
                             + "it should be added to custom_component "
                             + "«sinope neviweb» custom_components instead. If the"
-                            + " location contain mixed miwi, zigbee and/or Wi-Fi "
+                            + " location contain mixed miwi, ZigBee and/or Wi-Fi "
                             + "devices, add parameter: ignore_miwi: True, in your "
                             + "neviweb130 configuration."
                         )
@@ -518,7 +518,7 @@ class Neviweb130Client:
                                 + " miwi. If this location contain only miwi devices "
                                 + "it should be added to custom_component "
                                 + "«sinope neviweb» custom_components instead. If the"
-                                + " location contain mixed miwi, zigbee and/or Wi-Fi "
+                                + " location contain mixed miwi, ZigBee and/or Wi-Fi "
                                 + "devices, add parameter: ignore_miwi: True, in your "
                                 + "neviweb130 configuration."
                             )
@@ -536,7 +536,7 @@ class Neviweb130Client:
                                 + " miwi. If this location contain only miwi devices "
                                 + "it should be added to custom_component "
                                 + "«sinope neviweb» custom_components instead. If the"
-                                + " location contain mixed miwi, zigbee and/or Wi-Fi "
+                                + " location contain mixed miwi, ZigBee and/or Wi-Fi "
                                 + "devices, add parameter: ignore_miwi: True, in your "
                                 + "neviweb130 configuration."
                             )
@@ -846,7 +846,7 @@ class Neviweb130Client:
 
     async def async_set_setpoint_mode(self, device_id, mode, wifi, HC):
         """Set thermostat operation mode."""
-        """Work differently for Wi-Fi and zigbee devices."""
+        """Work differently for Wi-Fi and ZigBee devices."""
         if wifi:
             if HC:
                 data = {ATTR_HEAT_COOL: mode}
@@ -860,7 +860,7 @@ class Neviweb130Client:
 
     async def async_set_occupancy_mode(self, device_id, mode, wifi):
         """Set thermostat preset mode."""
-        """Work differently for Wi-Fi and zigbee devices."""
+        """Work differently for Wi-Fi and ZigBee devices."""
         if wifi:
             if mode in [PRESET_AWAY, PRESET_HOME]:
                 data = {ATTR_OCCUPANCY: mode}
@@ -909,7 +909,7 @@ class Neviweb130Client:
 
     async def async_set_backlight(self, device_id, level, wifi):
         """Set backlight intensity when idle, on or auto."""
-        """Work differently for Wi-Fi and zigbee devices."""
+        """Work differently for Wi-Fi and ZigBee devices."""
         if wifi:
             match level:
                 case "on":
@@ -1092,7 +1092,7 @@ class Neviweb130Client:
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_floor_limit(self, device_id, level, low, wifi):
-        """Set floor setpoint limit low and high for zigbee and Wi-Fi thermostats. (0 = off)."""
+        """Set floor setpoint limit low and high for ZigBee and Wi-Fi thermostats. (0 = off)."""
         data: dict[str, dict[str, None | str | int]]
         if level == 0:
             if wifi:
@@ -1133,7 +1133,7 @@ class Neviweb130Client:
 
     async def async_set_pump_protection(self, device_id, status, wifi):
         """Set low voltage thermostat pump protection status."""
-        """Work differently for Wi-Fi and zigbee devices."""
+        """Work differently for Wi-Fi and ZigBee devices."""
         if wifi:
             data = {ATTR_PUMP_PROTEC: status}
         else:

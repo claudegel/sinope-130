@@ -1,17 +1,25 @@
 [project]
-name = "Sinope Neviweb130"
+name = "neviweb130"
+description = "Home assistant custom_components to manage Sinopé ZigBee and Wi-Fi devices."
+version = "2.0"
 dynamic = ["version"]
-description = "Home assistant custom_components to manage Sinopé zigbee and Wi-Fi devices."
 urls = { repository = "https://github.com/claudegel/sinope-130" }
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">=3.13"
+
+[tool.poetry]
+packages = [ { include = "custom_components" } ]
 
 [tool.poetry.dependencies]
 python = "^3.13"
 homeassistant = "^2025.2.0"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.17.1"
+homeassistant-stubs = "^2025.2.0"
+types-aiofiles = "^23.1.0"
 
 [build-system]
 requires = ["poetry-core"]

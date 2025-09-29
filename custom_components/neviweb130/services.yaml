@@ -132,7 +132,7 @@ set_second_display:
       example: "exteriorTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or zigbee
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or ZigBee
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
@@ -237,7 +237,7 @@ set_air_floor_mode:
       description: Name(s) of neviweb130 floor thermostat.
       example: "climate.neviweb130_climate_kitchen"
     airFloorMode:
-      description: Set to «airByFloor» (zigbee) or «roomByFloor» (Wi-Fi) for ambient temperature sensor or to «floor» for floor temperature sensor.
+      description: Set to «airByFloor» (ZigBee) or «roomByFloor» (Wi-Fi) for ambient temperature sensor or to «floor» for floor temperature sensor.
       example: "floor"
 
 set_phase_control:
@@ -309,7 +309,7 @@ set_control_onoff:
       example: 1
 
 set_auxiliary_load:
-  description: Set floor and low voltage zigbee thermostats auxiliary heat load in watt.
+  description: Set floor and low voltage ZigBee thermostats auxiliary heat load in watt.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -322,7 +322,7 @@ set_auxiliary_load:
       example: 2500
 
 set_cycle_output:
-  description: Set both Wi-Fi and zigbee low voltage thermostats primary cycle time in minutes.
+  description: Set both Wi-Fi and ZigBee low voltage thermostats primary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -332,7 +332,7 @@ set_cycle_output:
       example: "10 min"
 
 set_aux_cycle_output:
-  description: Set both Wi-Fi and zigbee low voltage thermostats auxiliary cycle time in minutes.
+  description: Set both Wi-Fi and ZigBee low voltage thermostats auxiliary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
