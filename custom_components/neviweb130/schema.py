@@ -7,6 +7,7 @@ from datetime import timedelta
 import voluptuous as vol
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 
 from .const import (
     ATTR_ACTIVE,
@@ -229,7 +230,7 @@ LOCK_LIST = ["locked", "unlocked", "tamper protection"]
 COLOR_LIST = [
     "lime",
     "amber",
-    "fushia",
+    "fuchsia",
     "perle",
     "blue",
     "red",
@@ -248,7 +249,7 @@ def color_to_rgb(color):
             return "220,255,10"
         case "amber":
             return "75,10,0"
-        case "fushia":
+        case "fuchsia":
             return "165,0,10"
         case "perle":
             return "255,255,100"
@@ -272,7 +273,7 @@ def rgb_to_color(rgb):
         case "75,10,0":
             return "amber"
         case "165,0,10":
-            return "fushia"
+            return "fuchsia"
         case "255,255,100":
             return "perle"
         case "0,255,255":
@@ -296,7 +297,14 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_NETWORK, default="_"): cv.string,
                 vol.Optional(CONF_NETWORK2, default="_"): cv.string,
                 vol.Optional(CONF_NETWORK3, default="_"): cv.string,
-                vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
+                vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=300,
+                        max=600,
+                        unit_of_measurement="s",
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
                 vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
                 vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,
                 vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(

@@ -5,18 +5,17 @@ from __future__ import annotations
 # import json
 import logging
 import os
-from typing import Any
+from typing import Any, cast
 
 import aiofiles
 import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries, exceptions
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import selector
 
 from . import async_migrate_unique_ids, async_shutdown
 from .const import (
@@ -45,17 +44,7 @@ FLOW_SCHEMA = vol.Schema(
         vol.Optional(CONF_NETWORK, default="_"): cv.string,
         vol.Optional(CONF_NETWORK2, default="_"): cv.string,
         vol.Optional(CONF_NETWORK3, default="_"): cv.string,
-        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): vol.Coerce(
-            int,
-            selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=300,
-                    max=600,
-                    unit_of_measurement="s",
-                    mode=selector.NumberSelectorMode.BOX,
-                )
-            ),
-        ),
+        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=300, max=600)),
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
         vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,
         vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
@@ -83,6 +72,9 @@ async def async_test_connect(self, user: str, passwd: str) -> bool:
         "stayConnected": 0,
     }
     with await session_manager.create_session() as session:
+        if session is None:
+            raise TypeError("session is None")
+
         try:
             async with session.post(
                 LOGIN_URL,
@@ -163,16 +155,16 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         self._cookies = None
         self._timeout = 30
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Invoked when a user initiates a flow via the user interface."""
         # Only a single instance of the integration
         if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
+            return cast(ConfigFlowResult, self.async_abort(reason="single_instance_allowed"))
 
         errors: dict[str, Any] = {}
 
         if user_input is None:
-            return self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors)
+            return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
 
         if user_input is not None:
             info = None
@@ -202,15 +194,15 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
             self.data = user_input
 
-            return self.async_create_entry(title="Sinope Neviweb130", data=self.data)
+            return cast(ConfigFlowResult, self.async_create_entry(title="Sinope Neviweb130", data=self.data))
 
-        return self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors)
+        return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
 
     async def async_step_import(self, user_input=None):
         """Import neviweb130 config from configuration.yaml."""
         return await self.async_step_user(user_input)
 
-    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> FlowResult[Any]:
         """Add reconfigure step to allow to reconfigure a config entry."""
         errors: dict[str, str] = {}
 
@@ -220,6 +212,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         #            user_input = {}
 
         if user_input is not None:
+            info = None
             try:
                 await async_shutdown(self.hass)
                 info = await async_validate_input(self, user_input)
@@ -232,7 +225,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-            if not errors:
+            if not errors and info is not None:
                 user_input[CONF_USERNAME] = info[CONF_USERNAME]
                 user_input[CONF_PASSWORD] = info[CONF_PASSWORD]
                 user_input[CONF_NETWORK] = info[CONF_NETWORK]
@@ -271,19 +264,8 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_NETWORK3,
                     default=reconfigure_entry.data[CONF_NETWORK3],
                 ): cv.string,
-                vol.Optional(
-                    CONF_SCAN_INTERVAL,
-                    default=reconfigure_entry.data[CONF_SCAN_INTERVAL],
-                ): vol.Coerce(
-                    int,
-                    selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=300,
-                            max=600,
-                            unit_of_measurement="s",
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
-                    ),
+                vol.Optional(CONF_SCAN_INTERVAL, default=reconfigure_entry.data[CONF_SCAN_INTERVAL]): vol.All(
+                    vol.Coerce(int), vol.Range(min=300, max=600)
                 ),
                 vol.Optional(
                     CONF_HOMEKIT_MODE,
@@ -366,7 +348,8 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
             }
         )
 
-    def _set_log_level(self, log_level):
+    @staticmethod
+    def _set_log_level(log_level):
         """Set the log level for the neviweb130 component."""
         level = getattr(logging, log_level.upper(), logging.INFO)
         _LOGGER.setLevel(level)

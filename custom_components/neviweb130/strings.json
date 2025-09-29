@@ -3,7 +3,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Neviweb130: Sinope zigbee and wifi devices control",
+        "title": "Neviweb130: Sinope zigbee and Wi-Fi devices control",
         "description": "Enter data for connection to Neviweb, login (email), password, location one two and three as network, network2 and network3, Scan_interval, Homekit support, stat_interval and Notifications.",
         "data": {
           "username": "[%key:common::config_flow::data::username%], Neviweb email",
