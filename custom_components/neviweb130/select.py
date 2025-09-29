@@ -1,5 +1,5 @@
 """
-Support for Neviweb attributes select for devices connected via GT130 and wifi devices.
+Support for Neviweb attributes select for devices connected via GT130 and Wi-Fi devices.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -190,7 +191,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         device_name: str,
         attribute: str,
         device_id: str,
-        attr_info: dict,
+        attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130SelectEntityDescription,
     ):
@@ -202,10 +203,12 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         self._attribute = attribute
         self._attr_unique_id = f"{self._id}_{attribute}"
         self._attr_device_info = attr_info
+        self._current_option: str | None = None
         self.entity_description = entity_description
         self._attr_icon = entity_description.icon
         self._attr_translation_key = entity_description.translation_key
-        self._attr_options = entity_description.options
+        if entity_description.options is not None:
+            self._attr_options = entity_description.options
 
     @property
     def unique_id(self):
@@ -214,7 +217,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
 
     @property
     def is_wifi(self):
-        """Return True if device is a wifi device"""
+        """Return True if device is a Wi-Fi device"""
         device_obj = self.coordinator.data.get(self._id)
         return device_obj.get("is_wifi", False) if device_obj else False
 
