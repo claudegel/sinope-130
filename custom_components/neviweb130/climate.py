@@ -1,5 +1,5 @@
 """
-Support for Neviweb thermostat connected to GT130 ZigBee.
+Support for Neviweb thermostat connected to GT130 Zigbee.
 model 1123 = thermostat TH1123ZB 3000W
 model 300 = thermostat TH1123ZB-G2 3000W
 model 1124 = thermostat TH1124ZB 4000W
@@ -2171,7 +2171,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on."""
-        """Work differently for ZigBee and Wi-Fi devices."""
+        """Work differently for Zigbee and Wi-Fi devices."""
         level = value["level"]
         entity = value["id"]
         await self._client.async_set_backlight(entity, level, self._is_wifi)

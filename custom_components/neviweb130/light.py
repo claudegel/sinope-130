@@ -1,5 +1,5 @@
 """
-Support for Neviweb light switch/dimmer connected to GT130 ZigBee.
+Support for Neviweb light switch/dimmer connected to GT130 Zigbee.
 model 2121 = light switch SW2500ZB
 model 2121 = light switch SW2500ZB-G2
 model 2131 = light dimmer DM2500ZB

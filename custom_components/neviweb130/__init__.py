@@ -1,4 +1,4 @@
-"""Sinopé GT130 ZigBee and Wi-Fi support."""
+"""Sinopé GT130 Zigbee and Wi-Fi support."""
 
 from __future__ import annotations
 

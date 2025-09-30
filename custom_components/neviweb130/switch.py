@@ -1,11 +1,11 @@
 """
-Support for Neviweb switch connected via GT130 ZigBee.
+Support for Neviweb switch connected via GT130 Zigbee.
 Multi-Controller
 model 2180 = Multi controller for sedna valve MC3100ZB connected to GT130
 model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
 
 load controller
-Support for Neviweb switch connected via GT130 ZigBee.
+Support for Neviweb switch connected via GT130 Zigbee.
 model 2506 = load controller device, RM3250ZB, 50A, Zigbee
 model 346 = load controller device, RM3250WF, 50A, Wi-Fi
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A, Zigbee
