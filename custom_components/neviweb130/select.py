@@ -15,10 +15,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
-from .coordinator import Neviweb130Coordinator
+from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .schema import BACKLIGHT_LIST, COLOR_LIST, LANGUAGE_LIST, LOCK_LIST, OCCUPANCY_LIST
 
 DEFAULT_NAME = "neviweb130 select"
@@ -124,7 +123,9 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                     if desc.key == attribute:
                         entities.append(
                             Neviweb130DeviceAttributeSelect(
+                                hass=hass,
                                 client=client,
+                                scan_interval=data["scan_interval"],
                                 device=device_info,
                                 device_name=device_name,
                                 attribute=attribute,
@@ -135,7 +136,6 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                                     "manufacturer": device_entry.manufacturer,
                                     "model": device_entry.model,
                                 },
-                                coordinator=coordinator,
                                 entity_description=desc,
                             )
                         )
@@ -166,7 +166,7 @@ async def async_setup_entry(
     hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], SelectEntity):
+class Neviweb130DeviceAttributeSelect(Neviweb130Coordinator, SelectEntity):
     """Representation of a specific Neviweb130 select entity."""
 
     _attr_has_entity_name = True
@@ -186,17 +186,18 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
 
     def __init__(
         self,
-        client,
+        hass: HomeAssistant,
+        client: Neviweb130Client,
+        scan_interval,
         device: dict,
         device_name: str,
         attribute: str,
         device_id: str,
         attr_info: DeviceInfo,
-        coordinator,
         entity_description: Neviweb130SelectEntityDescription,
     ):
         """Initialize the select entity."""
-        super().__init__(coordinator)
+        super().__init__(hass, client, scan_interval)
         self._client = client
         self._device = device
         self._id = str(device.get("id"))
@@ -218,25 +219,25 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
     @property
     def is_wifi(self):
         """Return True if device is a Wi-Fi device"""
-        device_obj = self.coordinator.data.get(self._id)
+        device_obj = self.data.get(self._id)
         return device_obj.get("is_wifi", False) if device_obj else False
 
     @property
     def location(self):
         """Return location id"""
-        device_obj = self.coordinator.data.get(self._id)
+        device_obj = self.data.get(self._id)
         return device_obj.get("location", False) if device_obj else False
 
     @property
     def is_HC(self):
         """Return True if device is a HC device"""
-        device_obj = self.coordinator.data.get(self._id)
+        device_obj = self.data.get(self._id)
         return device_obj.get("is_HC", False) if device_obj else False
 
     @property
     def current_option(self):
         """Return the current selected option."""
-        device_obj = self.coordinator.data.get(self._id)
+        device_obj = self.data.get(self._id)
         if device_obj and self._attribute in device_obj:
             return device_obj[self._attribute]
         else:
@@ -262,7 +263,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
                 self._current_option = option
                 self._device[self._attribute] = option
                 self.async_write_ha_state()
-                await self.coordinator.async_request_refresh()
+                await self.async_request_refresh()
             else:
                 _LOGGER.warning(
                     "Failed to update select attribute '%s' with option '%s'",

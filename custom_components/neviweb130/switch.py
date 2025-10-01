@@ -548,7 +548,7 @@ async def async_setup_entry(
             if switch.entity_id == entity_id:
                 value = {
                     "id": switch.unique_id,
-                    "inputnumber": service.data[ATTR_INPUT_NUMBER],
+                    "input_number": service.data[ATTR_INPUT_NUMBER],
                     "onoff": service.data[ATTR_ONOFF],
                     "delay": service.data[ATTR_DELAY][0],
                 }
@@ -1121,10 +1121,10 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         entity = value["id"]
         val = value["delay"]
         onoff = value["onoff"]
-        inputnumber = value["inputnumber"]
+        input_number = value["input_number"]
         delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
-        await self._client.async_set_on_off_input_delay(entity, delay, onoff, inputnumber)
-        if inputnumber == 1:
+        await self._client.async_set_on_off_input_delay(entity, delay, onoff, input_number)
+        if input_number == 1:
             match value["onoff"]:
                 case "on":
                     self._input_1_on_delay = delay

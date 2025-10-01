@@ -1377,9 +1377,9 @@ class Neviweb130Client:
         _LOGGER.debug("power_supply.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
+    async def async_set_on_off_input_delay(self, device_id, delay, onoff, input_number):
         """Set input 1 or 2 on/off delay in seconds."""
-        if inputnumber == 1:
+        if input_number == 1:
             match onoff:
                 case "on":
                     data = {ATTR_INPUT_1_ON_DELAY: delay}

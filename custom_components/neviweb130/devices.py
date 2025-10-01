@@ -6,23 +6,21 @@ from typing import Any
 import aiofiles
 
 _LOGGER = logging.getLogger(__name__)
-
-CONFDIR = "/config/.storage/"
-
-CONF_FILE = CONFDIR + "neviweb130.json"
 device_dict: dict[Any, Any] = {}
 
 
-async def load_devices():
+async def load_devices(conf_dir: str):
     device_dict.clear()
-    if not os.path.exists(CONF_FILE):
+    conf_file = os.path.join(conf_dir, "neviweb130.json")
+
+    if not os.path.exists(conf_file):
         # File does not exist, create an empty file
-        async with aiofiles.open(CONF_FILE, "w") as f:
+        async with aiofiles.open(conf_file, "w") as f:
             pass  # creates an empty file
         return
 
-    if os.path.exists(CONF_FILE):
-        async with aiofiles.open(CONF_FILE, "r") as f:
+    if os.path.exists(conf_file):
+        async with aiofiles.open(conf_file, "r") as f:
             async for line in f:
                 device = json.loads(line)
                 device_dict[device[0]] = device
@@ -30,8 +28,11 @@ async def load_devices():
     _LOGGER.debug("Loading device: %s", device_dict)
 
 
-async def save_devices(data):
-    _LOGGER.info("Saving energy stat data %s to CONF_FILE %s", data, CONF_FILE)
-    async with aiofiles.open(CONF_FILE, "w") as f:
+async def save_devices(data: dict[str, Any]) -> None:
+    """Saving devices energy data to file neviweb130.json"""
+    conf_dir = data["conf_dir"]
+    conf_file = os.path.join(conf_dir, "neviweb130.json")
+    _LOGGER.info("Saving energy stat data %s to CONF_FILE %s", data, conf_file)
+    async with aiofiles.open(conf_file, "w") as f:
         for device in data.values():
             await f.write(json.dumps(device) + "\n")

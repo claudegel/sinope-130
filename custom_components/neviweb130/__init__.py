@@ -34,7 +34,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Register the event listener for Home Assistant stop event
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
 
-    await load_devices()
+    # Detect .storage path
+    conf_dir = hass.config.path(".storage")
+    hass.data[DOMAIN] = {"conf_dir": conf_dir}
+
+    await load_devices(conf_dir)
 
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
     _LOGGER.debug("Config found: %s", neviweb130_config)
