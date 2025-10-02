@@ -178,8 +178,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise TypeError("username is None")
     if password is None:
         raise TypeError("password is None")
-    if network is None:
-        raise TypeError("network is None")
 
     global SCAN_INTERVAL
     SCAN_INTERVAL = get_scan_interval(entry)

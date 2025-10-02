@@ -3,19 +3,29 @@ name = "neviweb130"
 version = "2.0"
 description = "Home assistant custom_components to manage Sinopé Zigbee and Wi-Fi devices."
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
-requires-python = ">=3.13"
+requires-python = ">=3.13.2"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-dependencies = ["homeassistant>=2025.2.0"]
+dependencies = [
+    "hatchling>=1.27.0",
+]
 
 [project.urls]
 repository = "https://github.com/claudegel/sinope-130"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.17.1",
-    "homeassistant-stubs>=2025.2.0",
-    "types-aiofiles>=23.1.0",
+    "isal~=1.7.1",
+    "aiofiles~=24.1.0",
+    "homeassistant~=2025.9.4",
+    "pre-commit",
+    "types-aiofiles~=24.1.0",
+    "homeassistant-stubs~=2025.9.4",
+]
+ci = [
+    "mypy",
+    "types-aiofiles~=24.1.0",
+    "homeassistant-stubs~=2025.9.4",
 ]
 
 [tool.hatch.build.targets.sdist]

@@ -140,7 +140,7 @@ class Neviweb130Client:
         ignore_miwi,
         username: str,
         password: str,
-        network: str,
+        network: str | None,
         network2: str | None = None,
         network3: str | None = None,
         timeout=REQUESTS_TIMEOUT,
@@ -322,36 +322,37 @@ class Neviweb130Client:
                             )
                 else:
                     for network in networks:
-                        if network["name"] == self._network_name:
-                            self._gateway_id = network["id"]
-                            self._occupancyMode = network["mode"]
-                            _LOGGER.debug(
-                                "Selecting %s network among: %s",
-                                self._network_name,
-                                networks,
-                            )
-                            continue
-                        elif (network["name"] == self._network_name.capitalize()) or (
-                            network["name"] == self._network_name[0].lower() + self._network_name[1:]
-                        ):
-                            self._gateway_id = network["id"]
-                            _LOGGER.debug(
-                                "Please check first letter of your network "
-                                + "name, In capital letter or not? Selecting "
-                                + "%s network among: %s",
-                                self._network_name,
-                                networks,
-                            )
-                            continue
-                        else:
-                            _LOGGER.debug(
-                                "Your network name %s do not correspond to "
-                                + "discovered network %s, skipping this one"
-                                + "... Please check your config if nothing "
-                                + "is discovered.",
-                                self._network_name,
-                                network["name"],
-                            )
+                        if self._network_name is not None and self._network_name != "":
+                            if network["name"] == self._network_name:
+                                self._gateway_id = network["id"]
+                                self._occupancyMode = network["mode"]
+                                _LOGGER.debug(
+                                    "Selecting %s network among: %s",
+                                    self._network_name,
+                                    networks,
+                                )
+                                continue
+                            elif (network["name"] == self._network_name.capitalize()) or (
+                                network["name"] == self._network_name[0].lower() + self._network_name[1:]
+                            ):
+                                self._gateway_id = network["id"]
+                                _LOGGER.debug(
+                                    "Please check first letter of your network "
+                                    + "name, In capital letter or not? Selecting "
+                                    + "%s network among: %s",
+                                    self._network_name,
+                                    networks,
+                                )
+                                continue
+                            else:
+                                _LOGGER.debug(
+                                    "Your network name %s do not correspond to "
+                                    + "discovered network %s, skipping this one"
+                                    + "... Please check your config if nothing "
+                                    + "is discovered.",
+                                    self._network_name,
+                                    network["name"],
+                                )
                         if self._network_name2 is not None and self._network_name2 != "":
                             if network["name"] == self._network_name2:
                                 self._gateway_id2 = network["id"]

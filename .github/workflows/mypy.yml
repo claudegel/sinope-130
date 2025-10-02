@@ -18,7 +18,7 @@ jobs:
         run: uv python install
 
       - name: Install the project and dependencies
-        run: uv sync --locked --group dev
+        run: uv sync --frozen --group ci
 
       - name: Run mypy
-        run: uv run mypy .
+        run: uv run --frozen --group ci mypy .
