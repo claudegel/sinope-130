@@ -2,11 +2,10 @@
   "domain": "neviweb130",
   "name": "Sinope Neviweb130",
   "codeowners": ["@claudegel"],
+  "config_flow": true,
+  "dependencies": ["aiofiles==24.1.0"],
   "documentation": "https://github.com/claudegel/sinope-130",
-  "issue_tracker": "https://github.com/claudegel/sinope-130/issues",
-  "dependencies": [],
-  "requirements": [],
   "iot_class": "cloud_polling",
-  "version": "3.0.8",
-  "homeassistant": "2025.1.1"
+  "requirements": [],
+  "version": "1.0.0"
 }
