@@ -14,7 +14,7 @@ async def load_devices(conf_dir: str):
     device_dict.clear()
 
     CONF_FILE = os.path.join(conf_dir, "neviweb130.json")
-    
+
     if not os.path.exists(CONF_FILE):
         # File does not exist, create an empty file
         async with aiofiles.open(CONF_FILE, "w") as f:

@@ -32,18 +32,16 @@ from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (ATTR_ENTITY_ID, PERCENTAGE,
                                  SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-                                 UnitOfEnergy, UnitOfTemperature,
-                                 UnitOfVolume)
+                                 UnitOfEnergy, UnitOfTemperature, UnitOfVolume)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
-
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
-                    ATTR_BATT_PERCENT_NORMAL,
-                    ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
-                    ATTR_BATTERY_TYPE, ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
+                    ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
+                    ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE,
+                    ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
                     ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
                     ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_LEAK_ALERT,
                     ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,

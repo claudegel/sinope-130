@@ -6,8 +6,7 @@ import logging
 from datetime import timedelta
 
 from homeassistant import config_entries
-from homeassistant.const import (CONF_SCAN_INTERVAL,
-                                 EVENT_HOMEASSISTANT_STOP)
+from homeassistant.const import CONF_SCAN_INTERVAL, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType

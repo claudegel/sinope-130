@@ -25,18 +25,17 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
-
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (ATTR_ACTIVE, ATTR_COLOR, ATTR_ERROR_CODE_SET1,
-                    ATTR_INTENSITY, ATTR_INTENSITY_MIN,
-                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LED_OFF_COLOR,
-                    ATTR_LED_OFF_INTENSITY, ATTR_LED_ON_COLOR,
-                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_ONOFF,
-                    ATTR_PHASE_CONTROL, ATTR_RSSI, ATTR_STATE,
-                    ATTR_TIMER, ATTR_WATTAGE_INSTANT, DOMAIN, MODE_OFF,
-                    SERVICE_SET_ACTIVATION, SERVICE_SET_KEY_DOUBLE_UP,
-                    SERVICE_SET_LED_INDICATOR, SERVICE_SET_LED_OFF_INTENSITY,
+                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
+                    ATTR_KEYPAD, ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
+                    ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
+                    ATTR_LIGHT_WATTAGE, ATTR_ONOFF, ATTR_PHASE_CONTROL,
+                    ATTR_RSSI, ATTR_STATE, ATTR_TIMER, ATTR_WATTAGE_INSTANT,
+                    DOMAIN, MODE_OFF, SERVICE_SET_ACTIVATION,
+                    SERVICE_SET_KEY_DOUBLE_UP, SERVICE_SET_LED_INDICATOR,
+                    SERVICE_SET_LED_OFF_INTENSITY,
                     SERVICE_SET_LED_ON_INTENSITY,
                     SERVICE_SET_LIGHT_KEYPAD_LOCK,
                     SERVICE_SET_LIGHT_MIN_INTENSITY, SERVICE_SET_LIGHT_TIMER,

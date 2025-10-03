@@ -15,9 +15,9 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES)
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 from .schema import (BACKLIGHT_LIST, COLOR_LIST, LANGUAGE_LIST, LOCK_LIST,
                      OCCUPANCY_LIST)

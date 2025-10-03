@@ -8,8 +8,8 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from homeassistant.components.button import (ButtonDeviceClass,
-    ButtonEntity, ButtonEntityDescription)
+from homeassistant.components.button import (ButtonDeviceClass, ButtonEntity,
+                                             ButtonEntityDescription)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -17,7 +17,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES)
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
 DEFAULT_NAME = "neviweb130 button"

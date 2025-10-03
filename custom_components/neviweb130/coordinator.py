@@ -8,7 +8,7 @@ from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
 from homeassistant.components.persistent_notification import \
     DOMAIN as PN_DOMAIN
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
