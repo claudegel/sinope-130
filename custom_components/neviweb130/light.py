@@ -47,9 +47,9 @@ from .schema import (SET_ACTIVATION_SCHEMA, SET_KEY_DOUBLE_UP_SCHEMA,
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "neviweb130 light"
-DEFAULT_NAME_2 = "neviweb130 light 2"
-DEFAULT_NAME_3 = "neviweb130 light 3"
+DEFAULT_NAME = f"{DOMAIN} light"
+DEFAULT_NAME_2 = f"{DOMAIN} light 2"
+DEFAULT_NAME_3 = f"{DOMAIN} light 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 

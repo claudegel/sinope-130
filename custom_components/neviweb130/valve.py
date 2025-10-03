@@ -69,9 +69,9 @@ from .schema import (SET_ACTIVATION_SCHEMA,
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "neviweb130 valve"
-DEFAULT_NAME_2 = "neviweb130 valve 2"
-DEFAULT_NAME_3 = "neviweb130 valve 3"
+DEFAULT_NAME = f"{DOMAIN} valve"
+DEFAULT_NAME_2 = f"{DOMAIN} valve 2"
+DEFAULT_NAME_3 = f"{DOMAIN} valve 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
