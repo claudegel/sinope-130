@@ -61,8 +61,7 @@ from homeassistant.const import (ATTR_ENTITY_ID, ATTR_TEMPERATURE,
                                  UnitOfTemperature)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
-
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_AIR_CONFIG, ATTR_AIR_EX_MIN_TIME_ON,
@@ -109,7 +108,8 @@ from .const import (ATTR_ACCESSORY_TYPE, ATTR_ACTIVE, ATTR_AIR_ACTIVATION_TEMP,
                     ATTR_SOUND_CONF, ATTR_STATUS, ATTR_SYSTEM_MODE, ATTR_TEMP,
                     ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TYPE, ATTR_VALUE,
                     ATTR_VALVE_POLARITY, ATTR_WATTAGE, ATTR_WIFI,
-                    ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN, MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
+                    ATTR_WIFI_KEYPAD, ATTR_WIFI_WATTAGE, DOMAIN,
+                    MODE_AUTO_BYPASS, MODE_EM_HEAT, MODE_MANUAL,
                     SERVICE_SET_ACTIVATION, SERVICE_SET_AIR_FLOOR_MODE,
                     SERVICE_SET_AUX_CYCLE_OUTPUT,
                     SERVICE_SET_AUX_HEAT_MIN_TIME_ON,
@@ -158,9 +158,6 @@ from .schema import (FAN_SPEED, FULL_SWING, FULL_SWING_OFF,
                      SET_SOUND_CONFIG_SCHEMA, SET_TEMPERATURE_FORMAT_SCHEMA,
                      SET_TIME_FORMAT_SCHEMA, VERSION, WIFI_FAN_SPEED)
 
-# from . import SCAN_INTERVAL
-
-
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_FLAGS = (
@@ -204,9 +201,9 @@ SUPPORT_HC_FLAGS = (
     | ClimateEntityFeature.TURN_ON
 )
 
-DEFAULT_NAME = "neviweb130 climate"
-DEFAULT_NAME_2 = "neviweb130 climate 2"
-DEFAULT_NAME_3 = "neviweb130 climate 3"
+DEFAULT_NAME = f"{DOMAIN} climate"
+DEFAULT_NAME_2 = f"{DOMAIN} climate 2"
+DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
 SNOOZE_TIME = 1200
 
 HA_TO_NEVIWEB_PERIOD = {
@@ -370,6 +367,8 @@ async def async_setup_entry(
     data["ignore_miwi"]
     data["stat_interval"]
     data["notify"]
+
+    data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
 
     #    _LOGGER.debug("data climate = %s", hass.data[DOMAIN][entry.entry_id])
     #    _LOGGER.debug("Network data = %s", data['neviweb130_client'])
@@ -1419,14 +1418,14 @@ def save_data(id, data, mark):
     # Optionally trigger save_devices here
 
 
-async def async_add_data(id, data, mark):
+async def async_add_data(conf_dir, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
         save_data(id, data, mark)
         return
     device_dict[id] = [id, data, mark]
-    await save_devices()  # Persist changes
+    await save_devices(conf_dir, device_dict)  # Persist changes
     _LOGGER.debug("Data added for %s", id)
 
 
@@ -1441,6 +1440,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     def __init__(self, data, device_info, name, sku, firmware, coordinator):
         """Initialize."""
         super().__init__(coordinator)
+        self._conf_dir = data["conf_dir"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -2655,7 +2655,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     3,
                 )
                 await async_add_data(
-                    self._id, self._total_kwh_count, self._marker
+                    self._conf_dir,
+                    self._id,
+                    self._total_kwh_count,
+                    self._marker,
                 )
                 self._mark = self._marker
             else:
@@ -6331,14 +6334,14 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return self._humid_setpoint
 
     async def async_set_humidifier_type(self, value):
-        """ "Set humidifier type for TH6500WF."""
+        """Set humidifier type for TH6500WF."""
         entity = value["id"]
         type = value["type"]
         await self._client.async_set_humidifier_type(entity, type)
         self._humidifier_type = type
 
     async def async_set_schedule_mode(self, value):
-        """ "Set schedule mode, manual or auto for TH6500WF, TH6250WF."""
+        """Set schedule mode, manual or auto for TH6500WF, TH6250WF."""
         entity = value["id"]
         mode = value["mode"]
         await self._client.async_set_schedule_mode(entity, mode, self._is_HC)

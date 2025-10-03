@@ -16,7 +16,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES)
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
 DEFAULT_NAME = "neviweb130 button"
@@ -35,14 +35,14 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
     # Climate attributes
-    #    Neviweb130ButtonEntityDescription(
-    #        key="fan_filter_remain", #nom du bouton
-    #        device_class=ButtonDeviceClass.UPDATE,
-    #        icon="mdi:air-filter",
-    #        translation_key="reset_filter", #pour traduction
-    #        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-    #        data_key="filter_clean", #attribute name
-    #    ),
+    # Neviweb130ButtonEntityDescription(
+    #     key="fan_filter_remain", #nom du bouton
+    #     device_class=ButtonDeviceClass.UPDATE,
+    #     icon="mdi:air-filter",
+    #     translation_key="reset_filter", #pour traduction
+    #     entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
+    #     data_key="filter_clean", #attribute name
+    # ),
 )
 
 

@@ -6,8 +6,7 @@ import logging
 from datetime import timedelta
 
 from homeassistant import config_entries
-from homeassistant.const import (CONF_SCAN_INTERVAL,
-                                 EVENT_HOMEASSISTANT_STOP)
+from homeassistant.const import CONF_SCAN_INTERVAL, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
@@ -33,7 +32,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Register the event listener for Home Assistant stop event
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
 
-    await load_devices()
+    # Detect .storage path
+    conf_dir = hass.config.path(".storage")
+    hass.data[DOMAIN] = {"conf_dir": conf_dir}
+
+    await load_devices(conf_dir)
 
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
     _LOGGER.debug("Config found: %s", neviweb130_config)
@@ -73,7 +76,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_shutdown(event):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
-    await save_devices(device_dict)
+    conf_dir = hass.data[DOMAIN]["conf_dir"]
+    await save_devices(conf_dir, device_dict)
     _LOGGER.info("Energy stat data saved")
     if DOMAIN in hass.data and "coordinator" in hass.data[DOMAIN]:
         _LOGGER.info("Stopping coordinator")
@@ -141,6 +145,30 @@ async def async_unload_entry(hass, entry):
         unload_ok
         and await hass.config_entries.async_forward_entry_unload(
             entry, "valve"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "binary_sensor"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "button"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "number"
+        )
+    )
+    unload_ok = (
+        unload_ok
+        and await hass.config_entries.async_forward_entry_unload(
+            entry, "select"
         )
     )
 
