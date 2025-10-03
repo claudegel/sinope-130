@@ -35,15 +35,15 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
-    Climate attributes
-       Neviweb130ButtonEntityDescription(
-           key="fan_filter_remain", #nom du bouton
-           device_class=ButtonDeviceClass.UPDATE,
-           icon="mdi:air-filter",
-           translation_key="reset_filter", #pour traduction
-           entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-           data_key="filter_clean", #attribute name
-       ),
+    # Climate attributes
+    # Neviweb130ButtonEntityDescription(
+    #     key="fan_filter_remain", #nom du bouton
+    #     device_class=ButtonDeviceClass.UPDATE,
+    #     icon="mdi:air-filter",
+    #     translation_key="reset_filter", #pour traduction
+    #     entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
+    #     data_key="filter_clean", #attribute name
+    # ),
 )
 
 
