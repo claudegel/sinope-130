@@ -72,9 +72,9 @@ from .schema import (SET_ACTIVATION_SCHEMA,
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "neviweb130 valve"
-DEFAULT_NAME_2 = "neviweb130 valve 2"
-DEFAULT_NAME_3 = "neviweb130 valve 3"
+DEFAULT_NAME = f"{DOMAIN} valve"
+DEFAULT_NAME_2 = f"{DOMAIN} valve 2"
+DEFAULT_NAME_3 = f"{DOMAIN} valve 3"
 SNOOZE_TIME = 1200
 
 SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
@@ -138,6 +138,8 @@ async def async_setup_entry(
     data["scan_interval"]
     data["stat_interval"]
     data["notify"]
+
+    data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -492,14 +494,14 @@ def save_data(id, data, mark):
     # Optionally trigger save_devices here
 
 
-async def async_add_data(id, data, mark):
+async def async_add_data(conf_dir, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
         save_data(id, data, mark)
         return
     device_dict[id] = [id, data, mark]
-    await save_devices()  # Persist changes
+    await save_devices(conf_dir, device_dict)  # Persist changes
     _LOGGER.debug("Data added for %s", id)
 
 
@@ -511,6 +513,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     ):
         """Initialize."""
         super().__init__(coordinator)
+        self._conf_dir = data["conf_dir"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1019,7 +1022,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                         3,
                     )
                     await async_add_data(
-                        self._id, self._total_kwh_count, self._marker
+                        self._conf_dir,
+                        self._id,
+                        self._total_kwh_count,
+                        self._marker,
                     )
                     self._mark = self._marker
                 else:
