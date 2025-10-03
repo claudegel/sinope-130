@@ -1,5 +1,5 @@
 ci:
-  skip: [mypy]
+  skip: [mypy, hassfest]
 
 repos:
   - repo: https://github.com/asottile/pyupgrade
@@ -47,3 +47,12 @@ repos:
         additional_dependencies:
           - homeassistant-stubs
           - types-aiofiles
+
+  - repo: local
+    hooks:
+      - id: hassfest
+        name: hassfest (docker_image)
+        exclude: .*
+        always_run: true
+        language: docker_image
+        entry: --entrypoint "" --workdir /usr/src/homeassistant ghcr.io/home-assistant/hassfest:latest python -m script.hassfest --action validate --integration-path /src/custom_components/neviweb130/
