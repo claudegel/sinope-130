@@ -140,9 +140,9 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "neviweb130 switch"
-DEFAULT_NAME_2 = "neviweb130 switch 2"
-DEFAULT_NAME_3 = "neviweb130 switch 3"
+DEFAULT_NAME = f"{DOMAIN} switch"
+DEFAULT_NAME_2 = f"{DOMAIN} switch 2"
+DEFAULT_NAME_3 = f"{DOMAIN} switch 3"
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
@@ -368,6 +368,8 @@ async def async_setup_entry(
     # data["scan_interval"]
     # data["stat_interval"]
     # data["notify"]
+
+    data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -765,13 +767,13 @@ def save_data(id, data, mark):
     device_dict[id][2] = mark
 
 
-async def async_add_data(id, data, mark):
+async def async_add_data(conf_dir, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
         return
     device_dict[id] = [id, data, mark]
-    await save_devices(data)  # Persist changes
+    await save_devices(conf_dir, device_dict)  # Persist changes
     _LOGGER.debug("Data added for %s", id)
 
 
@@ -781,6 +783,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
         """Initialize."""
         super().__init__(coordinator)
+        self._conf_dir = data["conf_dir"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1234,7 +1237,12 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                     self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
                     3,
                 )
-                await async_add_data(self._id, self._total_kwh_count, self._marker)
+                await async_add_data(
+                    self._conf_dir,
+                    self._id,
+                    self._total_kwh_count,
+                    self._marker,
+                )
                 self._mark = self._marker
             else:
                 if self._marker != self._mark:
@@ -2332,28 +2340,32 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
             return device_obj[self._attribute] != MODE_OFF
         return False
 
-    # @property
-    # def state(self):
-    #    """Return the state of the switch."""
-    #    device_obj = self.coordinator.data.get(self._id)
-    #    if device_obj and self._attribute in device_obj:
-    #        try:
-    #            return self.entity_description.value_fn(device_obj)
-    #        except Exception as e:
-    #            _LOGGER.error(
-    #                "Error evaluating value_fn for %s: %s",
-    #                self._attr_unique_id,
-    #                e,
-    #            )
-    #            return None
-    #    else:
-    #        _LOGGER.warning(
-    #            "AttributeSwitch: %s attribute %s not found for device: %s.",
-    #            self._attr_unique_id,
-    #            self._attribute,
-    #            self._id,
-    #        )
-    #        return None
+    # TODO: state is marked @final in SwitchEntity, we should find an alternative
+    @property
+    def my_state(self) -> str | None:
+        """Return the state of the switch."""
+
+        device_obj = self.coordinator.data.get(self._id)
+        if device_obj and self._attribute in device_obj:
+            if self.entity_description.value_fn is None:
+                raise ValueError("self.entity_description.value_fn is None")
+            try:
+                return self.entity_description.value_fn(device_obj)
+            except Exception as e:
+                _LOGGER.error(
+                    "Error evaluating value_fn for %s: %s",
+                    self._attr_unique_id,
+                    e,
+                )
+                return None
+        else:
+            _LOGGER.warning(
+                "AttributeSwitch: %s attribute %s not found for device: %s.",
+                self._attr_unique_id,
+                self._attribute,
+                self._id,
+            )
+            return None
 
     @property
     def extra_state_attributes(self):

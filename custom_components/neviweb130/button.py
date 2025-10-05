@@ -8,9 +8,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Final
 
-from homeassistant.components.button import ButtonDeviceClass, ButtonEntity, ButtonEntityDescription
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -36,14 +35,14 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
     # Climate attributes
-    Neviweb130ButtonEntityDescription(
-        key="fan_filter_remain",  # Button name
-        device_class=ButtonDeviceClass.UPDATE,
-        icon="mdi:air-filter",
-        translation_key="reset_filter",  # to translate
-        entity_category=EntityCategory.CONFIG,  # to add to diagnostic
-        data_key="filter_clean",  # attribute name
-    ),
+    # Neviweb130ButtonEntityDescription(
+    #     key="fan_filter_remain",  # Button name
+    #     device_class=ButtonDeviceClass.UPDATE,
+    #     icon="mdi:air-filter",
+    #     translation_key="reset_filter",  # to translate
+    #     entity_category=EntityCategory.CONFIG,  # to add to diagnostic
+    #     data_key="filter_clean",  # attribute name
+    # ),
 )
 
 
@@ -72,7 +71,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+                _LOGGER.warning("Device %s coordinator.data not yet initialized", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(

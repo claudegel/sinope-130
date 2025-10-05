@@ -103,9 +103,9 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "neviweb130 sensor"
-DEFAULT_NAME_2 = "neviweb130 sensor 2"
-DEFAULT_NAME_3 = "neviweb130 sensor 3"
+DEFAULT_NAME = f"{DOMAIN} sensor"
+DEFAULT_NAME_2 = f"{DOMAIN} sensor 2"
+DEFAULT_NAME_3 = f"{DOMAIN} sensor 3"
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
@@ -721,7 +721,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
-        self._leak_status = None
+        self._leak_status: str | None = None
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
@@ -733,7 +733,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._sampling = None
         self._tank_type = None
         self._tank_height = None
-        self._tank_percent = None
+        self._tank_percent: str | None = None
         self._gauge_type = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -945,10 +945,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         """Return the current battery status."""
         return self._battery_status
 
-    # @property
-    # def state(self):
-    #    """Return the state of the sensor."""
-    #    return self._leak_status
+    # TODO: state marked @final in SensorEntity, we should find an alternative
+    @property
+    def my_state(self) -> Any:
+        """Return the state of the sensor."""
+        return self._leak_status
 
     async def async_set_sensor_alert(self, value):
         """Set water leak sensor alert and action."""
@@ -1264,7 +1265,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._snooze = 0
         self._angle = None
         self._sampling = None
-        self._tank_percent = None
+        self._tank_percent: str | None = None
         self._tank_type = None
         self._tank_height = None
         self._gauge_type = None
@@ -1446,12 +1447,11 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         )
         return data
 
-    # @property
-    # def state(self):
-    #    """Return the state of the tank sensor."""
-    #    return self._tank_percent
-
-    #        return convert_to_percent(self._angle, 10, 80)
+    # TODO: state marked @final in SensorEntity, we should find an alternative
+    @property
+    def my_state(self) -> str | None:
+        """Return the state of the tank sensor."""
+        return self._tank_percent
 
     async def async_set_tank_type(self, value):
         """Set tank type for LM4110-ZB sensor."""
@@ -1530,7 +1530,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._location = location
         self._active = True
         self._snooze = 0
-        self._gateway_status = None
+        self._gateway_status: str | None = None
         self._occupancyMode = None
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -1564,10 +1564,11 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         """Return current gateway status: 'online' or 'offline'."""
         return self._gateway_status is not None
 
-    # @property
-    # def state(self):
-    #    """Return the state of the gateway."""
-    #    return self._gateway_status
+    # TODO: state marked @final in HomeAssistant, we should find an alternative
+    @property
+    def my_state(self) -> str | None:
+        """Return the state of the gateway."""
+        return self._gateway_status
 
     @property
     def occupancy_mode(self):

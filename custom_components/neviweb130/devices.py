@@ -28,9 +28,8 @@ async def load_devices(conf_dir: str):
     _LOGGER.debug("Loading device: %s", device_dict)
 
 
-async def save_devices(data: dict[str, Any]) -> None:
+async def save_devices(conf_dir: str, data):
     """Saving devices energy data to file neviweb130.json"""
-    conf_dir = data["conf_dir"]
     conf_file = os.path.join(conf_dir, "neviweb130.json")
     _LOGGER.info("Saving energy stat data %s to CONF_FILE %s", data, conf_file)
     async with aiofiles.open(conf_file, "w") as f:

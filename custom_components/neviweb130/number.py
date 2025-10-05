@@ -326,6 +326,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         self._device = device
         self._id = str(device.get("id"))
         self._attribute = attribute
+        self._native_value: float | None = None
         self._attr_unique_id = f"{self._id}_{attribute}"
         self._attr_device_info = attr_info
         self.entity_description = entity_description
@@ -372,22 +373,23 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         """Return the state attributes of the number."""
         return {"device_id": self._attr_unique_id}
 
-    # async def async_set_value(self, value: float) -> None:
-    #    """Change the selected number value."""
-    #    handler = self._ATTRIBUTE_METHODS.get(self._attribute)#
-    #
-    #    if handler:
-    #        success = await handler(self, value)
-    #        if success:
-    #            self._native_value = value
-    #            self._device[self._attribute] = value
-    #            self.async_write_ha_state()
-    #            await self.coordinator.async_request_refresh()
-    #        else:
-    #            _LOGGER.warning(
-    #                "Failed to update attribute '%s' with value '%s'",
-    #                self._attribute,
-    #                value,
-    #             )
-    #    else:
-    #        _LOGGER.warning("No handler for number attribute: %s", self._attribute)
+    # TODO: marked @final in HomeAssistant, we should find an alternative
+    async def my_async_set_value(self, value: float) -> None:
+        """Change the selected number value."""
+        handler = self._ATTRIBUTE_METHODS.get(self._attribute)
+
+        if handler:
+            success = await handler(self, value)
+            if success:
+                self._native_value = value
+                self._device[self._attribute] = value
+                self.async_write_ha_state()
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning(
+                    "Failed to update attribute '%s' with value '%s'",
+                    self._attribute,
+                    value,
+                )
+        else:
+            _LOGGER.warning("No handler for number attribute: %s", self._attribute)
