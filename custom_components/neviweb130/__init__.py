@@ -1,4 +1,4 @@
-""" Sinopé GT130 zigbee and wifi support. """
+"""Sinopé GT130 zigbee and wifi support."""
 
 from __future__ import annotations
 

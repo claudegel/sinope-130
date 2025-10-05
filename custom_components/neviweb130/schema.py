@@ -1,4 +1,5 @@
 """Schema for config entry and services."""
+
 from __future__ import annotations
 
 from datetime import timedelta

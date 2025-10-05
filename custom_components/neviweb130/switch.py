@@ -14,7 +14,7 @@ model 2152 = Calypso load controller for water heater, RM3510WF 20,8A, wifi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 

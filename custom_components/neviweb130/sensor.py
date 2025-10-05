@@ -10,7 +10,7 @@ model 5056 = LM4110-ZB, level monitor.
 model 5055 = LM4110-LTE, level monitor, multiples tanks.
 model 130 = gateway GT130.
 model xxx = gateway GT4220WF, GT4220WF-M for mesh valve network.
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 

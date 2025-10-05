@@ -19,7 +19,7 @@ Flow sensors
 FS4220 flow sensor 3/4 inch connected to sedna valve second gen
 FS4221 flow sensor 1 inch connected to sedna valve second gen
 
-For more details about this platform, please refer to the documentation at  
+For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
 

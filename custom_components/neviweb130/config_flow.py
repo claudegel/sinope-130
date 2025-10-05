@@ -232,9 +232,9 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         """Add reconfigure step to allow to reconfigure a config entry."""
         errors: dict[str, str] = {}
 
-        reconfigure_entry: config_entries.ConfigEntry[
-            Any
-        ] = self._get_reconfigure_entry()
+        reconfigure_entry: config_entries.ConfigEntry[Any] = (
+            self._get_reconfigure_entry()
+        )
         # Ensure user_input is a dictionary
         #        if user_input is None:
         #            user_input = {}
