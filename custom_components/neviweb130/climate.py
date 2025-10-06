@@ -57,6 +57,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -797,7 +798,7 @@ async def async_setup_entry(
                 break
 
     def set_auxiliary_load_service(service):
-        """Set options for auxilary heating."""
+        """Set options for auxiliary heating."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -812,7 +813,7 @@ async def async_setup_entry(
                 break
 
     def set_aux_cycle_output_service(service):
-        """Set options for auxilary cycle length for low voltage thermostats."""
+        """Set options for auxiliary cycle length for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -1446,11 +1447,11 @@ def extract_capability(cap):
     return sorted(value)
 
 
-def retreive_data(id, data):
-    """Retreive device stat data from device_dict."""
+def retrieve_data(id, data):
+    """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retreive data for %s = $s", id, device_data)
+        _LOGGER.debug("Retrieve data for %s = $s", id, device_data)
         if data == 1:
             return device_data[1]
         else:
@@ -1458,7 +1459,7 @@ def retreive_data(id, data):
     else:
         # Set defaults if device not found
         if data == 1:
-            _LOGGER.debug("Retreive data for %s not found", id)
+            _LOGGER.debug("Retrieve data for %s not found", id)
             return 0
         else:
             return None
@@ -1517,7 +1518,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1525,7 +1526,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -2053,7 +2054,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return self._fan_speed
 
     @property
-    def fan_modes(self) -> list[str] | None:
+    def fan_modes(self) -> set[str] | None:
         """Return available fan modes."""
         if self._is_HP or self._is_h_c:
             return FAN_SPEED
@@ -2132,7 +2133,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_turn_on(self) -> None:
         """Turn the thermostat to HVACMode.heat or HVACMode.COOL."""
         if self._is_HC:
-            if self._heat_cool == "cool":
+            if self._heat_cool == HVACMode.COOL:
                 await self._client.async_set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi, self._is_HC)
                 self._heat_cool = HVACMode.COOL
             elif self._heat_cool == HVACMode.HEAT:
@@ -2392,9 +2393,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_set_sensor_type(self, value):
         """Set sensor type."""
         entity = value["id"]
-        tipe = value["type"]
-        await self._client.async_set_sensor_type(entity, tipe)
-        self._floor_sensor_type = tipe
+        type = value["type"]
+        await self._client.async_set_sensor_type(entity, type)
+        self._floor_sensor_type = type
 
     async def async_set_floor_limit(self, value):
         """Set maximum/minimum floor setpoint temperature."""
@@ -2636,12 +2637,12 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            await self.async_notify_ha("Warning: Neviweb access temporary blocked for maintenance..." + "Retry later.")
+            await self.async_notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later.")
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections " + "and try again.")
+            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
             await self.async_notify_ha(
-                "Warning: Maximun Neviweb session number reached..." + "Close other connections and try again."
+                "Warning: Maximun Neviweb session number reached... Close other connections and try again."
             )
             await self._client.async_reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -2654,7 +2655,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)...(SKU: %s) " + "Report to maintainer.",
+                "Device action not supported for %s (id: %s)...(SKU: %s) Report to maintainer.",
                 self._name,
                 self._id,
                 self._sku,
@@ -2670,7 +2671,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s (id: %s): " + "%s...(SKU: %s)",
+                "Service error, device not available retry later %s (id: %s): %s...(SKU: %s)",
                 self._name,
                 self._id,
                 error_data,
@@ -2678,7 +2679,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s " + "(id: %s): %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s...(SKU: %s)",
                 self._name,
                 self._id,
                 error_data,
@@ -2692,14 +2693,14 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
             if self._notify == "logging" or self._notify == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconected from Neviweb: %s..." + "(SKU: %s)",
+                    "Device %s (id: %s) is disconected from Neviweb: %s...(SKU: %s)",
                     self._name,
                     self._id,
                     error_data,
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated " + "for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes.",
                     self._name,
                 )
                 _LOGGER.warning(
@@ -2723,7 +2724,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             self._snooze = time.time()
         elif error_data == "DVCERR":
             _LOGGER.warning(
-                "Device error for %s (id: %s), service already activ: %s..." + "(SKU: %s)",
+                "Device error for %s (id: %s), service already activ: %s...(SKU: %s)",
                 self._name,
                 self._id,
                 error_data,
@@ -2731,7 +2732,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
         elif error_data == "SVCUNAUTH":
             _LOGGER.warning(
-                "Service not authorised for device %s (id: %s): %s..." + "(SKU: %s)",
+                "Service not authorised for device %s (id: %s): %s...(SKU: %s)",
                 self._name,
                 self._id,
                 error_data,
@@ -2739,7 +2740,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to" + "maintainer.",
+                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to maintainer.",
                 self._name,
                 self._id,
                 error_data,
@@ -2780,7 +2781,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -2788,7 +2789,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3003,7 +3004,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3011,7 +3012,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3275,7 +3276,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3283,7 +3284,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3553,7 +3554,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3561,7 +3562,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3771,7 +3772,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3779,7 +3780,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4022,7 +4023,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4030,7 +4031,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4185,7 +4186,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._activ = True
-                if NOTIFY == "notification" or NOTIFY == "both":
+                if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
                     )
@@ -4262,7 +4263,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4270,7 +4271,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4561,7 +4562,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4569,7 +4570,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4843,7 +4844,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retreive_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4851,7 +4852,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retreive_data(self._id, 2)
+        self._mark = retrieve_data(self._id, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -5472,7 +5473,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._heat_inst_type = None
         self._heat_lock_temp = None
         self._cool_lock_temp = None
-        self._heat_cool = None
+        self._heat_cool: HVACMode | str = HVACMode.OFF
         self._temp_offset_heat = None
         self._heat_interstage_delay = None
         self._cool_interstage_delay = None
