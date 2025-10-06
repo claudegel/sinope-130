@@ -20,7 +20,23 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 79
+line-length = 120
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]
+
+[tool.ruff]
+line-length = 120
+extend = ["E203", "W503"]
+
+[tool.pyupgrade]
+py38-plus = true
 
 [tool.codespell]
 skip = "Contributors.md"
