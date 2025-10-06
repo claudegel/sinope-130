@@ -23,9 +23,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
-DEFAULT_NAME = "neviweb130 binary_sensor"
-DEFAULT_NAME_2 = "neviweb130 binary_sensor 2"
-DEFAULT_NAME_3 = "neviweb130 binary_sensor 3"
+DEFAULT_NAME = f"{DOMAIN} binary_sensor"
+DEFAULT_NAME_2 = f"{DOMAIN} binary_sensor 2"
+DEFAULT_NAME_3 = f"{DOMAIN} binary_sensor 3"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes Sensibo Motion binary sensor entity."""
 
-    is_on_fn: Callable[[dict, str], bool | None] = None
+    is_on_fn: Callable[[dict, str], bool] | None = None
     on_icon: str = "mdi:checkbox-marked"
     off_icon: str = "mdi:checkbox-blank-outline"
 
@@ -127,7 +127,7 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
