@@ -8,8 +8,7 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from homeassistant.components.button import (ButtonEntity,
-                                             ButtonEntityDescription)
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -54,9 +53,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
-    _LOGGER.debug(
-        "Keys dans coordinator.data : %s", list(coordinator.data.keys())
-    )
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
     for gateway_data, default_name in [
         (client.gateway_data, DEFAULT_NAME),
@@ -73,9 +70,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning(
-                    "Device %s pas encore dans coordinator.data", device_id
-                )
+                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -84,9 +79,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
                 manufacturer="claudegel",
                 name=device_name,
                 model=model,
-                sw_version="{major}.{middle}.{minor}".format(
-                    **device_info["signature"]["softVersion"]
-                ),
+                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
             attributes_name = get_attributes_for_model(model)
@@ -130,17 +123,13 @@ async def async_setup_entry(
     coordinator = data["coordinator"]
     device_registry = dr.async_get(hass)
 
-    entities = create_attribute_buttons(
-        hass, entry, data, coordinator, device_registry
-    )
+    entities = create_attribute_buttons(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeButton(
-    CoordinatorEntity[Neviweb130Coordinator], ButtonEntity
-):
+class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], ButtonEntity):
     """Representation of a specific Neviweb130 button."""
 
     _attr_has_entity_name = True
@@ -198,10 +187,6 @@ class Neviweb130DeviceAttributeButton(
                 self.async_write_ha_state()
                 await self.coordinator.async_request_refresh()
             else:
-                _LOGGER.warning(
-                    f"Button press failed for attribute: {self._attr_translation_key}"
-                )
+                _LOGGER.warning(f"Button press failed for attribute: {self._attr_translation_key}")
         else:
-            _LOGGER.warning(
-                "No handler for button attribute: %s", self._attribute
-            )
+            _LOGGER.warning("No handler for button attribute: %s", self._attribute)

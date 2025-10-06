@@ -3,50 +3,111 @@
 import logging
 
 import aiohttp
-from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
-                                                    HVACMode)
-from homeassistant.components.persistent_notification import \
-    DOMAIN as PN_DOMAIN
+from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
-                    ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT, ATTR_BATT_ALERT,
-                    ATTR_BATTERY_TYPE, ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
-                    ATTR_CONF_CLOSURE, ATTR_CONTROLLED_DEVICE,
-                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
-                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT,
-                    ATTR_COOL_SETPOINT_MAX, ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE,
-                    ATTR_CYCLE_OUTPUT2, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
-                    ATTR_DRSETPOINT, ATTR_DRSTATUS, ATTR_EARLY_START,
-                    ATTR_FAN_FILTER_REMAIN, ATTR_FAN_SPEED,
-                    ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
-                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
-                    ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
-                    ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
-                    ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1_PERIOD,
-                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
-                    ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
-                    ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP, ATTR_HUMID_SETPOINT,
-                    ATTR_HUMIDIFIER_TYPE, ATTR_INPUT_1_OFF_DELAY,
-                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
-                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
-                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
-                    ATTR_LEAK_ALERT, ATTR_LED_OFF_COLOR,
-                    ATTR_LED_OFF_INTENSITY, ATTR_LED_ON_COLOR,
-                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
-                    ATTR_MOTOR_TARGET, ATTR_NAME_1, ATTR_NAME_2,
-                    ATTR_OCCUPANCY, ATTR_ONOFF, ATTR_ONOFF2,
-                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
-                    ATTR_POWER_MODE, ATTR_POWER_SUPPLY, ATTR_PUMP_PROTEC,
-                    ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
-                    ATTR_REFUEL, ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_MAX,
-                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT_MODE, ATTR_SIGNATURE,
-                    ATTR_SOUND_CONF, ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT,
-                    ATTR_TANK_SIZE, ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
-                    ATTR_TIME, ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
-                    ATTR_WIFI_KEYPAD, EXPOSED_ATTRIBUTES, MODE_MANUAL)
+from .const import (
+    ATTR_AUX_CYCLE,
+    ATTR_AUX_HEAT_TIMEON,
+    ATTR_BACKLIGHT,
+    ATTR_BACKLIGHT_AUTO_DIM,
+    ATTR_BALANCE_PT,
+    ATTR_BATT_ALERT,
+    ATTR_BATTERY_TYPE,
+    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+    ATTR_CONF_CLOSURE,
+    ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_MIN_TIME_OFF,
+    ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_SETPOINT,
+    ATTR_COOL_SETPOINT_MAX,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_CYCLE,
+    ATTR_CYCLE_OUTPUT2,
+    ATTR_DISPLAY2,
+    ATTR_DISPLAY_CONF,
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
+    ATTR_EARLY_START,
+    ATTR_FAN_FILTER_REMAIN,
+    ATTR_FAN_SPEED,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
+    ATTR_FLOOR_AIR_LIMIT,
+    ATTR_FLOOR_AUX,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
+    ATTR_FLOOR_MODE,
+    ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_SENSOR,
+    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_ENABLED,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOW_THRESHOLD,
+    ATTR_FUEL_ALERT,
+    ATTR_FUEL_PERCENT_ALERT,
+    ATTR_GAUGE_TYPE,
+    ATTR_HEAT_COOL,
+    ATTR_HEAT_LOCK_TEMP,
+    ATTR_HUMID_SETPOINT,
+    ATTR_HUMIDIFIER_TYPE,
+    ATTR_INPUT_1_OFF_DELAY,
+    ATTR_INPUT_1_ON_DELAY,
+    ATTR_INPUT_2_OFF_DELAY,
+    ATTR_INPUT_2_ON_DELAY,
+    ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
+    ATTR_KEY_DOUBLE_UP,
+    ATTR_KEYPAD,
+    ATTR_LANGUAGE,
+    ATTR_LEAK_ALERT,
+    ATTR_LED_OFF_COLOR,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_COLOR,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LIGHT_WATTAGE,
+    ATTR_MODE,
+    ATTR_MOTOR_TARGET,
+    ATTR_NAME_1,
+    ATTR_NAME_2,
+    ATTR_OCCUPANCY,
+    ATTR_ONOFF,
+    ATTR_ONOFF2,
+    ATTR_OUTPUT_NAME_1,
+    ATTR_OUTPUT_NAME_2,
+    ATTR_PHASE_CONTROL,
+    ATTR_POWER_MODE,
+    ATTR_POWER_SUPPLY,
+    ATTR_PUMP_PROTEC,
+    ATTR_PUMP_PROTEC_DURATION,
+    ATTR_PUMP_PROTEC_PERIOD,
+    ATTR_REFUEL,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_SETPOINT_MODE,
+    ATTR_SIGNATURE,
+    ATTR_SOUND_CONF,
+    ATTR_SYSTEM_MODE,
+    ATTR_TANK_HEIGHT,
+    ATTR_TANK_SIZE,
+    ATTR_TANK_TYPE,
+    ATTR_TEMP,
+    ATTR_TEMP_ALERT,
+    ATTR_TIME,
+    ATTR_TIMER,
+    ATTR_TIMER2,
+    ATTR_WATER_TEMP_MIN,
+    ATTR_WIFI_KEYPAD,
+    EXPOSED_ATTRIBUTES,
+    MODE_MANUAL,
+)
 from .schema import VERSION, color_to_rgb
 from .session_manager import session_manager
 
@@ -62,11 +123,7 @@ NEVIWEB_LOCATION = f"{HOST}/api/location/"
 
 
 def extract_device_attributes(dev) -> dict:
-    return {
-        attr: value
-        for attr in EXPOSED_ATTRIBUTES
-        if (value := getattr(dev, attr, None)) is not None
-    }
+    return {attr: value for attr in EXPOSED_ATTRIBUTES if (value := getattr(dev, attr, None)) is not None}
 
 
 class PyNeviweb130Error(Exception):
@@ -137,9 +194,7 @@ class Neviweb130Client:
         await self.async_get_network()
         await self.async_get_gateway_data()
 
-    def notify_ha(
-        self, msg: str, title: str = "Neviweb130 integration " + VERSION
-    ):
+    def notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
         """Notify user via HA web frontend."""
         self.hass.services.call(
             PN_DOMAIN,
@@ -182,9 +237,7 @@ class Neviweb130Client:
 
                 raw_res = await response.json()
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                "Cannot submit login form... Check your network or firewall."
-            ) from e
+            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.") from e
 
         # Update session
         # _LOGGER.debug("cookies = %s", response)
@@ -204,10 +257,7 @@ class Neviweb130Client:
                     + "restart HA."
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
-                _LOGGER.error(
-                    "Invalid Neviweb username and/or password... "
-                    + "Check your configuration parameters"
-                )
+                _LOGGER.error("Invalid Neviweb username and/or password... " + "Check your configuration parameters")
                 self.notify_ha(
                     "Warning: Got USRBADLOGIN error, Invalid Neviweb username "
                     + "and/or password... Check your configuration parameters"
@@ -232,22 +282,14 @@ class Neviweb130Client:
             ) as response:
                 raw_res = await response.json()
                 networks = raw_res
-                _LOGGER.debug(
-                    "Number of networks found on Neviweb: %s", len(networks)
-                )
+                _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
                 _LOGGER.debug("networks: %s", networks)
-                if (
-                    self._network_name is None
-                    and self._network_name2 is None
-                    and self._network_name3 is None
-                ):
+                if self._network_name is None and self._network_name2 is None and self._network_name3 is None:
                     # Use 1st network found, second or third if found
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
                     self._occupancyMode = networks[0]["mode"]
-                    _LOGGER.debug(
-                        "Selecting %s as first network", self._network_name
-                    )
+                    _LOGGER.debug("Selecting %s as first network", self._network_name)
                     if len(networks) > 1:
                         self._gateway_id2 = networks[1]["id"]
                         self._network_name2 = networks[1]["name"]
@@ -273,12 +315,8 @@ class Neviweb130Client:
                                 networks,
                             )
                             continue
-                        elif (
-                            network["name"] == self._network_name.capitalize()
-                        ) or (
-                            network["name"]
-                            == self._network_name[0].lower()
-                            + self._network_name[1:]
+                        elif (network["name"] == self._network_name.capitalize()) or (
+                            network["name"] == self._network_name[0].lower() + self._network_name[1:]
                         ):
                             self._gateway_id = network["id"]
                             _LOGGER.debug(
@@ -298,10 +336,7 @@ class Neviweb130Client:
                                 self._network_name,
                                 network["name"],
                             )
-                        if (
-                            self._network_name2 is not None
-                            and self._network_name2 != ""
-                        ):
+                        if self._network_name2 is not None and self._network_name2 != "":
                             if network["name"] == self._network_name2:
                                 self._gateway_id2 = network["id"]
                                 _LOGGER.debug(
@@ -310,13 +345,8 @@ class Neviweb130Client:
                                     networks,
                                 )
                                 continue
-                            elif (
-                                network["name"]
-                                == self._network_name2.capitalize()
-                            ) or (
-                                network["name"]
-                                == self._network_name2[0].lower()
-                                + self._network_name2[1:]
+                            elif (network["name"] == self._network_name2.capitalize()) or (
+                                network["name"] == self._network_name2[0].lower() + self._network_name2[1:]
                             ):
                                 self._gateway_id = network["id"]
                                 _LOGGER.debug(
@@ -335,10 +365,7 @@ class Neviweb130Client:
                                     self._network_name2,
                                     network["name"],
                                 )
-                        if (
-                            self._network_name3 is not None
-                            and self._network_name3 != ""
-                        ):
+                        if self._network_name3 is not None and self._network_name3 != "":
                             if network["name"] == self._network_name3:
                                 self._gateway_id3 = network["id"]
                                 _LOGGER.debug(
@@ -347,13 +374,8 @@ class Neviweb130Client:
                                     networks,
                                 )
                                 continue
-                            elif (
-                                network["name"]
-                                == self._network_name3.capitalize()
-                            ) or (
-                                network["name"]
-                                == self._network_name3[0].lower()
-                                + self._network_name3[1:]
+                            elif (network["name"] == self._network_name3.capitalize()) or (
+                                network["name"] == self._network_name3[0].lower() + self._network_name3[1:]
                             ):
                                 self._gateway_id = network["id"]
                                 _LOGGER.debug(
@@ -382,14 +404,8 @@ class Neviweb130Client:
 
     async def async_get_gateway_data(self):
         """Get gateway data."""
-        if (
-            self._gateway_id is None
-            and self._gateway_id2 is None
-            and self._gateway_id3 is None
-        ):
-            _LOGGER.debug(
-                "No gateway defined, check your config for networks names..."
-            )
+        if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
+            _LOGGER.debug("No gateway defined, check your config for networks names...")
             return False
         else:
             #            session = await create_session()
@@ -404,12 +420,8 @@ class Neviweb130Client:
                     _LOGGER.debug("Received gateway data: %s", raw_res)
                     if "error" in raw_res:
                         if raw_res["error"]["code"] == "VALINVLD":
-                            _LOGGER.debug(
-                                "No network found, check your configuration"
-                            )
-                            raise PyNeviweb130Error(
-                                "No network found, check your configuration"
-                            )
+                            _LOGGER.debug("No network found, check your configuration")
+                            raise PyNeviweb130Error("No network found, check your configuration")
                             return False
             except aiohttp.ClientError as e:
                 raise PyNeviweb130Error("Cannot get gateway data") from e
@@ -449,9 +461,7 @@ class Neviweb130Client:
                 self.gateway_data3 = raw_res3
                 _LOGGER.debug("Gateway_data3 : %s", self.gateway_data3)
             for device in self.gateway_data:
-                data = await self.async_get_device_attributes(
-                    device["id"], [ATTR_SIGNATURE]
-                )
+                data = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data:
                     device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data)
@@ -469,9 +479,7 @@ class Neviweb130Client:
                         )
             if self._gateway_id2 is not None:
                 for device in self.gateway_data2:
-                    data2 = await self.async_get_device_attributes(
-                        device["id"], [ATTR_SIGNATURE]
-                    )
+                    data2 = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
                     if ATTR_SIGNATURE in data2:
                         device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                     _LOGGER.debug("Received signature data 2: %s", data2)
@@ -489,9 +497,7 @@ class Neviweb130Client:
                             )
             if self._gateway_id3 is not None:
                 for device in self.gateway_data3:
-                    data3 = await self.async_get_device_attributes(
-                        device["id"], [ATTR_SIGNATURE]
-                    )
+                    data3 = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
                     if ATTR_SIGNATURE in data3:
                         device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                     _LOGGER.debug("Received signature data 3: %s", data3)
@@ -519,10 +525,7 @@ class Neviweb130Client:
         #        session = await create_session()
         try:
             async with self._session.get(
-                DEVICE_DATA_URL
-                + str(device_id)
-                + "/attribute?attributes="
-                + ",".join(attributes),
+                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=" + ",".join(attributes),
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -538,8 +541,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less" + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -567,8 +569,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less" + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -596,8 +597,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less" + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -629,8 +629,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less" + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -654,9 +653,7 @@ class Neviweb130Client:
                     raw_res,
                 )
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                "Cannot get device monthly stats..."
-            ) from e
+            raise PyNeviweb130Error("Cannot get device monthly stats...") from e
             return None
         # Update cookies
         self._cookies.update(response.cookies)
@@ -740,9 +737,7 @@ class Neviweb130Client:
         #        session = await create_session()
         try:
             async with self._session.get(
-                DEVICE_DATA_URL
-                + str(device_id)
-                + "/attribute?attributes=errorCodeSet1",
+                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=errorCodeSet1",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -754,9 +749,7 @@ class Neviweb130Client:
                     raw_res,
                 )
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                "Cannot get device error code status..."
-            ) from e
+            raise PyNeviweb130Error("Cannot get device error code status...") from e
             return None
         # Update cookies
         self._cookies.update(response.cookies)
@@ -848,10 +841,7 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_schedule_mode is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_schedule_mode is only for " + "TH6500WF or TH6250WF thermostats.")
 
     async def async_set_fan_filter_reminder(self, device_id, month, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -861,8 +851,7 @@ class Neviweb130Client:
             return await self.async_set_device_attributes(device_id, data)
         else:
             self.notify_ha(
-                "Warning: Service set_fan_filter_reminder is only for "
-                + "TH6500WF or TH6250WF thermostats."
+                "Warning: Service set_fan_filter_reminder is only for " + "TH6500WF or TH6250WF thermostats."
             )
 
     async def async_set_backlight(self, device_id, level, wifi):
@@ -1145,9 +1134,7 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_flow_meter_options(
-        self, device_id, alarm, action, lenght, threshold
-    ):
+    async def async_set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
         """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
         data = {
             ATTR_FLOW_ALARM1_OPTION: {
@@ -1336,9 +1323,7 @@ class Neviweb130Client:
         _LOGGER.debug("power_supply.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_on_off_input_delay(
-        self, device_id, delay, onoff, inputnumber
-    ):
+    async def async_set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
         """Set input 1 or 2 on/off delay in seconds."""
         if inputnumber == 1:
             match onoff:
@@ -1355,9 +1340,7 @@ class Neviweb130Client:
         _LOGGER.debug("input_delay.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_input_output_names(
-        self, device_id, in1, in2, out1, out2
-    ):
+    async def async_set_input_output_names(self, device_id, in1, in2, out1, out2):
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         data = {}
         if len(in1) > 0:
@@ -1486,9 +1469,7 @@ class Neviweb130Client:
                         break
 
             except aiohttp.ClientError as e:
-                raise PyNeviweb130Error(
-                    "Cannot set device %s attributes: %s", device_id, data
-                ) from e
+                raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data) from e
             finally:
                 if "error" in resp:
                     result += 1
@@ -1525,9 +1506,7 @@ create_session = Neviweb130Client.create_session
 
 
 class Neviweb130Coordinator(DataUpdateCoordinator):
-    def __init__(
-        self, hass: HomeAssistant, client: Neviweb130Client, scan_interval
-    ):
+    def __init__(self, hass: HomeAssistant, client: Neviweb130Client, scan_interval):
         """Initialize the Neviweb130Coordinator.timedelta(seconds=360)"""
 
         _LOGGER.debug("Coordinator scan interval = %s", scan_interval)
@@ -1545,17 +1524,13 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Call async_update() on each device and return a dict {id: device}."""
-        _LOGGER.debug(
-            "Nombre de devices à mettre à jour : %d", len(self._devices)
-        )
+        _LOGGER.debug("Nombre de devices à mettre à jour : %d", len(self._devices))
         result = {}
         for dev in self._devices:
             #            _LOGGER.debug("Thermostat attrs: %s", dir(dev))
             #            _LOGGER.debug("Thermostat __dict__: %s", vars(dev))
             await dev.async_update()
-            device_id = str(
-                getattr(dev, "id", None) or getattr(dev, "unique_id", None)
-            )
+            device_id = str(getattr(dev, "id", None) or getattr(dev, "unique_id", None))
             if not device_id:
                 _LOGGER.error("No ID found for %s", dev)
                 continue
@@ -1580,9 +1555,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
         _LOGGER.info("All aiohttp.ClientSession instances closed")
 
 
-async def async_setup_coordinator(
-    hass: HomeAssistant, client: Neviweb130Client, scan_interval
-):
+async def async_setup_coordinator(hass: HomeAssistant, client: Neviweb130Client, scan_interval):
     coordinator = Neviweb130Coordinator(hass, client, scan_interval)
     await coordinator.async_initialize()
     return coordinator

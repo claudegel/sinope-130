@@ -43,14 +43,8 @@ class SessionManager:
 
     async def keep_alive(self):
         while True:
-            await asyncio.sleep(
-                self._timeout - 60
-            )  # Check 1 minute before timeout
-            if (
-                self._session
-                and asyncio.get_event_loop().time() - self._last_used
-                >= self._timeout
-            ):
+            await asyncio.sleep(self._timeout - 60)  # Check 1 minute before timeout
+            if self._session and asyncio.get_event_loop().time() - self._last_used >= self._timeout:
                 _LOGGER.debug("Session expired, logging in again")
                 await self.login()
 

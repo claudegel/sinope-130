@@ -8,8 +8,7 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from homeassistant.components.select import (SelectEntity,
-                                             SelectEntityDescription)
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -19,8 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
-from .schema import (BACKLIGHT_LIST, COLOR_LIST, LANGUAGE_LIST, LOCK_LIST,
-                     OCCUPANCY_LIST)
+from .schema import BACKLIGHT_LIST, COLOR_LIST, LANGUAGE_LIST, LOCK_LIST, OCCUPANCY_LIST
 
 DEFAULT_NAME = "neviweb130 select"
 DEFAULT_NAME_2 = "neviweb130 select 2"
@@ -90,9 +88,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
-    _LOGGER.debug(
-        "Keys dans coordinator.data : %s", list(coordinator.data.keys())
-    )
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
     for gateway_data, default_name in [
         (client.gateway_data, DEFAULT_NAME),
@@ -109,9 +105,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning(
-                    "Device %s pas encore dans coordinator.data", device_id
-                )
+                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -120,9 +114,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                 manufacturer="claudegel",
                 name=device_name,
                 model=model,
-                sw_version="{major}.{middle}.{minor}".format(
-                    **device_info["signature"]["softVersion"]
-                ),
+                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
             attributes_name = get_attributes_for_model(model)
@@ -167,17 +159,13 @@ async def async_setup_entry(
 
     device_registry = dr.async_get(hass)
 
-    entities = create_attribute_selects(
-        hass, entry, data, coordinator, device_registry
-    )
+    entities = create_attribute_selects(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeSelect(
-    CoordinatorEntity[Neviweb130Coordinator], SelectEntity
-):
+class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], SelectEntity):
     """Representation of a specific Neviweb130 select entity."""
 
     _attr_has_entity_name = True
@@ -185,27 +173,13 @@ class Neviweb130DeviceAttributeSelect(
     _attr_entity_category = EntityCategory.CONFIG
 
     _ATTRIBUTE_METHODS = {
-        "keypad": lambda self, option: self._client.async_set_keypad_lock(
-            self._id, option, self.is_wifi
-        ),
-        "led_on_color": lambda self, option: self._client.async_set_led_indicator(
-            self._id, 1, option
-        ),
-        "led_off_color": lambda self, option: self._client.async_set_led_indicator(
-            self._id, 0, option
-        ),
-        "backlight": lambda self, option: self._client.async_set_backlight(
-            self._id, option, self.is_wifi
-        ),
-        "keypad_status": lambda self, option: self._client.async_set_keypad_lock(
-            self._id, option, self.is_wifi
-        ),
-        "language": lambda self, option: self._client.async_set_language(
-            self._id, option
-        ),
-        "occupancy_mode": lambda self, option: self._client.async_post_neviweb_status(
-            self._id, self.location, option
-        ),
+        "keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "led_on_color": lambda self, option: self._client.async_set_led_indicator(self._id, 1, option),
+        "led_off_color": lambda self, option: self._client.async_set_led_indicator(self._id, 0, option),
+        "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
+        "keypad_status": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "language": lambda self, option: self._client.async_set_language(self._id, option),
+        "occupancy_mode": lambda self, option: self._client.async_post_neviweb_status(self._id, self.location, option),
         # ...
     }
 
@@ -293,6 +267,4 @@ class Neviweb130DeviceAttributeSelect(
                     option,
                 )
         else:
-            _LOGGER.warning(
-                "No handler for select attribute: %s", self._attribute
-            )
+            _LOGGER.warning("No handler for select attribute: %s", self._attribute)

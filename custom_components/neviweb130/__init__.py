@@ -11,8 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
-from .const import (CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE)
+from .const import CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import device_dict, load_devices, save_devices
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
@@ -49,9 +48,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         scan_interval = neviweb130_config.get(CONF_SCAN_INTERVAL)
         _LOGGER.debug("The scan interval config = %s", scan_interval)
         if isinstance(scan_interval, timedelta):
-            neviweb130_config[CONF_SCAN_INTERVAL] = int(
-                scan_interval.total_seconds()
-            )
+            neviweb130_config[CONF_SCAN_INTERVAL] = int(scan_interval.total_seconds())
 
     # Only import if we haven't before.
     config_entry = _async_find_matching_config_entry(hass)
@@ -67,9 +64,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         return True
 
     # Update the entry based on the YAML configuration, in case it changed.
-    hass.config_entries.async_update_entry(
-        config_entry, data=dict(neviweb130_config)
-    )
+    hass.config_entries.async_update_entry(config_entry, data=dict(neviweb130_config))
     return True
 
 
@@ -103,9 +98,7 @@ async def async_migrate_unique_ids(hass):
     registry = er.async_get(hass)
 
     for entity_id, entity in registry.entities.items():
-        if entity.platform == "neviweb130" and isinstance(
-            entity.unique_id, int
-        ):
+        if entity.platform == "neviweb130" and isinstance(entity.unique_id, int):
             new_unique_id = str(entity.unique_id)
             _LOGGER.info(
                 "Migrating unique_id for %s from %s to %s",
@@ -113,64 +106,20 @@ async def async_migrate_unique_ids(hass):
                 entity.unique_id,
                 new_unique_id,
             )
-            registry.async_update_entity(
-                entity_id, new_unique_id=new_unique_id
-            )
+            registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
 
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_forward_entry_unload(
-        entry, "climate"
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "light"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "switch"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "sensor"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "valve"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "binary_sensor"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "button"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "number"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "select"
-        )
-    )
+    unload_ok = await hass.config_entries.async_forward_entry_unload(entry, "climate")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "light")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "switch")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "valve")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "button")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "number")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "select")
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
@@ -178,9 +127,7 @@ async def async_unload_entry(hass, entry):
     return unload_ok
 
 
-async def async_migrate_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> bool:
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
 
 
@@ -197,9 +144,7 @@ def parse_scan_interval(scan_interval):
 
 def get_scan_interval(entry: ConfigEntry) -> timedelta:
     """Get the scan interval from the configuration entry or use the default."""
-    scan_interval = entry.data.get(
-        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds()
-    )
+    scan_interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds())
     _LOGGER.debug(
         "Parse result = %s from %s",
         parse_scan_interval(scan_interval),
@@ -240,9 +185,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     notify = entry.data.get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", notify)
 
-    client = Neviweb130Client(
-        hass, ignore_miwi, username, password, network, network2, network3
-    )
+    client = Neviweb130Client(hass, ignore_miwi, username, password, network, network2, network3)
     coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
 
     hass.data[DOMAIN][entry.entry_id] = {
