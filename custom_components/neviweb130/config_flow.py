@@ -13,7 +13,7 @@ import voluptuous as vol
 from homeassistant import config_entries, exceptions
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
-from homeassistant.core import callback
+from homeassistant.core import callback, Event, HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
@@ -30,7 +30,8 @@ from .const import (
     DOMAIN,
     STARTUP_MESSAGE,
 )
-from .coordinator import PyNeviweb130Error
+from .coordinator import PyNeviweb130Error, create_session
+from homeassistant.exceptions import HomeAssistantError
 from .schema import HOMEKIT_MODE, IGNORE_MIWI, NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
 from .session_manager import session_manager
 
@@ -64,52 +65,45 @@ FLOW_SCHEMA = vol.Schema(
 )
 
 
-async def async_validate_email(user: str) -> bool:
+async def async_validate_email(user: str) -> None:
     """Validate the username as email."""
     try:
         vol.Email()(user)
-        return True
-    except vol.Invalid:
-        errors["email"] = "invalid_email"
-        return False
+    except vol.Invalid as exc:
+        raise InvalidUserEmail(f"Invalid email format: {user}") from exc
 
 
-async def async_test_connect(self, user: str, passwd: str) -> bool:
-    """Validate Neviweb connection with suplied parameters."""
-    _LOGGER.debug("Timeout %s", self._timeout)
+async def async_test_connect(user: str, passwd: str) -> None:
+    """Validate Neviweb connection with supplied parameters."""
     data = {
         "username": user,
         "password": passwd,
         "interface": "neviweb",
         "stayConnected": 0,
     }
-    session = await session_manager.create_session(self)
+    session = await session_manager.create_session()
+    timeout = aiohttp.ClientTimeout(total=30)
+    _LOGGER.debug("Using timeout: %s", timeout.total)
+
     try:
         async with session.post(
             LOGIN_URL,
             json=data,
             cookies=None,
             allow_redirects=False,
-            timeout=30,
+            timeout=timeout,
         ) as response:
             _LOGGER.debug("Validate login status: %s", response.status)
+            if response.status != 200:
+                raise CannotConnect("Cannot log in to Neviweb")
     except aiohttp.ClientError as e:
         raise PyNeviweb130Error("Cannot submit test login form... Check your network or firewall.") from e
-        await session.close()
-        return False
-    if response.status != 200:
-        _LOGGER.debug("Login status: %s", response.json())
-        raise CannotConnect("Cannot log in to Neviweb")
-        await session.close()
-        return False
-    await session.close()
-    return True
 
 
 async def async_validate_input(self, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input configuration."""
-    user = data.get(CONF_USERNAME)
-    passw = data.get(CONF_PASSWORD)
+    user: str | None = data.get(CONF_USERNAME)
+    passw: str | None = data.get(CONF_PASSWORD)
     net = data.get(CONF_NETWORK)
     net2 = data.get(CONF_NETWORK2)
     net3 = data.get(CONF_NETWORK3)
@@ -119,19 +113,23 @@ async def async_validate_input(self, data: dict[str, Any]) -> dict[str, Any]:
     stat = data.get(CONF_STAT_INTERVAL)
     notif = data.get(CONF_NOTIFY)
 
-    if not await async_validate_email(user):
-        raise InvalidUserEmail(repr(exc)) from exc
+    await async_validate_email(user)
 
-    if not await async_test_connect(self, user, passw):
-        _LOGGER.debug("Error in Neviweb test connection, check email and password...")
-        raise CannotConnect(repr(exc)) from exc
-        return False
-    else:
+    try:
+        await async_test_connect(user, passwd)
         _LOGGER.debug("Test of Neviweb connection successful...")
+    except CannotConnect as exc:
+        _LOGGER.debug(
+            "Error in Neviweb test connection, check email and password..."
+        )
+        raise CannotConnect(str(exc)) from exc
+    except PyNeviweb130Error as exc:
+        _LOGGER.debug("Network error during Neviweb test connection")
+        raise exc
 
     return {
         CONF_USERNAME: user,
-        CONF_PASSWORD: passw,
+        CONF_PASSWORD: passwd,
         CONF_NETWORK: net,
         CONF_NETWORK2: net2,
         CONF_NETWORK3: net3,
@@ -182,8 +180,8 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors)
 
         if user_input is not None:
+            info = None
             try:
-                #                info = await async_validate_input(user_input, self.hass, self._cookies, self._timeout)
                 info = await async_validate_input(self, user_input)
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
@@ -194,7 +192,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-            if not errors:
+            if info is not None and not errors:
                 user_input[CONF_USERNAME] = info[CONF_USERNAME]
                 user_input[CONF_PASSWORD] = info[CONF_PASSWORD]
                 user_input[CONF_NETWORK] = info[CONF_NETWORK]
@@ -227,8 +225,14 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                await async_shutdown(self.hass)
+                # validate new config entry
                 info = await async_validate_input(self, user_input)
+                # Ok restart neviweb130 with new config options
+                await session_manager.close_session()
+                device_dict = self.hass.data[DOMAIN].get("device_dict", {})
+                event = Event("neviweb130_restart")
+                await async_shutdown(self.hass, device_dict, event)
+
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
             except CannotConnect:
@@ -249,7 +253,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_SCAN_INTERVAL] = info[CONF_SCAN_INTERVAL]
                 user_input[CONF_STAT_INTERVAL] = info[CONF_STAT_INTERVAL]
                 user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
-            self.async_set_unique_id(CONF_USERNAME)
+            await self.async_set_unique_id(CONF_USERNAME)
             self._abort_if_unique_id_mismatch()
 
             if user_input:
@@ -268,14 +272,17 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_PASSWORD,
                     default=reconfigure_entry.data[CONF_PASSWORD],
                 ): cv.string,
-                vol.Optional(CONF_NETWORK, default=reconfigure_entry.data[CONF_NETWORK]): cv.string,
+                vol.Optional(
+                    CONF_NETWORK,
+                    default=reconfigure_entry.data.get(CONF_NETWORK, "_"),
+                ): cv.string,
                 vol.Optional(
                     CONF_NETWORK2,
-                    default=reconfigure_entry.data[CONF_NETWORK2],
+                    default=reconfigure_entry.data.get(CONF_NETWORK2, "_"),
                 ): cv.string,
                 vol.Optional(
                     CONF_NETWORK3,
-                    default=reconfigure_entry.data[CONF_NETWORK3],
+                    default=reconfigure_entry.data.get(CONF_NETWORK2, "_"),
                 ): cv.string,
                 vol.Optional(
                     CONF_SCAN_INTERVAL,
@@ -293,11 +300,11 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 ),
                 vol.Optional(
                     CONF_HOMEKIT_MODE,
-                    default=reconfigure_entry.data[CONF_HOMEKIT_MODE],
+                    default=reconfigure_entry.data.get(CONF_HOMEKIT_MODE, False),
                 ): cv.boolean,
                 vol.Optional(
                     CONF_IGNORE_MIWI,
-                    default=reconfigure_entry.data[CONF_IGNORE_MIWI],
+                    default=reconfigure_entry.data.get(CONF_IGNORE_MIWI, False),
                 ): cv.boolean,
                 vol.Optional(
                     CONF_STAT_INTERVAL,
