@@ -8,8 +8,9 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from homeassistant.components.button import ButtonDeviceClass, ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -18,9 +19,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
-DEFAULT_NAME = "neviweb130 button"
-DEFAULT_NAME_2 = "neviweb130 button 2"
-DEFAULT_NAME_3 = "neviweb130 button 3"
+DEFAULT_NAME = f"{DOMAIN} button"
+DEFAULT_NAME_2 = f"{DOMAIN} button 2"
+DEFAULT_NAME_3 = f"{DOMAIN} button 3"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,12 +36,12 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
     # Climate attributes
     # Neviweb130ButtonEntityDescription(
-    #     key="fan_filter_remain", #nom du bouton
+    #     key="fan_filter_remain", # Button name
     #     device_class=ButtonDeviceClass.UPDATE,
     #     icon="mdi:air-filter",
-    #     translation_key="reset_filter", #pour traduction
-    #     entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-    #     data_key="filter_clean", #attribute name
+    #     translation_key="reset_filter", # for translation keys
+    #     entity_category=EntityCategory.CONFIG, # to put in diagnostic
+    #     data_key="filter_clean", # attribute name
     # ),
 )
 
@@ -70,7 +71,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -135,7 +136,7 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_has_entity_name = True
     _attr_should_poll = True
 
-    _ATTRIBUTE_METHODS = {
+    _ATTRIBUTE_METHODS: dict[str, Any] = {
         # "fan_filter_remain": lambda self: self._client.async_set_fan_filter_reminder(self._id),
         # ...
     }
