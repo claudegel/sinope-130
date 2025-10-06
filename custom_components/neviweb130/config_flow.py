@@ -13,8 +13,9 @@ import voluptuous as vol
 from homeassistant import config_entries, exceptions
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
-from homeassistant.core import callback, Event, HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
@@ -31,7 +32,6 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import PyNeviweb130Error, create_session
-from homeassistant.exceptions import HomeAssistantError
 from .schema import HOMEKIT_MODE, IGNORE_MIWI, NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
 from .session_manager import session_manager
 
@@ -119,9 +119,7 @@ async def async_validate_input(self, data: dict[str, Any]) -> dict[str, Any]:
         await async_test_connect(user, passwd)
         _LOGGER.debug("Test of Neviweb connection successful...")
     except CannotConnect as exc:
-        _LOGGER.debug(
-            "Error in Neviweb test connection, check email and password..."
-        )
+        _LOGGER.debug("Error in Neviweb test connection, check email and password...")
         raise CannotConnect(str(exc)) from exc
     except PyNeviweb130Error as exc:
         _LOGGER.debug("Network error during Neviweb test connection")
