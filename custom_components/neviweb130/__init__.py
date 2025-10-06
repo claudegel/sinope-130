@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-
 from functools import partial
 
 from homeassistant import config_entries
@@ -32,10 +31,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     _LOGGER.info(STARTUP_MESSAGE)
 
     # Register the event listener for Home Assistant stop event
-    hass.bus.async_listen_once(
-        EVENT_HOMEASSISTANT_STOP,
-        partial(async_shutdown, hass, device_dict)
-    )
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass, device_dict))
 
     # Detect .storage path
     conf_dir = hass.config.path(".storage")
@@ -136,6 +132,7 @@ async def async_unload_entry(hass, entry):
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
     return False
+
 
 def parse_scan_interval(scan_interval):
     """Parse a scan interval in seconds or in the format HH:MM:SS to a timedelta object."""
