@@ -5,7 +5,10 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from functools import partial
+
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
@@ -25,11 +28,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """import neviweb130 integration from YAML if exist."""
+    """import neviweb130 integration from YAML if it exists."""
     _LOGGER.info(STARTUP_MESSAGE)
 
     # Register the event listener for Home Assistant stop event
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
+    hass.bus.async_listen_once(
+        EVENT_HOMEASSISTANT_STOP,
+        partial(async_shutdown, hass, device_dict)
+    )
 
     # Detect .storage path
     conf_dir = hass.config.path(".storage")
@@ -44,7 +50,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     if not neviweb130_config:
         return True
     else:
-        ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
+        # Convert CONF_SCAN_INTERVAL timedelta object to seconds
         scan_interval = neviweb130_config.get(CONF_SCAN_INTERVAL)
         _LOGGER.debug("The scan interval config = %s", scan_interval)
         if isinstance(scan_interval, timedelta):
@@ -68,7 +74,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_shutdown(event):
+async def async_shutdown(hass: HomeAssistant, device_dict: dict, event=None):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
     conf_dir = hass.data[DOMAIN]["conf_dir"]
@@ -129,7 +135,7 @@ async def async_unload_entry(hass, entry):
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
-
+    return False
 
 def parse_scan_interval(scan_interval):
     """Parse a scan interval in seconds or in the format HH:MM:SS to a timedelta object."""
