@@ -335,7 +335,7 @@ class Neviweb130Client:
         """Get gateway id associated to the desired network."""
         # Http requests
         if self._account is None:
-            _LOGGER.error("Account ID is empty check your username and passord to log into Neviweb...")
+            _LOGGER.error("Account ID is empty check your username and password to log into Neviweb...")
         else:
             try:
                 raw_res = requests.get(
@@ -1197,14 +1197,14 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_flow_meter_options(self, device_id, alarm, action, lenght, threshold):
+    def set_flow_meter_options(self, device_id, alarm, action, length, threshold):
         """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
         data = {
             ATTR_FLOW_ALARM1_OPTION: {
                 "triggerAlarm": alarm,
                 "closeValve": action,
             },
-            ATTR_FLOW_ALARM1_LENGHT: lenght,
+            ATTR_FLOW_ALARM1_LENGHT: length,
             ATTR_FLOW_THRESHOLD: threshold,
         }
         _LOGGER.debug("Flowmeter options.data = %s", data)
@@ -1217,7 +1217,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_led_indicator(self, device_id, state, red, green, blue):
-        """Set devive led indicator intensity and color for on and off state."""
+        """Set device led indicator intensity and color for on and off state."""
         if state == 1:
             data = {
                 ATTR_LED_ON_COLOR: {
@@ -1239,13 +1239,13 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_led_on_intensity(self, device_id, intensity):
-        """Set devive led indicator intensity for on state."""
+        """Set device led indicator intensity for on state."""
         data = {ATTR_LED_ON_INTENSITY: intensity}
         self.set_device_attributes(device_id, data)
         _LOGGER.debug("led on intensity.data on = %s", data)
 
     def set_led_off_intensity(self, device_id, intensity):
-        """Set devive led indicator intensity for off state."""
+        """Set device led indicator intensity for off state."""
         data = {ATTR_LED_OFF_INTENSITY: intensity}
         self.set_device_attributes(device_id, data)
         _LOGGER.debug("led off intensity.data on = %s", data)
@@ -1298,7 +1298,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_load_dr_options(self, device_id, onoff, optout, dr):
-        """Set load controler Eco Sinope attributes."""
+        """Set load controller Eco Sinope attributes."""
         data = {
             ATTR_DRSTATUS: {
                 "drActive": dr,
@@ -1310,7 +1310,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_options(self, device_id, dr, optout, setpoint):
-        """Set load controler Eco Sinope attributes."""
+        """Set load controller Eco Sinope attributes."""
         data = {
             ATTR_DRSTATUS: {
                 "drActive": dr,
@@ -1322,7 +1322,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_setpoint(self, device_id, status, val):
-        """Set load controler Eco Sinope attributes."""
+        """Set load controller Eco Sinope attributes."""
         data = {ATTR_DRSETPOINT: {"status": status, "value": val}}
         _LOGGER.debug("hvac.DR.setpoint = %s", data)
         self.set_device_attributes(device_id, data)
@@ -1349,7 +1349,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_aux_heating_source(self, device_id, equip):
-        """Set auxilary heating source for TH6500WF and TH6250WF."""
+        """Set auxiliary heating source for TH6500WF and TH6250WF."""
         data = {ATTR_AUX_HEAT_SOURCE_TYPE: equip}
         _LOGGER.debug("aux_heating_source.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -1525,7 +1525,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
-        """Ser devices attributes."""
+        """Set devices attributes."""
         result = 1
         resp = None
         while result < 4:

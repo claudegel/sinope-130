@@ -159,7 +159,7 @@ HA_TO_NEVIWEB_DELAY = {
 HA_TO_NEVIWEB_CONTROLLED = {
     "Hot water heater": "hotWaterHeater",
     "Pool pump": "poolPump",
-    "Eletric vehicle charger": "eletricVehicleCharger",
+    "Electric vehicle charger": "electricVehicleCharger",
     "Other": "other",
 }
 
@@ -489,7 +489,7 @@ async def async_setup_platform(
                 break
 
     def set_load_dr_options_service(service):
-        """Set dr mode options for load controler."""
+        """Set dr mode options for load controller."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -505,7 +505,7 @@ async def async_setup_platform(
                 break
 
     def set_control_onoff_service(service):
-        """Set status of both onoff controler."""
+        """Set status of both onoff controller."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for switch in entities:
@@ -706,22 +706,6 @@ def voltage_to_percentage(voltage, num):
         return int((min(voltage, 6.0) - 3.0) / (6.0 - 3.0) * 100)
 
 
-def alert_to_text(alert, value):
-    """Convert numeric alert activation to text."""
-    if alert == 1:
-        match value:
-            case "bat":
-                return "Activ"
-            case "temp":
-                return "Activ"
-    else:
-        match value:
-            case "bat":
-                return "Off"
-            case "temp":
-                return "Off"
-
-
 def neviweb_to_ha(value):
     keys = [k for k, v in HA_TO_NEVIWEB_SIZE.items() if v == value]
     if keys:
@@ -831,11 +815,11 @@ class Neviweb130Switch(SwitchEntity):
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOAD_ATTRIBUTES = [ATTR_WATTAGE_INSTANT]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -854,7 +838,7 @@ class Neviweb130Switch(SwitchEntity):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -905,7 +889,7 @@ class Neviweb130Switch(SwitchEntity):
 
     @property
     def current_temperature(self):
-        """Return the current controler temperature."""
+        """Return the current controller temperature."""
         if self._is_zb_control or self._is_sedna_control or self._is_tank_load:
             return self._room_temp
         else:
@@ -931,7 +915,7 @@ class Neviweb130Switch(SwitchEntity):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -979,25 +963,25 @@ class Neviweb130Switch(SwitchEntity):
         self._timer2 = value["time"]
 
     def set_load_dr_options(self, value):
-        """Set load controler Éco Sinopé attributes."""
+        """Set load controller Éco Sinopé attributes."""
         self._client.set_load_dr_options(value["id"], value["onoff"], value["droptout"], value["dractive"])
         self._drstatus_active = value["dractive"]
         self._drstatus_optout = value["droptout"]
         self._drstatus_onoff = value["onoff"]
 
     def set_tank_size(self, value):
-        """Set water tank size for RM3500ZB Calypso controler."""
+        """Set water tank size for RM3500ZB Calypso controller."""
         val = value["val"]
         size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == val][0]
         self._client.set_tank_size(value["id"], size)
         self._tank_size = size
 
     def set_controlled_device(self, value):
-        """Set device name controlled by RM3250ZB load controler."""
+        """Set device name controlled by RM3250ZB load controller."""
         val = value["val"]
-        tipe = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
-        self._client.set_controlled_device(value["id"], tipe)
-        self._controlled_device = tipe
+        type_val = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
+        self._client.set_controlled_device(value["id"], type_val)
+        self._controlled_device = type_val
 
     def set_low_temp_protection(self, value):
         """Set water temperature protection for Calypso."""
@@ -1006,7 +990,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        self._activ = value["active"]
+        self._active = value["active"]
 
     def set_remaining_time(self, value):
         """Set coldLoadPickupRemainingTime value."""
@@ -1149,7 +1133,7 @@ class Neviweb130Switch(SwitchEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
@@ -1157,8 +1141,8 @@ class Neviweb130Switch(SwitchEntity):
             self.notify_ha("Warning: Neviweb access temporary blocked for maintenance...Retry later.")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximun Neviweb session number reached...Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
+            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -1203,7 +1187,7 @@ class Neviweb130Switch(SwitchEntity):
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconected from Neviweb: %s..." + " (SKU: %s)",
+                    "Device %s (id: %s) is disconnected from Neviweb: %s..." + " (SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
@@ -1230,7 +1214,7 @@ class Neviweb130Switch(SwitchEntity):
                     + ", Sku: "
                     + self._sku
                 )
-            self._activ = False
+            self._active = False
             self._snooze = time.time()
         else:
             _LOGGER.warning(
@@ -1256,7 +1240,7 @@ class Neviweb130Switch(SwitchEntity):
 
 
 class Neviweb130PowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb power controler switch, RM3250ZB."""
+    """Implementation of a Neviweb power controller switch, RM3250ZB."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1291,11 +1275,11 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._is_load = device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOAD_ATTRIBUTES = [
                 ATTR_WATTAGE,
                 ATTR_WATTAGE_INSTANT,
@@ -1346,7 +1330,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1379,7 +1363,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -1388,7 +1372,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130WifiPowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb power controler switch, RM3250WF."""
+    """Implementation of a Neviweb power controller switch, RM3250WF."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1423,11 +1407,11 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._is_wifi_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOAD_ATTRIBUTES = [
                 ATTR_WATTAGE_INSTANT,
                 ATTR_WIFI_WATTAGE,
@@ -1478,7 +1462,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1511,7 +1495,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -1520,7 +1504,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130TankPowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb water heater power controler switch, RM3500ZB."""
+    """Implementation of a Neviweb water heater power controller switch, RM3500ZB."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1565,11 +1549,11 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._is_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOAD_ATTRIBUTES = [
                 ATTR_WATER_LEAK_STATUS,
                 ATTR_ROOM_TEMPERATURE,
@@ -1655,7 +1639,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1698,7 +1682,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -1707,7 +1691,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb wifi power controler switch, RM3500WF."""
+    """Implementation of a Neviweb wifi power controller switch, RM3500WF."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1744,7 +1728,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_temp_min = None
         self._water_temp_time = None
         self._water_temp_protec = None
-        self._water_leak_disconected_status = None
+        self._water_leak_disconnected_status = None
         self._water_leak_closure_conf = None
         self._water_tank_on = None
         self._water_leak_status = None
@@ -1760,11 +1744,11 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._is_wifi_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOAD_ATTRIBUTES = [
                 ATTR_WATER_LEAK_ALARM_STATUS,
                 ATTR_WATER_TEMPERATURE,
@@ -1797,7 +1781,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
-                    self._water_leak_disconected_status = device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
+                    self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
@@ -1861,7 +1845,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1883,7 +1867,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
                 "water_leak_status": self._water_leak_status,
-                "water_leak_disconect_status": self._water_leak_disconected_status,
+                "water_leak_disconect_status": self._water_leak_disconnected_status,
                 "water_leak_closure_config": self._water_leak_closure_conf,
                 "water_temperature": self._water_temp,
                 "cold_load_pickup_status": self._cold_load_status,
@@ -1912,7 +1896,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -1921,7 +1905,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130ControlerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb multi controler switch, MC3100ZB connected to GT130 or Sedna."""
+    """Implementation of a Neviweb multi controller switch, MC3100ZB connected to GT130 or Sedna."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
@@ -1962,11 +1946,11 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
         self._is_zb_control = device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             if self._is_zb_control:
                 NAME_ATTRIBUTES = [
                     ATTR_NAME_1,
@@ -2065,7 +2049,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                 self.log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -2106,7 +2090,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "device_type": self._device_type,
                 "id": str(self._id),
             }

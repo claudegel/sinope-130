@@ -439,11 +439,11 @@ class Neviweb130Light(LightEntity):
         self._is_new_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
@@ -495,7 +495,7 @@ class Neviweb130Light(LightEntity):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -555,7 +555,7 @@ class Neviweb130Light(LightEntity):
                 "device_model_cfg": self._device_model_cfg,
                 "rssi": self._rssi,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -640,7 +640,7 @@ class Neviweb130Light(LightEntity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        self._activ = value["active"]
+        self._active = value["active"]
 
     def set_key_double_up(self, value):
         """Change key double up action."""
@@ -744,7 +744,7 @@ class Neviweb130Light(LightEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
@@ -752,9 +752,9 @@ class Neviweb130Light(LightEntity):
             self.notify_ha("Warning: Neviweb access temporary blocked for maintenance...Retry later.")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
             self.notify_ha(
-                "Warning: Maximun Neviweb session number reached...Close " + "other connections and try again."
+                "Warning: Maximum Neviweb session number reached...Close " + "other connections and try again."
             )
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -800,7 +800,7 @@ class Neviweb130Light(LightEntity):
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconected from Neviweb: %s..." + "(SKU: %s)",
+                    "Device %s (id: %s) is disconnected from Neviweb: %s..." + "(SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
@@ -827,7 +827,7 @@ class Neviweb130Light(LightEntity):
                     + ", Sku: "
                     + self._sku
                 )
-            self._activ = False
+            self._active = False
             self._snooze = time.time()
         else:
             _LOGGER.warning(
@@ -887,11 +887,11 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._onoff = None
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
@@ -948,7 +948,7 @@ class Neviweb130Dimmer(Neviweb130Light):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -981,7 +981,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "rssi": self._rssi,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -1025,11 +1025,11 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._onoff = None
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [
                 ATTR_PHASE_CONTROL,
@@ -1092,7 +1092,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
             self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1126,7 +1126,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "rssi": self._rssi,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )

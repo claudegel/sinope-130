@@ -636,11 +636,11 @@ class Neviweb130Sensor(Entity):
         self._is_monitor = device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             if self._is_leak:
                 LEAK_ATTRIBUTE = [
                     ATTR_WATER_LEAK_STATUS,
@@ -719,7 +719,7 @@ class Neviweb130Sensor(Entity):
                 self.log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -793,7 +793,7 @@ class Neviweb130Sensor(Entity):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": "Activ" if self._activ else "Inactive",
+                "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -830,7 +830,7 @@ class Neviweb130Sensor(Entity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        self._activ = value["active"]
+        self._active = value["active"]
 
     def notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
         """Notify user via HA web frontend."""
@@ -855,7 +855,7 @@ class Neviweb130Sensor(Entity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
@@ -863,8 +863,8 @@ class Neviweb130Sensor(Entity):
             self.notify_ha("Warning: Neviweb access temporary blocked for maintenance...Retry later.")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximun Neviweb session number reached...Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
+            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -909,7 +909,7 @@ class Neviweb130Sensor(Entity):
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s is disconected from Neviweb: %s (id: %s)..." + "(SKU: %s)",
+                    "Device %s is disconnected from Neviweb: %s (id: %s)..." + "(SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
@@ -936,7 +936,7 @@ class Neviweb130Sensor(Entity):
                     + ", Sku: "
                     + self._sku
                 )
-            self._activ = False
+            self._active = False
             self._snooze = time.time()
         else:
             _LOGGER.warning(
@@ -988,11 +988,11 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._is_monitor = False
         self._is_gateway = False
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             if self._is_leak:
                 LEAK_ATTRIBUTE = [
                     ATTR_WATER_LEAK_STATUS,
@@ -1062,7 +1062,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 self.log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1095,7 +1095,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": "Activ" if self._activ else "Inactive",
+                "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -1116,7 +1116,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._activ = True
+        self._active = True
         self._snooze = 0
         self._angle = None
         self._sampling = None
@@ -1137,7 +1137,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     def update(self):
         """Update device."""
-        if self._activ:
+        if self._active:
             if self._is_monitor:
                 MONITOR_ATTRIBUTE = [
                     ATTR_ANGLE,
@@ -1170,7 +1170,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self._angle = device_data[ATTR_ANGLE]["value"]
                     if self._angle == -2:
                         self.notify_ha(
-                            "Warning: Tank monitor gauge diconnected: "
+                            "Warning: Tank monitor gauge disconnected: "
                             + " for device: "
                             + self._name
                             + ", id: "
@@ -1211,7 +1211,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 self.log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -1264,7 +1264,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": "Activ" if self._activ else "Inactive",
+                "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "id": str(self._id),
             }
@@ -1328,7 +1328,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._activ = True
+        self._active = True
         self._snooze = 0
         self._gateway_status = None
         self._occupancyMode = None
@@ -1337,7 +1337,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     def update(self):
         """Update device."""
-        if self._activ:
+        if self._active:
             start = time.time()
             device_status = self._client.get_device_status(self._id)
             neviweb_status = self._client.get_neviweb_status(self._location)
@@ -1380,7 +1380,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": "Activ" if self._activ else "Inactive",
+                "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "neviweb_location": str(self._location),
                 "id": str(self._id),

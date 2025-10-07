@@ -1053,7 +1053,7 @@ async def async_setup_platform(
                 break
 
     def set_auxiliary_load_service(service):
-        """Set options for auxilary heating."""
+        """Set options for auxiliary heating."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -1068,7 +1068,7 @@ async def async_setup_platform(
                 break
 
     def set_aux_cycle_output_service(service):
-        """Set options for auxilary cycle length for low voltage thermostats."""
+        """Set options for auxiliary cycle length for low voltage thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -1395,7 +1395,7 @@ async def async_setup_platform(
                 break
 
     def set_aux_heating_source_service(service):
-        """Set TH6500WF, TH6250WF auxilary heating device."""
+        """Set TH6500WF, TH6250WF auxiliary heating device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         value = {}
         for thermostat in entities:
@@ -1865,11 +1865,11 @@ class Neviweb130Thermostat(ClimateEntity):
         self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             HEAT_ATTRIBUTES = [
                 ATTR_WATTAGE,
                 ATTR_KEYPAD,
@@ -1958,7 +1958,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -2029,7 +2029,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -2580,7 +2580,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        self._activ = value["active"]
+        self._active = value["active"]
 
     def set_heat_pump_operation_limit(self, value):
         """Set minimum temperature for heat pump operation."""
@@ -2750,7 +2750,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximun daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
@@ -2758,9 +2758,9 @@ class Neviweb130Thermostat(ClimateEntity):
             self.notify_ha("Warning: Neviweb access temporary blocked for maintenance..." + "Retry later.")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximun session number reached...Close other connections " + "and try again.")
+            _LOGGER.warning("Maximum session number reached...Close other connections " + "and try again.")
             self.notify_ha(
-                "Warning: Maximun Neviweb session number reached..." + "Close other connections and try again."
+                "Warning: Maximum Neviweb session number reached..." + "Close other connections and try again."
             )
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -2807,7 +2807,7 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("NOTIFY value: %s, (SKU: %s)", NOTIFY, self._sku)
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconected from Neviweb: %s..." + "(SKU: %s)",
+                    "Device %s (id: %s) is disconnected from Neviweb: %s..." + "(SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
@@ -2834,11 +2834,11 @@ class Neviweb130Thermostat(ClimateEntity):
                     + ", Sku: "
                     + self._sku
                 )
-            self._activ = False
+            self._active = False
             self._snooze = time.time()
         elif error_data == "DVCERR":
             _LOGGER.warning(
-                "Device error for %s (id: %s), service already activ: %s..." + "(SKU: %s)",
+                "Device error for %s (id: %s), service already active: %s..." + "(SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -2937,11 +2937,11 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._is_low_voltage = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             GEN2_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_WATTAGE,
@@ -3019,7 +3019,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -3065,7 +3065,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -3149,11 +3149,11 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._is_low_voltage = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             FLOOR_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_WATTAGE,
@@ -3255,7 +3255,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -3311,7 +3311,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -3397,11 +3397,11 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._is_floor = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOW_VOLTAGE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_KEYPAD,
@@ -3506,7 +3506,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -3567,7 +3567,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -3638,11 +3638,11 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._is_floor = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             DOUBLE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_KEYPAD,
@@ -3718,7 +3718,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -3763,7 +3763,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -3846,11 +3846,11 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._is_floor = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             WIFI_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_CYCLE,
@@ -3939,7 +3939,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -3992,7 +3992,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -4076,11 +4076,11 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._is_floor = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LITE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_CYCLE,
@@ -4164,7 +4164,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -4215,7 +4215,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -4310,11 +4310,11 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._is_wifi_floor = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             LOW_WIFI_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_FLOOR_OUTPUT2,
@@ -4427,7 +4427,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -4494,7 +4494,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -4583,11 +4583,11 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             WIFI_FLOOR_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_GFCI_ALERT,
@@ -4693,7 +4693,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -4754,7 +4754,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -4846,11 +4846,11 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             HC_ATTRIBUTES = [
                 ATTR_DISPLAY2,
                 ATTR_RSSI,
@@ -4967,7 +4967,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -5033,7 +5033,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -5107,11 +5107,11 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             HP_ATTRIBUTES = [
                 ATTR_RSSI,
                 ATTR_COOL_SETPOINT,
@@ -5227,7 +5227,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -5286,7 +5286,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
@@ -5386,7 +5386,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._is_low_wifi = False
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         self._humidity_setpoint_offset = 0
         self._humidity_setpoint_mode = None
         self._air_min_timeon = 0
@@ -5407,7 +5407,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
-        if self._activ:
+        if self._active:
             HC_ATTRIBUTES = [
                 ATTR_WIFI_KEYPAD,
                 ATTR_HEAT_COOL,
@@ -5622,7 +5622,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
@@ -6021,7 +6021,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": str(self._id),
             }
         )
