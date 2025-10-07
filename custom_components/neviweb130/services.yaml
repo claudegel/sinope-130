@@ -132,13 +132,13 @@ set_second_display:
       example: "exteriorTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; wifi or zigbee
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or Zigbee
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
       example: "climate.neviweb130_climate_office"
     backlightAdaptive:
-      description: «auto», «on» or «bedroom». (last one is only for G2 and wifi thermostats)
+      description: «auto», «on» or «bedroom». (last one is only for G2 and Wi-Fi thermostats)
       example: "auto"
 
 set_wattage:
@@ -221,10 +221,10 @@ set_valve_temp_alert:
       example: 1
 
 set_early_start:
-  description: Set thermostats early start for heating (for wifi thermostat).
+  description: Set thermostats early start for heating (for Wi-Fi thermostat).
   fields:
     entity_id:
-      description: Name of neviweb130 thermostat wifi device.
+      description: Name of neviweb130 thermostat Wi-Fi device.
       example: "climate.neviweb130_climate_kitchen"
     earlyStartCfg:
       description: Set to «on», or to «off» to start/stop early heating on thermostat.
@@ -237,7 +237,7 @@ set_air_floor_mode:
       description: Name(s) of neviweb130 floor thermostat.
       example: "climate.neviweb130_climate_kitchen"
     airFloorMode:
-      description: Set to «airByFloor» (zigbee) or «roomByFloor» (wifi) for ambient temperature sensor or to «floor» for floor temperature sensor.
+      description: Set to «airByFloor» (Zigbee) or «roomByFloor» (Wi-Fi) for ambient temperature sensor or to «floor» for floor temperature sensor.
       example: "floor"
 
 set_phase_control:
@@ -309,7 +309,7 @@ set_control_onoff:
       example: 1
 
 set_auxiliary_load:
-  description: Set floor and low voltage zigbee thermostats auxiliary heat load in watt.
+  description: Set floor and low voltage Zigbee thermostats auxiliary heat load in watt.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -322,7 +322,7 @@ set_auxiliary_load:
       example: 2500
 
 set_cycle_output:
-  description: Set both wifi and zigbee low voltage thermostats primary cycle time in minutes.
+  description: Set both Wi-Fi and Zigbee low voltage thermostats primary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -332,7 +332,7 @@ set_cycle_output:
       example: "10 min"
 
 set_aux_cycle_output:
-  description: Set both wifi and zigbee low voltage thermostats auxiliary cycle time in minutes.
+  description: Set both Wi-Fi and Zigbee low voltage thermostats auxiliary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -379,7 +379,7 @@ set_controlled_device:
   fields:
     entity_id:
       description: Name(s) of neviweb130 switch.
-      example: "switch.neviweb130_switch_load_controler"
+      example: "switch.neviweb130_switch_load_controller"
     value:
       description: Device type name. Accepted values are "Hot water heater", "Pool pump", "Electric vehicle charger", "Other".
       example: "Pool pump"

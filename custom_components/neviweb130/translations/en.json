@@ -1,16 +1,16 @@
 {
-  "title": "neviweb130",
+  "title": "Neviweb130",
   "config": {
     "step": {
       "user": {
-        "title": "Neviweb130: Sinope zigbee and wifi devices control",
-        "description": "Enter data for connection to Neviweb, login (email), password, location one two and three as network, network2 and network3, Scan_interval, Homekit support, stat_interval and Notifications.",
+        "title": "Neviweb130: Sinope Zigbee and Wi-Fi devices control",
+        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields network, network2 and network3 if you have multiple locations, or leave all 3 empty to auto-detect), scan interval, Homekit support, stat interval and notifications.",
         "data": {
-          "username": "[%key:common::config_flow::data::username%], Neviweb email",
-          "password": "[%key:common::config_flow::data::password%]",
-          "network": "Optional, First neviweb location name",
-          "network2": "Optional, Second neviweb location name",
-          "network3": "Optional, Third Neviweb Location name",
+          "username": "Neviweb email",
+          "password": "Neviweb password",
+          "network": "Optional, First Neviweb location name",
+          "network2": "Optional, Second Neviweb location name",
+          "network3": "Optional, Third Neviweb location name",
           "homekit_mode": "Optional, Homekit support True/False",
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
@@ -20,30 +20,30 @@
       },
       "reconfigure": {
         "title": "Neviweb130: reconfigure options",
-        "description": "Enter data for connection to Neviweb, login (email), password, location one two and three as network, network2 and network3, Scan_interval, Homekit support, stat_interval and Notifications.",
+        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields network, network2 and network3 if you have multiple locations, or leave all 3 empty to auto-detect), scan_interval, homekit_support, stat_interval and notifications.",
         "data": {
-          "username": "[%key:common::config_flow::data::username%], Neviweb email",
-          "password": "[%key:common::config_flow::data::password%]",
-          "network": "Optional, First neviweb location name, or ' '.",
-          "network2": "Optional, Second neviweb location name, or ' '.",
-          "network3": "Optional, Third Neviweb Location name, or ' '.",
+          "username": "Neviweb email",
+          "password": "Neviweb password",
+          "network": "Optional, First Neviweb location name",
+          "network2": "Optional, Second Neviweb location name",
+          "network3": "Optional, Third Neviweb location name",
           "homekit_mode": "Optional, Homekit support True/False",
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
           "notify": "Optional, get notification in case of device error."
         }
-      },
-      "abort": {
-          "already_configured": "[%key:common::config_flow::abort::already_configured_service%]"
-      },
-      "error": {
-          "bad_data_entry": "Check data entered for errors.",
-          "bad_network_name": "Network name can't contain accented characters",
-          "Cannot_Connect": "Test connection to neviweb fail, check user and password",
-          "Invalid_User_Email": "Email provided is not valid",
-          "unknown": "[%key:common::config_flow::error::unknown%]"
       }
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]"
+    },
+    "error": {
+      "cannot_connect": "Test connection to Neviweb failed, check user and password",
+      "invalid_user_email": "Email provided is not valid",
+      "bad_data_entry": "Check data entered for errors.",
+      "bad_network_name": "Network name can't contain accented characters",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
     }
   },
   "options": {
@@ -64,8 +64,6 @@
       }
     }
   },
-  "reload_triggered": "Reload triggered successfully.",
-  "log_downloaded": "Log downloaded successfully.",
   "entity": {
     "binary_sensor": {
       "battery_status": {

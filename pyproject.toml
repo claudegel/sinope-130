@@ -1,28 +1,69 @@
 [project]
-name = "Sinope Neviweb130"
-dynamic = ["version"]
-description = "Home assistant custom_components to manage Sinopé zigbee and wifi devices."
-urls = { repository = "https://github.com/claudegel/sinope-130" }
+name = "neviweb130"
+version = "2.0"
+description = "Sinope Neviweb130: Home assistant custom_components to manage Sinopé Zigbee and Wi-Fi devices."
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
+requires-python = ">=3.13.2"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "hatchling>=1.27.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-requests = "^2.31.0"
-homeassistant = "^2025.1.1"
+[project.urls]
+repository = "https://github.com/claudegel/sinope-130"
 
+[dependency-groups]
+dev = [
+    "isal~=1.7.1",
+    "aiofiles~=24.1.0",
+    "homeassistant~=2025.9.4",
+    "pre-commit",
+    "types-aiofiles~=24.1.0",
+    "homeassistant-stubs~=2025.9.4",
+]
+ci = [
+    "mypy",
+    "types-aiofiles~=24.1.0",
+    "homeassistant-stubs~=2025.9.4",
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["custom_components"]
+
+[tool.hatch.build.targets.wheel]
+include = ["custom_components"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.black]
-line-length = 79
+line-length = 120
+target-version = ["py313"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.flake8]
+max-line-length = 120
+
+[tool.mypy]
+python_version = "3.13"
+check_untyped_defs = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.ruff]
+line-length = 120
+fix = true
+target-version = "py313"
+
+[tool.pyupgrade]
+py313plus = true
 
 [tool.codespell]
-skip = "Contributors.md"
+skip = "Contributors.md,custom_components/neviweb130/translations/*.json"
 ignore-words-list = "hass"
 quiet-level = 2

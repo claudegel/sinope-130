@@ -1,5 +1,5 @@
 """
-Support for Neviweb attributes numbers for devices connected via GT130 and wifi devices.
+Support for Neviweb attributes numbers for devices connected via GT130 and Wi-Fi devices.
 """
 
 from __future__ import annotations
@@ -8,18 +8,17 @@ import logging
 from dataclasses import dataclass
 from typing import Final
 
-from homeassistant.components.number import (NumberEntity,
-                                             NumberEntityDescription)
+from homeassistant.components.number import NumberEntity, NumberEntityDescription
 from homeassistant.components.number.const import NumberDeviceClass, NumberMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (PERCENTAGE,
-                                 EntityCategory, UnitOfTemperature, UnitOfTime)
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import (CoordinatorEntity)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES)
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
 DEFAULT_NAME = "neviweb130 number"
@@ -185,7 +184,7 @@ NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
     ),
     # Valve attributes
     Neviweb130NumberEntityDescription(
-        key="flometer_timer",
+        key="flowmeter_timer",
         icon="mdi:timer-edit-outline",
         device_class=NumberDeviceClass.DURATION,
         mode=NumberMode.AUTO,
@@ -206,9 +205,7 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
-    _LOGGER.debug(
-        "Keys dans coordinator.data : %s", list(coordinator.data.keys())
-    )
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
     for gateway_data, default_name in [
         (client.gateway_data, DEFAULT_NAME),
@@ -225,9 +222,7 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning(
-                    "Device %s pas encore dans coordinator.data", device_id
-                )
+                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -236,9 +231,7 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
                 manufacturer="claudegel",
                 name=device_name,
                 model=model,
-                sw_version="{major}.{middle}.{minor}".format(
-                    **device_info["signature"]["softVersion"]
-                ),
+                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
             attributes_name = get_attributes_for_model(model)
@@ -283,17 +276,13 @@ async def async_setup_entry(
 
     device_registry = dr.async_get(hass)
 
-    entities = create_attribute_numbers(
-        hass, entry, data, coordinator, device_registry
-    )
+    entities = create_attribute_numbers(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeNumber(
-    CoordinatorEntity[Neviweb130Coordinator], NumberEntity
-):
+class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], NumberEntity):
     """Representation of a specific Neviweb130 number."""
 
     _attr_has_entity_name = True
@@ -301,45 +290,19 @@ class Neviweb130DeviceAttributeNumber(
     _attr_entity_category = EntityCategory.CONFIG
 
     _ATTRIBUTE_METHODS = {
-        "led_on_intensity": lambda self, value: self._client.async_set_led_on_intensity(
-            self._id, value
-        ),
-        "led_off_intensity": lambda self, value: self._client.async_set_led_off_intensity(
-            self._id, value
-        ),
-        "intensity_min": lambda self, value: self._client.async_set_light_min_intensity(
-            self._id, value
-        ),
-        "brightness": lambda self, value: self._client.async_set_brightness(
-            self._id, value
-        ),
-        "min_temp": lambda self, value: self._client.async_set_setpoint_min(
-            self._id, value
-        ),
-        "max_temp": lambda self, value: self._client.async_set_setpoint_max(
-            self._id, value
-        ),
-        "min_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_min(
-            self._id, value
-        ),
-        "max_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_max(
-            self._id, value
-        ),
-        "timer": lambda self, value: self._client.async_set_timer(
-            self._id, value
-        ),
-        "timer2": lambda self, value: self._client.async_set_timer2(
-            self._id, value
-        ),
-        "light_timer": lambda self, value: self._client.async_set_timer(
-            self._id, value
-        ),
-        "power_timer": lambda self, value: self._client.async_set_timer(
-            self._id, value
-        ),
-        "flowmeter_timer": lambda self, value: self._client.async_set_flow_alarm_disable_timer(
-            self._id, value
-        ),
+        "led_on_intensity": lambda self, value: self._client.async_set_led_on_intensity(self._id, value),
+        "led_off_intensity": lambda self, value: self._client.async_set_led_off_intensity(self._id, value),
+        "intensity_min": lambda self, value: self._client.async_set_light_min_intensity(self._id, value),
+        "brightness": lambda self, value: self._client.async_set_brightness(self._id, value),
+        "min_temp": lambda self, value: self._client.async_set_setpoint_min(self._id, value),
+        "max_temp": lambda self, value: self._client.async_set_setpoint_max(self._id, value),
+        "min_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_min(self._id, value),
+        "max_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_max(self._id, value),
+        "timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "timer2": lambda self, value: self._client.async_set_timer2(self._id, value),
+        "light_timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "power_timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "flowmeter_timer": lambda self, value: self._client.async_set_flow_alarm_disable_timer(self._id, value),
         "fan_filter_remain": lambda self, value: self._client.async_set_fan_filter_reminder(
             self._id, value, self.is_HC
         ),
@@ -353,7 +316,7 @@ class Neviweb130DeviceAttributeNumber(
         device_name: str,
         attribute: str,
         device_id: str,
-        attr_info: dict,
+        attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130NumberEntityDescription,
     ):
@@ -363,19 +326,21 @@ class Neviweb130DeviceAttributeNumber(
         self._device = device
         self._id = str(device.get("id"))
         self._attribute = attribute
+        self._native_value: float | None = None
         self._attr_unique_id = f"{self._id}_{attribute}"
         self._attr_device_info = attr_info
         self.entity_description = entity_description
         self._attr_icon = entity_description.icon
         self._attr_device_class = entity_description.device_class
-        self._attr_unit_of_measurement = (
-            entity_description.native_unit_of_measurement
-        )
         self._attr_translation_key = entity_description.translation_key
-        self._attr_native_min_value = entity_description.native_min_value
-        self._attr_native_max_value = entity_description.native_max_value
-        self._attr_native_step = entity_description.native_step
-        self._attr_mode = entity_description.mode
+        if entity_description.native_min_value is not None:
+            self._attr_native_min_value = entity_description.native_min_value
+        if entity_description.native_max_value is not None:
+            self._attr_native_max_value = entity_description.native_max_value
+        if entity_description.native_step is not None:
+            self._attr_native_step = entity_description.native_step
+        if entity_description.mode is not None:
+            self._attr_mode = entity_description.mode
 
     @property
     def unique_id(self):
@@ -408,7 +373,8 @@ class Neviweb130DeviceAttributeNumber(
         """Return the state attributes of the number."""
         return {"device_id": self._attr_unique_id}
 
-    async def async_set_value(self, value: float) -> None:
+    # TODO: marked @final in HomeAssistant, we should find an alternative
+    async def my_async_set_value(self, value: float) -> None:
         """Change the selected number value."""
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
 
@@ -426,6 +392,4 @@ class Neviweb130DeviceAttributeNumber(
                     value,
                 )
         else:
-            _LOGGER.warning(
-                "No handler for number attribute: %s", self._attribute
-            )
+            _LOGGER.warning("No handler for number attribute: %s", self._attribute)

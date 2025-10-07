@@ -1,21 +1,22 @@
-""" Sinopé GT130 zigbee and wifi support. """
+"""Sinopé GT130 Zigbee and Wi-Fi support."""
 
 from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from functools import partial
 
 from homeassistant import config_entries
-from homeassistant.const import (CONF_SCAN_INTERVAL,
-                                 EVENT_HOMEASSISTANT_STOP)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_SCAN_INTERVAL, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
-from .const import (CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NOTIFY,
-                    CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE)
+from .const import CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import device_dict, load_devices, save_devices
+from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
@@ -23,17 +24,23 @@ from .schema import PLATFORMS
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 
+SCAN_INTERVAL = DEFAULT_SCAN_INTERVAL
+
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """import neviweb130 integration from YAML if exist."""
+    """import neviweb130 integration from YAML if it exists."""
     _LOGGER.info(STARTUP_MESSAGE)
 
     # Register the event listener for Home Assistant stop event
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass, device_dict))
 
-    await load_devices()
+    # Detect .storage path
+    conf_dir = hass.config.path(".storage")
+    hass.data[DOMAIN] = {"conf_dir": conf_dir}
+
+    await load_devices(conf_dir)
 
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
     _LOGGER.debug("Config found: %s", neviweb130_config)
@@ -42,13 +49,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     if not neviweb130_config:
         return True
     else:
-        ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
+        # Convert CONF_SCAN_INTERVAL timedelta object to seconds
         scan_interval = neviweb130_config.get(CONF_SCAN_INTERVAL)
         _LOGGER.debug("The scan interval config = %s", scan_interval)
         if isinstance(scan_interval, timedelta):
-            neviweb130_config[CONF_SCAN_INTERVAL] = int(
-                scan_interval.total_seconds()
-            )
+            neviweb130_config[CONF_SCAN_INTERVAL] = int(scan_interval.total_seconds())
 
     # Only import if we haven't before.
     config_entry = _async_find_matching_config_entry(hass)
@@ -64,16 +69,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         return True
 
     # Update the entry based on the YAML configuration, in case it changed.
-    hass.config_entries.async_update_entry(
-        config_entry, data=dict(neviweb130_config)
-    )
+    hass.config_entries.async_update_entry(config_entry, data=dict(neviweb130_config))
     return True
 
 
-async def async_shutdown(event):
+async def async_shutdown(hass: HomeAssistant, event=None):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
-    await save_devices(device_dict)
+    conf_dir = hass.data[DOMAIN]["conf_dir"]
+    data = hass.data[DOMAIN].get("device_dict", {})
+    await save_devices(conf_dir, data)
     _LOGGER.info("Energy stat data saved")
     if DOMAIN in hass.data and "coordinator" in hass.data[DOMAIN]:
         _LOGGER.info("Stopping coordinator")
@@ -85,6 +90,8 @@ def _async_find_matching_config_entry(hass):
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.source == config_entries.SOURCE_IMPORT:
             return entry
+
+    return None
 
 
 async def async_remove_entry(hass, entry) -> None:
@@ -99,9 +106,7 @@ async def async_migrate_unique_ids(hass):
     registry = er.async_get(hass)
 
     for entity_id, entity in registry.entities.items():
-        if entity.platform == "neviweb130" and isinstance(
-            entity.unique_id, int
-        ):
+        if entity.platform == "neviweb130" and isinstance(entity.unique_id, int):
             new_unique_id = str(entity.unique_id)
             _LOGGER.info(
                 "Migrating unique_id for %s from %s to %s",
@@ -109,40 +114,20 @@ async def async_migrate_unique_ids(hass):
                 entity.unique_id,
                 new_unique_id,
             )
-            registry.async_update_entity(
-                entity_id, new_unique_id=new_unique_id
-            )
+            registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
 
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_forward_entry_unload(
-        entry, "climate"
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "light"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "switch"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "sensor"
-        )
-    )
-    unload_ok = (
-        unload_ok
-        and await hass.config_entries.async_forward_entry_unload(
-            entry, "valve"
-        )
-    )
+    unload_ok = await hass.config_entries.async_forward_entry_unload(entry, "climate")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "light")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "switch")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "valve")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "button")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "number")
+    unload_ok = unload_ok and await hass.config_entries.async_forward_entry_unload(entry, "select")
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
@@ -150,10 +135,9 @@ async def async_unload_entry(hass, entry):
     return unload_ok
 
 
-async def async_migrate_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> bool:
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
+    return False
 
 
 def parse_scan_interval(scan_interval):
@@ -169,9 +153,7 @@ def parse_scan_interval(scan_interval):
 
 def get_scan_interval(entry: ConfigEntry) -> timedelta:
     """Get the scan interval from the configuration entry or use the default."""
-    scan_interval = entry.data.get(
-        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds()
-    )
+    scan_interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds())
     _LOGGER.debug(
         "Parse result = %s from %s",
         parse_scan_interval(scan_interval),
@@ -190,11 +172,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info("Migrating neviweb130 unique_id to string...")
     await async_migrate_unique_ids(hass)
 
-    username = entry.data.get("username")
-    password = entry.data.get("password")
-    network = entry.data.get("network")
-    network2 = entry.data.get("network2")
-    network3 = entry.data.get("network3")
+    username: str | None = entry.data.get("username")
+    password: str | None = entry.data.get("password")
+    network: str | None = entry.data.get("network")
+    network2: str | None = entry.data.get("network2")
+    network3: str | None = entry.data.get("network3")
+
+    if username is None:
+        raise TypeError("username is None")
+    if password is None:
+        raise TypeError("password is None")
 
     global SCAN_INTERVAL
     SCAN_INTERVAL = get_scan_interval(entry)
@@ -212,14 +199,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     notify = entry.data.get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", notify)
 
-    client = Neviweb130Client(
-        hass, ignore_miwi, username, password, network, network2, network3
-    )
-    coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
+    client = Neviweb130Client(hass, ignore_miwi, username, password, network, network2, network3)
+    initialized_coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
 
     hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        "neviweb130_client": coordinator.client,
+        "coordinator": initialized_coordinator,
+        "neviweb130_client": initialized_coordinator.client,
         "scan_interval": SCAN_INTERVAL,
         "homekit_mode": homekit_mode,
         "ignore_miwi": ignore_miwi,

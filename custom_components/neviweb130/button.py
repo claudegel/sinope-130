@@ -1,27 +1,27 @@
 """
-Support for Neviweb attributes buttons for devices connected via GT130 and wifi devices.
+Support for Neviweb attributes buttons for devices connected via GT130 and Wi-Fi devices.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Final
+from typing import Any, Final
 
-from homeassistant.components.button import (ButtonEntity,
-                                             ButtonEntityDescription)
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES)
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
-DEFAULT_NAME = "neviweb130 button"
-DEFAULT_NAME_2 = "neviweb130 button 2"
-DEFAULT_NAME_3 = "neviweb130 button 3"
+DEFAULT_NAME = f"{DOMAIN} button"
+DEFAULT_NAME_2 = f"{DOMAIN} button 2"
+DEFAULT_NAME_3 = f"{DOMAIN} button 3"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,14 +35,14 @@ class Neviweb130ButtonEntityDescription(ButtonEntityDescription):
 
 BUTTON_TYPES: Final[tuple[Neviweb130ButtonEntityDescription, ...]] = (
     # Climate attributes
-    #    Neviweb130ButtonEntityDescription(
-    #        key="fan_filter_remain", #nom du bouton
-    #        device_class=ButtonDeviceClass.UPDATE,
-    #        icon="mdi:air-filter",
-    #        translation_key="reset_filter", #pour traduction
-    #        entity_category=EntityCategory.CONFIG, #pour mettre dans diagnostic
-    #        data_key="filter_clean", #attribute name
-    #    ),
+    # Neviweb130ButtonEntityDescription(
+    #     key="fan_filter_remain",  # Button name
+    #     device_class=ButtonDeviceClass.UPDATE,
+    #     icon="mdi:air-filter",
+    #     translation_key="reset_filter",  # to translate
+    #     entity_category=EntityCategory.CONFIG,  # to add to diagnostic
+    #     data_key="filter_clean",  # attribute name
+    # ),
 )
 
 
@@ -54,9 +54,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
-    _LOGGER.debug(
-        "Keys dans coordinator.data : %s", list(coordinator.data.keys())
-    )
+    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
     for gateway_data, default_name in [
         (client.gateway_data, DEFAULT_NAME),
@@ -73,9 +71,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning(
-                    "Device %s pas encore dans coordinator.data", device_id
-                )
+                _LOGGER.warning("Device %s coordinator.data not yet initialized", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -84,9 +80,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
                 manufacturer="claudegel",
                 name=device_name,
                 model=model,
-                sw_version="{major}.{middle}.{minor}".format(
-                    **device_info["signature"]["softVersion"]
-                ),
+                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
             attributes_name = get_attributes_for_model(model)
@@ -130,23 +124,19 @@ async def async_setup_entry(
     coordinator = data["coordinator"]
     device_registry = dr.async_get(hass)
 
-    entities = create_attribute_buttons(
-        hass, entry, data, coordinator, device_registry
-    )
+    entities = create_attribute_buttons(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
 
-class Neviweb130DeviceAttributeButton(
-    CoordinatorEntity[Neviweb130Coordinator], ButtonEntity
-):
+class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], ButtonEntity):
     """Representation of a specific Neviweb130 button."""
 
     _attr_has_entity_name = True
     _attr_should_poll = True
 
-    _ATTRIBUTE_METHODS = {
+    _ATTRIBUTE_METHODS: dict[str, Any] = {
         # "fan_filter_remain": lambda self: self._client.async_set_fan_filter_reminder(self._id),
         # ...
     }
@@ -158,7 +148,7 @@ class Neviweb130DeviceAttributeButton(
         device_name: str,
         attribute: str,
         device_id: str,
-        attr_info: dict,
+        attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130ButtonEntityDescription,
     ):
@@ -198,10 +188,6 @@ class Neviweb130DeviceAttributeButton(
                 self.async_write_ha_state()
                 await self.coordinator.async_request_refresh()
             else:
-                _LOGGER.warning(
-                    f"Button press failed for attribute: {self._attr_translation_key}"
-                )
+                _LOGGER.warning(f"Button press failed for attribute: {self._attr_translation_key}")
         else:
-            _LOGGER.warning(
-                "No handler for button attribute: %s", self._attribute
-            )
+            _LOGGER.warning("No handler for button attribute: %s", self._attribute)
