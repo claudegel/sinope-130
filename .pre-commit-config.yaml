@@ -1,49 +1,58 @@
+ci:
+  skip: [mypy, hassfest]
+
 repos:
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.20.0
     hooks:
       - id: pyupgrade
-        args: [--py38-plus]
 
   - repo: https://github.com/PyCQA/autoflake
     rev: v2.3.1
     hooks:
       - id: autoflake
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.13.2
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+
   - repo: https://github.com/psf/black
     rev: 25.9.0
     hooks:
       - id: black
-        args:
-          - --quiet
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.3.0
-    hooks:
-      - id: flake8
-        additional_dependencies: 
-          - Flake8-pyproject==1.2.3
 
   - repo: https://github.com/PyCQA/isort
     rev: 6.0.1
     hooks:
       - id: isort
 
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - Flake8-pyproject
+
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
       - id: codespell
-        additional_dependencies:
-          - tomli
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.18.2
     hooks:
       - id: mypy
-  
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.2
+        additional_dependencies:
+          - homeassistant-stubs
+          - types-aiofiles
+
+  - repo: local
     hooks:
-      - id: ruff
-        args:
-          - --fix
+      - id: hassfest
+        name: hassfest (docker_image)
+        exclude: .*
+        always_run: true
+        language: docker_image
+        entry: --entrypoint "" --workdir /usr/src/homeassistant ghcr.io/home-assistant/hassfest:latest python -m script.hassfest --action validate --integration-path /src/custom_components/neviweb130/
