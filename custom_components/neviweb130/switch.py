@@ -55,6 +55,7 @@ from .const import (
     ATTR_INPUT_1_ON_DELAY,
     ATTR_INPUT_2_OFF_DELAY,
     ATTR_INPUT_2_ON_DELAY,
+    ATTR_INPUT_NUMBER,
     ATTR_INPUT_STATUS,
     ATTR_KEYPAD,
     ATTR_LEAK_CLOSURE_CONFIG,
@@ -90,6 +91,7 @@ from .const import (
     ATTR_WATTAGE,
     ATTR_WATTAGE_INSTANT,
     ATTR_WIFI,
+    ATTR_WIFI_KEYPAD,
     ATTR_WIFI_WATT_NOW,
     ATTR_WIFI_WATTAGE,
     DOMAIN,
@@ -1129,7 +1131,8 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning("Session expired... reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
-                    "Warning: Got USRSESSEXP error, Neviweb session expired. Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
+                    "Warning: Got USRSESSEXP error, Neviweb session expired. "
+                    "Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
@@ -1146,7 +1149,7 @@ class Neviweb130Switch(SwitchEntity):
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s (id: %s): %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1154,7 +1157,7 @@ class Neviweb130Switch(SwitchEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)...(SKU: %s)" + " Report to maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -1170,7 +1173,7 @@ class Neviweb130Switch(SwitchEntity):
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s (id: %s):" + " %s...(SKU: %s)",
+                "Service error, device not available retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1178,7 +1181,7 @@ class Neviweb130Switch(SwitchEntity):
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s " + "(id: %s): %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1187,14 +1190,14 @@ class Neviweb130Switch(SwitchEntity):
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconnected from Neviweb: %s..." + " (SKU: %s)",
+                    "Device %s (id: %s) is disconnected from Neviweb: %s... (SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated " + "for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes.",
                     self._name,
                 )
                 _LOGGER.warning(
@@ -1218,7 +1221,7 @@ class Neviweb130Switch(SwitchEntity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to " + "maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 error_data,

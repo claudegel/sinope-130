@@ -1307,7 +1307,8 @@ async def async_setup_platform(
                 break
 
     def set_min_time_on_service(service):
-        """Set minimum time the device is on before letting be off again (run-on time) for TH6500WF and TH6250WF thermostats."""
+        """Set minimum time the device is on before letting be off again (run-on time)
+        for TH6500WF and TH6250WF thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
@@ -1316,7 +1317,8 @@ async def async_setup_platform(
                 break
 
     def set_min_time_off_service(service):
-        """Set minimum time the device is off before letting it be on again (cooldown time) for TH6500WF and TH6250WF thermostats."""
+        """Set minimum time the device is off before letting it be on again (cooldown time)
+        for TH6500WF and TH6250WF thermostats."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
@@ -1937,7 +1939,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._wattage = device_data[ATTR_WATTAGE]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
-                        "A timeout occur during data update. Device %s do not " + "respond. Check your network... (%s)",
+                        "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
                         self._name,
                         device_data,
                     )
@@ -2743,17 +2745,15 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance..." + "Retry later.")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later.")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections " + "and try again.")
-            self.notify_ha(
-                "Warning: Maximum Neviweb session number reached..." + "Close other connections and try again."
-            )
+            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
+            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again.")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s (id: %s): %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -2761,7 +2761,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s...(id: %s, SKU: %s) " + "Report to maintainer.",
+                "Device action not supported for %s... (id: %s, SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -2777,7 +2777,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s: %s..." + "(id: %s, SKU: %s)",
+                "Service error, device not available retry later %s: %s... (id: %s, SKU: %s)",
                 self._name,
                 error_data,
                 str(self._id),
@@ -2785,7 +2785,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s " + "(id: %s): %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -2795,14 +2795,14 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.warning("NOTIFY value: %s, (SKU: %s)", NOTIFY, self._sku)
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconnected from Neviweb: %s..." + "(SKU: %s)",
+                    "Device %s (id: %s) is disconnected from Neviweb: %s... (SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated " + "for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes.",
                     self._name,
                 )
                 _LOGGER.warning(
@@ -2826,7 +2826,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self._snooze = time.time()
         elif error_data == "DVCERR":
             _LOGGER.warning(
-                "Device error for %s (id: %s), service already active: %s..." + "(SKU: %s)",
+                "Device error for %s (id: %s), service already active: %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -2834,7 +2834,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "SVCUNAUTH":
             _LOGGER.warning(
-                "Service not authorised for device %s (id: %s): %s...(SKU: %s)",
+                "Service not authorised for device %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -2842,7 +2842,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to" + " maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 error_data,

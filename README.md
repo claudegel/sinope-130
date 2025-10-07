@@ -397,10 +397,10 @@ This will set default log level to warning for all your components, except for N
 
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
-- VALINVLD : Invalid value sent to Neviweb.
-- ACCDAYREQMAX : Maximum daily request reached...Reduce polling frequency.
-- TimeoutError : Timeout error detected...Retry later.
-- MAINTENANCE : Neviweb access temporary blocked for maintenance...Retry later.
+- VALINVLD: Invalid value sent to Neviweb.
+- ACCDAYREQMAX: Maximum daily request reached...Reduce polling frequency.
+- TimeoutError: Timeout error detected...Retry later.
+- MAINTENANCE: Neviweb access temporary blocked for maintenance...Retry later.
 - SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
 - DVCCOMMTO: Device Communication Timeout: device do not respond fast enough, or you are polling that device too frequently.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.

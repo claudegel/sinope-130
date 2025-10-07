@@ -954,17 +954,15 @@ class Neviweb130Valve(ValveEntity):
             _LOGGER.warning("Timeout error detected...Retry later.")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance..." + "Retry later.")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later.")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections " + "and try again.")
-            self.notify_ha(
-                "Warning: Maximum Neviweb session number reached...Close " + "other connections and try again."
-            )
+            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
+            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s (id: %s): %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -972,7 +970,7 @@ class Neviweb130Valve(ValveEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)...(SKU: %s) " + "Report to maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -988,7 +986,7 @@ class Neviweb130Valve(ValveEntity):
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s (id: %s)" + ": %s...(SKU: %s)",
+                "Service error, device not available retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -996,7 +994,7 @@ class Neviweb130Valve(ValveEntity):
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s" + " (id: %s): %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1005,14 +1003,14 @@ class Neviweb130Valve(ValveEntity):
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s is disconnected from Neviweb: %s (id: %s)..." + "(SKU: %s)",
+                    "Device %s is disconnected from Neviweb: %s (id: %s)... (SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for " + "20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes.",
                     self._name,
                 )
                 _LOGGER.warning(
@@ -1036,7 +1034,7 @@ class Neviweb130Valve(ValveEntity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to " + "maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 error_data,

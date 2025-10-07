@@ -64,7 +64,6 @@ from .const import (
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-    ATTR_HUMIDITY,
     ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
     ATTR_HUMIDITY_SETPOINT_OFFSET,
@@ -128,7 +127,7 @@ from .const import (
     MODE_MANUAL,
     STARTUP_MESSAGE,
 )
-from .schema import CONFIG_SCHEMA
+from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
@@ -318,7 +317,7 @@ class Neviweb130Client:
                     + "restart HA."
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
-                _LOGGER.error("Invalid Neviweb username and/or password... " + "Check your configuration parameters")
+                _LOGGER.error("Invalid Neviweb username and/or password... Check your configuration parameters")
                 self.notify_ha(
                     "Warning: Got USRBADLOGIN error, Invalid Neviweb username "
                     + "and/or password... Check your configuration parameters"
@@ -487,7 +486,7 @@ class Neviweb130Client:
         self._cookies.update(raw_res.cookies)
         # Prepare data
         self.gateway_data = raw_res.json()
-        _LOGGER.debug("Gateway_data : %s", self.gateway_data)
+        _LOGGER.debug("Gateway_data: %s", self.gateway_data)
         if self._gateway_id2 is not None:
             try:
                 raw_res2 = requests.get(
@@ -501,7 +500,7 @@ class Neviweb130Client:
                 raise PyNeviweb130Error("Cannot get gateway data 2")
             # Prepare data
             self.gateway_data2 = raw_res2.json()
-            _LOGGER.debug("Gateway_data2 : %s", self.gateway_data2)
+            _LOGGER.debug("Gateway_data2: %s", self.gateway_data2)
         if self._gateway_id3 is not None:
             try:
                 raw_res3 = requests.get(
@@ -515,7 +514,7 @@ class Neviweb130Client:
                 raise PyNeviweb130Error("Cannot get gateway data 3")
             # Prepare data
             self.gateway_data3 = raw_res3.json()
-            _LOGGER.debug("Gateway_data3 : %s", self.gateway_data3)
+            _LOGGER.debug("Gateway_data3: %s", self.gateway_data3)
         for device in self.gateway_data:
             data = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
             if ATTR_SIGNATURE in data:
@@ -596,7 +595,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less" + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -621,7 +620,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less " + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -645,7 +644,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less " + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired...reconnecting...")
         return data
@@ -672,7 +671,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less " + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -874,7 +873,7 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_schedule_mode is only for " + "TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.")
 
     def set_heatcool_delta(self, device_id, level, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -882,7 +881,7 @@ class Neviweb130Client:
             data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_heatcool_min_delta is only for " + "TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats.")
 
     def set_fan_filter_reminder(self, device_id, month, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -891,9 +890,7 @@ class Neviweb130Client:
             data = {ATTR_FAN_FILTER_REMAIN: month_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_fan_filter_reminder is only for " + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats.")
 
     def set_temperature_offset(self, device_id, temp, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -901,7 +898,7 @@ class Neviweb130Client:
             data = {ATTR_TEMP_OFFSET_HEAT: temp}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_temperature_offset is only for " + "TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats.")
 
     def set_humidity_offset(self, device_id, offset, HC):
         """Set humidity setpoint offset for TH6500WF and TH6250WF."""
@@ -909,7 +906,7 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_offset is only for " + "TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats.")
 
     def set_humidity_mode(self, device_id, mode, HC):
         """Set humidity setpoint mode for TH6500WF and TH6250WF."""
@@ -917,7 +914,7 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_mode is only for " + "TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats.")
 
     def set_air_ex_min_time_on(self, device_id, time, HC):
         """Set minimum time the air exchanger is on per hour."""
@@ -935,7 +932,7 @@ class Neviweb130Client:
             data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_air_ex_time_on is only for " + "TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats.")
 
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""

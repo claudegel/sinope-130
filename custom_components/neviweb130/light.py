@@ -567,7 +567,7 @@ class Neviweb130Light(LightEntity):
         return brightness_from_percentage(self._brightness_pct)
 
     @property
-    def is_on(self):  ## need to change this for neviweb130
+    def is_on(self):  # need to change this for neviweb130
         """Return true if device is on."""
         return self._onoff != MODE_OFF
 
@@ -600,7 +600,8 @@ class Neviweb130Light(LightEntity):
         self._phase_control = value["phase"]
 
     def set_keypad_lock(self, value):
-        """Lock, unlock or partially lock device's keypad, lock = locked, unlock = unlocked, partiallyLocked = partial lock."""
+        """Lock, unlock or partially lock device's keypad,
+        lock = locked, unlock = unlocked, partiallyLocked = partial lock."""
         self._client.set_keypad_lock(value["id"], value["lock"], False)
         self._keypad = value["lock"]
 
@@ -610,7 +611,8 @@ class Neviweb130Light(LightEntity):
         self._timer = value["time"]
 
     def set_led_indicator(self, value):
-        """Set led indicator color and intensity, base on RGB red, green, blue color (0-255) and intensity from 0 to 100."""
+        """Set led indicator color and intensity,
+        based on RGB red, green, blue colors (0-255) and intensity from 0 to 100."""
         self._client.set_led_indicator(value["id"], value["state"], value["red"], value["green"], value["blue"])
         rgb = f"{value['red']},{value['green']},{value['blue']}"
         if value["state"] == 0:
@@ -753,13 +755,11 @@ class Neviweb130Light(LightEntity):
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
             _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
-            self.notify_ha(
-                "Warning: Maximum Neviweb session number reached...Close " + "other connections and try again."
-            )
+            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
-                "Device attribute not supported for %s (id: %s): %s...(SKU: %s)",
+                "Device attribute not supported for %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -767,7 +767,7 @@ class Neviweb130Light(LightEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)...(SKU: %s) Report to " + "maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -783,7 +783,7 @@ class Neviweb130Light(LightEntity):
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
-                "Service error, device not available retry later %s (id: %s):" + "%s...(SKU: %s)",
+                "Service error, device not available retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -791,7 +791,7 @@ class Neviweb130Light(LightEntity):
             )
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
-                "Device busy can't reach (neviweb update ?), retry later %s " + "(id: %s): %s...(SKU: %s)",
+                "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
                 str(self._id),
                 error_data,
@@ -800,7 +800,7 @@ class Neviweb130Light(LightEntity):
         elif error_data == "DVCUNVLB":
             if NOTIFY == "logging" or NOTIFY == "both":
                 _LOGGER.warning(
-                    "Device %s (id: %s) is disconnected from Neviweb: %s..." + "(SKU: %s)",
+                    "Device %s (id: %s) is disconnected from Neviweb: %s... (SKU: %s)",
                     self._name,
                     str(self._id),
                     error_data,
@@ -831,7 +831,7 @@ class Neviweb130Light(LightEntity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s...(SKU: %s) Report to " + "maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
                 self._name,
                 str(self._id),
                 error_data,
