@@ -1528,7 +1528,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._cycle_length_output2_value = None
         self._display2 = None
         self._display_conf = None
-        self._heat_level: int | None = 0
         self._early_start = None
         self._em_heat = None
         self._aux_cycle_length = 0
@@ -1546,6 +1545,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._floor_mode = None
         self._floor_sensor_type = None
         self._heat_lockout_temp = None
+        self._heat_level: int | None = 0
         self._keypad = None
         self._backlight = None
         self._cycle_length = 0
@@ -2139,8 +2139,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_HC:
             if self._heat_cool == HVACMode.COOL:
                 await self._client.async_set_setpoint_mode(self._id, HVACMode.COOL, self._is_wifi, self._is_HC)
+                self._heat_cool = HVACMode.COOL
             elif self._heat_cool == HVACMode.HEAT:
                 await self._client.async_set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi, self._is_HC)
+                self._heat_cool = HVACMode.HEAT
         else:
             await self._client.async_set_setpoint_mode(self._id, HVACMode.HEAT, self._is_wifi, self._is_HC)
             self._operation_mode = HVACMode.HEAT
@@ -5467,7 +5469,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self.async_write_ha_state()
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
-                        "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
+                        "A timeout occurred during data update. Device %s do not respond. Check your network... (%s)",
                         self._name,
                         device_data,
                     )

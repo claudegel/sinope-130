@@ -13,7 +13,7 @@ import voluptuous as vol
 from homeassistant import config_entries, exceptions
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 
@@ -53,18 +53,19 @@ FLOW_SCHEMA = vol.Schema(
 )
 
 
-async def async_validate_email(user: str) -> bool:
+async def async_validate_email(user: str | None) -> None:
     """Validate the username as email."""
+    if user is None:
+        raise InvalidUserEmail("Empty user.")
+
     try:
         vol.Email()(user)
-        return True
-    except vol.Invalid:
-        return False
+    except vol.Invalid as exc:
+        raise InvalidUserEmail(f"Invalid email format: {user}") from exc
 
 
-async def async_test_connect(self, user: str, passwd: str) -> bool:
+async def async_test_connect(user: str | None, passwd: str | None) -> None:
     """Validate Neviweb connection with supplied parameters."""
-    _LOGGER.debug("Timeout %s", self._timeout)
     data = {
         "username": user,
         "password": passwd,
@@ -72,6 +73,8 @@ async def async_test_connect(self, user: str, passwd: str) -> bool:
         "stayConnected": 0,
     }
     with await session_manager.create_session() as session:
+        timeout = aiohttp.ClientTimeout(total=30)
+        _LOGGER.debug("Using timeout: %s", timeout.total)
         if session is None:
             raise TypeError("session is None")
 
@@ -81,18 +84,16 @@ async def async_test_connect(self, user: str, passwd: str) -> bool:
                 json=data,
                 cookies=None,
                 allow_redirects=False,
-                timeout=30,
+                timeout=timeout,
             ) as response:
                 _LOGGER.debug("Validate login status: %s", response.status)
+                if response.status != 200:
+                    raise CannotConnect("Cannot log in to Neviweb")
         except aiohttp.ClientError as e:
             raise PyNeviweb130Error("Cannot submit test login form... Check your network or firewall.") from e
-        if response.status != 200:
-            _LOGGER.debug("Login status: %s", response.json())
-            raise CannotConnect("Cannot log in to Neviweb")
-        return True
 
 
-async def async_validate_input(self, data: dict[str, Any]) -> dict[str, Any]:
+async def async_validate_input(data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input configuration."""
     user: str | None = data.get(CONF_USERNAME)
     passwd: str | None = data.get(CONF_PASSWORD)
@@ -105,14 +106,17 @@ async def async_validate_input(self, data: dict[str, Any]) -> dict[str, Any]:
     stat = data.get(CONF_STAT_INTERVAL)
     notif = data.get(CONF_NOTIFY)
 
-    if user is None or not await async_validate_email(user):
-        raise InvalidUserEmail(user)
+    await async_validate_email(user)
 
-    if passwd is None or not await async_test_connect(self, user, passwd):
-        _LOGGER.debug("Error in Neviweb test connection, check email and password...")
-        raise CannotConnect(user)
-    else:
+    try:
+        await async_test_connect(user, passwd)
         _LOGGER.debug("Test of Neviweb connection successful...")
+    except CannotConnect as exc:
+        _LOGGER.debug("Error in Neviweb test connection, check email and password...")
+        raise CannotConnect(str(exc)) from exc
+    except PyNeviweb130Error as exc:
+        _LOGGER.debug("Network error during Neviweb test connection")
+        raise exc
 
     return {
         CONF_USERNAME: user,
@@ -169,8 +173,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             info = None
             try:
-                #                info = await async_validate_input(user_input, self.hass, self._cookies, self._timeout)
-                info = await async_validate_input(self, user_input)
+                info = await async_validate_input(user_input)
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
             except CannotConnect:
@@ -214,8 +217,13 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             info = None
             try:
-                await async_shutdown(self.hass)
-                info = await async_validate_input(self, user_input)
+                # validate new config entry
+                info = await async_validate_input(user_input)
+                # Ok restart neviweb130 with new config options
+                await session_manager.close_session()
+                event = Event("neviweb130_restart")
+                await async_shutdown(self.hass, event)
+
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
             except CannotConnect:

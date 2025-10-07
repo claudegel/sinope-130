@@ -24,9 +24,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 
-DEFAULT_NAME = "neviweb130 binary_sensor"
-DEFAULT_NAME_2 = "neviweb130 binary_sensor 2"
-DEFAULT_NAME_3 = "neviweb130 binary_sensor 3"
+DEFAULT_NAME = f"{DOMAIN} binary_sensor"
+DEFAULT_NAME_2 = f"{DOMAIN} binary_sensor 2"
+DEFAULT_NAME_3 = f"{DOMAIN} binary_sensor 3"
 
 _LOGGER = logging.getLogger(__name__)
 

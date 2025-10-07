@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from functools import partial
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
@@ -33,7 +34,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     _LOGGER.info(STARTUP_MESSAGE)
 
     # Register the event listener for Home Assistant stop event
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass, device_dict))
 
     # Detect .storage path
     conf_dir = hass.config.path(".storage")
@@ -72,16 +73,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_shutdown(event):
+async def async_shutdown(hass: HomeAssistant, event=None):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
-    if DOMAIN in event.data and "conf_dir" in event.data[DOMAIN]:
-        conf_dir = event.data[DOMAIN]["conf_dir"]
-        await save_devices(conf_dir, device_dict)
-        _LOGGER.info("Energy stat data saved")
-    if DOMAIN in event.data and "coordinator" in event.data[DOMAIN]:
+    conf_dir = hass.data[DOMAIN]["conf_dir"]
+    data = hass.data[DOMAIN].get("device_dict", {})
+    await save_devices(conf_dir, data)
+    _LOGGER.info("Energy stat data saved")
+    if DOMAIN in hass.data and "coordinator" in hass.data[DOMAIN]:
         _LOGGER.info("Stopping coordinator")
-        await event.data[DOMAIN]["coordinator"].stop()
+        await hass.data[DOMAIN]["coordinator"].stop()
 
 
 @callback
