@@ -3,10 +3,8 @@
   "name": "Sinope Neviweb130",
   "codeowners": ["@claudegel"],
   "documentation": "https://github.com/claudegel/sinope-130",
-  "issue_tracker": "https://github.com/claudegel/sinope-130/issues",
-  "dependencies": [],
-  "requirements": [],
+  "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "version": "3.0.9",
-  "integration_type": "hub"
+  "issue_tracker": "https://github.com/claudegel/sinope-130/issues",
+  "version": "3.0.9"
 }

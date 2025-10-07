@@ -1,63 +1,133 @@
-"""Sinopé GT130 zigbee and wifi support."""
+"""Sinopé GT130 Zigbee and Wi-Fi support."""
 
 from __future__ import annotations
 
 import logging
 
 import requests
-from homeassistant.components.climate.const import (PRESET_AWAY, PRESET_HOME,
-                                                    HVACMode)
-from homeassistant.components.persistent_notification import \
-    DOMAIN as PN_DOMAIN
-from homeassistant.const import (CONF_PASSWORD, CONF_SCAN_INTERVAL,
-                                 CONF_USERNAME)
+from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.helpers import discovery
 
-from .const import (ATTR_ACCESSORY_TYPE, ATTR_AIR_EX_MIN_TIME_ON,
-                    ATTR_AUX_CYCLE, ATTR_AUX_HEAT_MIN_TIME_OFF,
-                    ATTR_AUX_HEAT_MIN_TIME_ON, ATTR_AUX_HEAT_SOURCE_TYPE,
-                    ATTR_BACKLIGHT, ATTR_BACKLIGHT_AUTO_DIM, ATTR_BALANCE_PT,
-                    ATTR_BATT_ALERT, ATTR_BATTERY_TYPE,
-                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
-                    ATTR_CONTROLLED_DEVICE, ATTR_COOL_LOCK_TEMP,
-                    ATTR_COOL_MIN_TIME_OFF, ATTR_COOL_MIN_TIME_ON,
-                    ATTR_COOL_SETPOINT, ATTR_COOL_SETPOINT_MAX,
-                    ATTR_COOL_SETPOINT_MIN, ATTR_CYCLE, ATTR_CYCLE_OUTPUT2,
-                    ATTR_DISPLAY2, ATTR_DISPLAY_CONF, ATTR_DRSETPOINT,
-                    ATTR_DRSTATUS, ATTR_EARLY_START, ATTR_FAN_FILTER_REMAIN,
-                    ATTR_FAN_SPEED, ATTR_FAN_SWING_HORIZ, ATTR_FAN_SWING_VERT,
-                    ATTR_FLOOR_AIR_LIMIT, ATTR_FLOOR_AUX, ATTR_FLOOR_MAX,
-                    ATTR_FLOOR_MIN, ATTR_FLOOR_MODE, ATTR_FLOOR_OUTPUT2,
-                    ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_LENGHT,
-                    ATTR_FLOW_ALARM1_OPTION, ATTR_FLOW_ALARM1_PERIOD,
-                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
-                    ATTR_FLOW_METER_CONFIG, ATTR_FLOW_THRESHOLD,
-                    ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_HEAT_COOL, ATTR_HEAT_LOCK_TEMP,
-                    ATTR_HEAT_MIN_TIME_OFF, ATTR_HEAT_MIN_TIME_ON,
-                    ATTR_HEATCOOL_SETPOINT_MIN_DELTA, ATTR_HUMIDITY,
-                    ATTR_HUMIDITY_SETPOINT, ATTR_HUMIDITY_SETPOINT_MODE,
-                    ATTR_HUMIDITY_SETPOINT_OFFSET, ATTR_INPUT_1_OFF_DELAY,
-                    ATTR_INPUT_1_ON_DELAY, ATTR_INPUT_2_OFF_DELAY,
-                    ATTR_INPUT_2_ON_DELAY, ATTR_INTENSITY, ATTR_INTENSITY_MIN,
-                    ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD, ATTR_LANGUAGE,
-                    ATTR_LEAK_ALERT, ATTR_LED_OFF_COLOR,
-                    ATTR_LED_OFF_INTENSITY, ATTR_LED_ON_COLOR,
-                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
-                    ATTR_MOTOR_TARGET, ATTR_NAME_1, ATTR_NAME_2,
-                    ATTR_OCCUPANCY, ATTR_ONOFF, ATTR_ONOFF2,
-                    ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2, ATTR_PHASE_CONTROL,
-                    ATTR_POWER_MODE, ATTR_POWER_SUPPLY, ATTR_PUMP_PROTEC,
-                    ATTR_PUMP_PROTEC_DURATION, ATTR_PUMP_PROTEC_PERIOD,
-                    ATTR_REFUEL, ATTR_ROOM_SETPOINT, ATTR_ROOM_SETPOINT_MAX,
-                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT_MODE, ATTR_SIGNATURE,
-                    ATTR_SOUND_CONF, ATTR_SYSTEM_MODE, ATTR_TANK_HEIGHT,
-                    ATTR_TANK_SIZE, ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
-                    ATTR_TEMP_OFFSET_HEAT, ATTR_TIME, ATTR_TIMER, ATTR_TIMER2,
-                    ATTR_WATER_TEMP_MIN, ATTR_WIFI_KEYPAD, CONF_HOMEKIT_MODE,
-                    CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
-                    CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN,
-                    MODE_MANUAL, STARTUP_MESSAGE)
+from .const import (
+    ATTR_ACCESSORY_TYPE,
+    ATTR_AIR_EX_MIN_TIME_ON,
+    ATTR_AUX_CYCLE,
+    ATTR_AUX_HEAT_MIN_TIME_OFF,
+    ATTR_AUX_HEAT_MIN_TIME_ON,
+    ATTR_AUX_HEAT_SOURCE_TYPE,
+    ATTR_BACKLIGHT,
+    ATTR_BACKLIGHT_AUTO_DIM,
+    ATTR_BALANCE_PT,
+    ATTR_BATT_ALERT,
+    ATTR_BATTERY_TYPE,
+    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+    ATTR_CONF_CLOSURE,
+    ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_MIN_TIME_OFF,
+    ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_SETPOINT,
+    ATTR_COOL_SETPOINT_MAX,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_CYCLE,
+    ATTR_CYCLE_OUTPUT2,
+    ATTR_DISPLAY2,
+    ATTR_DISPLAY_CONF,
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
+    ATTR_EARLY_START,
+    ATTR_FAN_FILTER_REMAIN,
+    ATTR_FAN_SPEED,
+    ATTR_FAN_SWING_HORIZ,
+    ATTR_FAN_SWING_VERT,
+    ATTR_FLOOR_AIR_LIMIT,
+    ATTR_FLOOR_AUX,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
+    ATTR_FLOOR_MODE,
+    ATTR_FLOOR_OUTPUT2,
+    ATTR_FLOOR_SENSOR,
+    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_ENABLED,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOW_THRESHOLD,
+    ATTR_FUEL_ALERT,
+    ATTR_FUEL_PERCENT_ALERT,
+    ATTR_GAUGE_TYPE,
+    ATTR_HEAT_COOL,
+    ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_MIN_TIME_OFF,
+    ATTR_HEAT_MIN_TIME_ON,
+    ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+    ATTR_HUMIDITY,
+    ATTR_HUMIDITY_SETPOINT,
+    ATTR_HUMIDITY_SETPOINT_MODE,
+    ATTR_HUMIDITY_SETPOINT_OFFSET,
+    ATTR_INPUT_1_OFF_DELAY,
+    ATTR_INPUT_1_ON_DELAY,
+    ATTR_INPUT_2_OFF_DELAY,
+    ATTR_INPUT_2_ON_DELAY,
+    ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
+    ATTR_KEY_DOUBLE_UP,
+    ATTR_KEYPAD,
+    ATTR_LANGUAGE,
+    ATTR_LEAK_ALERT,
+    ATTR_LED_OFF_COLOR,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_COLOR,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LIGHT_WATTAGE,
+    ATTR_MODE,
+    ATTR_MOTOR_TARGET,
+    ATTR_NAME_1,
+    ATTR_NAME_2,
+    ATTR_OCCUPANCY,
+    ATTR_ONOFF,
+    ATTR_ONOFF2,
+    ATTR_OUTPUT_NAME_1,
+    ATTR_OUTPUT_NAME_2,
+    ATTR_PHASE_CONTROL,
+    ATTR_POWER_MODE,
+    ATTR_POWER_SUPPLY,
+    ATTR_PUMP_PROTEC,
+    ATTR_PUMP_PROTEC_DURATION,
+    ATTR_PUMP_PROTEC_PERIOD,
+    ATTR_REFUEL,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_SETPOINT_MODE,
+    ATTR_SIGNATURE,
+    ATTR_SOUND_CONF,
+    ATTR_SYSTEM_MODE,
+    ATTR_TANK_HEIGHT,
+    ATTR_TANK_SIZE,
+    ATTR_TANK_TYPE,
+    ATTR_TEMP,
+    ATTR_TEMP_ALERT,
+    ATTR_TEMP_OFFSET_HEAT,
+    ATTR_TIME,
+    ATTR_TIMER,
+    ATTR_TIMER2,
+    ATTR_WATER_TEMP_MIN,
+    ATTR_WIFI_KEYPAD,
+    CONF_HOMEKIT_MODE,
+    CONF_IGNORE_MIWI,
+    CONF_NETWORK,
+    CONF_NETWORK2,
+    CONF_NETWORK3,
+    CONF_NOTIFY,
+    CONF_STAT_INTERVAL,
+    DOMAIN,
+    MODE_MANUAL,
+    STARTUP_MESSAGE,
+)
 from .schema import CONFIG_SCHEMA
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -132,9 +202,7 @@ class Neviweb130Data:
         network2 = config.get(CONF_NETWORK2)
         network3 = config.get(CONF_NETWORK3)
         ignore_miwi = config.get(CONF_IGNORE_MIWI)
-        self.neviweb130_client = Neviweb130Client(
-            hass, username, password, network, network2, network3, ignore_miwi
-        )
+        self.neviweb130_client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi)
 
 
 # According to HA:
@@ -149,7 +217,6 @@ class PyNeviweb130Error(Exception):
 
 
 class Neviweb130Client:
-
     def __init__(
         self,
         hass,
@@ -228,9 +295,7 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error(
-                "Cannot submit login form... Check your network or firewall."
-            )
+            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.")
         if raw_res.status_code != 200:
             _LOGGER.debug("Login status: %s", raw_res.json())
             raise PyNeviweb130Error("Cannot log in")
@@ -253,10 +318,7 @@ class Neviweb130Client:
                     + "restart HA."
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
-                _LOGGER.error(
-                    "Invalid Neviweb username and/or password... "
-                    + "Check your configuration parameters"
-                )
+                _LOGGER.error("Invalid Neviweb username and/or password... " + "Check your configuration parameters")
                 self.notify_ha(
                     "Warning: Got USRBADLOGIN error, Invalid Neviweb username "
                     + "and/or password... Check your configuration parameters"
@@ -273,9 +335,7 @@ class Neviweb130Client:
         """Get gateway id associated to the desired network."""
         # Http requests
         if self._account is None:
-            _LOGGER.error(
-                "Account ID is empty check your username and passord to log into Neviweb..."
-            )
+            _LOGGER.error("Account ID is empty check your username and passord to log into Neviweb...")
         else:
             try:
                 raw_res = requests.get(
@@ -288,9 +348,7 @@ class Neviweb130Client:
                 _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
                 _LOGGER.debug("networks: %s", networks)
                 if (
-                    self._network_name is None
-                    and self._network_name2 is None
-                    and self._network_name3 is None
+                    self._network_name is None and self._network_name2 is None and self._network_name3 is None
                 ):  # Use 1st network found, second or third if found
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
@@ -301,16 +359,12 @@ class Neviweb130Client:
                         self._gateway_id2 = networks[1]["id"]
                         self._network_name2 = networks[1]["name"]
                         self._code = networks[1]["postalCode"]
-                        _LOGGER.debug(
-                            "Selecting %s as second network", self._network_name2
-                        )
+                        _LOGGER.debug("Selecting %s as second network", self._network_name2)
                         if len(networks) > 2:
                             self._gateway_id3 = networks[2]["id"]
                             self._network_name3 = networks[2]["name"]
                             self._code = networks[2]["postalCode"]
-                            _LOGGER.debug(
-                                "Selecting %s as third network", self._network_name3
-                            )
+                            _LOGGER.debug("Selecting %s as third network", self._network_name3)
                 else:
                     for network in networks:
                         if network["name"] == self._network_name:
@@ -324,8 +378,7 @@ class Neviweb130Client:
                             )
                             continue
                         elif (network["name"] == self._network_name.capitalize()) or (
-                            network["name"]
-                            == self._network_name[0].lower() + self._network_name[1:]
+                            network["name"] == self._network_name[0].lower() + self._network_name[1:]
                         ):
                             self._gateway_id = network["id"]
                             self._occupancyMode = network["mode"]
@@ -347,10 +400,7 @@ class Neviweb130Client:
                                 self._network_name,
                                 network["name"],
                             )
-                        if (
-                            self._network_name2 is not None
-                            and self._network_name2 != ""
-                        ):
+                        if self._network_name2 is not None and self._network_name2 != "":
                             if network["name"] == self._network_name2:
                                 self._gateway_id2 = network["id"]
                                 self._code = network["postalCode"]
@@ -360,12 +410,8 @@ class Neviweb130Client:
                                     networks,
                                 )
                                 continue
-                            elif (
-                                network["name"] == self._network_name2.capitalize()
-                            ) or (
-                                network["name"]
-                                == self._network_name2[0].lower()
-                                + self._network_name2[1:]
+                            elif (network["name"] == self._network_name2.capitalize()) or (
+                                network["name"] == self._network_name2[0].lower() + self._network_name2[1:]
                             ):
                                 self._gateway_id = network["id"]
                                 self._code = network["postalCode"]
@@ -385,10 +431,7 @@ class Neviweb130Client:
                                     self._network_name2,
                                     network["name"],
                                 )
-                        if (
-                            self._network_name3 is not None
-                            and self._network_name3 != ""
-                        ):
+                        if self._network_name3 is not None and self._network_name3 != "":
                             if network["name"] == self._network_name3:
                                 self._gateway_id3 = network["id"]
                                 self._code = network["postalCode"]
@@ -398,12 +441,8 @@ class Neviweb130Client:
                                     networks,
                                 )
                                 continue
-                            elif (
-                                network["name"] == self._network_name3.capitalize()
-                            ) or (
-                                network["name"]
-                                == self._network_name3[0].lower()
-                                + self._network_name3[1:]
+                            elif (network["name"] == self._network_name3.capitalize()) or (
+                                network["name"] == self._network_name3[0].lower() + self._network_name3[1:]
                             ):
                                 self._gateway_id = network["id"]
                                 self._code = network["postalCode"]
@@ -540,10 +579,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL
-                + str(device_id)
-                + "/attribute?attributes="
-                + ",".join(attributes),
+                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=" + ",".join(attributes),
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -560,8 +596,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less"
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less" + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -586,8 +621,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less "
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less " + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -611,8 +645,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less "
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less " + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired...reconnecting...")
         return data
@@ -627,9 +660,7 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             )
-            _LOGGER.debug(
-                "Received devices alert (%s): %s", str(device_id), raw_res.json()
-            )
+            _LOGGER.debug("Received devices alert (%s): %s", str(device_id), raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
@@ -641,8 +672,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less "
-                    + "than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less " + "than 10 minutes, otherwise the session will end."
                 )
                 # raise PyNeviweb130Error("Session expired... reconnecting...")
         return data
@@ -740,9 +770,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL
-                + str(device_id)
-                + "/attribute?attributes=errorCodeSet1",
+                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=errorCodeSet1",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -846,10 +874,7 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_schedule_mode is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_schedule_mode is only for " + "TH6500WF or TH6250WF thermostats.")
 
     def set_heatcool_delta(self, device_id, level, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -857,10 +882,7 @@ class Neviweb130Client:
             data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_heatcool_min_delta is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_heatcool_min_delta is only for " + "TH6500WF or TH6250WF thermostats.")
 
     def set_fan_filter_reminder(self, device_id, month, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -870,8 +892,7 @@ class Neviweb130Client:
             self.set_device_attributes(device_id, data)
         else:
             self.notify_ha(
-                "Warning: Service set_fan_filter_reminder is only for "
-                + "TH6500WF or TH6250WF thermostats."
+                "Warning: Service set_fan_filter_reminder is only for " + "TH6500WF or TH6250WF thermostats."
             )
 
     def set_temperature_offset(self, device_id, temp, HC):
@@ -880,10 +901,7 @@ class Neviweb130Client:
             data = {ATTR_TEMP_OFFSET_HEAT: temp}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_temperature_offset is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_temperature_offset is only for " + "TH6500WF or TH6250WF thermostats.")
 
     def set_humidity_offset(self, device_id, offset, HC):
         """Set humidity setpoint offset for TH6500WF and TH6250WF."""
@@ -891,10 +909,7 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_humidity_offset is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_humidity_offset is only for " + "TH6500WF or TH6250WF thermostats.")
 
     def set_humidity_mode(self, device_id, mode, HC):
         """Set humidity setpoint mode for TH6500WF and TH6250WF."""
@@ -902,10 +917,7 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_humidity_mode is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_humidity_mode is only for " + "TH6500WF or TH6250WF thermostats.")
 
     def set_air_ex_min_time_on(self, device_id, time, HC):
         """Set minimum time the air exchanger is on per hour."""
@@ -923,10 +935,7 @@ class Neviweb130Client:
             data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_air_ex_time_on is only for "
-                + "TH6500WF or TH6250WF thermostats."
-            )
+            self.notify_ha("Warning: Service set_air_ex_time_on is only for " + "TH6500WF or TH6250WF thermostats.")
 
     def set_backlight(self, device_id, level, device):
         """Set backlight intensity when idle, on or auto."""
@@ -1385,17 +1394,9 @@ class Neviweb130Client:
         """Set input 1 or 2 on/off delay in seconds."""
         match onoff:
             case "on":
-                data = (
-                    {ATTR_INPUT_1_ON_DELAY: delay}
-                    if inputnumber == 1
-                    else {ATTR_INPUT_2_ON_DELAY: delay}
-                )
+                data = {ATTR_INPUT_1_ON_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_ON_DELAY: delay}
             case _:
-                data = (
-                    {ATTR_INPUT_1_OFF_DELAY: delay}
-                    if inputnumber == 1
-                    else {ATTR_INPUT_2_OFF_DELAY: delay}
-                )
+                data = {ATTR_INPUT_1_OFF_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_OFF_DELAY: delay}
         _LOGGER.debug("input_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1552,9 +1553,7 @@ class Neviweb130Client:
                 if "error" not in resp.json():
                     break
             except OSError:
-                raise PyNeviweb130Error(
-                    "Cannot set device %s attributes: %s", device_id, data
-                )
+                raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data)
             finally:
                 if "error" in resp.json():
                     result += 1
