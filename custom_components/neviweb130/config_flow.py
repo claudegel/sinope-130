@@ -30,6 +30,7 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import PyNeviweb130Error
+from homeassistant.exceptions import HomeAssistantError
 from .schema import HOMEKIT_MODE, IGNORE_MIWI, NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
 from .session_manager import session_manager
 
@@ -221,8 +222,9 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 info = await async_validate_input(user_input)
                 # Ok restart neviweb130 with new config options
                 await session_manager.close_session()
+                device_dict = self.hass.data[DOMAIN].get("device_dict", {})
                 event = Event("neviweb130_restart")
-                await async_shutdown(self.hass, event)
+                await async_shutdown(self.hass, device_dict, event)
 
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
