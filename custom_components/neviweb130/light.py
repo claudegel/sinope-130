@@ -209,7 +209,7 @@ async def async_setup_entry(
                 light.schedule_update_ha_state(True)
                 break
 
-    async def async_set_led_indicator_service(service):
+    def set_led_indicator_service(service):
         """Set led color and intensity for light indicator."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for light in get_entities():
@@ -219,7 +219,7 @@ async def async_setup_entry(
                     "state": service.data[ATTR_STATE],
                     "color": service.data[ATTR_COLOR],
                 }
-                await light.async_set_led_indicator(value)
+                light.async_set_led_indicator(value)
                 light.schedule_update_ha_state(True)
                 break
 
@@ -329,7 +329,10 @@ async def async_setup_entry(
     )
 
     hass.services.async_register(
-        DOMAIN, SERVICE_SET_LED_INDICATOR, async_set_led_indicator_service, schema=SET_LED_INDICATOR_SCHEMA
+        DOMAIN,
+        SERVICE_SET_LED_INDICATOR,
+        set_led_indicator_service,
+        schema=SET_LED_INDICATOR_SCHEMA,
     )
 
     hass.services.async_register(
@@ -506,7 +509,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._is_new_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._energy_stat_time = time.time() - 1500
         self._snooze: float = 0.0
-        self._activ = True
+        self._active = True
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
             name=self._name,
@@ -520,7 +523,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
-        if self._activ:
+        if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [
                 ATTR_LIGHT_WATTAGE,
@@ -579,7 +582,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             await self.async_do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
@@ -722,7 +725,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 "device_model_cfg": self._device_model_cfg,
                 "rssi": self._rssi,
                 "firmware": self._firmware,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": self._id,
             }
         )
@@ -757,76 +760,57 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
 
     async def async_set_phase_control(self, value):
         """Change phase control parameter, reverse or forward."""
-        phase = value["phase"]
-        entity = value["id"]
-        await self._client.async_set_phase(entity, phase)
-        self._phase_control = phase
+        await self._client.async_set_phase(value["id"], value["phase"])
+        self._phase_control = value["phase"]
 
     async def async_set_keypad_lock(self, value):
         """Lock, unlock or partially lock device's keypad,
         lock = locked, unlock = unlocked, partiallyLocked = partial lock."""
-        lock = value["lock"]
-        entity = value["id"]
-        await self._client.async_set_keypad_lock(entity, lock, False)
-        self._keypad = lock
+        await self._client.async_set_keypad_lock(value["id"], value["lock"], False)
+        self._keypad = value["lock"]
 
     async def async_set_timer(self, value):
         """Set device timer, 0 = off, 1 to 255 = timer length."""
-        time_val = value["time"]
-        entity = value["id"]
-        await self._client.async_set_timer(entity, time_val)
-        self._timer = time_val
+        await self._client.async_set_timer(value["id"], value["time"])
+        self._timer = value["time"]
 
     async def async_set_led_indicator(self, value):
         """Set led indicator color, base on RGB red, green, blue color (0-255) for on and off state."""
-        state = value["state"]
-        entity = value["id"]
         color = color_to_rgb(value["color"])
-        await self._client.async_set_led_indicator(entity, state, color)
-        if state == 0:
+        await self._client.async_set_led_indicator(value["id"], value["state"], color)
+        if value["state"] == 0:
             self._led_off = color
         else:
             self._led_on = color
 
     async def async_set_led_on_intensity(self, value):
         """Set led indicator on intensity from 0 to 100."""
-        intensity = value["led_on"]
-        entity = value["id"]
-        await self._client.async_set_led_on_intensity(entity, intensity)
-        self._led_on_intensity = intensity
+        await self._client.async_set_led_on_intensity(value["id"], value["led_on"])
+        self._led_on_intensity = value["led_on"]
 
     async def async_set_led_off_intensity(self, value):
         """Set led indicator off intensity from 0 to 100."""
-        intensity = value["led_off"]
-        entity = value["id"]
-        await self._client.async_set_led_off_intensity(entity, intensity)
-        self._led_off_intensity = intensity
+        await self._client.async_set_led_off_intensity(value["id"], value["led_off"])
+        self._led_off_intensity = value["led_off"]
 
     async def async_set_light_min_intensity(self, value):
         """Set dimmer light minimum intensity from 1 to 3000."""
-        intensity = value["intensity"]
-        entity = value["id"]
-        await self._client.async_set_light_min_intensity(entity, intensity)
-        self._intensity_min = intensity
+        await self._client.async_set_light_min_intensity(value["id"], value["intensity"])
+        self._intensity_min = value["intensity"]
 
     async def async_set_wattage(self, value):
         """Set light device watt load."""
-        watt = value["watt"]
-        entity = value["id"]
-        await self._client.async_set_wattage(entity, watt)
-        self._wattage = watt
+        await self._client.async_set_wattage(value["id"], value["watt"])
+        self._wattage = value["watt"]
 
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._activ = action
+        self._active = value["active"]
 
     async def async_set_key_double_up(self, value):
         """Change key double up action."""
-        double = value["double"]
-        entity = value["id"]
-        await self._client.async_set_double_up(entity, double)
-        self._double_up = double
+        await self._client.async_set_double_up(value["id"], value["double"])
+        self._double_up = value["double"]
 
     async def async_do_stat(self, start):
         """Get device energy statistic."""
@@ -835,7 +819,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             current_month = today.month
             current_day = today.day
             device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id)
-            #            _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+            # _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
                 monthly_kwh_count = 0
@@ -853,7 +837,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
             device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
-            #            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
+            # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
                 daily_kwh_count = 0
@@ -875,7 +859,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 self._today_kwh = 0
                 _LOGGER.warning("%s Got None for device_daily_stats", self._name)
             device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id)
-            #            _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
+            # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
                 hourly_kwh_count = 0
@@ -1013,7 +997,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                     + ", Sku: "
                     + self._sku
                 )
-            self._activ = False
+            self._active = False
             self._snooze = time.time()
         else:
             _LOGGER.warning(
@@ -1081,7 +1065,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._onoff = None
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
             name=self._name,
@@ -1095,7 +1079,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
-        if self._activ:
+        if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
@@ -1156,7 +1140,7 @@ class Neviweb130Dimmer(Neviweb130Light):
             await self.async_do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
@@ -1193,7 +1177,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "rssi": self._rssi,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": self._id,
             }
         )
@@ -1245,7 +1229,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._onoff = None
         self._energy_stat_time = time.time() - 1500
         self._snooze = 0
-        self._activ = True
+        self._active = True
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
             name=self._name,
@@ -1259,7 +1243,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
-        if self._activ:
+        if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [
                 ATTR_PHASE_CONTROL,
@@ -1326,7 +1310,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
             await self.async_do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
@@ -1364,7 +1348,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "rssi": self._rssi,
-                "activation": self._activ,
+                "activation": self._active,
                 "id": self._id,
             }
         )
