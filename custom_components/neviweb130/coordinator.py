@@ -1581,7 +1581,7 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
             update_interval=scan_interval,
         )
         self.client = client
-        self._devices: list = []  # list des device objects
+        self._devices: list = []  # list of devices objects
 
         _LOGGER.debug("Coordinator instance in coordinator.py: %s", self)
 
@@ -1590,8 +1590,8 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
         _LOGGER.debug("Number of devices to update : %d", len(self._devices))
         result = {}
         for dev in self._devices:
-            #            _LOGGER.debug("Thermostat attrs: %s", dir(dev))
-            #            _LOGGER.debug("Thermostat __dict__: %s", vars(dev))
+            # _LOGGER.debug("Thermostat attrs: %s", dir(dev))
+            # _LOGGER.debug("Thermostat __dict__: %s", vars(dev))
             await dev.async_update()
             device_id = str(getattr(dev, "id", None) or getattr(dev, "unique_id", None))
             if not device_id:
