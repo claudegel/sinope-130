@@ -21,9 +21,9 @@ from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .schema import BACKLIGHT_LIST, COLOR_LIST, LANGUAGE_LIST, LOCK_LIST, OCCUPANCY_LIST
 
-DEFAULT_NAME = "neviweb130 select"
-DEFAULT_NAME_2 = "neviweb130 select 2"
-DEFAULT_NAME_3 = "neviweb130 select 3"
+DEFAULT_NAME = f"{DOMAIN} select"
+DEFAULT_NAME_2 = f"{DOMAIN} select 2"
+DEFAULT_NAME_3 = f"{DOMAIN} select 3"
 
 _LOGGER = logging.getLogger(__name__)
 
