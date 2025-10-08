@@ -4,7 +4,7 @@ import json
 import pathlib
 
 # Base component constants, some loaded directly from the manifest
-_LOADER_PATH = pathlib.Path(__loader__.path)
+_LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore[name-defined]
 _MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
 with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
     data = json.load(json_file)

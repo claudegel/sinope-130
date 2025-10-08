@@ -234,7 +234,7 @@ class Neviweb130Client:
         self._network_name = network
         self._network_name2 = network2
         self._network_name3 = network3
-        self._code = None
+        self._code: str | None = None
         self._ignore_miwi = ignore_miwi
         self._gateway_id = None
         self._gateway_id2 = None
@@ -244,7 +244,7 @@ class Neviweb130Client:
         self.gateway_data3 = {}
         self._headers = None
         self._account = None
-        self._cookies = None
+        self._cookies: requests.cookies.RequestsCookieJar | None = None
         self._timeout = timeout
         self._occupancyMode = None
         self.user = None
@@ -299,8 +299,12 @@ class Neviweb130Client:
             _LOGGER.debug("Login status: %s", raw_res.json())
             raise PyNeviweb130Error("Cannot log in")
 
-        # Update session
-        self._cookies = raw_res.cookies
+        # Update cookies
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
+
         data = raw_res.json()
         _LOGGER.debug("Login response: %s", data)
         if "error" in data:
@@ -465,7 +469,10 @@ class Neviweb130Client:
             except OSError:
                 raise PyNeviweb130Error("Cannot get Neviweb's networks")
             # Update cookies
-            self._cookies.update(raw_res.cookies)
+            if self._cookies is None:
+                self._cookies = raw_res.cookies
+            else:
+                self._cookies.update(raw_res.cookies)
             # Prepare data
             self.gateway_data = raw_res.json()
 
@@ -483,7 +490,10 @@ class Neviweb130Client:
         except OSError:
             raise PyNeviweb130Error("Cannot get gateway data")
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         self.gateway_data = raw_res.json()
         _LOGGER.debug("Gateway_data: %s", self.gateway_data)
@@ -528,7 +538,7 @@ class Neviweb130Client:
                         + " miwi. If this location contain only miwi devices,"
                         + " it should be added to custom_component "
                         + "«sinope neviweb» instead. If the location contain"
-                        + " mixed miwi, zigbee and/or wifi devices, "
+                        + " mixed miwi, Zigbee and/or Wi-Fi devices, "
                         + "add parameter: ignore_miwi: True, in your "
                         + "neviweb130 configuration."
                     )
@@ -546,7 +556,7 @@ class Neviweb130Client:
                             + " miwi. If this location contain only miwi devices,"
                             + " it should be added to custom_component "
                             + "«sinope neviweb» instead. If the location contain"
-                            + " mixed miwi, zigbee and/or wifi devices, "
+                            + " mixed miwi, Zigbee and/or Wi-Fi devices, "
                             + "add parameter: ignore_miwi: True, in your "
                             + "neviweb130 configuration."
                         )
@@ -564,7 +574,7 @@ class Neviweb130Client:
                             + " miwi. If this location contain only miwi devices,"
                             + " it should be added to custom_component "
                             + "«sinope neviweb» instead. If the location contain"
-                            + " mixed miwi, zigbee and/or wifi devices, "
+                            + " mixed miwi, Zigbee and/or Wi-Fi devices, "
                             + "add parameter: ignore_miwi: True, in your "
                             + "neviweb130 configuration."
                         )
@@ -589,7 +599,10 @@ class Neviweb130Client:
         except Exception as e:
             raise PyNeviweb130Error("Cannot get device attributes", e)
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "error" in data:
@@ -665,7 +678,10 @@ class Neviweb130Client:
         except Exception as e:
             raise PyNeviweb130Error("Cannot get device alert", e)
         # Update cookies
-        # self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "error" in data:
@@ -689,7 +705,10 @@ class Neviweb130Client:
         except OSError:
             raise PyNeviweb130Error("Cannot get device monthly stats...")
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Monthly_stats data: %s", data)
@@ -712,7 +731,10 @@ class Neviweb130Client:
         except OSError:
             raise PyNeviweb130Error("Cannot get device daily stats...")
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Daily_stats data: %s", data)
@@ -735,7 +757,10 @@ class Neviweb130Client:
         except OSError:
             raise PyNeviweb130Error("Cannot get device hourly stats...")
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Hourly_stats data: %s", data)
@@ -747,7 +772,8 @@ class Neviweb130Client:
 
     def get_weather(self):
         """Get Neviweb weather for my location."""
-        # _LOGGER.debug("sent data = %s", NEVIWEB_WEATHER + self._code)
+        if self._code is None:
+            raise ValueError("self._code is None")
         try:
             raw_res = requests.get(
                 NEVIWEB_WEATHER + self._code,
@@ -758,7 +784,10 @@ class Neviweb130Client:
         except OSError:
             raise PyNeviweb130Error("Cannot get Neviweb weather and icon...")
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("weather data: %s", data)
@@ -777,7 +806,10 @@ class Neviweb130Client:
         except OSError:
             raise PyNeviweb130Error("Cannot get device error code status...")
         # Update cookies
-        self._cookies.update(raw_res.cookies)
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
         if "errorCodeSet1" in data:
@@ -812,7 +844,7 @@ class Neviweb130Client:
 
     def set_setpoint_mode(self, device_id, mode, wifi, HC):
         """Set thermostat operation mode."""
-        """Work differently for wifi and zigbee devices and TH6250xx devices."""
+        """Work differently for Wi-Fi and Zigbee devices and TH6250xx devices."""
         if wifi:
             if HC:
                 if mode == HVACMode.HEAT_COOL:
@@ -829,7 +861,7 @@ class Neviweb130Client:
 
     def set_occupancy_mode(self, device_id, mode, wifi):
         """Set thermostat preset mode."""
-        """Work differently for wifi and zigbee devices."""
+        """Work differently for Wi-Fi and Zigbee devices."""
         if wifi:
             if mode in [PRESET_AWAY, PRESET_HOME]:
                 data = {ATTR_OCCUPANCY: mode}
@@ -935,8 +967,8 @@ class Neviweb130Client:
             self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats.")
 
     def set_backlight(self, device_id, level, device):
-        """Set backlight intensity when idle, on or auto."""
-        """Work differently for wifi and zigbee devices."""
+        """Set backlight intensity when idle, on or auto.
+        Work differently for Wi-Fi and Zigbee devices."""
         if device == "wifi":
             data = {ATTR_BACKLIGHT_AUTO_DIM: level}
         else:
@@ -1004,13 +1036,13 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_early_start(self, device_id, start):
-        """Set early start on/off for wifi thermostats."""
+        """Set early start on/off for Wi-Fi thermostats."""
         data = {ATTR_EARLY_START: start}
         _LOGGER.debug("early_start.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_air_floor_mode(self, device_id, mode):
-        """Switch temperature control between floor and ambiant sensor."""
+        """Switch temperature control between floor and ambient sensor."""
         data = {ATTR_FLOOR_MODE: mode}
         _LOGGER.debug("floor_mode.data = %s", data)
         self.set_device_attributes(device_id, data)
@@ -1088,7 +1120,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_em_heat(self, device_id, heat, low, sec):
-        """Set floor, low voltage, wifi floor and low voltage wifi thermostats auxiliary heat slave/off or on/off."""
+        """Set floor, low voltage, Wi-Fi floor and low voltage Wi-Fi thermostats auxiliary heat slave/off or on/off."""
         if low == "voltage":
             data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": sec}}
         elif low == "wifi":
@@ -1099,7 +1131,8 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_floor_limit(self, device_id, level, low, wifi):
-        """Set floor setpoint limit low and high for zigbee and wifi thermostats. (0 = off)."""
+        """Set floor setpoint limit low and high for Zigbee and Wi-Fi thermostats. (0 = off)."""
+        data: dict[str, dict[str, str | int | None]]
         if level == 0:
             if wifi:
                 if low == "low":
@@ -1138,8 +1171,8 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_pump_protection(self, device_id, status, wifi):
-        """Set low voltage thermostat pump protection status."""
-        """Work differently for wifi and zigbee devices."""
+        """Set low voltage thermostat pump protection status.
+        Work differently for Wi-Fi and zigbee devices."""
         if wifi:
             data = {ATTR_PUMP_PROTEC: status}
         else:
@@ -1387,13 +1420,13 @@ class Neviweb130Client:
         _LOGGER.debug("power_supply.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_on_off_input_delay(self, device_id, delay, onoff, inputnumber):
+    def set_on_off_input_delay(self, device_id, delay, onoff, input_number):
         """Set input 1 or 2 on/off delay in seconds."""
         match onoff:
             case "on":
-                data = {ATTR_INPUT_1_ON_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_ON_DELAY: delay}
+                data = {ATTR_INPUT_1_ON_DELAY: delay} if input_number == 1 else {ATTR_INPUT_2_ON_DELAY: delay}
             case _:
-                data = {ATTR_INPUT_1_OFF_DELAY: delay} if inputnumber == 1 else {ATTR_INPUT_2_OFF_DELAY: delay}
+                data = {ATTR_INPUT_1_OFF_DELAY: delay} if input_number == 1 else {ATTR_INPUT_2_OFF_DELAY: delay}
         _LOGGER.debug("input_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1549,17 +1582,15 @@ class Neviweb130Client:
 
                 if "error" not in resp.json():
                     break
+
+                result += 1
+                _LOGGER.debug(
+                    "Service error received: %s, resending requests %s",
+                    resp.json(),
+                    result,
+                )
             except OSError:
                 raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data)
-            finally:
-                if "error" in resp.json():
-                    result += 1
-                    _LOGGER.debug(
-                        "Service error received: %s, resending requests %s",
-                        resp.json(),
-                        result,
-                    )
-                    continue
 
     def post_neviweb_status(self, location, mode):
         """Send post requests to Neviweb for global occupancy mode"""
