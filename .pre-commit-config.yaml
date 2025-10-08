@@ -46,7 +46,7 @@ repos:
       - id: mypy
         additional_dependencies:
           - homeassistant-stubs
-          - types-aiofiles
+          - types-requests
 
   - repo: local
     hooks:

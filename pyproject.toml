@@ -16,15 +16,15 @@ repository = "https://github.com/claudegel/sinope-130"
 [dependency-groups]
 dev = [
     "isal~=1.7.1",
-    "aiofiles~=24.1.0",
+    "requests~=2.32.4",
     "homeassistant~=2025.9.4",
     "pre-commit",
-    "types-aiofiles~=24.1.0",
+    "types-requests~=2.32.4",
     "homeassistant-stubs~=2025.9.4",
 ]
 ci = [
     "mypy",
-    "types-aiofiles~=24.1.0",
+    "types-requests~=2.32.4",
     "homeassistant-stubs~=2025.9.4",
 ]
 

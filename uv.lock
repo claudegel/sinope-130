@@ -35,15 +35,6 @@ wheels = [
 ]
 
 [[package]]
-name = "aiofiles"
-version = "24.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0b/03/a88171e277e8caa88a4c77808c20ebb04ba74cc4681bf1e9416c862de237/aiofiles-24.1.0.tar.gz", hash = "sha256:22a075c9e5a3810f0c2e48f3008c94d68c65d763b9b03857924c99e57355166c", size = 30247, upload-time = "2024-06-24T11:02:03.584Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/45/30bb92d442636f570cb5651bc661f52b610e2eec3f891a5dc3a4c3667db0/aiofiles-24.1.0-py3-none-any.whl", hash = "sha256:b4ec55f4195e3eb5d7abd1bf7e061763e864dd4954231fb8539a0ef8bb8260e5", size = 15896, upload-time = "2024-06-24T11:02:01.529Z" },
-]
-
-[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1307,15 +1298,15 @@ dependencies = [
 ci = [
     { name = "homeassistant-stubs" },
     { name = "mypy" },
-    { name = "types-aiofiles" },
+    { name = "types-requests" },
 ]
 dev = [
-    { name = "aiofiles" },
     { name = "homeassistant" },
     { name = "homeassistant-stubs" },
     { name = "isal" },
     { name = "pre-commit" },
-    { name = "types-aiofiles" },
+    { name = "requests" },
+    { name = "types-requests" },
 ]
 
 [package.metadata]
@@ -1325,15 +1316,15 @@ requires-dist = [{ name = "hatchling", specifier = ">=1.27.0" }]
 ci = [
     { name = "homeassistant-stubs", specifier = "~=2025.9.4" },
     { name = "mypy" },
-    { name = "types-aiofiles", specifier = "~=24.1.0" },
+    { name = "types-requests", specifier = "~=2.32.4" },
 ]
 dev = [
-    { name = "aiofiles", specifier = "~=24.1.0" },
     { name = "homeassistant", specifier = "~=2025.9.4" },
     { name = "homeassistant-stubs", specifier = "~=2025.9.4" },
     { name = "isal", specifier = "~=1.7.1" },
     { name = "pre-commit" },
-    { name = "types-aiofiles", specifier = "~=24.1.0" },
+    { name = "requests", specifier = "~=2.32.4" },
+    { name = "types-requests", specifier = "~=2.32.4" },
 ]
 
 [[package]]
@@ -1955,12 +1946,15 @@ wheels = [
 ]
 
 [[package]]
-name = "types-aiofiles"
-version = "24.1.0.20250822"
+name = "types-requests"
+version = "2.32.4.20250913"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/19/48/c64471adac9206cc844afb33ed311ac5a65d2f59df3d861e0f2d0cad7414/types_aiofiles-24.1.0.20250822.tar.gz", hash = "sha256:9ab90d8e0c307fe97a7cf09338301e3f01a163e39f3b529ace82466355c84a7b", size = 14484, upload-time = "2025-08-22T03:02:23.039Z" }
+dependencies = [
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/36/27/489922f4505975b11de2b5ad07b4fe1dca0bca9be81a703f26c5f3acfce5/types_requests-2.32.4.20250913.tar.gz", hash = "sha256:abd6d4f9ce3a9383f269775a9835a4c24e5cd6b9f647d64f88aa4613c33def5d", size = 23113, upload-time = "2025-09-13T02:40:02.309Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/8e/5e6d2215e1d8f7c2a94c6e9d0059ae8109ce0f5681956d11bb0a228cef04/types_aiofiles-24.1.0.20250822-py3-none-any.whl", hash = "sha256:0ec8f8909e1a85a5a79aed0573af7901f53120dd2a29771dd0b3ef48e12328b0", size = 14322, upload-time = "2025-08-22T03:02:21.918Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/20/9a227ea57c1285986c4cf78400d0a91615d25b24e257fd9e2969606bdfae/types_requests-2.32.4.20250913-py3-none-any.whl", hash = "sha256:78c9c1fffebbe0fa487a418e0fa5252017e9c60d1a2da394077f1780f655d7e1", size = 20658, upload-time = "2025-09-13T02:40:01.115Z" },
 ]
 
 [[package]]
