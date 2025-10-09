@@ -221,7 +221,6 @@ from .schema import (
     FAN_SPEED,
     FULL_SWING,
     FULL_SWING_OFF,
-    NOTIFY,
     SET_ACTIVATION_SCHEMA,
     SET_AIR_FLOOR_MODE_SCHEMA,
     SET_AUX_CYCLE_OUTPUT_SCHEMA,
@@ -1587,7 +1586,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             serial_number=self._identifier,
             configuration_url="https://www.sinopetech.com/support",
         )
-
 
     async def async_update(self):
         if self._active:

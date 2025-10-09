@@ -8,9 +8,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Final
 
-from homeassistant.components.button import ButtonDeviceClass, ButtonEntity, ButtonEntityDescription
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo

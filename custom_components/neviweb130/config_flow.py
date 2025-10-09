@@ -30,7 +30,6 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import PyNeviweb130Error
-from homeassistant.exceptions import HomeAssistantError
 from .schema import HOMEKIT_MODE, IGNORE_MIWI, NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
 from .session_manager import session_manager
 
