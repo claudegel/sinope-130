@@ -166,9 +166,9 @@ HA_TO_NEVIWEB_CONTROLLED = {
 }
 
 SWITCH_TYPES = {
-    "power": ["mdi:switch", SwitchDeviceClass.SWITCH],
-    "outlet": ["mdi:power-plug", SwitchDeviceClass.OUTLET],
-    "control": ["mdi:alarm", SwitchDeviceClass.SWITCH],
+    "power": ("mdi:switch", SwitchDeviceClass.SWITCH),
+    "outlet": ("mdi:power-plug", SwitchDeviceClass.OUTLET),
+    "control": ("mdi:alarm", SwitchDeviceClass.SWITCH),
 }
 
 IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152]

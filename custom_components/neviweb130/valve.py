@@ -134,8 +134,8 @@ HA_TO_NEVIWEB_DELAY = {
 }
 
 VALVE_TYPES = {
-    "flow": ["mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE],
-    "valve": ["mdi:pipe-valve", ValveDeviceClass.WATER],
+    "flow": ("mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE),
+    "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER),
 }
 
 SUPPORTED_WIFI_MODES = [
