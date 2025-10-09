@@ -1620,13 +1620,6 @@ def neviweb_to_ha(value):
     return None
 
 
-def temp_format_to_ha(value):
-    if value == "celsius":
-        return UnitOfTemperature.CELSIUS
-    else:
-        return UnitOfTemperature.FAHRENHEIT
-
-
 def lock_to_ha(lock):
     """Convert keypad lock state to better description."""
     match lock:
@@ -1700,7 +1693,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._max_temp = 30
         self._cool_min = 15
         self._cool_max = 36
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
@@ -1877,11 +1870,6 @@ class Neviweb130Thermostat(ClimateEntity):
     def name(self):
         """Return the name of the thermostat."""
         return self._name
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity, if any."""
-        return temp_format_to_ha(self._temperature_format)
 
     @property
     def temperature_unit(self) -> str:
@@ -2872,7 +2860,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._target_temp = None
         self._operation_mode = None
         self._occupancy = None
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
@@ -3333,7 +3321,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._occupancy = None
         self._min_temp = 5
         self._max_temp = 30
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
@@ -3621,7 +3609,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._display2 = None
         self._backlight = None
         self._time_format = "24h"
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._temp_display_value = None
@@ -3836,7 +3824,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._keypad = None
         self._backlight = None
         self._time_format = "24h"
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._min_temp = 5
@@ -4083,7 +4071,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._keypad = None
         self._backlight = None
         self._time_format = "24h"
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._min_temp = 5
@@ -4328,7 +4316,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._floor_max_status = "off"
         self._floor_min = None
         self._floor_min_status = "off"
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._temp_display_status = None
@@ -4632,7 +4620,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._floor_max_status = "off"
         self._floor_min = None
         self._floor_min_status = "off"
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._error_code = None
@@ -4887,7 +4875,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._wattage = 0
         self._min_temp = 5
         self._max_temp = 30
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
@@ -5168,7 +5156,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._operation_mode = None
         self._min_temp = 16
         self._max_temp = 30
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._keypad = None
@@ -5434,7 +5422,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._operation_mode = None
         self._min_temp = 5
         self._max_temp = 30
-        self._temperature_format = UnitOfTemperature.CELSIUS
+        self._temperature_format = "celsius"
         self._temperature = None
         self._weather_icon = None
         self._time_format = "24h"
