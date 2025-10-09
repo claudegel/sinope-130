@@ -8,7 +8,9 @@ import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import discovery
+from requests.cookies import RequestsCookieJar
 
 from .const import (
     ATTR_ACCESSORY_TYPE,
@@ -153,7 +155,7 @@ STAT_INTERVAL = DEFAULT_STAT_INTERVAL
 NOTIFY = DEFAULT_NOTIFY
 
 
-def setup(hass, hass_config):
+def setup(hass: HomeAssistant, hass_config):
     """Set up neviweb130."""
     _LOGGER.info(STARTUP_MESSAGE)
 
@@ -244,7 +246,7 @@ class Neviweb130Client:
         self.gateway_data3 = {}
         self._headers = None
         self._account = None
-        self._cookies: requests.cookies.RequestsCookieJar | None = None
+        self._cookies: RequestsCookieJar | None = None
         self._timeout = timeout
         self._occupancyMode = None
         self.user = None
@@ -1557,7 +1559,6 @@ class Neviweb130Client:
     def set_device_attributes(self, device_id, data):
         """Set devices attributes."""
         result = 1
-        resp = None
         while result < 4:
             try:
                 resp = requests.put(
