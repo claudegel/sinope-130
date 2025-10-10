@@ -89,7 +89,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
-    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+    _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
 
     for gateway_data, default_name in [
         (client.gateway_data, DEFAULT_NAME),
@@ -106,7 +106,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -124,9 +124,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                     if desc.key == attribute:
                         entities.append(
                             Neviweb130DeviceAttributeSelect(
-                                hass=hass,
                                 client=client,
-                                scan_interval=data["scan_interval"],
                                 device=device_info,
                                 attribute=attribute,
                                 attr_info={
@@ -135,6 +133,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                                     "manufacturer": device_entry.manufacturer,
                                     "model": device_entry.model,
                                 },
+                                coordinator=coordinator,
                                 entity_description=desc,
                             )
                         )
@@ -185,16 +184,15 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
 
     def __init__(
         self,
-        hass: HomeAssistant,
         client: Neviweb130Client,
-        scan_interval: int,
         device: dict,
         attribute: str,
         attr_info: DeviceInfo,
+        coordinator,
         entity_description: Neviweb130SelectEntityDescription,
     ):
         """Initialize the select entity."""
-        super().__init__(Neviweb130Coordinator(hass, client, scan_interval))
+        super().__init__(coordinator)
         self._client = client
         self._device = device
         self._id = str(device.get("id"))
@@ -232,12 +230,10 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         return device_obj.get("is_HC", False) if device_obj else False
 
     @property
-    async def async_current_option(self):
+    def current_option(self):
         """Return the current selected option."""
         if self.coordinator.data is None:
-            await self.coordinator.async_config_entry_first_refresh()
-        if self.coordinator.data is None:
-            raise TypeError("self.coordinator.data is None")
+            return None
         device_obj = self.coordinator.data.get(self._id)
         if device_obj and self._attribute in device_obj:
             return device_obj[self._attribute]
