@@ -224,8 +224,8 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 info = await async_validate_input(user_input)
                 # Ok restart neviweb130 with new config options
                 await session_manager.close_session()
-                device_dict = self.hass.data[DOMAIN].get("device_dict", {})
-                event = Event("neviweb130_restart")
+                self.hass.data[DOMAIN].get("device_dict", {})
+                Event("neviweb130_restart")
                 await async_shutdown(self.hass)
 
             except InvalidUserEmail:
