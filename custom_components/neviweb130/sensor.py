@@ -479,7 +479,7 @@ async def async_setup_platform(
         for sensor in entities:
             if sensor.entity_id == entity_id:
                 if not isinstance(sensor, Neviweb130GatewaySensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130GatewaySensor")
                 value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
                 sensor.set_neviweb_status(value)
                 sensor.schedule_update_ha_state(True)

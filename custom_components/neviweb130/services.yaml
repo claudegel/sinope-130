@@ -144,7 +144,7 @@ set_backlight:
       description: Name(s) of neviweb130 device to set the backlight intensity.
       example: "climate.neviweb130_climate_office"
     type:
-      description: «wifi» for wifi devices or «zigbee» for zigbee devices
+      description: «wifi» for Wi-Fi devices or «zigbee» for Zigbee devices
       example: "wifi"
     backlightAdaptive:
       description: «auto», «on» or «bedroom». (last one is only for G2 and Wi-Fi thermostats)
