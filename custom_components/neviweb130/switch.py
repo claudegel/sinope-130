@@ -1232,7 +1232,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                     self._total_kwh_count += round(self._hour_kwh, 3)
                     save_data(self._id, self._device_dict, self._total_kwh_count, self._marker)
                     self._mark = self._marker
-            _LOGGER.debug("Device dict updated: %s", device_dict)
+            _LOGGER.debug("Device dict updated: %s", self._device_dict)
             self.async_write_ha_state()
             self._energy_stat_time = time.time()
         if self._energy_stat_time == 0:
