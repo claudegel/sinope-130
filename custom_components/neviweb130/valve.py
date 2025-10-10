@@ -90,7 +90,7 @@ from .const import (
     SERVICE_SET_VALVE_TEMP_ALERT,
     STATE_VALVE_STATUS,
 )
-from .devices import device_dict, save_devices
+from .devices import save_devices
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
@@ -173,6 +173,7 @@ async def async_setup_entry(
     # data["notify"]
 
     data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
+    data["device_dict"] = hass.data[DOMAIN]["device_dict"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -474,7 +475,7 @@ def model_to_HA(value):
         return "No flow meter"
 
 
-def retrieve_data(id, data):
+def retrieve_data(id, device_dict, data):
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
@@ -490,7 +491,7 @@ def retrieve_data(id, data):
             return None
 
 
-def save_data(id, data, mark):
+def save_data(id, device_dict, data, mark):
     """Save stat data for one device in the device_dict."""
     entry = device_dict.get(id)
     if entry is None:
@@ -503,14 +504,13 @@ def save_data(id, data, mark):
     entry[1] = data
     entry[2] = mark
     _LOGGER.debug(f"Device {id} data updated: {entry}")
-    # Optionally trigger save_devices here
 
 
-async def async_add_data(conf_dir, id, data, mark):
+async def async_add_data(conf_dir, device_dict, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
-        save_data(id, data, mark)
+        save_data(id, device_dict, data, mark)
         return
     device_dict[id] = [id, data, mark]
     await save_devices(conf_dir, device_dict)  # Persist changes
@@ -524,6 +524,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         """Initialize."""
         super().__init__(coordinator)
         self._conf_dir = data["conf_dir"]
+        self._device_dict = data["device_dict"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -971,7 +972,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 else:
                     if self._marker != self._mark:
                         self._total_kwh_count += round(self._hour_kwh, 3)
-                        save_data(self._id, self._total_kwh_count, self._marker)
+                        save_data(self._id, self._device_dict, self._total_kwh_count, self._marker)
                         self._mark = self._marker
                 _LOGGER.debug("Device dict updated: %s", device_dict)
                 self.async_write_ha_state()
@@ -1110,7 +1111,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1118,7 +1119,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._reports_position = False
         self._rssi = None
@@ -1351,7 +1352,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1359,7 +1360,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._reports_position = False
         self._valve_status = None
@@ -1568,7 +1569,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1576,7 +1577,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._reports_position = False
         self._valve_status = None
