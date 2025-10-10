@@ -216,7 +216,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_TIME_FORMAT,
 )
-from .devices import device_dict, save_devices
+from .devices import save_devices
 from .schema import (
     FAN_SPEED,
     FULL_SWING,
@@ -472,6 +472,7 @@ async def async_setup_entry(
     # data["notify"]
 
     data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
+    data["device_dict"] = hass.data[DOMAIN]["device_dict"]
 
     #    _LOGGER.debug("data climate = %s", hass.data[DOMAIN][entry.entry_id])
     #    _LOGGER.debug("Network data = %s", data['neviweb130_client'])
@@ -1415,7 +1416,7 @@ def extract_capability(cap):
     return sorted(value)
 
 
-def retrieve_data(id, data):
+def retrieve_data(id, device_dict, data):
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
@@ -1433,7 +1434,7 @@ def retrieve_data(id, data):
             return None
 
 
-def save_data(id, data, mark):
+def save_data(id, device_dict, data, mark):
     """Save stat data for one device in the device_dict."""
     entry = device_dict.get(id)
     if entry is None:
@@ -1446,14 +1447,13 @@ def save_data(id, data, mark):
     entry[1] = data
     entry[2] = mark
     _LOGGER.debug(f"Device {id} data updated: {entry}")
-    # Optionally trigger save_devices here
 
 
-async def async_add_data(conf_dir, id, data, mark):
+async def async_add_data(conf_dir, device_dict, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
-        save_data(id, data, mark)
+        save_data(id, device_dict, data, mark)
         return
     device_dict[id] = [id, data, mark]
     await save_devices(conf_dir, device_dict)  # Persist changes
@@ -1472,6 +1472,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Initialize."""
         super().__init__(coordinator)
         self._conf_dir = data["conf_dir"]
+        self._device_dict = data["device_dict"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -1486,7 +1487,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1494,7 +1495,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -2512,6 +2513,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 )
                 await async_add_data(
                     self._conf_dir,
+                    self._device_dict,
                     self._id,
                     self._total_kwh_count,
                     self._marker,
@@ -2520,7 +2522,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             else:
                 if self._marker != self._mark:
                     self._total_kwh_count += round(self._hour_kwh, 3)
-                    save_data(self._id, self._total_kwh_count, self._marker)
+                    save_data(self._id, self._device_dict, self._total_kwh_count, self._marker)
                     self._mark = self._marker
             _LOGGER.debug("Device dict updated: %s", device_dict)
             self.async_write_ha_state()
@@ -2701,7 +2703,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -2709,7 +2711,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -2901,7 +2903,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -2909,7 +2911,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3150,7 +3152,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3158,7 +3160,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3405,7 +3407,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3413,7 +3415,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3600,7 +3602,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3608,7 +3610,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -3829,7 +3831,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -3837,7 +3839,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4046,7 +4048,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4054,7 +4056,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4322,7 +4324,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4330,7 +4332,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
@@ -4581,7 +4583,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -4589,7 +4591,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._drstatus_active = "off"
         self._drstatus_optout = "off"
         self._drstatus_setpoint = "off"
