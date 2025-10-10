@@ -947,7 +947,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
 
     # TODO: state marked @final in SensorEntity, we should find an alternative
     @property
-    def my_state(self) -> Any:
+    def state(self) -> Any:
         """Return the state of the sensor."""
         return self._leak_status
 
@@ -1448,7 +1448,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     # TODO: state marked @final in SensorEntity, we should find an alternative
     @property
-    def my_state(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state of the tank sensor."""
         return self._tank_percent
 
@@ -1552,7 +1552,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     # TODO: state marked @final in HomeAssistant, we should find an alternative
     @property
-    def my_state(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state of the gateway."""
         return self._gateway_status
 
