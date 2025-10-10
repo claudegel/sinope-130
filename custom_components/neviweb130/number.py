@@ -374,7 +374,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         return {"device_id": self._attr_unique_id}
 
     # TODO: marked @final in HomeAssistant, we should find an alternative
-    async def my_async_set_value(self, value: float) -> None:
+    async def async_set_value(self, value: float) -> None:
         """Change the selected number value."""
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
 
