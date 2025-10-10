@@ -58,7 +58,7 @@ from .const import (
     SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
 )
-from .devices import device_dict, save_devices
+from .devices import save_devices
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_KEY_DOUBLE_UP_SCHEMA,
@@ -109,11 +109,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up the neviweb130 light."""
     data = hass.data[DOMAIN][entry.entry_id]
-    data["scan_interval"]
-    data["stat_interval"]
-    data["notify"]
+    # data["scan_interval"]
+    # data["stat_interval"]
+    # data["notify"]
 
     data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
+    data["device_dict"] = hass.data[DOMAIN]["device_dict"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -413,7 +414,7 @@ def lock_to_ha(lock):
     return None
 
 
-def retrieve_data(id, data):
+def retrieve_data(id, device_dict, data):
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
@@ -429,7 +430,7 @@ def retrieve_data(id, data):
             return None
 
 
-def save_data(id, data, mark):
+def save_data(id, device_dict, data, mark):
     """Save stat data for one device in the device_dict."""
     entry = device_dict.get(id)
     if entry is None:
@@ -442,14 +443,13 @@ def save_data(id, data, mark):
     entry[1] = data
     entry[2] = mark
     _LOGGER.debug(f"Device {id} data updated: {entry}")
-    # Optionally trigger save_devices here
 
 
-async def async_add_data(conf_dir, id, data, mark):
+async def async_add_data(conf_dir, device_dict, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
-        save_data(id, data, mark)
+        save_data(id, device_dict, data, mark)
         return
     device_dict[id] = [id, data, mark]
     await save_devices(conf_dir, device_dict)  # Persist changes
@@ -463,6 +463,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         """Initialize."""
         super().__init__(coordinator)
         self._conf_dir = data["conf_dir"]
+        self._device_dict = data["device_dict"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -475,7 +476,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -483,7 +484,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._brightness_pct = 0
         self._keypad = None
         self._timer = 0
@@ -895,7 +896,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             else:
                 if self._marker != self._mark:
                     self._total_kwh_count += round(self._hour_kwh, 3)
-                    save_data(self._id, self._total_kwh_count, self._marker)
+                    save_data(self._id, self._device_dict, self._total_kwh_count, self._marker)
                     self._mark = self._marker
             _LOGGER.debug("Device dict updated: %s", device_dict)
             self._energy_stat_time = time.time()
@@ -1040,7 +1041,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1048,7 +1049,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._brightness_pct = 0
         self._keypad = None
         self._timer = 0
@@ -1202,7 +1203,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1210,7 +1211,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._brightness_pct = 0
         self._keypad = None
         self._timer = 0
