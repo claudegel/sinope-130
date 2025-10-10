@@ -121,7 +121,7 @@ from .const import (
     SWITCH_MODEL,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
-from .devices import device_dict, save_devices
+from .devices import save_devices
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_CONTROL_ONOFF_SCHEMA,
@@ -370,6 +370,7 @@ async def async_setup_entry(
     # data["notify"]
 
     data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
+    data["device_dict"] = hass.data[DOMAIN]["device_dict"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -745,7 +746,7 @@ def remaining_time(time_val):
     return time_val
 
 
-def retrieve_data(id, data):
+def retrieve_data(id, device_dict, data):
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
@@ -761,16 +762,26 @@ def retrieve_data(id, data):
             return None
 
 
-def save_data(id, data, mark):
+def save_data(id, device_dict, data, mark):
     """Save stat data for one device in the device_dict."""
-    device_dict[id][1] = data
-    device_dict[id][2] = mark
+    entry = device_dict.get(id)
+    if entry is None:
+        _LOGGER.warning(f"Device id {id} not found in device_dict!")
+        return
+    if not isinstance(entry, list) or len(entry) < 3:
+        _LOGGER.warning(f"Device entry for {id} is not a valid list: {entry}")
+        return
+    _LOGGER.debug(f"Device {id} data before update: {entry}")
+    entry[1] = data
+    entry[2] = mark
+    _LOGGER.debug(f"Device {id} data updated: {entry}")
 
 
-async def async_add_data(conf_dir, id, data, mark):
+async def async_add_data(conf_dir, device_dict, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
+        save_data(id, device_dict, data, mark)
         return
     device_dict[id] = [id, data, mark]
     await save_devices(conf_dir, device_dict)  # Persist changes
@@ -784,6 +795,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         """Initialize."""
         super().__init__(coordinator)
         self._conf_dir = data["conf_dir"]
+        self._device_dict = data["device_dict"]
         self._device = device_info
         self._name = name
         self._sku = sku
@@ -797,7 +809,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
         self._device_type = device_type
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -805,7 +817,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._current_power_w = 0
         self._onoff = None
         self._onoff2 = None
@@ -1218,7 +1230,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             else:
                 if self._marker != self._mark:
                     self._total_kwh_count += round(self._hour_kwh, 3)
-                    save_data(self._id, self._total_kwh_count, self._marker)
+                    save_data(self._id, self._device_dict, self._total_kwh_count, self._marker)
                     self._mark = self._marker
             _LOGGER.debug("Device dict updated: %s", device_dict)
             self.async_write_ha_state()
@@ -1355,7 +1367,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
         self._current_power_w = 0
         self._wattage = 0
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1363,7 +1375,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._timer = None
         self._keypad = None
@@ -1494,7 +1506,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 
         self._current_power_w = 0
         self._wattage = 0
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1502,7 +1514,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._timer = None
         self._keypad = None
@@ -1631,7 +1643,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1639,7 +1651,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._current_power_w = 0
         self._wattage = 0
@@ -1821,7 +1833,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
 
-        self._total_kwh_count = retrieve_data(self._id, 1)
+        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
         self._monthly_kwh_count = 0
         self._daily_kwh_count = 0
         self._hourly_kwh_count = 0
@@ -1829,7 +1841,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._today_kwh = 0
         self._month_kwh = 0
         self._marker = None
-        self._mark = retrieve_data(self._id, 2)
+        self._mark = retrieve_data(self._id, self._device_dict, 2)
         self._onoff = None
         self._wattage = 0
         self._current_power_w = 0
