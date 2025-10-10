@@ -72,25 +72,26 @@ async def async_test_connect(user: str | None, passwd: str | None) -> None:
         "interface": "neviweb",
         "stayConnected": 0,
     }
-    with await session_manager.create_session() as session:
-        timeout = aiohttp.ClientTimeout(total=30)
-        _LOGGER.debug("Using timeout: %s", timeout.total)
-        if session is None:
-            raise TypeError("session is None")
+    session = await session_manager.create_session()
+    timeout = aiohttp.ClientTimeout(total=30)
+    _LOGGER.debug("Using timeout: %s", timeout.total)
 
-        try:
-            async with session.post(
-                LOGIN_URL,
-                json=data,
-                cookies=None,
-                allow_redirects=False,
-                timeout=timeout,
-            ) as response:
-                _LOGGER.debug("Validate login status: %s", response.status)
-                if response.status != 200:
-                    raise CannotConnect("Cannot log in to Neviweb")
-        except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot submit test login form... Check your network or firewall.") from e
+    if session is None:
+        raise TypeError("session is None")
+
+    try:
+        async with session.post(
+            LOGIN_URL,
+            json=data,
+            cookies=None,
+            allow_redirects=False,
+            timeout=timeout,
+        ) as response:
+            _LOGGER.debug("Validate login status: %s", response.status)
+            if response.status != 200:
+                raise CannotConnect("Cannot log in to Neviweb")
+    except aiohttp.ClientError as e:
+        raise PyNeviweb130Error("Cannot submit test login form... Check your network or firewall.") from e
 
 
 async def async_validate_input(data: dict[str, Any]) -> dict[str, Any]:
@@ -196,7 +197,9 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
 
             self.data = user_input
-
+            result = await self.async_set_unique_id(user_input[CONF_USERNAME].strip().lower())
+            _LOGGER.debug("Configure entry unique_id: %s", result)
+            self._abort_if_unique_id_configured(reason="already_configured_for_this_user")
             return cast(ConfigFlowResult, self.async_create_entry(title="Sinope Neviweb130", data=self.data))
 
         return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
@@ -223,7 +226,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 await session_manager.close_session()
                 device_dict = self.hass.data[DOMAIN].get("device_dict", {})
                 event = Event("neviweb130_restart")
-                await async_shutdown(self.hass, device_dict, event)
+                await async_shutdown(self.hass)
 
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
@@ -245,7 +248,10 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_SCAN_INTERVAL] = info[CONF_SCAN_INTERVAL]
                 user_input[CONF_STAT_INTERVAL] = info[CONF_STAT_INTERVAL]
                 user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
-            await self.async_set_unique_id(CONF_USERNAME)
+
+            await self.async_set_unique_id(reconfigure_entry.unique_id)
+            _LOGGER.debug("Reconfigure entry unique_id: %s", reconfigure_entry.unique_id)
+            _LOGGER.debug("User input username: %s", user_input.get(CONF_USERNAME))
             self._abort_if_unique_id_mismatch()
 
             if user_input:
@@ -264,25 +270,28 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_PASSWORD,
                     default=reconfigure_entry.data[CONF_PASSWORD],
                 ): cv.string,
-                vol.Optional(CONF_NETWORK, default=reconfigure_entry.data[CONF_NETWORK]): cv.string,
+                vol.Optional(
+                    CONF_NETWORK,
+                    default=reconfigure_entry.data.get(CONF_NETWORK, "_"),
+                ): cv.string,
                 vol.Optional(
                     CONF_NETWORK2,
-                    default=reconfigure_entry.data[CONF_NETWORK2],
+                    default=reconfigure_entry.data.get(CONF_NETWORK2, "_"),
                 ): cv.string,
                 vol.Optional(
                     CONF_NETWORK3,
-                    default=reconfigure_entry.data[CONF_NETWORK3],
+                    default=reconfigure_entry.data.get(CONF_NETWORK2, "_"),
                 ): cv.string,
                 vol.Optional(CONF_SCAN_INTERVAL, default=reconfigure_entry.data[CONF_SCAN_INTERVAL]): vol.All(
                     vol.Coerce(int), vol.Range(min=300, max=600)
                 ),
                 vol.Optional(
                     CONF_HOMEKIT_MODE,
-                    default=reconfigure_entry.data[CONF_HOMEKIT_MODE],
+                    default=reconfigure_entry.data.get(CONF_HOMEKIT_MODE, False),
                 ): cv.boolean,
                 vol.Optional(
                     CONF_IGNORE_MIWI,
-                    default=reconfigure_entry.data[CONF_IGNORE_MIWI],
+                    default=reconfigure_entry.data.get(CONF_IGNORE_MIWI, False),
                 ): cv.boolean,
                 vol.Optional(
                     CONF_STAT_INTERVAL,
