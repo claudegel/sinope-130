@@ -36,7 +36,8 @@
       }
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
+      "already_configured_for_this_user": "A configuration already exist for this Neviweb user."
     },
     "error": {
       "cannot_connect": "Test connection to Neviweb failed, check user and password",
