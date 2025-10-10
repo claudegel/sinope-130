@@ -171,7 +171,6 @@ async def async_setup_platform(
     def set_light_keypad_lock_service(service):
         """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
@@ -182,7 +181,6 @@ async def async_setup_platform(
     def set_light_timer_service(service):
         """Set timer for light device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {"id": light.unique_id, "time": service.data[ATTR_TIMER]}
@@ -193,7 +191,6 @@ async def async_setup_platform(
     def set_led_indicator_service(service):
         """Set led color and intensity for light indicator."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -210,7 +207,6 @@ async def async_setup_platform(
     def set_led_on_intensity_service(service):
         """Set led on intensity for light indicator."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -224,7 +220,6 @@ async def async_setup_platform(
     def set_led_off_intensity_service(service):
         """Set led off intensity for light indicator."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -238,7 +233,6 @@ async def async_setup_platform(
     def set_light_min_intensity_service(service):
         """Set dimmer light minimum intensity."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -252,7 +246,6 @@ async def async_setup_platform(
     def set_wattage_service(service):
         """Set watt load for light device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -266,7 +259,6 @@ async def async_setup_platform(
     def set_phase_control_service(service):
         """Change phase control mode for dimmer device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -280,7 +272,6 @@ async def async_setup_platform(
     def set_activation_service(service):
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for switch in entities:
             if switch.entity_id == entity_id:
                 value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
@@ -291,7 +282,6 @@ async def async_setup_platform(
     def set_key_double_up_service(service):
         """Change key double up action for dimmer device."""
         entity_id = service.data[ATTR_ENTITY_ID]
-        value = {}
         for light in entities:
             if light.entity_id == entity_id:
                 value = {
@@ -398,6 +388,7 @@ def lock_to_ha(lock):
             return "Tamper protection"
         case "partialLock":
             return "Tamper protection"
+    return None
 
 
 class Neviweb130Light(LightEntity):
@@ -425,12 +416,17 @@ class Neviweb130Light(LightEntity):
         self._keypad = "Unlocked"
         self._timer = 0
         self._led_on = "0,0,0,0"
+        self._led_on_intensity = None
         self._led_off = "0,0,0,0"
+        self._led_off_intensity = None
         self._wattage = 0
         self._wattage_status = None
         self._error_code = None
         self._rssi = None
         self._onoff = None
+        self._intensity_min = 600
+        self._phase_control = None
+        self._double_up = None
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
         self._is_dimmable = (
             device_info["signature"]["model"] in DEVICE_MODEL_DIMMER
@@ -438,7 +434,7 @@ class Neviweb130Light(LightEntity):
         )
         self._is_new_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._energy_stat_time = time.time() - 1500
-        self._snooze = 0
+        self._snooze = 0.0
         self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
@@ -571,7 +567,7 @@ class Neviweb130Light(LightEntity):
         """Return true if device is on."""
         return self._onoff != MODE_OFF
 
-    # For the turn_on and turn_off functions, we would normally check if the
+    # For the turn_on and turn_off functions, we would normally check if
     # the requested state is different from the actual state to issue the
     # command. But since we update the state every 6 minutes, there is good
     # chance that the current stored state doesn't match with real device
@@ -584,7 +580,7 @@ class Neviweb130Light(LightEntity):
                 self._brightness_pct = 5
             self._client.set_light_onoff(self._id, "on", self._brightness_pct)
         if ATTR_BRIGHTNESS in kwargs and self.brightness != kwargs[ATTR_BRIGHTNESS]:
-            brightness_pct = brightness_to_percentage(round(kwargs.get(ATTR_BRIGHTNESS)))
+            brightness_pct = brightness_to_percentage(round(kwargs[ATTR_BRIGHTNESS]))
             self._client.set_brightness(self._id, brightness_pct)
             self._brightness_pct = brightness_pct
         self._onoff = "on"
@@ -857,38 +853,7 @@ class Neviweb130Dimmer(Neviweb130Light):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data.neviweb130_client
-        self._id = device_info["id"]
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._total_kwh_count = 0
-        self._monthly_kwh_count = 0
-        self._daily_kwh_count = 0
-        self._hourly_kwh_count = 0
-        self._hour_kwh = 0
-        self._today_kwh = 0
-        self._month_kwh = 0
-        self._marker = None
-        self._mark = None
-        self._brightness_pct = 0
-        self._keypad = "Unlocked"
-        self._timer = 0
-        self._led_on = "0,0,0,0"
-        self._led_off = "0,0,0,0"
-        self._intensity_min = 600
-        self._wattage = 0
-        self._wattage_status = None
-        self._error_code = None
-        self._rssi = None
-        self._is_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_DIMMER
-        self._onoff = None
-        self._energy_stat_time = time.time() - 1500
-        self._snooze = 0
-        self._active = True
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        super().__init__(data, device_info, name, sku, firmware)
 
     def update(self):
         if self._active:
@@ -993,40 +958,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
-        self._name = name
-        self._sku = sku
-        self._firmware = firmware
-        self._client = data.neviweb130_client
-        self._id = device_info["id"]
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._total_kwh_count = 0
-        self._monthly_kwh_count = 0
-        self._daily_kwh_count = 0
-        self._hourly_kwh_count = 0
-        self._hour_kwh = 0
-        self._today_kwh = 0
-        self._month_kwh = 0
-        self._marker = None
-        self._mark = None
-        self._brightness_pct = 0
-        self._keypad = "Unlocked"
-        self._timer = 0
-        self._led_on = "0,0,0,0"
-        self._led_off = "0,0,0,0"
-        self._phase_control = None
-        self._intensity_min = 600
-        self._wattage = 0
-        self._double_up = None
-        self._error_code = None
-        self._rssi = None
-        self._is_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
-        self._is_new_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
-        self._onoff = None
-        self._energy_stat_time = time.time() - 1500
-        self._snooze = 0
-        self._active = True
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        super().__init__(data, device_info, name, sku, firmware)
 
     def update(self):
         if self._active:
