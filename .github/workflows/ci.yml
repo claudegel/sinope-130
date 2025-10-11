@@ -11,10 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install build dependencies and isal system library
+
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y nasm libisal-dev python3-dev python3-pip python3-setuptools python3-wheel build-essential
-      - name: Install Python isal package
-        run: pip install isal
-      # Add your build/test steps here
+          which nasm
+          nasm -v
+          python3 --version
+          pip --version
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel
+          pip install isal
