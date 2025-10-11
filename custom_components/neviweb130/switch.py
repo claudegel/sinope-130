@@ -1259,10 +1259,10 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._error_code = None
         self._rssi = None
         self._wattage = 0
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
@@ -1362,10 +1362,10 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._error_code = None
         self._wattage = 0
         self._wifirssi = None
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
@@ -1465,6 +1465,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._cold_load_status = None
         self._consumption = None
         self._consumption_time = None
@@ -1478,7 +1479,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._water_temp_time = None
         self._watt_time_on = None
         self._wattage = 0
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
@@ -1624,6 +1624,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._away_action = None
         self._away_payload = None
         self._cold_load_status = None
@@ -1645,7 +1646,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_temp_protect = None
         self._water_temp_time = None
         self._wattage = 0
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
@@ -1810,17 +1810,17 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
-        self._input_status = None
-        self._input2_status = None
-        self._humidity = None
-        self._ext_temp = None
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._batt_info = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
-        self._rssi = None
-        self._low_temp_status = None
         self._battery_status = None
-        super().__init__(data, device_info, name, sku, firmware, device_type)
+        self._ext_temp = None
+        self._humidity = None
+        self._input2_status = None
+        self._input_status = None
+        self._low_temp_status = None
+        self._rssi = None
 
     def update(self):
         if self._active:

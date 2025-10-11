@@ -851,10 +851,6 @@ class Neviweb130Light(LightEntity):
 class Neviweb130Dimmer(Neviweb130Light):
     """Implementation of a neviweb dimmer, DM2500ZB, DM2500ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
-        """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
-
     def update(self):
         if self._active:
             """Get the latest data from neviweb and update the state."""
@@ -955,10 +951,6 @@ class Neviweb130Dimmer(Neviweb130Light):
 
 class Neviweb130NewDimmer(Neviweb130Light):
     """Implementation of a neviweb new dimmer DM2550ZB, DM2550ZB-G2."""
-
-    def __init__(self, data, device_info, name, sku, firmware):
-        """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
 
     def update(self):
         if self._active:

@@ -965,10 +965,6 @@ class Neviweb130Sensor(Entity):
 class Neviweb130ConnectedSensor(Neviweb130Sensor):
     """Implementation of a Neviweb sensor connected to Sedna valve."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware):
-        """Initialize."""
-        super().__init__(data, device_info, name, device_type, sku, firmware)
-
     def update(self):
         if self._active:
             if self._is_leak:
@@ -1086,8 +1082,8 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
-        self._refuel = False
         super().__init__(data, device_info, name, device_type, sku, firmware)
+        self._refuel = False
 
     def update(self):
         """Update device."""
@@ -1273,10 +1269,10 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, location):
         """Initialize."""
+        super().__init__(data, device_info, name, device_type, sku, firmware)
         self._location = location
         self._gateway_status = None
         self._occupancyMode = None
-        super().__init__(data, device_info, name, device_type, sku, firmware)
 
     def update(self):
         """Update device."""

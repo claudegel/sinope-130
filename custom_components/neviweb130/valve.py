@@ -1074,6 +1074,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._away_action = None
         self._batt_action_low = None
         self._flowmeter_divisor = 1
@@ -1100,7 +1101,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._valve_info_id = None
         self._valve_info_status = None
         self._water_leak_status = None
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
@@ -1278,6 +1278,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._error_code = 0
         self._flowmeter_divisor = 1
         self._flowmeter_enabled = None
@@ -1286,7 +1287,6 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._stm8Error_motorLimit = None
         self._stm8Error_motorPosition = None
         self._water_leak_status = None
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
@@ -1450,6 +1450,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, device_type)
         self._batt_action_low = None
         self._flow_alarm_1 = None
         self._flow_alarm_2 = None
@@ -1464,7 +1465,6 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         self._valve_info_id = None
         self._valve_info_status = None
         self._water_leak_status = None
-        super().__init__(data, device_info, name, sku, firmware, device_type)
 
     def update(self):
         if self._active:
