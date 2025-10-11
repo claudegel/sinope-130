@@ -1768,6 +1768,7 @@ class Neviweb130Thermostat(ClimateEntity):
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
+            or device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
         )
         self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW

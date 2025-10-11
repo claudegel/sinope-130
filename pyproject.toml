@@ -6,9 +6,6 @@ authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
 requires-python = ">=3.13.2"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-dependencies = [
-    "hatchling>=1.27.0",
-]
 
 [project.urls]
 repository = "https://github.com/claudegel/sinope-130"
@@ -16,8 +13,6 @@ repository = "https://github.com/claudegel/sinope-130"
 [dependency-groups]
 dev = [
     "isal~=1.7.1",
-    "requests~=2.32.4",
-    "homeassistant~=2025.9.4",
     "pre-commit",
     "types-requests~=2.32.4",
     "homeassistant-stubs~=2025.9.4",
