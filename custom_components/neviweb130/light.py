@@ -396,6 +396,7 @@ class Neviweb130Light(LightEntity):
 
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -403,40 +404,39 @@ class Neviweb130Light(LightEntity):
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._total_kwh_count = 0
-        self._monthly_kwh_count = 0
-        self._daily_kwh_count = 0
-        self._hourly_kwh_count = 0
-        self._hour_kwh = 0
-        self._today_kwh = 0
-        self._month_kwh = 0
-        self._marker = None
-        self._mark = None
-        self._brightness_pct = 0
-        self._keypad = "Unlocked"
-        self._timer = 0
-        self._led_on = "0,0,0,0"
-        self._led_on_intensity = None
-        self._led_off = "0,0,0,0"
-        self._led_off_intensity = None
-        self._wattage = 0
-        self._wattage_status = None
-        self._error_code = None
-        self._rssi = None
-        self._onoff = None
-        self._intensity_min = 600
-        self._phase_control = None
-        self._double_up = None
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
         self._is_dimmable = (
             device_info["signature"]["model"] in DEVICE_MODEL_DIMMER
             or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         )
         self._is_new_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
-        self._energy_stat_time = time.time() - 1500
-        self._snooze = 0.0
         self._active = True
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        self._brightness_pct = 0
+        self._daily_kwh_count = 0
+        self._double_up = None
+        self._energy_stat_time = time.time() - 1500
+        self._error_code = None
+        self._hour_kwh = 0
+        self._hourly_kwh_count = 0
+        self._intensity_min = 600
+        self._keypad = "Unlocked"
+        self._led_off = "0,0,0,0"
+        self._led_off_intensity = None
+        self._led_on = "0,0,0,0"
+        self._led_on_intensity = None
+        self._mark = None
+        self._marker = None
+        self._month_kwh = 0
+        self._monthly_kwh_count = 0
+        self._onoff = None
+        self._phase_control = None
+        self._rssi = None
+        self._snooze = 0.0
+        self._timer = 0
+        self._today_kwh = 0
+        self._total_kwh_count = 0
+        self._wattage = 0
+        self._wattage_status = None
 
     def update(self):
         if self._active:

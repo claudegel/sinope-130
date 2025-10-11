@@ -603,6 +603,7 @@ class Neviweb130Sensor(Entity):
 
     def __init__(self, data, device_info, name, device_type, sku, firmware):
         """Initialize."""
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -611,28 +612,6 @@ class Neviweb130Sensor(Entity):
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
-        self._cur_temp = None
-        self._battery_voltage = None
-        self._battery_status = None
-        self._temp_status = None
-        self._battery_type = "alkaline"
-        self._leak_status = None
-        self._leak_alert = None
-        self._temp_alert = None
-        self._battery_alert = None
-        self._fuel_alert = None
-        self._fuel_percent_alert = None
-        self._closure_action = None
-        self._rssi = None
-        self._angle = None
-        self._sampling = None
-        self._tank_type = None
-        self._tank_height = None
-        self._tank_percent = None
-        self._gauge_type = None
-        self._batt_percent_normal = None
-        self._batt_status_normal = None
-        self._error_code = None
         self._is_leak = (
             device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
             or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
@@ -642,9 +621,30 @@ class Neviweb130Sensor(Entity):
         self._is_new_leak = device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
         self._is_monitor = device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
-        self._snooze = 0.0
         self._active = True
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        self._angle = None
+        self._batt_percent_normal = None
+        self._batt_status_normal = None
+        self._battery_alert = None
+        self._battery_status = None
+        self._battery_type = "alkaline"
+        self._battery_voltage = None
+        self._closure_action = None
+        self._cur_temp = None
+        self._error_code = None
+        self._fuel_alert = None
+        self._fuel_percent_alert = None
+        self._gauge_type = None
+        self._leak_alert = None
+        self._leak_status = None
+        self._rssi = None
+        self._sampling = None
+        self._snooze = 0.0
+        self._tank_height = None
+        self._tank_percent = None
+        self._tank_type = None
+        self._temp_alert = None
+        self._temp_status = None
 
     def update(self):
         if self._active:

@@ -585,6 +585,7 @@ class Neviweb130Valve(ValveEntity):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -628,7 +629,6 @@ class Neviweb130Valve(ValveEntity):
         self._today_kwh = 0
         self._total_kwh_count = 0
         self._valve_status = None
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     def update(self):
         if self._active:

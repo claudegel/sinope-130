@@ -778,6 +778,7 @@ class Neviweb130Switch(SwitchEntity):
 
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -794,42 +795,41 @@ class Neviweb130Switch(SwitchEntity):
         self._is_zb_control = device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
         self._active = True
-        self._onoff2 = None
-        self._drstatus_active = "off"
-        self._drstatus_optout = "off"
-        self._drstatus_onoff = "off"
-        self._controlled_device = None
         self._battery_voltage = 0
-        self._tank_size = None
-        self._water_temp_min = None
         self._cold_load_remaining_time = 0
-        self._input_1_on_delay = 0
-        self._input_2_on_delay = 0
-        self._input_1_off_delay = 0
-        self._input_2_off_delay = 0
-        self._input_name_1 = "Not set"
-        self._input_name_2 = "Not set"
-        self._output_name_1 = "Not set"
-        self._output_name_2 = "Not set"
+        self._controlled_device = None
         self._cur_temp = None
-        self._keypad = None
-        self._timer = 0
-        self._timer2 = 0
         self._current_power_w = 0
         self._daily_kwh_count = 0
+        self._drstatus_active = "off"
+        self._drstatus_onoff = "off"
+        self._drstatus_optout = "off"
         self._energy_stat_time = time.time() - 1500
         self._hour_kwh = 0
         self._hourly_kwh_count = 0
+        self._input_1_off_delay = 0
+        self._input_1_on_delay = 0
+        self._input_2_off_delay = 0
+        self._input_2_on_delay = 0
+        self._input_name_1 = "Not set"
+        self._input_name_2 = "Not set"
+        self._keypad = None
         self._mark = 0
         self._marker: int | None = None
         self._month_kwh = 0
         self._monthly_kwh_count = 0
         self._onoff = None
+        self._onoff2 = None
+        self._output_name_1 = "Not set"
+        self._output_name_2 = "Not set"
         self._room_temp = None
         self._snooze = 0.0
+        self._tank_size = None
+        self._timer = 0
+        self._timer2 = 0
         self._today_kwh = 0
         self._total_kwh_count = 0
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        self._water_temp_min = None
 
     def update(self):
         if self._active:
