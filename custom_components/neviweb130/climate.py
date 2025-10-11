@@ -1587,6 +1587,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             serial_number=self._identifier,
             configuration_url="https://www.sinopetech.com/support",
         )
+        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
         if self._active:
