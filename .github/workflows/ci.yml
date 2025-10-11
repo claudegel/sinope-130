@@ -1,0 +1,2 @@
+- name: Install nasm and isal
+  run: sudo apt-get update && sudo apt-get install -y nasm libisal-dev
