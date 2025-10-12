@@ -826,6 +826,7 @@ class Neviweb130Valve(ValveEntity):
 
     def set_power_supply(self, value):
         """Set water valve power supply type."""
+        sup = None
         match value["supply"]:
             case "batt":
                 sup = "batteries"
@@ -1355,7 +1356,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer == 0:
+                        if self._flowmeter_timer == 0 and ATTR_FLOW_THRESHOLD in device_data:
                             self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                             self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                             self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGHT]
@@ -1531,7 +1532,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer == 0:
+                        if self._flowmeter_timer == 0 and ATTR_FLOW_THRESHOLD in device_data:
                             self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                             self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
                             self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGHT]
