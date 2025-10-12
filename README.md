@@ -192,8 +192,8 @@ It is possible to run two instance of neviweb130 but you need to use two differe
 Steps to acheive this:
 
 - Create another directory in config/custom_components like neviweb131.
-- Copy all file from directory neviweb130 to new directory neviweb131.
-- In neviweb131, edit file manifest.json to change the line 2, "domain": "neviweb130",
+- Copy all files from directory neviweb130 to new directory neviweb131.
+- In neviweb131, edit file manifest.json to change the line #2, "domain": "neviweb130",
 and change it to the same name as the directory you just create. "domain": "neviweb131",
 - Add a second configuration in configuration.yaml lique this:
 ```yaml
@@ -212,7 +212,7 @@ neviweb131:
 ```
 - Restart Home Assistant.
 
-All devices on this second instance will have a name like climate.neviweb131_climate_office_thermostat
+All devices on this second instance will have a name like climate.neviweb131_climate_office_thermostat.
 Don't be too agressive on polling (scan_intervall) or Neviweb will disconnect you as both instance polling
 come from your same IP.
 
