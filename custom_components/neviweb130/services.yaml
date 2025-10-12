@@ -400,7 +400,7 @@ set_cool_setpoint_max:
       description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
       example: "climate.neviweb130_climate_office"
     coolSetpointMax:
-      description: Maximum cooling setpoint temperature to set. Between 16 and 30 oC.
+      description: Maximum cooling setpoint temperature to set. Between 16 and 30°C.
       example: 26
 
 set_cool_setpoint_min:
@@ -410,17 +410,17 @@ set_cool_setpoint_min:
       description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
       example: "climate.neviweb130_climate_office"
     coolSetpointMin:
-      description: Minimum cooling setpoint temperature to set. Between 16 and 30 oC.
+      description: Minimum cooling setpoint temperature to set. Between 16 and 30°C.
       example: 22
 
 set_low_temp_protection:
-  description: Set Calypso low temperature protection  on/off. If water temperature goes below selected temperature from 45 to 55 oC, heating will turn on automatically.
+  description: Set Calypso low temperature protection  on/off. If water temperature goes below selected temperature from 45 to 55°C, heating will turn on automatically.
   fields:
     entity_id:
       description: Name(s) of neviweb130 Calypso device (RM3500ZB).
       example: "switch.neviweb130_switch_hot_water"
     drConfigWaterTempMin:
-      description: Set to 0, turn off protection or from 45 to 55 oC, to turn on protection level.
+      description: Set to 0, turn off protection or from 45 to 55°C, to turn on protection level.
       example: 45
 
 set_flow_meter_model:
@@ -463,7 +463,7 @@ set_floor_limit_high:
       description: Name(s) of neviweb130 device thermostat (TH1300ZB).
       example: "climate.neviweb130_climate_office_floor"
     floorLimitHigh:
-      description: Maximum floor heating temperature to set. Between 7 and 36 oC. (0 = off)
+      description: Maximum floor heating temperature to set. Between 7 and 36°C. (0 = off)
       example: 26
 
 set_floor_limit_low:
@@ -473,7 +473,7 @@ set_floor_limit_low:
       description: Name(s) of neviweb130 device thermostat (TH1300ZB).
       example: "climate.neviweb130_climate_office_floor"
     floorLimitLow:
-      description: Minimum floor heating temperature to set. Between 5 and 34 oC. (0 = off)
+      description: Minimum floor heating temperature to set. Between 5 and 34°C. (0 = off)
       example: 22
 
 set_tank_type:
@@ -657,7 +657,7 @@ set_cool_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     coolLockoutTemperature:
-      description: Possible values, from 10 to 30 oC
+      description: Possible values, from 10 to 30°C
       example: 20
 
 set_heat_lockout_temperature:
@@ -667,7 +667,7 @@ set_heat_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     heatLockoutTemperature:
-      description: Possible values, from 10 to 30 oC
+      description: Possible values, from 10 to 30°C
       example: 22
 
 set_display_config:
@@ -801,7 +801,7 @@ set_heatcool_setpoint_delta:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     heatCoolSetpointMinDelta:
-      description: Values from 1oC to 5oC for the delta.
+      description: Values from 1°C to 5°C for the delta.
       example: 2
 
 set_fan_filter_reminder:
@@ -821,7 +821,7 @@ set_temperature_offset:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     temperatureOffsetHeat:
-      description: Values from -2 to 2oC with a 0.5 delta.
+      description: Values from -2 to 2°C with a 0.5 delta.
       example: -0.5
 
 set_aux_heating_source:

@@ -274,8 +274,8 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_setpoint_max to set maximum setpoint temperature for thermostats.
 - neviweb130.set_cool_setpoint_min to set minimum cooling setpoint for TH1134ZB-HC.
 - neviweb130.set_cool_setpoint_max to set maximum cooling setpoint for TH1134ZB-HC.
-- neviweb130.set_floor_limit_low to set minimum setpoint temperature for floor thermostats. (5 to 34 oC), (0 = off)
-- neviweb130.set_floor_limit_high to set maximum setpoint temperature for floor thermostats. (7 to 36 oC), (0 = off)
+- neviweb130.set_floor_limit_low to set minimum setpoint temperature for floor thermostats. (5 to 34°C), (0 = off)
+- neviweb130.set_floor_limit_high to set maximum setpoint temperature for floor thermostats. (7 to 36°C), (0 = off)
 - neviweb130.set_sensor_alert to set all alert for water leak sensor, temperature, battery, leak, status and set action 
   on valve.
 - neviweb130.set_valve_alert to set low battery alert status.
@@ -293,7 +293,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_control_onoff change status of output 1 and 2 on alarm multi-controller for sedna valve.
 - neviweb130.set_battery_type set battery type, alkaline or lithium, for the water leak sensor.
 - neviweb130.set_tank_size to set the water heater tank capacity for Calypso RM3500ZB.
-- neviweb130.set_low_temp_protection to activate or not the water heater protection for water temperature. Below 45 °C 
+- neviweb130.set_low_temp_protection to activate or not the water heater protection for water temperature. Below 45°C 
   heating is auto restarted.
 - neviweb130.set_controlled_device to change the name of the device controlled by the RM3250ZB load controller.
 - neviweb130.set_flow_meter_model to change the flow meter model connected to sedna valve 2e gen and start/stop leak 
@@ -331,10 +331,10 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_schedule_mode, to set the schedule mode, manual or auto for TH6500WF or TH6250WF.
 - neviweb130.set_flow_alarm_disable_timer, to disable abnormal fow alarm for a period from 1 sec. to 24 hrs.
 - neviweb130.set_heatcool_setpoint_delta, to set a temperature delta between heating setpoint and cooling setpoint from 
-  1 to 5oC in auto mode for TH6xxxWF.
+  1 to 5°C in auto mode for TH6xxxWF.
 - neviweb130,set_fan_filter_reminder, to set the delay between each fan filter cleaning from 1 to 12 month, for 
   TH6xxxWF.
-- neviweb130.set_temperature_offset, to adjust temperature sensor from -2 to 2 oC with 0.5oC increment, for TH6xxxWF.
+- neviweb130.set_temperature_offset, to adjust temperature sensor from -2 to 2°C with 0.5°C increment, for TH6xxxWF.
 - neviweb130.set_aux_heating_source, to select which type of auxiliary heating source is in use for TH6xxxWF.
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
 
@@ -359,7 +359,7 @@ coming and how it is managed:
     Eco-Sinopé.
   - **eco_setpoint_delta**: set to 0 during normal operation, changed to values between -10 and +10 during peak period. 
     For pre-heating the value is positive and for peak period it is a negative value. This is a delta applied to regular 
-    setpoint. -10 = setpoint reduced by 10oC. +2 = setpoint increased by 2oC.
+    setpoint. -10 = setpoint reduced by 10°C. +2 = setpoint increased by 2°C.
 
 - For load controller:
   - **eco_status**: set to «off» during normal operation, turn «on» during peak period at the beginning of the 

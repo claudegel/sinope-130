@@ -1363,7 +1363,7 @@ async def async_setup_platform(
                 break
 
     def set_temperature_offset_service(service):
-        """Set TH6500WF, TH6250WF temperature sensor offset from -2 to 2oC with a 0.5 oC increment."""
+        """Set TH6500WF, TH6250WF temperature sensor offset from -2 to 2°C with a 0.5°C increment."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
@@ -5237,7 +5237,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._operation_mode = value["mode"]
 
     def set_heatcool_setpoint_delta(self, value):
-        """Set delta temperature between heating and cooling setpoint from 1 to 5 oC."""
+        """Set delta temperature between heating and cooling setpoint from 1 to 5°C."""
         self._client.set_heatcool_delta(value["id"], value["level"], self._is_HC)
         self._heatcool_setpoint_delta = value["level"]
 
@@ -5247,7 +5247,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_filter_remain = value["month"]
 
     def set_temperature_offset(self, value):
-        """Set thermostat sensor offset from -2 to 2oC with a 0.5 oC increment."""
+        """Set thermostat sensor offset from -2 to 2°C with a 0.5°C increment."""
         self._client.set_temperature_offset(value["id"], value["temp"], self._is_HC)
         self._temp_offset_heat = value["temp"]
 
