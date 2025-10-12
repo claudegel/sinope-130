@@ -13,10 +13,10 @@ repository = "https://github.com/claudegel/sinope-130"
 [dependency-groups]
 dev = [
     "aiofiles~=24.1.0",
-    "pre-commit",
     "types-aiofiles~=24.1.0",
     "homeassistant-stubs~=2025.9.4",
     "mypy",
+    "pre-commit",
 ]
 
 [tool.hatch.build.targets.sdist]
