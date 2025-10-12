@@ -51,6 +51,9 @@ line-length = 120
 fix = true
 target-version = "py312"
 
+[tool.pyupgrade]
+py312plus = true
+
 [tool.codespell]
 skip = "Contributors.md,custom_components/neviweb130/translations/*.json"
 ignore-words-list = "hass"
