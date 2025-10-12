@@ -3,30 +3,20 @@ name = "neviweb130"
 version = "2.0"
 description = "Sinope Neviweb130: Home assistant custom_components to manage Sinopé Zigbee and Wi-Fi devices."
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
-requires-python = ">=3.13.2"
+requires-python = ">=3.12"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-dependencies = [
-    "hatchling>=1.27.0",
-]
 
 [project.urls]
 repository = "https://github.com/claudegel/sinope-130"
 
 [dependency-groups]
 dev = [
-    "isal~=1.7.1",
     "aiofiles~=24.1.0",
-    "homeassistant~=2025.9.4",
     "pre-commit",
     "types-aiofiles~=24.1.0",
     "homeassistant-stubs~=2025.9.4",
-]
-ci = [
-    "isal~=1.7.1",
     "mypy",
-    "types-aiofiles~=24.1.0",
-    "homeassistant-stubs~=2025.9.4",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -41,7 +31,7 @@ build-backend = "hatchling.build"
 
 [tool.black]
 line-length = 120
-target-version = ["py313"]
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
@@ -51,7 +41,7 @@ line_length = 120
 max-line-length = 120
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.12"
 check_untyped_defs = true
 warn_unused_ignores = true
 show_error_codes = true
@@ -59,10 +49,7 @@ show_error_codes = true
 [tool.ruff]
 line-length = 120
 fix = true
-target-version = "py313"
-
-[tool.pyupgrade]
-py313plus = true
+target-version = "py312"
 
 [tool.codespell]
 skip = "Contributors.md,custom_components/neviweb130/translations/*.json"
