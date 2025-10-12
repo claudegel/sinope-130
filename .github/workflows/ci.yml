@@ -9,32 +9,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y nasm build-essential python3-dev python3-pip python3-setuptools python3-wheel
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Confirm nasm is present
+      - name: Install dependencies
         run: |
-          which nasm
-          nasm -v
-
-      - name: Preinstall isal with pip (no isolation)
-        run: |
-          python3 -m venv .venv
+          python -m venv .venv
           source .venv/bin/activate
           pip install --upgrade pip setuptools wheel
-
-      - name: Install rest of dependencies
-        run: |
-          source .venv/bin/activate
           pip install -e .[ci]
 
-      - name: Run your checks/tests
+      - name: Run static checks
         run: |
           source .venv/bin/activate
-          # For example:
           mypy custom_components/neviweb130
