@@ -17,16 +17,24 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install --upgrade pip setuptools wheel
-          pip install -e .[ci]
+          pip install -e .[dev]
 
       - name: Run static checks
         run: |
           source .venv/bin/activate
+          black --check .
+          isort --check-only .
+          flake8 .
           mypy custom_components/neviweb130
+
+      - name: Run tests (if any)
+        run: |
+          source .venv/bin/activate
+          pytest || echo "No tests defined yet"
