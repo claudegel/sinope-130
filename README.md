@@ -469,7 +469,7 @@ if you see your device in the log, but it does not appear in entity list you nee
 code. Or you can send the model number to me, so I can add it in the code.
 
 In the log look for lines:
-```yaml
+```
 [custom_components.neviweb130] Received gateway data: [{'id': 100225, 'identifier': '500b91400001f750', 'name': 'Chargeur auto', 'family': '2506',...
 [custom_components.neviweb130] Received signature data: {'signature': {'model': 2506, 'modelCfg': 0, 'softBuildCfg': 0, 'softVersion': {'minor': 9, 'middle': 2, 'major': 1}, 'hardRev': 2, 'protocol': 'sinopcom'}}
 ```
