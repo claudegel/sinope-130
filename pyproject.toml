@@ -8,7 +8,6 @@ readme = "README.md"
 license = { text = "Apache-2.0" }
 dependencies = [
     "hatchling>=1.27.0",
-    "isal~=1.7.1; (platform.machine == 'x86_64' or platform.machine == 'AMD64' or platform.machine == 'aarch64')",
 ]
 
 [project.urls]
