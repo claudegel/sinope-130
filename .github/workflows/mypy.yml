@@ -18,7 +18,7 @@ jobs:
         run: uv python install
 
       - name: Install the project and dependencies
-        run: uv sync --frozen --group dev
+        run: uv sync --frozen --only-group ci
 
       - name: Run mypy
-        run: uv run --frozen --group dev mypy custom_components/neviweb130
+        run: uv run --frozen --only-group ci mypy .

@@ -199,7 +199,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             self.data = user_input
             result = await self.async_set_unique_id(user_input[CONF_USERNAME].strip().lower())
             _LOGGER.debug("Configure entry unique_id: %s", result)
-            self._abort_if_unique_id_configured(reason="already_configured_for_this_user")
+            self._abort_if_unique_id_configured(error="already_configured_for_this_user")
             return cast(ConfigFlowResult, self.async_create_entry(title="Sinope Neviweb130", data=self.data))
 
         return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))

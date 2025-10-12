@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, override
 
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
 from homeassistant.components.number.const import NumberDeviceClass, NumberMode
@@ -373,8 +373,8 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         """Return the state attributes of the number."""
         return {"device_id": self._attr_unique_id}
 
-    # TODO: marked @final in HomeAssistant, we should find an alternative
-    async def async_set_value(self, value: float) -> None:
+    @override
+    async def async_set_native_value(self, value: float) -> None:
         """Change the selected number value."""
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
 

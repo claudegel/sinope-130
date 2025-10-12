@@ -887,6 +887,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 )
                 await async_add_data(
                     self._conf_dir,
+                    self._device_dict,
                     self._id,
                     self._total_kwh_count,
                     self._marker,
