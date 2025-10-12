@@ -3,10 +3,10 @@
   "name": "Sinope Neviweb130",
   "codeowners": ["@claudegel"],
   "config_flow": true,
-  "dependencies": ["aiofiles==24.1.0"],
   "documentation": "https://github.com/claudegel/sinope-130",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "requirements": [],
+  "issue_tracker": "https://github.com/claudegel/sinope-130/issues",
+  "requirements": ["aiofiles"],
   "version": "4.0.0"
 }

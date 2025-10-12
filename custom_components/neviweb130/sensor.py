@@ -20,7 +20,7 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -721,7 +721,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
-        self._leak_status: str | None = None
+        self._leak_status: str = ""
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
@@ -733,7 +733,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._sampling = None
         self._tank_type = None
         self._tank_height = None
-        self._tank_percent: str | None = None
+        self._tank_percent: str = ""
         self._gauge_type = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -789,7 +789,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                 self._id,
                 UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE,
             )
-            #            device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
+            # device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -945,9 +945,9 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         """Return the current battery status."""
         return self._battery_status
 
-    # TODO: state marked @final in SensorEntity, we should find an alternative
     @property
-    def my_state(self) -> Any:
+    @override
+    def native_value(self) -> str:
         """Return the state of the sensor."""
         return self._leak_status
 
@@ -1028,7 +1028,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s). Report to maintainer.",
                 self._name,
                 self._id,
                 self._sku,
@@ -1112,7 +1112,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
-        self._leak_status = None
+        self._leak_status = ""
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
@@ -1124,7 +1124,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._sampling = None
         self._tank_type = None
         self._tank_height = None
-        self._tank_percent = None
+        self._tank_percent = ""
         self._gauge_type = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -1134,11 +1134,11 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._is_monitor = False
         self._is_gateway = False
         self._snooze = 0
-        self._activ = True
+        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
-        if self._activ:
+        if self._active:
             if self._is_leak:
                 LEAK_ATTRIBUTE = [
                     ATTR_WATER_LEAK_STATUS,
@@ -1211,7 +1211,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 await self.async_log_error(device_data["error"]["code"])
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
-                self._activ = True
+                self._active = True
                 if self._notify == "notification" or self._notify == "both":
                     await self.async_notify_ha(
                         "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
@@ -1246,7 +1246,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
-                "activation": "Active" if self._activ else "Inactive",
+                "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "id": self._id,
             }
@@ -1261,11 +1261,10 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         """Initialize."""
         super().__init__(data, device_info, name, device_type, sku, firmware, coordinator)
 
-        self._active = True
         self._snooze = 0
         self._angle = None
         self._sampling = None
-        self._tank_percent: str | None = None
+        self._tank_percent: str = ""
         self._tank_type = None
         self._tank_height = None
         self._gauge_type = None
@@ -1447,60 +1446,47 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         )
         return data
 
-    # TODO: state marked @final in SensorEntity, we should find an alternative
     @property
-    def my_state(self) -> str | None:
+    @override
+    def native_value(self) -> str:
         """Return the state of the tank sensor."""
         return self._tank_percent
 
     async def async_set_tank_type(self, value):
         """Set tank type for LM4110-ZB sensor."""
-        tank = value["type"]
-        entity = value["id"]
-        await self._client.async_set_tank_type(entity, tank)
-        self._tank_type = tank
+        await self._client.async_set_tank_type(value["id"], value["type"])
+        self._tank_type = value["type"]
 
     async def async_set_gauge_type(self, value):
         """Set gauge type for LM4110-ZB sensor."""
         gauge = str(value["gauge"])
-        entity = value["id"]
-        await self._client.async_set_gauge_type(entity, gauge)
+        await self._client.async_set_gauge_type(value["id"], gauge)
         self._gauge_type = gauge
 
     async def async_set_low_fuel_alert(self, value):
         """Set low fuel alert limit LM4110-ZB sensor."""
-        alert = value["low"]
-        entity = value["id"]
-        await self._client.async_set_low_fuel_alert(entity, alert)
-        self._fuel_percent_alert = alert
+        await self._client.async_set_low_fuel_alert(value["id"], value["low"])
+        self._fuel_percent_alert = value["low"]
 
     async def async_set_refuel_alert(self, value):
         """Set refuel alert for LM4110-ZB sensor True/False."""
-        alert = value["refuel"]
-        entity = value["id"]
-        await self._client.async_set_refuel_alert(entity, alert)
-        self._refuel = alert
+        await self._client.async_set_refuel_alert(value["id"], value["refuel"])
+        self._refuel = value["refuel"]
 
     async def async_set_tank_height(self, value):
         """Set low fuel alert LM4110-ZB sensor."""
-        height = value["height"]
-        entity = value["id"]
-        await self._client.async_set_tank_height(entity, height)
-        self._tank_height = height
+        await self._client.async_set_tank_height(value["id"], value["height"])
+        self._tank_height = value["height"]
 
     async def async_set_fuel_alert(self, value):
         """Set low fuel alert LM4110-ZB sensor."""
-        fuel = value["fuel"]
-        entity = value["id"]
-        await self._client.async_set_fuel_alert(entity, fuel)
-        self._fuel_alert = fuel
+        await self._client.async_set_fuel_alert(value["id"], value["fuel"])
+        self._fuel_alert = value["fuel"]
 
     async def async_set_battery_alert(self, value):
         """Set low battery alert LM4110-ZB sensor."""
-        batt = value["batt"]
-        entity = value["id"]
-        await self._client.async_set_battery_alert(entity, batt)
-        self._battery_alert = batt
+        await self._client.async_set_battery_alert(value["id"], value["batt"])
+        self._battery_alert = value["batt"]
 
 
 class Neviweb130GatewaySensor(Neviweb130Sensor):
@@ -1530,7 +1516,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._location = location
         self._active = True
         self._snooze = 0
-        self._gateway_status: str | None = None
+        self._gateway_status: str = ""
         self._occupancyMode = None
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -1564,9 +1550,9 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         """Return current gateway status: 'online' or 'offline'."""
         return self._gateway_status is not None
 
-    # TODO: state marked @final in HomeAssistant, we should find an alternative
     @property
-    def my_state(self) -> str | None:
+    @override
+    def native_value(self) -> str:
         """Return the state of the gateway."""
         return self._gateway_status
 
@@ -1635,7 +1621,6 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         self._device_name = device_name
         self._attribute = entity_description.key
         self._device_id = device_id
-        self._native_value = None
         self._attr_unique_id = f"{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._attr_friendly_name = f"{self._device.get('friendly_name')} {attribute.replace('_', ' ').capitalize()}"
@@ -1655,6 +1640,7 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         return self._device_id
 
     @property
+    @override
     def native_value(self):
         """Return the state of the attribute sensor."""
         device_obj = self.coordinator.data.get(self._id)

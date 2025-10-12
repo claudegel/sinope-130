@@ -4,19 +4,18 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from functools import partial
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_SCAN_INTERVAL, EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE
 from .coordinator import Neviweb130Client, async_setup_coordinator
-from .devices import device_dict, load_devices, save_devices
-from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
+from .devices import load_devices, save_devices
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
@@ -25,6 +24,7 @@ from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 
 SCAN_INTERVAL = DEFAULT_SCAN_INTERVAL
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,17 +33,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """import neviweb130 integration from YAML if it exists."""
     _LOGGER.info(STARTUP_MESSAGE)
 
-    # Register the event listener for Home Assistant stop event
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass, device_dict))
-
-    # Detect .storage path
-    conf_dir = hass.config.path(".storage")
-    hass.data[DOMAIN] = {"conf_dir": conf_dir}
-
-    await load_devices(conf_dir)
-
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
-    _LOGGER.debug("Config found: %s", neviweb130_config)
+    if neviweb130_config is not None:
+        _LOGGER.debug(
+            "Config found: %s", {key: (value if key != "password" else "*") for key, value in neviweb130_config.items()}
+        )
     hass.data.setdefault(DOMAIN, {})
 
     if not neviweb130_config:
@@ -76,10 +70,20 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_shutdown(hass: HomeAssistant, event=None):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
+
     conf_dir = hass.data[DOMAIN]["conf_dir"]
+    if not conf_dir:
+        _LOGGER.error("conf_dir is missing during shutdown — data will not be saved.")
+        return
+
     data = hass.data[DOMAIN].get("device_dict", {})
-    await save_devices(conf_dir, data)
-    _LOGGER.info("Energy stat data saved")
+
+    if conf_dir:
+        await save_devices(conf_dir, data)
+        _LOGGER.info("Energy stat data saved")
+    else:
+        _LOGGER.warning("No conf_dir found during shutdown.")
+
     if DOMAIN in hass.data and "coordinator" in hass.data[DOMAIN]:
         _LOGGER.info("Stopping coordinator")
         await hass.data[DOMAIN]["coordinator"].stop()
@@ -166,7 +170,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up neviweb130 from a config entry."""
     _LOGGER.debug("The entry_id = %s", entry.data)
 
+    # Register the event listener for Home Assistant stop event
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
+
+    if entry.unique_id is None:
+        _LOGGER.warning("Config entry has no unique_id.")
+        new_unique_id = entry.data.get(CONF_USERNAME, "").strip().lower()
+        if new_unique_id:
+            hass.config_entries.async_update_entry(entry, unique_id=new_unique_id)
+            _LOGGER.info("Migrated config entry to unique_id: %s", new_unique_id)
+
+    # Detect .storage path
+    conf_dir = hass.config.path(".storage")
     hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["conf_dir"] = conf_dir
+
+    # Load saved devices data
+    device_dict = await load_devices(conf_dir)
+    hass.data[DOMAIN]["device_dict"] = device_dict
 
     # Call async_migrate_unique_ids before setting up devices
     _LOGGER.info("Migrating neviweb130 unique_id to string...")

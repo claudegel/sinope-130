@@ -6,18 +6,17 @@ from typing import Any
 import aiofiles
 
 _LOGGER = logging.getLogger(__name__)
-device_dict: dict[Any, Any] = {}
 
 
-async def load_devices(conf_dir: str):
-    device_dict.clear()
+async def load_devices(conf_dir: str) -> dict[Any, Any]:
+    device_dict: dict[Any, Any] = {}
     conf_file = os.path.join(conf_dir, "neviweb130.json")
 
     if not os.path.exists(conf_file):
         # File does not exist, create an empty file
         async with aiofiles.open(conf_file, "w") as f:
             pass  # creates an empty file
-        return
+        return device_dict
 
     if os.path.exists(conf_file):
         async with aiofiles.open(conf_file, "r") as f:
@@ -26,6 +25,7 @@ async def load_devices(conf_dir: str):
                 device_dict[device[0]] = device
 
     _LOGGER.debug("Loading device: %s", device_dict)
+    return device_dict
 
 
 async def save_devices(conf_dir: str, data):
