@@ -187,6 +187,35 @@ Both mode are supported by this custom component.
 ## Gateway GT130
 It is now possible to know if your GT130 is still online of offline with Neviweb via the gateway_status attribute. The GT130 is detected as sensor.neviweb130_sensor_gt130
 
+## Running more then one instance of neviweb130 to manage different Neviweb connections.
+It is possible to run two instance of neviweb130 but you need to use two different username (email) and password to connect to Neviweb.
+Steps to acheive this:
+
+- Create another directory in config/custom_components like neviweb131.
+- Copy all file from directory neviweb130 to new directory neviweb131.
+- In neviweb131, edit file manifest.json to change the line 2, "domain": "neviweb130",
+and change it to the same name as the directory you just create. "domain": "neviweb131",
+- Add a second configuration in configuration.yaml lique this:
+```yaml
+# Example configuration.yaml entry for a second neviweb130 instance named neviweb131.
+neviweb131:
+  username: 'your Neviweb username for second connection'
+  password: 'your Neviweb password for second connection'
+  network: 'your gt130 location name in second Neviweb' (gt130 emplacement dans Neviweb)
+  network2: 'your second location name in second Neviweb' (2e emplacement)
+  network3: 'your third location name in second Neviweb' (3e emplacement)
+  scan_interval: 360
+  homekit_mode: False
+  ignore_miwi: False
+  stat_interval: 1800
+  notify: "both"
+```
+- Restart Home Assistant.
+
+All devices on this second instance will have a name like climate.neviweb131_climate_office_thermostat
+Don't be too agressive on polling (scan_intervall) or Neviweb will disconnect you as both instance polling
+come from your same IP.
+
 ## Custom services
 Automations require services to be able to send commande. Ex. light.turn_on. For the Sinopé devices connected via neviweb130, it is possible to use custom services to send specific information to devices or to change some devices parameters. Those custom services can be accessed via development tool/services or can be used in automation:
 - neviweb130.set_second_display, allow to change setting of the thermostats second display from setpoint temperature to outdoor temperature. This need to be sent only once to each devices.
