@@ -12,17 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build tools
+      - name: Install dependencies and show nasm
         run: |
           sudo apt-get update
           sudo apt-get install -y nasm build-essential python3-dev python3-pip python3-setuptools python3-wheel
+          which nasm
+          nasm -v
+          env
 
-      - name: Check nasm
+      - name: Install Python dependencies, show nasm
         run: |
           which nasm
           nasm -v
-
-      - name: Install Python dependencies (including isal)
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install isal
+          pip3 install --upgrade pip setuptools wheel
+          pip3 install isal
