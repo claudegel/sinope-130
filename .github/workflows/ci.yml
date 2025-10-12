@@ -27,7 +27,7 @@ jobs:
           python3 -m venv .venv
           source .venv/bin/activate
           pip install --upgrade pip setuptools wheel
-          pip install --no-build-isolation "isal~=1.7.1"
+          PYTHON_ISAL_LINK_DYNAMIC=true pip install "isal~=1.7.1" --no-binary isal
 
       - name: Install rest of dependencies
         run: |
