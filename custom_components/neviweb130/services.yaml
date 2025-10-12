@@ -138,16 +138,16 @@ set_second_display:
       example: "exteriorTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; wifi or zigbee
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or Zigbee
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
       example: "climate.neviweb130_climate_office"
     type:
-      description: «wifi» for wifi devices or «zigbee» for zigbee devices
+      description: «wifi» for Wi-Fi devices or «zigbee» for Zigbee devices
       example: "wifi"
     backlightAdaptive:
-      description: «auto», «on» or «bedroom». (last one is only for G2 and wifi thermostats)
+      description: «auto», «on» or «bedroom». (last one is only for G2 and Wi-Fi thermostats)
       example: "auto"
 
 set_wattage:
@@ -230,10 +230,10 @@ set_valve_temp_alert:
       example: 1
 
 set_early_start:
-  description: Set thermostats early start for heating (for wifi thermostat).
+  description: Set thermostats early start for heating (for Wi-Fi thermostat).
   fields:
     entity_id:
-      description: Name of neviweb130 thermostat wifi device.
+      description: Name of neviweb130 thermostat Wi-Fi device.
       example: "climate.neviweb130_climate_kitchen"
     earlyStartCfg:
       description: Set to «on», or to «off» to start/stop early heating on thermostat.
@@ -246,7 +246,7 @@ set_air_floor_mode:
       description: Name(s) of neviweb130 floor thermostat.
       example: "climate.neviweb130_climate_kitchen"
     airFloorMode:
-      description: Set to «airByFloor» (zigbee) or «roomByFloor» (wifi) for ambient temperature sensor or to «floor» for floor temperature sensor.
+      description: Set to «airByFloor» (Zigbee) or «roomByFloor» (Wi-Fi) for ambient temperature sensor or to «floor» for floor temperature sensor.
       example: "floor"
 
 set_phase_control:
@@ -318,7 +318,7 @@ set_control_onoff:
       example: 1
 
 set_auxiliary_load:
-  description: Set floor and low voltage zigbee thermostats auxiliary heat load in watt.
+  description: Set floor and low voltage Zigbee thermostats auxiliary heat load in watt.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -331,17 +331,17 @@ set_auxiliary_load:
       example: 2500
 
 set_cycle_output:
-  description: Set both wifi and zigbee low voltage thermostats primary cycle time in minutes.
+  description: Set both Wi-Fi and Zigbee low voltage thermostats primary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
       example: "climate.neviweb130_climate_kitchen"
     value:
-      description: cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: Cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_aux_cycle_output:
-  description: Set both wifi and zigbee low voltage thermostats auxiliary cycle time in minutes.
+  description: Set both Wi-Fi and Zigbee low voltage thermostats auxiliary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -388,7 +388,7 @@ set_controlled_device:
   fields:
     entity_id:
       description: Name(s) of neviweb130 switch.
-      example: "switch.neviweb130_switch_load_controler"
+      example: "switch.neviweb130_switch_load_controller"
     value:
       description: Device type name. Accepted values are "Hot water heater", "Pool pump", "Electric vehicle charger", "Other".
       example: "Pool pump"
@@ -400,7 +400,7 @@ set_cool_setpoint_max:
       description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
       example: "climate.neviweb130_climate_office"
     coolSetpointMax:
-      description: Maximum cooling setpoint temperature to set. Between 16 and 30 oC.
+      description: Maximum cooling setpoint temperature to set. Between 16 and 30°C.
       example: 26
 
 set_cool_setpoint_min:
@@ -410,17 +410,17 @@ set_cool_setpoint_min:
       description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
       example: "climate.neviweb130_climate_office"
     coolSetpointMin:
-      description: Minimum cooling setpoint temperature to set. Between 16 and 30 oC.
+      description: Minimum cooling setpoint temperature to set. Between 16 and 30°C.
       example: 22
 
 set_low_temp_protection:
-  description: Set Calypso low temperature protection  on/off. If water temperature goes below selected temperature from 45 to 55 oC, heating will turn on automatically.
+  description: Set Calypso low temperature protection  on/off. If water temperature goes below selected temperature from 45 to 55°C, heating will turn on automatically.
   fields:
     entity_id:
       description: Name(s) of neviweb130 Calypso device (RM3500ZB).
       example: "switch.neviweb130_switch_hot_water"
     drConfigWaterTempMin:
-      description: Set to 0, turn off protection or from 45 to 55 oC, to turn on protection level.
+      description: Set to 0, turn off protection or from 45 to 55°C, to turn on protection level.
       example: 45
 
 set_flow_meter_model:
@@ -463,7 +463,7 @@ set_floor_limit_high:
       description: Name(s) of neviweb130 device thermostat (TH1300ZB).
       example: "climate.neviweb130_climate_office_floor"
     floorLimitHigh:
-      description: Maximum floor heating temperature to set. Between 7 and 36 oC. (0 = off)
+      description: Maximum floor heating temperature to set. Between 7 and 36°C. (0 = off)
       example: 26
 
 set_floor_limit_low:
@@ -473,7 +473,7 @@ set_floor_limit_low:
       description: Name(s) of neviweb130 device thermostat (TH1300ZB).
       example: "climate.neviweb130_climate_office_floor"
     floorLimitLow:
-      description: Minimum floor heating temperature to set. Between 5 and 34 oC. (0 = off)
+      description: Minimum floor heating temperature to set. Between 5 and 34°C. (0 = off)
       example: 22
 
 set_tank_type:
@@ -657,7 +657,7 @@ set_cool_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     coolLockoutTemperature:
-      description: Possible values, from 10 to 30 oC
+      description: Possible values, from 10 to 30°C
       example: 20
 
 set_heat_lockout_temperature:
@@ -667,7 +667,7 @@ set_heat_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     heatLockoutTemperature:
-      description: Possible values, from 10 to 30 oC
+      description: Possible values, from 10 to 30°C
       example: 22
 
 set_display_config:
@@ -801,7 +801,7 @@ set_heatcool_setpoint_delta:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     heatCoolSetpointMinDelta:
-      description: Values from 1oC to 5oC for the delta.
+      description: Values from 1°C to 5°C for the delta.
       example: 2
 
 set_fan_filter_reminder:
@@ -821,11 +821,11 @@ set_temperature_offset:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     temperatureOffsetHeat:
-      description: Values from -2 to 2oC with a 0.5 delta.
+      description: Values from -2 to 2°C with a 0.5 delta.
       example: -0.5
 
 set_aux_heating_source:
-  description: Set auxilary heating source for TH6500WF and TH6250WF thermostats.
+  description: Set auxiliary heating source for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.

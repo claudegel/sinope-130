@@ -2,5 +2,9 @@
   "default": true,
   "single-title": false,
   "no-inline-html": false,
-  "line-length": false
+  "MD013": {
+    "line_length": 120,
+    "code_blocks": false,
+    "tables": false
+  }
 }

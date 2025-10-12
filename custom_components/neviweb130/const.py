@@ -4,7 +4,7 @@ import json
 import pathlib
 
 # Base component constants, some loaded directly from the manifest
-_LOADER_PATH = pathlib.Path(__loader__.path)
+_LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore[name-defined]
 _MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
 with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
     data = json.load(json_file)
@@ -236,7 +236,7 @@ ATTR_HEATCOOL_SETPOINT_MIN_DELTA = "heatCoolSetpointMinDelta"
 ATTR_TEMP_OFFSET_HEAT = "temperatureOffsetHeat"
 ATTR_COOL_MIN_TIME_ON = "coolMinTimeOn"
 ATTR_COOL_MIN_TIME_OFF = "coolMinTimeOff"
-ATTR_WATER_TEMP_PROTEC = "waterTempProtectionType"
+ATTR_WATER_TEMP_PROTECT = "waterTempProtectionType"
 ATTR_OUTPUT_CONNECT_STATE = "bulkOutputConnectedState"
 ATTR_HEAT_INSTALL_TYPE = "heatInstallationType"
 ATTR_HUMIDITY = "humidity"
