@@ -34,7 +34,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     _LOGGER.info(STARTUP_MESSAGE)
 
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
-    _LOGGER.debug("Config found: %s", neviweb130_config)
+    if neviweb130_config is not None:
+        _LOGGER.debug(
+            "Config found: %s", {key: (value if key != "password" else "*") for key, value in neviweb130_config.items()}
+        )
     hass.data.setdefault(DOMAIN, {})
 
     if not neviweb130_config:

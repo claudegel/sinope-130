@@ -20,7 +20,7 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -721,7 +721,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
-        self._leak_status: str | None = None
+        self._leak_status: str = ""
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
@@ -733,7 +733,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._sampling = None
         self._tank_type = None
         self._tank_height = None
-        self._tank_percent: str | None = None
+        self._tank_percent: str = ""
         self._gauge_type = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -945,9 +945,9 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         """Return the current battery status."""
         return self._battery_status
 
-    # TODO: state marked @final in SensorEntity, we should find an alternative
     @property
-    def state(self) -> Any:
+    @override
+    def native_value(self) -> str:
         """Return the state of the sensor."""
         return self._leak_status
 
@@ -1112,7 +1112,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._battery_status = None
         self._temp_status = None
         self._battery_type = "alkaline"
-        self._leak_status = None
+        self._leak_status = ""
         self._leak_alert = None
         self._temp_alert = None
         self._battery_alert = None
@@ -1124,7 +1124,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._sampling = None
         self._tank_type = None
         self._tank_height = None
-        self._tank_percent = None
+        self._tank_percent = ""
         self._gauge_type = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -1264,7 +1264,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         self._snooze = 0
         self._angle = None
         self._sampling = None
-        self._tank_percent: str | None = None
+        self._tank_percent: str = ""
         self._tank_type = None
         self._tank_height = None
         self._gauge_type = None
@@ -1446,9 +1446,9 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         )
         return data
 
-    # TODO: state marked @final in SensorEntity, we should find an alternative
     @property
-    def state(self) -> str | None:
+    @override
+    def native_value(self) -> str:
         """Return the state of the tank sensor."""
         return self._tank_percent
 
@@ -1516,7 +1516,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         self._location = location
         self._active = True
         self._snooze = 0
-        self._gateway_status: str | None = None
+        self._gateway_status: str = ""
         self._occupancyMode = None
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -1550,9 +1550,9 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         """Return current gateway status: 'online' or 'offline'."""
         return self._gateway_status is not None
 
-    # TODO: state marked @final in HomeAssistant, we should find an alternative
     @property
-    def state(self) -> str | None:
+    @override
+    def native_value(self) -> str:
         """Return the state of the gateway."""
         return self._gateway_status
 
@@ -1621,7 +1621,6 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         self._device_name = device_name
         self._attribute = entity_description.key
         self._device_id = device_id
-        self._native_value = None
         self._attr_unique_id = f"{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._attr_friendly_name = f"{self._device.get('friendly_name')} {attribute.replace('_', ' ').capitalize()}"
@@ -1641,6 +1640,7 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
         return self._device_id
 
     @property
+    @override
     def native_value(self):
         """Return the state of the attribute sensor."""
         device_obj = self.coordinator.data.get(self._id)
