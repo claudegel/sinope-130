@@ -503,28 +503,30 @@ messages.
 
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
-- VALINVLD: Invalid value sent to Neviweb.
 - ACCDAYREQMAX: Maximum daily request reached...Reduce polling frequency.
-- TimeoutError: Timeout error detected...Retry later.
-- MAINTENANCE: Neviweb access temporary blocked for maintenance...Retry later.
-- SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
-- DVCCOMMTO: Device Communication Timeout: device do not respond fast enough, or you are polling that device too 
-  frequently.
-- DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
-- USRSESSEXP: User session expired. Reduce your scan_interval below 6 minutes or your session will be terminated.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
-  also have an open session on Neviweb. 
-- DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly Wi-Fi devices.
-- DVCBUSY: Neviweb is performing an update and devices are not available. Try later.
-- SVCERR: Service error. Service unavailable. Try later.
+  also have an open session on Neviweb.
+- DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
 - DVCATTRNSPTD: Device attribute not supported, The device you have installed have and older firmware and do not support 
   some attributes. Wait for firmware update in Neviweb and the error should disappear or file an issue so we can put an 
-  exception in the code. 
+  exception in the code.
+- DVCBUSY: Neviweb is performing an update and devices are not available. Try later.
+- DVCCOMMTO: Device Communication Timeout: device do not respond fast enough, or you are polling that device too 
+  frequently.
+- DVCNOTSYNC: Device is not in sync with Neviweb. Check your network, router and/or Wi-Fi gateway.
+- DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly Wi-Fi devices. 
+- MAINTENANCE: Neviweb access temporary blocked for maintenance...Retry later.
+- SVCERR: Service error. Service unavailable. Try later.
+- SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
 - USRBADLOGIN: your login and/or password provided in configuration for Neviweb is no good.
+- USRSESSEXP: User session expired. Reduce your scan_interval below 6 minutes or your session will be terminated.
+- VALINVLD: Invalid value sent to Neviweb.
 - ReadTimeout: Request was sent to the device but no answer came back. Network problem.
+- TimeoutError: Timeout error detected...Retry later.
 
 ## Customization
-Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
+Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your 
+code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
 copy the six icons there. You can find them under local/www
