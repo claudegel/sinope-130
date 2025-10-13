@@ -87,7 +87,6 @@ from .const import (
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_TRIGGER_ALARM,
-    ATTR_TYPE,
     ATTR_VALUE,
     ATTR_WATER_TEMP_MIN,
     CONF_HOMEKIT_MODE,
@@ -256,7 +255,6 @@ SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TYPE): vol.In(["wifi", "zigbee"]),
         vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on", "bedroom"]),
     }
 )

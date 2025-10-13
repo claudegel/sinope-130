@@ -968,10 +968,10 @@ class Neviweb130Client:
         else:
             self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats.")
 
-    def set_backlight(self, device_id, level, device):
+    def set_backlight(self, device_id, level, is_wifi: bool):
         """Set backlight intensity when idle, on or auto.
         Work differently for Wi-Fi and Zigbee devices."""
-        if device == "wifi":
+        if is_wifi:
             data = {ATTR_BACKLIGHT_AUTO_DIM: level}
         else:
             data = {ATTR_BACKLIGHT: level}

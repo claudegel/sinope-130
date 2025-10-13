@@ -175,7 +175,6 @@ from .const import (
     ATTR_TEMP,
     ATTR_TEMP_OFFSET_HEAT,
     ATTR_TIME,
-    ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VALVE_POLARITY,
     ATTR_WATTAGE,
@@ -901,7 +900,6 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "type": service.data[ATTR_TYPE],
                     "level": service.data[ATTR_BACKLIGHT],
                 }
                 thermostat.set_backlight(value)
@@ -2319,8 +2317,9 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on.
         Work differently for Zigbee and Wi-Fi devices."""
+        is_wifi = self._is_wifi or self._is_low_wifi or self._is_wifi_lite or self._is_wifi_floor
         if value["level"] == "on":
-            if value["type"] == "wifi":
+            if is_wifi:
                 level_command = "alwaysOn"
             else:
                 level_command = "always"
@@ -2329,12 +2328,12 @@ class Neviweb130Thermostat(ClimateEntity):
             level_command = "bedroom"
             level_name = "bedroom"
         else:
-            if value["type"] == "wifi":
+            if is_wifi:
                 level_command = "onUserAction"
             else:
                 level_command = "onActive"
             level_name = "Auto"
-        self._client.set_backlight(value["id"], level_command, value["type"])
+        self._client.set_backlight(value["id"], level_command, is_wifi)
         self._backlight = level_name
 
     def set_keypad_lock(self, value):
