@@ -362,24 +362,23 @@ UPDATE_HEAT_COOL_ATTRIBUTES = [
     ATTR_TIME,
 ]
 
-SUPPORTED_HVAC_WIFI_MODES = [
+SUPPORTED_HVAC_WIFI_MODES: list[HVACMode] = [
     HVACMode.AUTO,
     HVACMode.HEAT,
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_WIFI_LITE_MODES = [
+SUPPORTED_HVAC_WIFI_LITE_MODES: list[HVACMode] = [
     HVACMode.AUTO,
-    MODE_MANUAL,
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_MODES = [
+SUPPORTED_HVAC_MODES: list[HVACMode] = [
     HVACMode.HEAT,
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_H_C_MODES = [
+SUPPORTED_HVAC_H_C_MODES: list[HVACMode] = [
     HVACMode.COOL,
     HVACMode.HEAT,
     HVACMode.OFF,
@@ -392,7 +391,7 @@ SUPPORTED_HVAC_HC_MODES = [
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_HP_MODES = [
+SUPPORTED_HVAC_HP_MODES: list[HVACMode] = [
     HVACMode.COOL,
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
@@ -400,13 +399,13 @@ SUPPORTED_HVAC_HP_MODES = [
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_HEAT_MODES = [
+SUPPORTED_HVAC_HEAT_MODES: list[HVACMode] = [
     HVACMode.FAN_ONLY,
     HVACMode.HEAT,
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_COOL_MODES = [
+SUPPORTED_HVAC_COOL_MODES: list[HVACMode] = [
     HVACMode.COOL,
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
@@ -2078,7 +2077,8 @@ class Neviweb130Thermostat(ClimateEntity):
         return self._weather_icon
 
     @property
-    def hvac_mode(self):
+    @override
+    def hvac_mode(self) -> HVACMode:
         """Return current operation."""
         if self._operation_mode == HVACMode.OFF:
             return HVACMode.OFF
@@ -2090,13 +2090,12 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACMode.DRY
         elif self._operation_mode == HVACMode.FAN_ONLY:
             return HVACMode.FAN_ONLY
-        elif self._operation_mode == MODE_EM_HEAT:
-            return MODE_EM_HEAT
         else:
             return HVACMode.HEAT
 
     @property
-    def hvac_modes(self):
+    @override
+    def hvac_modes(self) -> list[HVACMode]:
         """Return the list of available operation modes."""
         if self._is_wifi_lite:
             return SUPPORTED_HVAC_WIFI_LITE_MODES
@@ -4965,6 +4964,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return HVACAction(self._heat_level_source_type)
 
     @property
+    @override
     def hvac_mode(self) -> HVACMode:
         """Return current operation."""
         if self._heat_cool == HVACMode.OFF:
@@ -4977,6 +4977,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return HVACMode.HEAT
 
     @property
+    @override
     def hvac_modes(self) -> list[HVACMode]:
         """Return the list of available operation modes."""
         outputs = self._output_connect_state
