@@ -751,6 +751,30 @@ set_min_time_off:
       required: false
       example: 120
 
+set_heat_interstage_delay:
+  description: Set minimum time the device is heating before letting it increment the heater stage for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF device to set the heat interstage delay.
+      required: true
+      example: "climate.neviweb130_climate_office"
+    time:
+      description: Possible values are 1 to 60 mins
+      required: true
+      example: 15
+
+set_cool_interstage_delay:
+  description: Set minimum time the device is cooling before letting it increment the cooler stage for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF device to set the cool interstage delay.
+      required: true
+      example: "climate.neviweb130_climate_office"
+    time:
+      description: Possible values are 1 to 60 mins
+      required: true
+      example: 15
+
 set_neviweb_status:
   description: Set global Neviweb status, home or away.
   fields:

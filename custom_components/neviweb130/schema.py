@@ -84,6 +84,7 @@ from .const import (
     ATTR_TEMP_ALERT,
     ATTR_TEMP_OFFSET_HEAT,
     ATTR_TIME,
+    ATTR_TIME_FORMAT,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_TRIGGER_ALARM,
@@ -276,7 +277,7 @@ SET_EM_HEAT_SCHEMA = vol.Schema(
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
+        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
     }
 )
 
@@ -476,6 +477,20 @@ SET_MIN_TIME_OFF_SCHEMA = vol.Schema(
         vol.Optional(ATTR_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
         vol.Optional(ATTR_AUX_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
         vol.Optional(ATTR_COOL_MIN_TIME_OFF): vol.In(MIN_TIME),
+    }
+)
+
+SET_HEAT_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=1, max=60),
+    }
+)
+
+SET_COOL_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=1, max=60),
     }
 )
 

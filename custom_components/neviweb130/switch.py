@@ -76,6 +76,7 @@ from .const import (
     ATTR_STATUS,
     ATTR_SYSTEM_MODE,
     ATTR_TANK_SIZE,
+    ATTR_TIME,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_VALUE,
@@ -472,7 +473,7 @@ async def async_setup_platform(
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
+                value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
                 switch.set_timer(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -482,7 +483,7 @@ async def async_setup_platform(
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
             if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER2]}
+                value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER2]}
                 switch.set_timer2(value)
                 switch.schedule_update_ha_state(True)
                 break
@@ -582,7 +583,7 @@ async def async_setup_platform(
             if switch.entity_id == entity_id:
                 value = {
                     "id": switch.unique_id,
-                    "time": service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
+                    ATTR_TIME: service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
                 }
                 switch.set_remaining_time(value)
                 switch.schedule_update_ha_state(True)
@@ -968,13 +969,13 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_timer(self, value):
         """Set device timer, 0 = off, 1 to 255 = timer length."""
-        self._client.set_timer(value["id"], value["time"])
-        self._timer = value["time"]
+        self._client.set_timer(value["id"], value[ATTR_TIME])
+        self._timer = value[ATTR_TIME]
 
     def set_timer2(self, value):
         """Set device timer 2 for Multi controller, 0 = off, 1 to 255 = timer length."""
-        self._client.set_timer2(value["id"], value["time"])
-        self._timer2 = value["time"]
+        self._client.set_timer2(value["id"], value[ATTR_TIME])
+        self._timer2 = value[ATTR_TIME]
 
     def set_load_dr_options(self, value):
         """Set load controller Éco Sinopé attributes."""
@@ -1008,8 +1009,8 @@ class Neviweb130Switch(SwitchEntity):
 
     def set_remaining_time(self, value):
         """Set coldLoadPickupRemainingTime value."""
-        self._client.set_remaining_time(value["id"], value["time"])
-        self._cold_load_remaining_time = value["time"]
+        self._client.set_remaining_time(value["id"], value[ATTR_TIME])
+        self._cold_load_remaining_time = value[ATTR_TIME]
 
     def set_on_off_input_delay(self, value):
         """Set input 1 or 2 on/off delay in seconds."""

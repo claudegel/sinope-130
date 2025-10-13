@@ -19,6 +19,8 @@ from .const import (
     ATTR_AUX_HEAT_MIN_TIME_OFF,
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
+    ATTR_AUX_INTERSTAGE_DELAY,
+    ATTR_AUX_INTERSTAGE_MIN_DELAY,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_BALANCE_PT,
@@ -27,6 +29,8 @@ from .const import (
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_CONF_CLOSURE,
     ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_INTERSTAGE_DELAY,
+    ATTR_COOL_INTERSTAGE_MIN_DELAY,
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_MIN_TIME_ON,
@@ -62,6 +66,8 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_HEAT_COOL,
+    ATTR_HEAT_INTERSTAGE_DELAY,
+    ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
@@ -113,7 +119,7 @@ from .const import (
     ATTR_TEMP,
     ATTR_TEMP_ALERT,
     ATTR_TEMP_OFFSET_HEAT,
-    ATTR_TIME,
+    ATTR_TIME_FORMAT,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
@@ -1019,7 +1025,7 @@ class Neviweb130Client:
 
     def set_time_format(self, device_id, time):
         """Set device time format 12h or 24h."""
-        data = {ATTR_TIME: time}
+        data = {ATTR_TIME_FORMAT: time}
         _LOGGER.debug("time.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1424,6 +1430,7 @@ class Neviweb130Client:
 
     def set_on_off_input_delay(self, device_id, delay, onoff, input_number):
         """Set input 1 or 2 on/off delay in seconds."""
+        data = None
         match onoff:
             case "on":
                 data = {ATTR_INPUT_1_ON_DELAY: delay} if input_number == 1 else {ATTR_INPUT_2_ON_DELAY: delay}
@@ -1554,6 +1561,48 @@ class Neviweb130Client:
         for TH6500WF and TH6250WF thermostats."""
         data = {ATTR_AUX_HEAT_MIN_TIME_OFF: time}
         _LOGGER.debug("HC aux_heat_min_time_off.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_heat_interstage_delay(self, device_id, time: int):
+        """Set total time before reaching last heat stage (interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_HEAT_INTERSTAGE_DELAY: time}
+        _LOGGER.debug("HC set_heat_interstage_delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_interstage_delay(self, device_id, time: int):
+        """Set total time before reaching last auxiliary heat stage (interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_AUX_INTERSTAGE_DELAY: time}
+        _LOGGER.debug("HC set_aux_interstage_delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_interstage_delay(self, device_id, time: int):
+        """Set total time before reaching last cool stage (interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_COOL_INTERSTAGE_DELAY: time}
+        _LOGGER.debug("HC set_cool_interstage_delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_heat_interstage_min_delay(self, device_id, time: int):
+        """Set minimum time before reaching next heat stage (min interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_HEAT_INTERSTAGE_MIN_DELAY: time}
+        _LOGGER.debug("HC set_heat_min_interstage_delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_interstage_min_delay(self, device_id, time: int):
+        """Set minimum time before reaching next auxiliary stage (min interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_AUX_INTERSTAGE_MIN_DELAY: time}
+        _LOGGER.debug("HC set_aux_min_interstage_delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_interstage_min_delay(self, device_id, time: int):
+        """Set minimum time before reaching next cool stage (min interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_COOL_INTERSTAGE_MIN_DELAY: time}
+        _LOGGER.debug("HC set_cool_min_interstage_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id, data):
