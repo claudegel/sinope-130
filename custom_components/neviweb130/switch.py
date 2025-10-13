@@ -1114,7 +1114,7 @@ class Neviweb130Switch(SwitchEntity):
                     k += 1
                 self._hourly_kwh_count = round(hourly_kwh_count, 3)
                 self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
-                self._marker = int(device_hourly_stats[n - 1]["date"])
+                self._marker = device_hourly_stats[n - 1]["date"]
                 dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:

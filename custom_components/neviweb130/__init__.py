@@ -51,7 +51,7 @@ from .const import (
     ATTR_FLOOR_MODE,
     ATTR_FLOOR_OUTPUT2,
     ATTR_FLOOR_SENSOR,
-    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_ALARM1_LENGTH,
     ATTR_FLOW_ALARM1_OPTION,
     ATTR_FLOW_ALARM1_PERIOD,
     ATTR_FLOW_ALARM_TIMER,
@@ -1236,7 +1236,7 @@ class Neviweb130Client:
                 "triggerAlarm": alarm,
                 "closeValve": action,
             },
-            ATTR_FLOW_ALARM1_LENGHT: length,
+            ATTR_FLOW_ALARM1_LENGTH: length,
             ATTR_FLOW_THRESHOLD: threshold,
         }
         _LOGGER.debug("Flowmeter options.data = %s", data)
