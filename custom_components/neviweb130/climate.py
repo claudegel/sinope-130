@@ -45,7 +45,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
-from typing import Any, override
+from typing import Any, Mapping, override
 
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature, HVACAction, HVACMode
 from homeassistant.components.climate.const import (
@@ -61,7 +61,7 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.exceptions import HomeAssistantError
 
-from . import HOMEKIT_MODE, NOTIFY
+from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 from .const import (
@@ -316,7 +316,7 @@ DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
-HA_TO_NEVIWEB_PERIOD = {
+HA_TO_NEVIWEB_PERIOD: dict[str, int] = {
     "15 sec": 15,
     "5 min": 300,
     "10 min": 600,
@@ -1700,29 +1700,27 @@ async def async_setup_platform(
     )
 
 
-def neviweb_to_ha(value):
-    keys = [k for k, v in HA_TO_NEVIWEB_PERIOD.items() if v == value]
-    if keys:
-        return keys[0]
-    return None
+def neviweb_to_ha(value: int) -> str:
+    last = ""
+    for k, v in sorted(HA_TO_NEVIWEB_PERIOD.items(), key=lambda x: x[1]):
+        last = k
+        if value <= v:
+            return k
+    return last
 
 
-def lock_to_ha(lock):
+def lock_to_ha(lock: str) -> str:
     """Convert keypad lock state to better description."""
     match lock:
         case "locked":
             return "Locked"
         case "lock":
             return "Locked"
-        case "unlocked":
-            return "Unlocked"
-        case "unlock":
-            return "Unlocked"
         case "partiallyLocked":
             return "Tamper protection"
         case "partialLock":
             return "Tamper protection"
-    return None
+    return "Unlocked"
 
 
 def extract_capability_full(cap):
@@ -1751,7 +1749,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
@@ -1784,8 +1782,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cur_temp = None
         self._cur_temp_before = None
         self._cycle_length = 0
-        self._cycle_length_output2_status = None
-        self._cycle_length_output2_value = None
+        self._cycle_length_output2_status = "off"
+        self._cycle_length_output2_value = 0
         self._daily_kwh_count = 0
         self._display2 = None
         self._display_conf = None
@@ -1818,7 +1816,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._heat_lockout_temp = None
         self._hour_kwh = 0
         self._hourly_kwh_count = 0
-        self._keypad = None
+        self._keypad = "unlocked"
         self._language = None
         self._load2 = None
         self._load2_status = None
@@ -1847,7 +1845,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._wattage = 0
         self._weather_icon = 0
 
-    def update(self):
+    def update(self) -> None:
         if self._active:
             HEAT_ATTRIBUTES = [
                 ATTR_WATTAGE,
@@ -1942,28 +1940,33 @@ class Neviweb130Thermostat(ClimateEntity):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb130 device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the thermostat."""
         return self._name
 
     @property
-    def temperature_unit(self) -> str:
+    @override
+    def temperature_unit(self) -> UnitOfTemperature:
         """Return the unit of measurement of this entity, if any."""
         # Will always send Celsius values even if it's configured to display in Fahrenheit
         return UnitOfTemperature.CELSIUS
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> SensorDeviceClass:
         """Return the device class of this entity."""
         return SensorDeviceClass.TEMPERATURE
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -2015,7 +2018,8 @@ class Neviweb130Thermostat(ClimateEntity):
         return self._heat_level
 
     @property
-    def supported_features(self):
+    @override
+    def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         if self._is_floor or self._is_wifi_floor or self._is_low_wifi or self._is_low_voltage:
             return SUPPORT_AUX_FLAGS
@@ -2039,21 +2043,25 @@ class Neviweb130Thermostat(ClimateEntity):
             return False
 
     @property
+    @override
     def target_temperature_low(self) -> float:
         """(deprecated, use min_temp) Return the minimum heating temperature."""
         return self._min_temp
 
     @property
+    @override
     def target_temperature_high(self) -> float:
         """(deprecated, use max_temp) Return the maximum heating temperature."""
         return self._max_temp
 
     @property
+    @override
     def min_temp(self) -> float:
         """Return the minimum temperature."""
         return self._min_temp
 
     @property
+    @override
     def max_temp(self) -> float:
         """Return the maximum temperature."""
         return self._max_temp
@@ -2114,11 +2122,13 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORTED_HVAC_MODES
 
     @property
+    @override
     def current_temperature(self) -> float | None:
         """Return the room current temperature."""
         return self._cur_temp
 
     @property
+    @override
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self._target_temp is not None:
@@ -2145,7 +2155,8 @@ class Neviweb130Thermostat(ClimateEntity):
         return temp
 
     @property
-    def preset_mode(self):
+    @override
+    def preset_mode(self) -> str:
         """Return current preset mode."""
         if self._occupancy == PRESET_HOME:
             return PRESET_HOME
@@ -2155,7 +2166,8 @@ class Neviweb130Thermostat(ClimateEntity):
             return PRESET_NONE
 
     @property
-    def preset_modes(self):
+    @override
+    def preset_modes(self) -> list[str]:
         """Return available preset modes."""
         if self._is_h_c:
             return PRESET_h_c_MODES
@@ -2167,7 +2179,8 @@ class Neviweb130Thermostat(ClimateEntity):
             return PRESET_MODES
 
     @property
-    def hvac_action(self):
+    @override
+    def hvac_action(self) -> HVACAction:
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -2177,11 +2190,6 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
             return HVACAction.DRYING
-        elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
-            if self._heat_level == 0:
-                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
-            else:
-                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
@@ -2199,11 +2207,13 @@ class Neviweb130Thermostat(ClimateEntity):
         )
 
     @property
+    @override
     def fan_mode(self) -> str | None:
         """Return the fan setting."""
         return self._fan_speed
 
     @property
+    @override
     def fan_modes(self) -> list[str] | None:
         """Return available fan modes."""
         if self._is_HP or self._is_h_c:
@@ -2212,6 +2222,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
+    @override
     def swing_mode(self) -> str | None:
         """Return the fan vertical swing setting."""
         if self._is_HP or self._is_h_c:
@@ -2219,6 +2230,7 @@ class Neviweb130Thermostat(ClimateEntity):
         return None
 
     @property
+    @override
     def swing_modes(self) -> list[str] | None:
         """Return available vertical swing modes."""
         if self._is_HP or self._is_h_c:
@@ -2234,6 +2246,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return None
 
     @property
+    @override
     def swing_horizontal_mode(self) -> str | None:
         """Return the fan swing setting."""
         if self._is_HP or self._is_h_c:
@@ -2241,6 +2254,7 @@ class Neviweb130Thermostat(ClimateEntity):
         return None
 
     @property
+    @override
     def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
         if self._is_HP or self._is_h_c:
@@ -2337,14 +2351,12 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked."""
-        lock = None
-        if value["lock"] == "locked" and self._is_wifi:
-            lock = "lock"
-        elif value["lock"] == "partiallyLocked" and self._is_wifi:
+        if value["lock"] == "partiallyLocked" and self._is_wifi:
             lock = "partialLock"
+        elif value["lock"] == "locked":
+            lock = "lock"
         else:
-            if self._is_wifi:
-                lock = "unlock"
+            lock = "unlock"
         self._client.set_keypad_lock(value["id"], lock, self._is_wifi)
         self._keypad = lock
 
@@ -2855,7 +2867,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         super().__init__(data, device_info, name, sku, firmware)
         self._cold_load_pickup = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             GEN2_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -2939,7 +2952,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -2993,7 +3007,6 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length_output2_status = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
         self._floor_min_status = "off"
@@ -3001,7 +3014,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._gfci_status = None
         self._load2 = 0
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             FLOOR_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -3109,7 +3123,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3173,9 +3188,6 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length = 0
-        self._cycle_length_output2_status = "off"
-        self._cycle_length_output2_value = 0
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
         self._floor_min_status = "off"
@@ -3183,7 +3195,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._load2 = 0
         self._pump_protec_period_status = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             LOW_VOLTAGE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -3256,7 +3269,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
                     self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
-                    self._cycle_length_output2_value = device_data[ATTR_CYCLE_OUTPUT2]["value"]
+                    self._cycle_length_output2_value = int(device_data[ATTR_CYCLE_OUTPUT2]["value"])
                     self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                     self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
@@ -3294,7 +3307,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3360,12 +3374,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
 class Neviweb130DoubleThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1500ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
-        """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length_output2_status = "off"
-
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             DOUBLE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -3447,7 +3457,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3500,7 +3511,6 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -3509,7 +3519,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._target_temp_away = None
         self._temp_display_status = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             WIFI_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -3604,7 +3615,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3668,8 +3680,6 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length = 0
-        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -3677,7 +3687,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._target_temp_away = None
         self._temp_display_status = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             LITE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -3767,7 +3778,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3826,7 +3838,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
@@ -3838,7 +3849,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._target_temp_away = None
         self._temp_display_status = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             LOW_WIFI_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -3957,7 +3969,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4032,7 +4045,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware)
-        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
@@ -4044,7 +4056,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._load2 = 0
         self._target_temp_away = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             WIFI_FLOOR_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
@@ -4156,7 +4169,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4227,8 +4241,6 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         super().__init__(data, device_info, name, sku, firmware)
         self._cool_max = 30
         self._cool_min = 16
-        self._cycle_length = 0
-        self._cycle_length_output2_status = "off"
         self._display_cap = None
         self._fan_cap = None
         self._hc_device = None
@@ -4236,7 +4248,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._model = None
         self._sound_cap = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             HC_ATTRIBUTES = [
                 ATTR_DISPLAY2,
@@ -4359,7 +4372,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4441,7 +4455,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         self._model = None
         self._sound_cap = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             HP_ATTRIBUTES = [
                 ATTR_RSSI,
@@ -4563,7 +4578,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4701,7 +4717,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_offset_heat = None
         self._valve_polarity = None
 
-    def update(self):
+    @override
+    def update(self) -> None:
         if self._active:
             HC_ATTRIBUTES = [
                 ATTR_WIFI_KEYPAD,
@@ -4922,6 +4939,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
+    @override
     def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
         features = SUPPORT_HC_FLAGS
@@ -4941,6 +4959,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return features
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
         return (
@@ -4951,6 +4970,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         )
 
     @property
+    @override
     def hvac_action(self) -> HVACAction:
         """Return current HVAC action."""
         if self.hvac_mode == HVACMode.OFF:
@@ -4993,6 +5013,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         )
 
     @property
+    @override
     def preset_mode(self) -> str:
         """Return current preset mode."""
         if self._heat_cool == MODE_EM_HEAT:
@@ -5001,6 +5022,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return super().preset_mode
 
     @property
+    @override
     def preset_modes(self) -> list[str]:
         """Return available preset modes."""
         outputs = self._output_connect_state
@@ -5015,11 +5037,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return self._heat_cool == MODE_EM_HEAT
 
     @property
+    @override
     def fan_modes(self) -> list[str] | None:
         """Return available fan modes."""
         return WIFI_FAN_SPEED
 
     @property
+    @override
     def min_temp(self) -> float:
         """Return the minimum temperature."""
         if self.hvac_mode == HVACMode.HEAT_COOL:
@@ -5030,6 +5054,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return self._min_temp
 
     @property
+    @override
     def max_temp(self) -> float:
         """Return the maximum temperature."""
         if self.hvac_mode == HVACMode.HEAT_COOL:
@@ -5040,6 +5065,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             return self._max_temp
 
     @property
+    @override
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self.hvac_mode == HVACMode.COOL:
@@ -5060,11 +5086,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return self._target_cool
 
     @property
+    @override
     def current_humidity(self) -> float | None:
         """Show current humidity percent."""
         return self._humidity_display
 
     @property
+    @override
     def target_humidity(self) -> float | None:
         """Return target humidity."""
         if self._humidity_setpoint_mode == "defog":
@@ -5257,7 +5285,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._humidity_setpoint_mode = value["mode"]
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -5330,7 +5359,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "cool_interstage_min_delay": self._cool_interstage_min_delay,
                     "cool_interstage_delay": self._cool_interstage_delay,
                     "eco_status": self._drstatus_active,
-                    "eco_optOut": self._drstatus_optout,
+                    "eco_optout": self._drstatus_optout,
                     "eco_setpoint": self._drstatus_setpoint,
                     "eco_power_relative": self._drstatus_rel,
                     "eco_power_absolute": self._drstatus_abs,
