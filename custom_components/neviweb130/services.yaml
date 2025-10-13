@@ -365,11 +365,8 @@ set_aux_cycle_output:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
       example: "climate.neviweb130_climate_kitchen"
-    status:
-      description: Set to «on» or «off» to change status of auxiliary cycle length.
-      example: "on"
     value:
-      description: Cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: Cycle length in minutes. Accepted values are "off", "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_battery_type:

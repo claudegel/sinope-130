@@ -112,6 +112,7 @@ IGNORE_MIWI = False
 NOTIFY = "both"
 
 PERIOD_VALUE = {
+    "off",
     "15 sec",
     "5 min",
     "10 min",
@@ -381,15 +382,14 @@ SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
 SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, [vol.In(PERIOD_VALUE)]),
+        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, vol.In(PERIOD_VALUE)),
     }
 )
 
 SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, [vol.In(PERIOD_VALUE)]),
+        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, vol.In(PERIOD_VALUE)),
     }
 )
 
