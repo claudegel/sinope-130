@@ -42,6 +42,7 @@ from .const import (
     ATTR_RED,
     ATTR_RSSI,
     ATTR_STATE,
+    ATTR_TIME,
     ATTR_TIMER,
     ATTR_WATTAGE_INSTANT,
     DOMAIN,
@@ -183,7 +184,7 @@ async def async_setup_platform(
         entity_id = service.data[ATTR_ENTITY_ID]
         for light in entities:
             if light.entity_id == entity_id:
-                value = {"id": light.unique_id, "time": service.data[ATTR_TIMER]}
+                value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
                 light.set_timer(value)
                 light.schedule_update_ha_state(True)
                 break
@@ -603,8 +604,8 @@ class Neviweb130Light(LightEntity):
 
     def set_timer(self, value):
         """Set device timer, 0 = off, 1 to 255 = timer length."""
-        self._client.set_timer(value["id"], value["time"])
-        self._timer = value["time"]
+        self._client.set_timer(value["id"], value[ATTR_TIME])
+        self._timer = value[ATTR_TIME]
 
     def set_led_indicator(self, value):
         """Set led indicator color and intensity,

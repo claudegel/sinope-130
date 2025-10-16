@@ -143,9 +143,6 @@ set_backlight:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
       example: "climate.neviweb130_climate_office"
-    type:
-      description: «wifi» for Wi-Fi devices or «zigbee» for Zigbee devices
-      example: "wifi"
     backlightAdaptive:
       description: «auto», «on» or «bedroom». (last one is only for G2 and Wi-Fi thermostats)
       example: "auto"
@@ -753,6 +750,30 @@ set_min_time_off:
       description: Possible values are 120, 180, 240, 300, 600 sec.
       required: false
       example: 120
+
+set_heat_interstage_delay:
+  description: Set minimum time the device is heating before letting it increment the heater stage for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF device to set the heat interstage delay.
+      required: true
+      example: "climate.neviweb130_climate_office"
+    time:
+      description: Possible values are 1 to 60 mins
+      required: true
+      example: 15
+
+set_cool_interstage_delay:
+  description: Set minimum time the device is cooling before letting it increment the cooler stage for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 TH6500WF device to set the cool interstage delay.
+      required: true
+      example: "climate.neviweb130_climate_office"
+    time:
+      description: Possible values are 1 to 60 mins
+      required: true
+      example: 15
 
 set_neviweb_status:
   description: Set global Neviweb status, home or away.
