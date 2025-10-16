@@ -52,7 +52,7 @@ from .const import (
     ATTR_CLOSE_VALVE,
     ATTR_ERROR_CODE_SET1,
     ATTR_FLOW_ALARM1,
-    ATTR_FLOW_ALARM1_LENGHT,
+    ATTR_FLOW_ALARM1_LENGTH,
     ATTR_FLOW_ALARM1_OPTION,
     ATTR_FLOW_ALARM1_PERIOD,
     ATTR_FLOW_ALARM2,
@@ -1410,7 +1410,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 ATTR_FLOW_ALARM_TIMER,
                 ATTR_FLOW_THRESHOLD,
                 ATTR_FLOW_ALARM1_PERIOD,
-                ATTR_FLOW_ALARM1_LENGHT,
+                ATTR_FLOW_ALARM1_LENGTH,
                 ATTR_FLOW_ALARM1_OPTION,
                 ATTR_FLOW_ENABLED,
                 ATTR_BATT_STATUS_NORMAL,
@@ -1465,10 +1465,10 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer == 0:
+                        if self._flowmeter_timer == 0 and ATTR_FLOW_THRESHOLD in device_data:
                             self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                             self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                            self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                            self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGTH]
                             self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
                             self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                     if ATTR_BATT_PERCENT_NORMAL in device_data:
@@ -1634,7 +1634,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 ATTR_FLOW_ALARM_TIMER,
                 ATTR_FLOW_THRESHOLD,
                 ATTR_FLOW_ALARM1_PERIOD,
-                ATTR_FLOW_ALARM1_LENGHT,
+                ATTR_FLOW_ALARM1_LENGTH,
                 ATTR_FLOW_ALARM1_OPTION,
                 ATTR_FLOW_ALARM1,
                 ATTR_FLOW_ALARM2,
@@ -1684,10 +1684,10 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer == 0:
+                        if self._flowmeter_timer == 0 and ATTR_FLOW_THRESHOLD in device_data:
                             self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
                             self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                            self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGHT]
+                            self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGTH]
                             self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
                             self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
                     if ATTR_FLOW_ALARM1 in device_data:
