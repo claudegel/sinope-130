@@ -1149,6 +1149,8 @@ async def async_setup_platform(
         entity_id = service.data[ATTR_ENTITY_ID]
         for thermostat in entities:
             if thermostat.entity_id == entity_id:
+                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
                 value = {
                     "id": thermostat.unique_id,
                     "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
