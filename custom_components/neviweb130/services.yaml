@@ -177,6 +177,28 @@ set_setpoint_min:
       description: Minimum setpoint temperature to set.
       example: 10
 
+set_room_setpoint_away:
+  description: Set climate device away room setpoint temperature for all Wi-Fi thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    roomSetpointAway:
+      description: Possible values between 5 and 30.
+      required: true
+      example: 10
+
+set_cool_setpoint_away:
+  description: Set climate device away cool setpoint temperature for TH6xxxWF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    coolSetpointAway:
+      description: Posible values between 16 and 30.
+      required: true
+      example: 18
+
 set_floor_air_limit:
   description: Set floor thermostat max air limit temperature.
   fields:
@@ -874,3 +896,25 @@ set_humidity_mode:
     humiditySetpointMode:
       description: Possibles values, "defog", "manual".
       example: "manual"
+
+set_heat_dissipation_time:
+  description: Set climate device heating purge time for TH6xxxWF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    time:
+      description: Possible values between 0 and 300. 0 = off.
+      required: true
+      example: 60
+
+set_cool_dissipation_time:
+  description: Set climate device cooling purge time for TH6xxxWF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    time:
+      description: Possible values between 0 and 300. 0 = off.
+      required: true
+      example: 60
