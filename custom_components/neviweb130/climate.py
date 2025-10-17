@@ -5460,12 +5460,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_cool_dissipation_time(self, value):
         """Set device cool dissipation time."""
-        self._client.set_cool_dissipation_time(value["id"],value[ATTR_TIME], self._is_HC)
+        self._client.set_cool_dissipation_time(value["id"], value[ATTR_TIME], self._is_HC)
         self._heat_purge_time = value[ATTR_TIME]
 
     def set_heat_dissipation_time(self, value):
         """Set device heat dissipation time."""
-        self._client.set_heat_dissipation_time(value["id"],value[ATTR_TIME], self._is_HC)
+        self._client.set_heat_dissipation_time(value["id"], value[ATTR_TIME], self._is_HC)
         self._cool_purge_time = value[ATTR_TIME]
 
     def set_fan_filter_reminder(self, value):
