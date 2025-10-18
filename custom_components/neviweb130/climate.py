@@ -16,10 +16,12 @@ model 1512 = Thermostat TH1134ZB-HC for heating/cooling interlocking
 Support for Neviweb Wi-Fi thermostats
 model 1510 = thermostat TH1123WF 3000W (Wi-Fi)
 model 1510 = thermostat TH1124WF 4000W (Wi-Fi)
-model 336 = thermostat TH1133WF 3000W (Wi-Fi lite)
+model 336 = thermostat TH1133WF 3000W (Wi-Fi lite) Three wires connection
 model 336 = thermostat TH1133CR Sinopé Evo 3000W (Wi-Fi lite)
-model 336 = thermostat TH1134WF 3000W (Wi-Fi lite)
-model 336 = thermostat TH1134CR Sinopé Evo 3000W (Wi-Fi lite)
+model 336 = thermostat TH1134WF 4000W (Wi-Fi lite) three wires connection
+model 336 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
+model xxx = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
+model xxx = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (Wi-Fi floor)
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
 model 742 = thermostat TH1500WF double pole thermostat (Wi-Fi)
@@ -194,8 +196,10 @@ from .const import (
     SERVICE_SET_AUXILIARY_LOAD,
     SERVICE_SET_BACKLIGHT,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
+    SERVICE_SET_COOL_DISSIPATION_TIME,
     SERVICE_SET_COOL_INTERSTAGE_DELAY,
     SERVICE_SET_COOL_LOCKOUT_TEMPERATURE,
+    SERVICE_SET_COOL_SETPOINT_AWAY,
     SERVICE_SET_COOL_SETPOINT_MAX,
     SERVICE_SET_COOL_SETPOINT_MIN,
     SERVICE_SET_CYCLE_OUTPUT,
@@ -208,6 +212,7 @@ from .const import (
     SERVICE_SET_FLOOR_LIMIT_HIGH,
     SERVICE_SET_FLOOR_LIMIT_LOW,
     SERVICE_SET_HC_SECOND_DISPLAY,
+    SERVICE_SET_HEAT_DISSIPATION_TIME,
     SERVICE_SET_HEAT_INTERSTAGE_DELAY,
     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
@@ -219,6 +224,7 @@ from .const import (
     SERVICE_SET_MIN_TIME_OFF,
     SERVICE_SET_MIN_TIME_ON,
     SERVICE_SET_PUMP_PROTECTION,
+    SERVICE_SET_ROOM_SETPOINT_AWAY,
     SERVICE_SET_SCHEDULE_MODE,
     SERVICE_SET_SECOND_DISPLAY,
     SERVICE_SET_SENSOR_TYPE,
@@ -241,8 +247,10 @@ from .schema import (
     SET_AUXILIARY_LOAD_SCHEMA,
     SET_BACKLIGHT_SCHEMA,
     SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
+    SET_COOL_DISSIPATION_TIME_SCHEMA,
     SET_COOL_INTERSTAGE_DELAY_SCHEMA,
     SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA,
+    SET_COOL_SETPOINT_AWAY_SCHEMA,
     SET_COOL_SETPOINT_MAX_SCHEMA,
     SET_COOL_SETPOINT_MIN_SCHEMA,
     SET_CYCLE_OUTPUT_SCHEMA,
@@ -255,6 +263,7 @@ from .schema import (
     SET_FLOOR_LIMIT_HIGH_SCHEMA,
     SET_FLOOR_LIMIT_LOW_SCHEMA,
     SET_HC_SECOND_DISPLAY_SCHEMA,
+    SET_HEAT_DISSIPATION_TIME_SCHEMA,
     SET_HEAT_INTERSTAGE_DELAY_SCHEMA,
     SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
     SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
@@ -266,6 +275,7 @@ from .schema import (
     SET_MIN_TIME_OFF_SCHEMA,
     SET_MIN_TIME_ON_SCHEMA,
     SET_PUMP_PROTECTION_SCHEMA,
+    SET_ROOM_SETPOINT_AWAY_SCHEMA,
     SET_SCHEDULE_MODE_SCHEMA,
     SET_SECOND_DISPLAY_SCHEMA,
     SET_SENSOR_TYPE_SCHEMA,
@@ -1123,6 +1133,34 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_room_setpoint_away_service(service):
+        """Set away heating setpoint."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {
+                    "id": thermostat.unique_id,
+                    "temp": service.data[ATTR_ROOM_SETPOINT_AWAY],
+                }
+                thermostat.set_room_setpoint_away(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_cool_setpoint_away_service(service):
+        """Set away cooling setpoint."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+                value = {
+                    "id": thermostat.unique_id,
+                    "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
+                }
+                thermostat.set_cool_setpoint_away(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     def set_floor_limit_high_service(service):
         """Set maximum floor heating limit for floor device."""
         entity_id = service.data[ATTR_ENTITY_ID]
@@ -1448,6 +1486,36 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_heat_dissipation_time_service(service):
+        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+                value = {
+                    "id": thermostat.unique_id,
+                    ATTR_TIME: service.data[ATTR_TIME],
+                }
+                thermostat.set_heat_dissipation_time(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
+    def set_cool_dissipation_time_service(service):
+        """Set TH6500WF, TH6250WF fan speed, On or Auto."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+                value = {
+                    "id": thermostat.unique_id,
+                    ATTR_TIME: service.data[ATTR_TIME],
+                }
+                thermostat.set_cool_dissipation_time(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1572,6 +1640,20 @@ async def async_setup_platform(
         SERVICE_SET_COOL_SETPOINT_MIN,
         set_cool_setpoint_min_service,
         schema=SET_COOL_SETPOINT_MIN_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_ROOM_SETPOINT_AWAY,
+        set_room_setpoint_away_service,
+        schema=SET_ROOM_SETPOINT_AWAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_SETPOINT_AWAY,
+        set_cool_setpoint_away_service,
+        schema=SET_COOL_SETPOINT_AWAY_SCHEMA,
     )
 
     hass.services.async_register(
@@ -1742,6 +1824,20 @@ async def async_setup_platform(
         schema=SET_HUMIDITY_SETPOINT_MODE_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HEAT_DISSIPATION_TIME,
+        set_heat_dissipation_time_service,
+        schema=SET_HEAT_DISSIPATION_TIME_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_COOL_DISSIPATION_TIME,
+        set_cool_dissipation_time_service,
+        schema=SET_COOL_DISSIPATION_TIME_SCHEMA,
+    )
+
 
 def neviweb_to_ha(value: int) -> str:
     last = ""
@@ -1792,7 +1888,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = str(device_info["id"])
+        self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
@@ -1879,6 +1975,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._sound_conf = None
         self._target_cool = 21.5
         self._target_temp = 20.0
+        self._target_temp_away = None
         self._temp_display_value = None
         self._temperature = 20.0
         self._temperature_format = "celsius"
@@ -2431,6 +2528,11 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set minimum setpoint temperature."""
         self._client.set_setpoint_min(value["id"], value["temp"])
         self._min_temp = value["temp"]
+
+    def set_room_setpoint_away(self, value):
+        """Set device away heating setpoint."""
+        self._client.set_room_setpoint_away(value["id"], value["temp"])
+        self._target_temp_away = value["temp"]
 
     def set_cool_setpoint_max(self, value):
         """Set maximum cooling setpoint temperature."""
@@ -4756,7 +4858,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             "Acc": False,
             "LC": False,
         }
-        self._target_temp_away = None
         self._temp_display_status = None
         self._temp_offset_heat = None
 
@@ -5355,6 +5456,21 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Set delta temperature between heating and cooling setpoint from 1 to 5°C."""
         self._client.set_heatcool_delta(value["id"], value["level"], self._is_HC)
         self._heatcool_setpoint_delta = value["level"]
+
+    def set_cool_setpoint_away(self, value):
+        """Set device away cooling setpoint."""
+        self._client.set_cool_setpoint_away(value["id"], value["temp"], self._is_HC)
+        self._cool_target_temp_away = value["temp"]
+
+    def set_cool_dissipation_time(self, value):
+        """Set device cool dissipation time."""
+        self._client.set_cool_dissipation_time(value["id"], value[ATTR_TIME], self._is_HC)
+        self._heat_purge_time = value[ATTR_TIME]
+
+    def set_heat_dissipation_time(self, value):
+        """Set device heat dissipation time."""
+        self._client.set_heat_dissipation_time(value["id"], value[ATTR_TIME], self._is_HC)
+        self._cool_purge_time = value[ATTR_TIME]
 
     def set_fan_filter_reminder(self, value):
         """Set fan filter reminder period from 1 to 12 month."""

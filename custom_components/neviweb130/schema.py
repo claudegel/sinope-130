@@ -26,6 +26,7 @@ from .const import (
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_SETPOINT_AWAY,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_COOL_SETPOINT_MIN,
     ATTR_DISPLAY2,
@@ -71,6 +72,7 @@ from .const import (
     ATTR_POWER_SUPPLY,
     ATTR_RED,
     ATTR_REFUEL,
+    ATTR_ROOM_SETPOINT_AWAY,
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT,
@@ -354,6 +356,20 @@ SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
     }
 )
 
+SET_ROOM_SETPOINT_AWAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ROOM_SETPOINT_AWAY): vol.All(vol.Coerce(float), vol.Range(min=5, max=30)),
+    }
+)
+
+SET_COOL_SETPOINT_AWAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_SETPOINT_AWAY): vol.All(vol.Coerce(float), vol.Range(min=16, max=30)),
+    }
+)
+
 SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
@@ -547,6 +563,20 @@ SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HUMIDITY_SETPOINT_MODE): vol.In(["defog", "manual"]),
+    }
+)
+
+SET_HEAT_DISSIPATION_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=0, max=300),
+    }
+)
+
+SET_COOL_DISSIPATION_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=0, max=300),
     }
 )
 

@@ -34,7 +34,9 @@ from .const import (
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_PURGE_TIME,
     ATTR_COOL_SETPOINT,
+    ATTR_COOL_SETPOINT_AWAY,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_COOL_SETPOINT_MIN,
     ATTR_CYCLE,
@@ -71,6 +73,7 @@ from .const import (
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
+    ATTR_HEAT_PURGE_TIME,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
     ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
@@ -107,6 +110,7 @@ from .const import (
     ATTR_PUMP_PROTEC_PERIOD,
     ATTR_REFUEL,
     ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_AWAY,
     ATTR_ROOM_SETPOINT_MAX,
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_SETPOINT_MODE,
@@ -889,6 +893,19 @@ class Neviweb130Client:
         data = {ATTR_COOL_SETPOINT: temperature}
         self.set_device_attributes(device_id, data)
 
+    def set_room_setpoint_away(self, device_id, temperature):
+        """Set device away heating temperature target for all Wi-Fi thermostats."""
+        data = {ATTR_ROOM_SETPOINT_AWAY: temperature}
+        self.set_device_attributes(device_id, data)
+
+    def set_cool_setpoint_away(self, device_id, temperature, HC):
+        """Set device away cooling temperature target for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_COOL_SETPOINT_AWAY: temperature}
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats.")
+
     def set_humidity(self, device_id, humidity):
         """Set device humidity target."""
         data = {ATTR_HUMIDITY_SETPOINT: humidity}
@@ -1520,6 +1537,24 @@ class Neviweb130Client:
         data = {ATTR_LANGUAGE: lang}
         _LOGGER.debug("Hc language.data = %s", data)
         self.set_device_attributes(device_id, data)
+
+    def set_heat_dissipation_time(self, device_id, time: int, HC):
+        """Set heating purge time for TH6500WF and TH6250WF thermostats."""
+        if HC:
+            data = {ATTR_HEAT_PURGE_TIME: time}
+            _LOGGER.debug("HC heat_dissipation_time.data = %s", data)
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats.")
+
+    def set_cool_dissipation_time(self, device_id, time: int, HC):
+        """Set cooling purge time for TH6500WF and TH6250WF thermostats."""
+        if HC:
+            data = {ATTR_COOL_PURGE_TIME: time}
+            _LOGGER.debug("HC cool_dissipation_time.data = %s", data)
+            self.set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats.")
 
     def set_heat_min_time_on(self, device_id, time: int):
         """Set minimum time the heater is on before letting be off again (run-on time).
