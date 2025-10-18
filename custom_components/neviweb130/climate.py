@@ -3960,7 +3960,12 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            if self._sku != "TH1133WF" and self._sku != "TH1133CR" and self._sku != "TH1134WF" and self._sku != "TH1134CR":
+            if (
+                self._sku != "TH1133WF"
+                and self._sku != "TH1133CR"
+                and self._sku != "TH1134WF"
+                and self._sku != "TH1134CR"
+            ):
                 self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
