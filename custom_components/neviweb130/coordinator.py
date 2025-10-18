@@ -103,7 +103,7 @@ from .const import (
     ATTR_TANK_TYPE,
     ATTR_TEMP,
     ATTR_TEMP_ALERT,
-    ATTR_TIME,
+    ATTR_TIME_FORMAT,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
@@ -979,7 +979,7 @@ class Neviweb130Client:
 
     async def async_set_time_format(self, device_id, time):
         """Set device time format 12h or 24h."""
-        data = {ATTR_TIME: time}
+        data = {ATTR_TIME_FORMAT: time}
         _LOGGER.debug("time.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
