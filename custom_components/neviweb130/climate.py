@@ -168,6 +168,7 @@ from .const import (
     ATTR_TEMP,
     ATTR_TEMP_OFFSET_HEAT,
     ATTR_TIME,
+    ATTR_TIME_FORMAT,
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VALVE_POLARITY,
@@ -328,7 +329,18 @@ UPDATE_ATTRIBUTES = [
     ATTR_ROOM_SETPOINT_MIN,
     ATTR_ROOM_TEMPERATURE,
     ATTR_TEMP,
-    ATTR_TIME,
+    ATTR_TIME_FORMAT,
+]
+
+UPDATE_LITE_ATTRIBUTES = [
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
+    ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_ROOM_SETPOINT,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_TEMP,
 ]
 
 UPDATE_HP_ATTRIBUTES = [
@@ -352,7 +364,7 @@ UPDATE_HEAT_COOL_ATTRIBUTES = [
     ATTR_ROOM_TEMP_DISPLAY,
     ATTR_ROOM_TEMPERATURE,
     ATTR_TEMP,
-    ATTR_TIME,
+    ATTR_TIME_FORMAT,
 ]
 
 SUPPORTED_HVAC_WIFI_MODES = [
@@ -675,7 +687,7 @@ async def async_setup_entry(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "time": service.data[ATTR_TIME],
+                    ATTR_TIME: service.data[ATTR_TIME_FORMAT],
                 }
                 thermostat.async_set_time_format(value)
                 thermostat.schedule_update_ha_state(True)
@@ -1032,7 +1044,7 @@ async def async_setup_entry(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "time": service.data[ATTR_AUX_HEAT_TIMEON],
+                    ATTR_TIME: service.data[ATTR_AUX_HEAT_TIMEON],
                 }
                 thermostat.async_set_aux_heat_min_time_on(value)
                 thermostat.schedule_update_ha_state(True)
@@ -1045,7 +1057,7 @@ async def async_setup_entry(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "time": service.data[ATTR_COOL_MIN_TIME_ON],
+                    ATTR_TIME: service.data[ATTR_COOL_MIN_TIME_ON],
                     "state": "on",
                 }
                 thermostat.async_set_cool_min_time(value)
@@ -1059,7 +1071,7 @@ async def async_setup_entry(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "time": service.data[ATTR_COOL_MIN_TIME_OFF],
+                    ATTR_TIME: service.data[ATTR_COOL_MIN_TIME_OFF],
                     "state": "off",
                 }
                 thermostat.async_set_cool_min_time(value)
@@ -1631,7 +1643,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
@@ -2183,7 +2195,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_time_format(self, value):
         """Set time format 12h or 24h."""
-        if value["time"] == 12:
+        if value[ATTR_TIME] == 12:
             time_commande = "12h"
         else:
             time_commande = "24h"
@@ -2415,16 +2427,16 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_aux_heat_min_time_on(self, value):
         """Set auxiliary heating minimum time on for TH6500WF and TH6250WF."""
-        await self._client.async_set_aux_heat_time_on(value["id"], value["time"])
-        self._aux_heat_time_on = value["time"]
+        await self._client.async_set_aux_heat_time_on(value["id"], value[ATTR_TIME])
+        self._aux_heat_time_on = value[ATTR_TIME]
 
     async def async_set_cool_min_time(self, value):
         """Set minimum cooling time on for TH6500WF and TH6250WF."""
-        await self._client.async_set_cool_time(value["id"], value["time"], value["state"])
+        await self._client.async_set_cool_time(value["id"], value[ATTR_TIME], value["state"])
         if value["state"] == "on":
-            self._cool_min_time_on = value["time"]
+            self._cool_min_time_on = value[ATTR_TIME]
         else:
-            self._cool_min_time_off = value["time"]
+            self._cool_min_time_off = value[ATTR_TIME]
 
     async def async_do_stat(self, start):
         """Get device energy statistic."""
@@ -2797,7 +2809,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
@@ -3020,7 +3032,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
@@ -3268,7 +3280,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
@@ -3499,7 +3511,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
@@ -3709,7 +3721,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
@@ -3869,7 +3881,6 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._temp_display_value = None
         self._keypad = None
         self._backlight = None
-        self._time_format = "24h"
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._min_temp = 5
         self._max_temp = 30
@@ -3914,9 +3925,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             _LOGGER.debug(
                 "Updated attributes for %s: %s",
                 self._name,
-                UPDATE_ATTRIBUTES + LITE_ATTRIBUTES,
+                UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES,
             )
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LITE_ATTRIBUTES)
+            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3934,7 +3945,6 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
@@ -4010,7 +4020,6 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "temp_display_value": self._temp_display_value,
                 "keypad": self._keypad,
                 "backlight": self._backlight,
-                "time_format": self._time_format,
                 "temperature_format": self._temperature_format,
                 "setpoint_max": self._max_temp,
                 "setpoint_min": self._min_temp,
@@ -4177,7 +4186,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                     self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                     self._display2 = device_data[ATTR_DISPLAY2]
@@ -4448,7 +4457,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
@@ -4720,7 +4729,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     if ATTR_DRSETPOINT in device_data:
@@ -5322,7 +5331,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._heatcool_setpoint_delta = device_data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    self._time_format = device_data[ATTR_TIME]
+                    self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
                     self._heat_level_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._heat_source_type = device_data[ATTR_HEAT_SOURCE_TYPE]
