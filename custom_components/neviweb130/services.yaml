@@ -195,7 +195,7 @@ set_cool_setpoint_away:
       description: Name(s) of neviweb130 device thermostat.
       example: "climate.neviweb130_climate_office"
     coolSetpointAway:
-      description: Posible values between 16 and 30.
+      description: Possible values between 16 and 30.
       required: true
       example: 18
 
