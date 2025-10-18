@@ -3927,7 +3927,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 self._name,
                 UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES,
             )
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES)
+            device_data = await self._client.async_get_device_attributes(
+                self._id, UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES
+            )
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
