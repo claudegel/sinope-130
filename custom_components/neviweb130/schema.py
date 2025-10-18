@@ -73,7 +73,7 @@ from .const import (
     ATTR_TANK_TYPE,
     ATTR_TEMP,
     ATTR_TEMP_ALERT,
-    ATTR_TIME,
+    ATTR_TIME_FORMAT,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_TRIGGER_ALARM,
@@ -350,7 +350,7 @@ SET_EM_HEAT_SCHEMA = vol.Schema(
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
+        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
     }
 )
 
