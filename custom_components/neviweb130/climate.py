@@ -3930,9 +3930,10 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
-                    if ATTR_OUTPUT_PERCENT_DISPLAY["sourceType"] in device_data:
-                        self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
+                    self._heat_level = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    source_info = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {})
+                    if isinstance(source_info, dict) and "sourceType" in source_info:
+                        self._heat_source_type = source_info["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
@@ -4102,9 +4103,10 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
-                    if ATTR_OUTPUT_PERCENT_DISPLAY["sourceType"] in device_data:
-                        self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
+                    self._heat_level = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    source_info = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {})
+                    if isinstance(source_info, dict) and "sourceType" in source_info:
+                        self._heat_source_type = source_info["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
