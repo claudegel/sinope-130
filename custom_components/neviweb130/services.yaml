@@ -138,7 +138,7 @@ set_second_display:
       example: "exteriorTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or Zigbee
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
