@@ -717,10 +717,10 @@ set_hc_second_display:
       example: "exteriorTemperature"
 
 set_language:
-  description: Set the language for neviweb130 thermostat for TH1134ZB-HC and HP6000ZB-xx.
+  description: Set the device display language for neviweb130 thermostat for TH1134ZB-HC, HP6000ZB-xx, TH6500WF and TH6250WF.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 TH1134ZB-HC device to set the second display.
+      description: Name(s) of neviweb130 device to set the display language.
       example: "climate.neviweb130_climate_office"
     language:
       description: «fr» = french language, «en» for english.
