@@ -280,7 +280,7 @@ SET_EM_HEAT_SCHEMA = vol.Schema(
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
+        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.In([12, 24])),
     }
 )
 
