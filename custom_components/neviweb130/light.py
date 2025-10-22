@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from typing import override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -402,7 +403,7 @@ class Neviweb130Light(LightEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
@@ -511,17 +512,20 @@ class Neviweb130Light(LightEntity):
         return ColorMode.ONOFF
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the light."""
         return self._name
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> str:
         """Return the device class of this entity."""
         return "light"
 

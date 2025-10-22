@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from typing import override
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
@@ -784,7 +785,7 @@ class Neviweb130Switch(SwitchEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
@@ -857,17 +858,20 @@ class Neviweb130Switch(SwitchEntity):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the switch."""
         return self._name
 
     @property
-    def icon(self):
+    @override
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = SWITCH_TYPES.get(self._device_type)
         if device_info is None:
@@ -876,7 +880,8 @@ class Neviweb130Switch(SwitchEntity):
         return device_info[0]
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> SwitchDeviceClass | None:
         """Return the device class of this entity."""
         device_info = SWITCH_TYPES.get(self._device_type)
         if device_info is None:

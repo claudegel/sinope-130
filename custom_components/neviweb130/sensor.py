@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -114,7 +114,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
 
-SENSOR_TYPES = {
+SENSOR_TYPES: dict[str, tuple[str | None, None, BinarySensorDeviceClass | SensorStateClass]] = {
     "leak": (None, None, BinarySensorDeviceClass.MOISTURE),
     "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT),
     "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY),
@@ -608,7 +608,7 @@ class Neviweb130Sensor(Entity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
@@ -731,17 +731,20 @@ class Neviweb130Sensor(Entity):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the sensor."""
         return self._name
 
     @property
-    def icon(self):
+    @override
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:
@@ -750,7 +753,8 @@ class Neviweb130Sensor(Entity):
         return device_info[1]
 
     @property
-    def unit_of_measurement(self):
+    @override
+    def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
         device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:
@@ -759,7 +763,8 @@ class Neviweb130Sensor(Entity):
         return device_info[0]
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> BinarySensorDeviceClass | SensorStateClass | None:
         """Return the device class of this entity."""
         device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:

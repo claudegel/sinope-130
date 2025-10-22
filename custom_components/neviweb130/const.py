@@ -114,7 +114,6 @@ ATTR_ROOM_TEMP_DISPLAY = "roomTemperatureDisplay"
 ATTR_EARLY_START = "earlyStartCfg"
 ATTR_FLOOR_SENSOR = "floorSensorType"
 ATTR_AUX_CYCLE_LENGTH = "auxCycleLength"
-ATTR_COOL_CYCLE_LENGTH = "coolCycleLength"
 ATTR_CYCLE_LENGTH = "cycleLength"
 ATTR_CYCLE_OUTPUT2 = "cycleLengthOutput2"  # status on/off, value (second)
 ATTR_PUMP_PROTEC = "pumpProtection"  # status on/off, duration, frequency

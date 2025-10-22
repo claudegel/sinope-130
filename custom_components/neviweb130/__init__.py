@@ -8,9 +8,9 @@ from typing import Any
 import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import discovery
+from homeassistant.helpers import discovery, entity_registry
 from requests.cookies import RequestsCookieJar
 
 from .const import (
@@ -167,9 +167,15 @@ STAT_INTERVAL = DEFAULT_STAT_INTERVAL
 NOTIFY = DEFAULT_NOTIFY
 
 
-def setup(hass: HomeAssistant, hass_config):
+def setup(hass: HomeAssistant, hass_config: dict[str, Any]):
     """Set up neviweb130."""
     _LOGGER.info(STARTUP_MESSAGE)
+
+    # Migrate entity unique_ids from int -> str.
+    registry = entity_registry.async_get(hass)
+    for entity in registry.entities.values():
+        if entity.platform == DOMAIN and isinstance(entity.unique_id, int):
+            registry.async_update_entity(entity.entity_id, new_unique_id=str(entity.unique_id))
 
     data = Neviweb130Data(hass, hass_config[DOMAIN])
     hass.data[DOMAIN] = data
@@ -194,11 +200,11 @@ def setup(hass: HomeAssistant, hass_config):
     NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
-    discovery.load_platform(hass, "climate", DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, "light", DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, "switch", DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, "sensor", DOMAIN, {}, hass_config)
-    discovery.load_platform(hass, "valve", DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.CLIMATE, DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.LIGHT, DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.SWITCH, DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.SENSOR, DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.VALVE, DOMAIN, {}, hass_config)
 
     return True
 
@@ -540,7 +546,7 @@ class Neviweb130Client:
             self.gateway_data3 = raw_res3.json()
             _LOGGER.debug("Gateway_data3: %s", self.gateway_data3)
         for device in self.gateway_data:
-            data = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
+            data = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)
@@ -558,7 +564,7 @@ class Neviweb130Client:
                     )
         if self._gateway_id2 is not None:
             for device in self.gateway_data2:
-                data2 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
+                data2 = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data2:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data2)
@@ -576,7 +582,7 @@ class Neviweb130Client:
                         )
         if self._gateway_id3 is not None:
             for device in self.gateway_data3:
-                data3 = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
+                data3 = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data3:
                     device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data3)
@@ -602,7 +608,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=" + ",".join(attributes),
+                DEVICE_DATA_URL + device_id + "/attribute?attributes=" + ",".join(attributes),
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -611,7 +617,7 @@ class Neviweb130Client:
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
-            raise PyNeviweb130Error("Cannot get device attributes", e)
+            raise PyNeviweb130Error(f"Cannot get device attributes {e}")
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -632,7 +638,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/status",
+                DEVICE_DATA_URL + device_id + "/status",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -681,12 +687,12 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/alert",
+                DEVICE_DATA_URL + device_id + "/alert",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             )
-            _LOGGER.debug("Received devices alert (%s): %s", str(device_id), raw_res.json())
+            _LOGGER.debug("Received devices alert (%s): %s", device_id, raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
@@ -711,7 +717,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/consumption/monthly",
+                DEVICE_DATA_URL + device_id + "/consumption/monthly",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -737,7 +743,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/consumption/daily",
+                DEVICE_DATA_URL + device_id + "/consumption/daily",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -763,7 +769,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/consumption/hourly",
+                DEVICE_DATA_URL + device_id + "/consumption/hourly",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -812,7 +818,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=errorCodeSet1",
+                DEVICE_DATA_URL + device_id + "/attribute?attributes=errorCodeSet1",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -1654,7 +1660,7 @@ class Neviweb130Client:
         while result < 4:
             try:
                 resp = requests.put(
-                    DEVICE_DATA_URL + str(device_id) + "/attribute",
+                    DEVICE_DATA_URL + device_id + "/attribute",
                     json=data,
                     headers=self._headers,
                     cookies=self._cookies,
@@ -1663,7 +1669,7 @@ class Neviweb130Client:
                 _LOGGER.debug(
                     "Requests = %s%s%s %s",
                     DEVICE_DATA_URL,
-                    str(device_id),
+                    device_id,
                     "/attribute",
                     data,
                 )
