@@ -2261,7 +2261,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3269,7 +3269,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3452,7 +3452,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3643,7 +3643,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3779,7 +3779,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3947,7 +3947,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4126,7 +4126,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4500,7 +4500,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4697,7 +4697,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4907,7 +4907,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -5109,7 +5109,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -5882,7 +5882,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         if self._device_model == 6727:
