@@ -557,7 +557,7 @@ class Neviweb130Light(LightEntity):
                 "rssi": self._rssi,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -948,7 +948,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1056,7 +1056,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data

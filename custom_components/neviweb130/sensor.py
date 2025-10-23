@@ -813,7 +813,7 @@ class Neviweb130Sensor(Entity):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1076,7 +1076,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1221,7 +1221,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1327,7 +1327,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "neviweb_location": str(self._location),
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data

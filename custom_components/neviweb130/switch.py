@@ -941,7 +941,7 @@ class Neviweb130Switch(SwitchEntity):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1357,7 +1357,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1460,7 +1460,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1619,7 +1619,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1805,7 +1805,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1973,7 +1973,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
