@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from typing import override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -107,6 +108,9 @@ async def async_setup_platform(
 ) -> None:
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
+
+    # Wait for async migration to be done
+    await data.migration_done.wait()
 
     entities = []
     for device_info in data.neviweb130_client.gateway_data:
@@ -402,7 +406,7 @@ class Neviweb130Light(LightEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
@@ -511,17 +515,20 @@ class Neviweb130Light(LightEntity):
         return ColorMode.ONOFF
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the light."""
         return self._name
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> str:
         """Return the device class of this entity."""
         return "light"
 
@@ -553,7 +560,7 @@ class Neviweb130Light(LightEntity):
                 "rssi": self._rssi,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -944,7 +951,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1052,7 +1059,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data

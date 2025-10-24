@@ -28,6 +28,8 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from enum import StrEnum
+from typing import cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -133,7 +135,7 @@ HA_TO_NEVIWEB_DELAY = {
     "1 week": 604800,
 }
 
-VALVE_TYPES = {
+VALVE_TYPES: dict[str, tuple[str, StrEnum]] = {
     "flow": ("mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE),
     "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER),
 }
@@ -165,6 +167,9 @@ async def async_setup_platform(
 ) -> None:
     """Set up the Neviweb130 valve."""
     data = hass.data[DOMAIN]
+
+    # Wait for async migration to be done
+    await data.migration_done.wait()
 
     entities = []
     for device_info in data.neviweb130_client.gateway_data:
@@ -590,7 +595,7 @@ class Neviweb130Valve(ValveEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
@@ -685,17 +690,20 @@ class Neviweb130Valve(ValveEntity):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the valve."""
         return self._name
 
     @property
-    def icon(self):
+    @override
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = VALVE_TYPES.get(self._device_type)
         if device_info is None:
@@ -704,13 +712,14 @@ class Neviweb130Valve(ValveEntity):
         return device_info[0]
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> ValveDeviceClass | None:
         """Return the device class of this entity."""
         device_type = VALVE_TYPES.get(self._device_type)
         if device_type is None:
             return None
 
-        return device_type[1]
+        return cast(ValveDeviceClass, device_type[1])
 
     @property
     def is_open(self):
@@ -775,7 +784,7 @@ class Neviweb130Valve(ValveEntity):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1268,7 +1277,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1440,7 +1449,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1601,7 +1610,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
