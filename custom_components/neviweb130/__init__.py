@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -9,7 +10,7 @@ import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import discovery, entity_registry
 from requests.cookies import RequestsCookieJar
 
@@ -167,18 +168,25 @@ STAT_INTERVAL = DEFAULT_STAT_INTERVAL
 NOTIFY = DEFAULT_NOTIFY
 
 
-def setup(hass: HomeAssistant, hass_config: dict[str, Any]):
-    """Set up neviweb130."""
-    _LOGGER.info(STARTUP_MESSAGE)
-
-    # Migrate entity unique_ids from int -> str.
+@callback
+def migrate_entity_unique_id(hass: HomeAssistant):
     registry = entity_registry.async_get(hass)
     for entity in registry.entities.values():
         if entity.platform == DOMAIN and isinstance(entity.unique_id, int):
             registry.async_update_entity(entity.entity_id, new_unique_id=str(entity.unique_id))
+            _LOGGER.debug(f"Migrated unique_id from int to str for {entity.entity_id}")
+    hass.data[DOMAIN].migration_done.set()
+
+
+def setup(hass: HomeAssistant, hass_config: dict[str, Any]):
+    """Set up neviweb130."""
+    _LOGGER.info(STARTUP_MESSAGE)
 
     data = Neviweb130Data(hass, hass_config[DOMAIN])
     hass.data[DOMAIN] = data
+
+    # Migrate entity unique_ids from int -> str.
+    hass.add_job(migrate_entity_unique_id, hass)
 
     global SCAN_INTERVAL
     SCAN_INTERVAL = hass_config[DOMAIN].get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
@@ -222,6 +230,8 @@ class Neviweb130Data:
         network3 = config.get(CONF_NETWORK3)
         ignore_miwi = config.get(CONF_IGNORE_MIWI)
         self.neviweb130_client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi)
+
+        self.migration_done = asyncio.Event()
 
 
 # According to HA:
