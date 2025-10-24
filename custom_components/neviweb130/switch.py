@@ -200,6 +200,9 @@ async def async_setup_platform(
     """Set up the Neviweb130 switch."""
     data = hass.data[DOMAIN]
 
+    # Wait for async migration to be done
+    await data.migration_done.wait()
+
     entities = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
