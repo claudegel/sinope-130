@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from functools import partial
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
@@ -71,22 +72,23 @@ async def async_shutdown(hass: HomeAssistant, event=None):
     """Handle Home Assistant shutdown."""
     _LOGGER.info("Shutting down Neviweb130 custom component")
 
-    conf_dir = hass.data[DOMAIN]["conf_dir"]
+    domain_data = hass.data.get(DOMAIN)
+    if not domain_data:
+        _LOGGER.warning("DOMAIN not found in hass.data during shutdown — nothing to save.")
+        return
+
+    conf_dir = domain_data.get("conf_dir")
     if not conf_dir:
         _LOGGER.error("conf_dir is missing during shutdown — data will not be saved.")
         return
 
-    data = hass.data[DOMAIN].get("device_dict", {})
+    data = domain_data.get("device_dict", {})
+    await save_devices(conf_dir, data)
+    _LOGGER.info("Energy stat data saved")
 
-    if conf_dir:
-        await save_devices(conf_dir, data)
-        _LOGGER.info("Energy stat data saved")
-    else:
-        _LOGGER.warning("No conf_dir found during shutdown.")
-
-    if DOMAIN in hass.data and "coordinator" in hass.data[DOMAIN]:
+    if "coordinator" in domain_data:
         _LOGGER.info("Stopping coordinator")
-        await hass.data[DOMAIN]["coordinator"].stop()
+        await domain_data["coordinator"].stop()
 
 
 @callback
@@ -171,7 +173,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("The entry_id = %s", entry.data)
 
     # Register the event listener for Home Assistant stop event
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, async_shutdown)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass))
 
     if entry.unique_id is None:
         _LOGGER.warning("Config entry has no unique_id.")
@@ -188,6 +190,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Load saved devices data
     device_dict = await load_devices(conf_dir)
     hass.data[DOMAIN]["device_dict"] = device_dict
+    _LOGGER.debug("device_dict = %s", device_dict)
 
     # Call async_migrate_unique_ids before setting up devices
     _LOGGER.info("Migrating neviweb130 unique_id to string...")
