@@ -613,7 +613,7 @@ class Neviweb130Client:
     #        _LOGGER.debug("Updated gateway data2: %s", self.gateway_data2)
     #        _LOGGER.debug("Updated gateway data3: %s", self.gateway_data3)
 
-    def get_device_attributes(self, device_id: str, attributes):
+    def get_device_attributes(self, device_id: str, attributes: list[str]) -> Any:
         """Get device attributes."""
         # Http requests
         try:
@@ -1515,7 +1515,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_cool_lockout(self, device_id: str, temp):
-        """Set minimum outside temperature limit to allow cooling devices operation."""
+        """Set minimum outside temperature limit to allow cooling device operation."""
         data = {ATTR_COOL_LOCK_TEMP: temp}
         _LOGGER.debug("Cool lockout limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
