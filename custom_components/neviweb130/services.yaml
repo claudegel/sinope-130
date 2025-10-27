@@ -132,7 +132,7 @@ set_second_display:
       example: "exteriorTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or Zigbee
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
@@ -170,6 +170,28 @@ set_setpoint_min:
     roomSetpointMin:
       description: Minimum setpoint temperature to set.
       example: 10
+
+set_room_setpoint_away:
+  description: Set climate device away room setpoint temperature for all Wi-Fi thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    roomSetpointAway:
+      description: Possible values between 5 and 30.
+      required: true
+      example: 10
+
+set_cool_setpoint_away:
+  description: Set climate device away cool setpoint temperature for TH6xxxWF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device thermostat.
+      example: "climate.neviweb130_climate_office"
+    coolSetpointAway:
+      description: Possible values between 16 and 30.
+      required: true
+      example: 18
 
 set_floor_air_limit:
   description: Set floor thermostat max air limit temperature.
@@ -341,7 +363,7 @@ set_aux_cycle_output:
       description: Set to «on» or «off» to change status of auxiliary cycle length.
       example: "on"
     value:
-      description: Cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: Cycle length in minutes. Accepted values are "off", "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_battery_type:
@@ -692,10 +714,10 @@ set_hc_second_display:
       example: "exteriorTemperature"
 
 set_language:
-  description: Set the language for neviweb130 thermostat for TH1134ZB-HC and HP6000ZB-xx.
+  description: Set the device display language for neviweb130 thermostat for TH1134ZB-HC, HP6000ZB-xx, TH6500WF, TH6250WF and TH6250WF-PRO.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 TH1134ZB-HC device to set the second display.
+      description: Name(s) of neviweb130 device to set the display language.
       example: "climate.neviweb130_climate_office"
     language:
       description: «fr» = french language, «en» for english.
@@ -732,11 +754,21 @@ set_cool_min_time_off:
       example: 120
 
 set_neviweb_status:
-  description: Set global Neviweb status, home or away.
+  description: Set global Neviweb occupancy status, home or away via GT130 in sensor platform.
   fields:
     entity_id:
       description: Name of neviweb130 gateway GT130 device.
       example: "sensor.neviweb130_sensor_gt130"
+    mode:
+      description: Possibles values are home or away.
+      example: "away"
+
+set_climate_neviweb_status:
+  description: Set global Neviweb occupancy status, home or away via any thermostat in climate platform.
+  fields:
+    entity_id:
+      description: Name of neviweb130 thermostat.
+      example: "climate.neviweb130_climate_office"
     mode:
       description: Possibles values are home or away.
       example: "away"
