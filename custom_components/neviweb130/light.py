@@ -445,7 +445,7 @@ async def save_data(id, device_dict, data, mark, conf_dir):
     """Save stat data for one device in the device_dict."""
     entry = device_dict.get(id)
     if entry is None or not isinstance(entry, list) or len(entry) < 3:
-        _LOGGER.warning(f"Entrée invalide pour {id}: {entry}")
+        _LOGGER.warning(f"Invalid entry for {id}: {entry}")
         return
     _LOGGER.debug(f"Device {id} data before update: {entry}")
     entry[1] = data
