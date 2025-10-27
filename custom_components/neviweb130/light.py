@@ -20,6 +20,8 @@ from typing import override
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -112,7 +114,7 @@ async def async_setup_platform(
     # Wait for async migration to be done
     await data.migration_done.wait()
 
-    entities = []
+    entities: list[Neviweb130Light] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -173,129 +175,115 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_light_keypad_lock_service(service):
+    entity_map: dict[str, Neviweb130Light] | None = None
+
+    def get_light(service: ServiceCall) -> Neviweb130Light:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            entity_map = {entity.entity_id: entity for entity in entities}
+
+        light = entity_map.get(entity_id)
+        if light is None:
+            raise ServiceValidationError(f"Entity {entity_id} is not supported by {DOMAIN}")
+        return light
+
+    def set_light_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
-                light.set_keypad_lock(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        light.set_keypad_lock(value)
+        light.schedule_update_ha_state(True)
 
-    def set_light_timer_service(service):
+    def set_light_timer_service(service: ServiceCall) -> None:
         """Set timer for light device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
-                light.set_timer(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
+        light.set_timer(value)
+        light.schedule_update_ha_state(True)
 
-    def set_led_indicator_service(service):
+    def set_led_indicator_service(service: ServiceCall) -> None:
         """Set led color and intensity for light indicator."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "state": service.data[ATTR_STATE],
-                    "red": service.data[ATTR_RED],
-                    "green": service.data[ATTR_GREEN],
-                    "blue": service.data[ATTR_BLUE],
-                }
-                light.set_led_indicator(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "state": service.data[ATTR_STATE],
+            "red": service.data[ATTR_RED],
+            "green": service.data[ATTR_GREEN],
+            "blue": service.data[ATTR_BLUE],
+        }
+        light.set_led_indicator(value)
+        light.schedule_update_ha_state(True)
 
-    def set_led_on_intensity_service(service):
+    def set_led_on_intensity_service(service: ServiceCall) -> None:
         """Set led on intensity for light indicator."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "led_on": service.data[ATTR_LED_ON_INTENSITY],
-                }
-                light.set_led_on_intensity(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "led_on": service.data[ATTR_LED_ON_INTENSITY],
+        }
+        light.set_led_on_intensity(value)
+        light.schedule_update_ha_state(True)
 
-    def set_led_off_intensity_service(service):
+    def set_led_off_intensity_service(service: ServiceCall) -> None:
         """Set led off intensity for light indicator."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "led_off": service.data[ATTR_LED_OFF_INTENSITY],
-                }
-                light.set_led_off_intensity(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "led_off": service.data[ATTR_LED_OFF_INTENSITY],
+        }
+        light.set_led_off_intensity(value)
+        light.schedule_update_ha_state(True)
 
-    def set_light_min_intensity_service(service):
+    def set_light_min_intensity_service(service: ServiceCall) -> None:
         """Set dimmer light minimum intensity."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "intensity": service.data[ATTR_INTENSITY_MIN],
-                }
-                light.set_light_min_intensity(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "intensity": service.data[ATTR_INTENSITY_MIN],
+        }
+        light.set_light_min_intensity(value)
+        light.schedule_update_ha_state(True)
 
-    def set_wattage_service(service):
+    def set_wattage_service(service: ServiceCall) -> None:
         """Set watt load for light device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "watt": service.data[ATTR_LIGHT_WATTAGE],
-                }
-                light.set_wattage(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "watt": service.data[ATTR_LIGHT_WATTAGE],
+        }
+        light.set_wattage(value)
+        light.schedule_update_ha_state(True)
 
-    def set_phase_control_service(service):
+    def set_phase_control_service(service: ServiceCall) -> None:
         """Change phase control mode for dimmer device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "phase": service.data[ATTR_PHASE_CONTROL],
-                }
-                light.set_phase_control(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "phase": service.data[ATTR_PHASE_CONTROL],
+        }
+        light.set_phase_control(value)
+        light.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {"id": light.unique_id, "active": service.data[ATTR_ACTIVE]}
+        light.set_activation(value)
+        light.schedule_update_ha_state(True)
 
-    def set_key_double_up_service(service):
+    def set_key_double_up_service(service: ServiceCall) -> None:
         """Change key double up action for dimmer device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "double": service.data[ATTR_KEY_DOUBLE_UP],
-                }
-                light.set_key_double_up(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "double": service.data[ATTR_KEY_DOUBLE_UP],
+        }
+        light.set_key_double_up(value)
+        light.schedule_update_ha_state(True)
 
     hass.services.async_register(
         DOMAIN,

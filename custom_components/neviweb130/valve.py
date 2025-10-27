@@ -35,6 +35,8 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -171,7 +173,7 @@ async def async_setup_platform(
     # Wait for async migration to be done
     await data.migration_done.wait()
 
-    entities = []
+    entities: list[Neviweb130Valve] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -358,110 +360,102 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_valve_alert_service(service):
+    entity_map: dict[str, Neviweb130Valve] | None = None
+
+    def get_valve(service: ServiceCall) -> Neviweb130Valve:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            entity_map = {entity.entity_id: entity for entity in entities}
+
+        valve = entity_map.get(entity_id)
+        if valve is None:
+            raise ServiceValidationError(f"Entity {entity_id} is not supported by {DOMAIN}")
+        return valve
+
+    def set_valve_alert_service(service: ServiceCall) -> None:
         """Set alert for water valve."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "batt": service.data[ATTR_BATT_ALERT],
-                }
-                valve.set_valve_alert(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "batt": service.data[ATTR_BATT_ALERT],
+        }
+        valve.set_valve_alert(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_valve_temp_alert_service(service):
+    def set_valve_temp_alert_service(service: ServiceCall) -> None:
         """Set alert for water valve temperature location."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "temp": service.data[ATTR_TEMP_ALERT],
-                }
-                valve.set_valve_temp_alert(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "temp": service.data[ATTR_TEMP_ALERT],
+        }
+        valve.set_valve_temp_alert(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_meter_model_service(service):
+    def set_flow_meter_model_service(service: ServiceCall) -> None:
         """Set the flow meter model connected to water valve."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
-                }
-                valve.set_flow_meter_model(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
+        }
+        valve.set_flow_meter_model(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_meter_delay_service(service):
+    def set_flow_meter_delay_service(service: ServiceCall) -> None:
         """Set the flow meter delay before alert is turned on."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
-                }
-                valve.set_flow_meter_delay(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
+        }
+        valve.set_flow_meter_delay(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_meter_options_service(service):
+    def set_flow_meter_options_service(service: ServiceCall) -> None:
         """Set the flow meter options when leak is detected."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "alarm": service.data[ATTR_TRIGGER_ALARM],
-                    "close": service.data[ATTR_CLOSE_VALVE],
-                }
-                valve.set_flow_meter_options(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "alarm": service.data[ATTR_TRIGGER_ALARM],
+            "close": service.data[ATTR_CLOSE_VALVE],
+        }
+        valve.set_flow_meter_options(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_power_supply_service(service):
+    def set_power_supply_service(service: ServiceCall) -> None:
         """Set power supply type for water valve."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "supply": service.data[ATTR_POWER_SUPPLY],
-                }
-                valve.set_power_supply(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "supply": service.data[ATTR_POWER_SUPPLY],
+        }
+        valve.set_power_supply(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "active": service.data[ATTR_ACTIVE],
-                }
-                valve.set_activation(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "active": service.data[ATTR_ACTIVE],
+        }
+        valve.set_activation(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_alarm_disable_timer_service(service):
+    def set_flow_alarm_disable_timer_service(service: ServiceCall) -> None:
         """Set alert for water valve temperature location."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "timer": service.data[ATTR_FLOW_ALARM_TIMER],
-                }
-                valve.set_flow_alarm_disable_timer(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "timer": service.data[ATTR_FLOW_ALARM_TIMER],
+        }
+        valve.set_flow_alarm_disable_timer(value)
+        valve.schedule_update_ha_state(True)
 
     hass.services.async_register(
         DOMAIN,

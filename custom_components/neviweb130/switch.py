@@ -28,6 +28,8 @@ from typing import override
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -203,7 +205,7 @@ async def async_setup_platform(
     # Wait for async migration to be done
     await data.migration_done.wait()
 
-    entities = []
+    entities: list[Neviweb130Switch] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -462,151 +464,131 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_switch_keypad_lock_service(service):
+    entity_map: dict[str, Neviweb130Switch] | None = None
+
+    def get_switch(service: ServiceCall) -> Neviweb130Switch:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            entity_map = {entity.entity_id: entity for entity in entities}
+
+        switch = entity_map.get(entity_id)
+        if switch is None:
+            raise ServiceValidationError(f"Entity {entity_id} is not supported by {DOMAIN}")
+        return switch
+
+    def set_switch_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
-                switch.set_keypad_lock(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        switch.set_keypad_lock(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_switch_timer_service(service):
+    def set_switch_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
-                switch.set_timer(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
+        switch.set_timer(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_switch_timer2_service(service):
+    def set_switch_timer2_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER2]}
-                switch.set_timer2(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER2]}
+        switch.set_timer2(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_load_dr_options_service(service):
+    def set_load_dr_options_service(service: ServiceCall) -> None:
         """Set dr mode options for load controller."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {
-                    "id": switch.unique_id,
-                    "dractive": service.data[ATTR_DRACTIVE],
-                    "droptout": service.data[ATTR_OPTOUT],
-                    "onoff": service.data[ATTR_ONOFF],
-                }
-                switch.set_load_dr_options(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {
+            "id": switch.unique_id,
+            "dractive": service.data[ATTR_DRACTIVE],
+            "droptout": service.data[ATTR_OPTOUT],
+            "onoff": service.data[ATTR_ONOFF],
+        }
+        switch.set_load_dr_options(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_control_onoff_service(service):
+    def set_control_onoff_service(service: ServiceCall) -> None:
         """Set status of both onoff controller."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {
-                    "id": switch.unique_id,
-                    "onoff_num": service.data[ATTR_ONOFF_NUM],
-                    "status": service.data[ATTR_STATUS],
-                }
-                switch.set_control_onoff(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {
+            "id": switch.unique_id,
+            "onoff_num": service.data[ATTR_ONOFF_NUM],
+            "status": service.data[ATTR_STATUS],
+        }
+        switch.set_control_onoff(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_tank_size_service(service):
+    def set_tank_size_service(service: ServiceCall) -> None:
         """Set water tank size for RM3500ZB."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
-                switch.set_tank_size(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        switch.set_tank_size(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_controlled_device_service(service):
+    def set_controlled_device_service(service: ServiceCall) -> None:
         """Set controlled device type for RM3250ZB."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
-                switch.set_controlled_device(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        switch.set_controlled_device(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_low_temp_protection_service(service):
+    def set_low_temp_protection_service(service: ServiceCall) -> None:
         """Set water tank temperature protection for RM3500ZB."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {
-                    "id": switch.unique_id,
-                    "val": service.data[ATTR_WATER_TEMP_MIN],
-                }
-                switch.set_low_temp_protection(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {
+            "id": switch.unique_id,
+            "val": service.data[ATTR_WATER_TEMP_MIN],
+        }
+        switch.set_low_temp_protection(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_input_output_names_service(service):
+    def set_input_output_names_service(service: ServiceCall) -> None:
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {
-                    "id": switch.unique_id,
-                    "input1": service.data[ATTR_NAME_1],
-                    "input2": service.data[ATTR_NAME_2],
-                    "output1": service.data[ATTR_OUTPUT_NAME_1],
-                    "output2": service.data[ATTR_OUTPUT_NAME_2],
-                }
-                switch.set_input_output_names(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {
+            "id": switch.unique_id,
+            "input1": service.data[ATTR_NAME_1],
+            "input2": service.data[ATTR_NAME_2],
+            "output1": service.data[ATTR_OUTPUT_NAME_1],
+            "output2": service.data[ATTR_OUTPUT_NAME_2],
+        }
+        switch.set_input_output_names(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
+        switch.set_activation(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_remaining_time_service(service):
+    def set_remaining_time_service(service: ServiceCall) -> None:
         """Set coldLoadPickupRemainingTime value."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {
-                    "id": switch.unique_id,
-                    ATTR_TIME: service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
-                }
-                switch.set_remaining_time(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {
+            "id": switch.unique_id,
+            ATTR_TIME: service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
+        }
+        switch.set_remaining_time(value)
+        switch.schedule_update_ha_state(True)
 
-    def set_on_off_input_delay_service(service):
+    def set_on_off_input_delay_service(service: ServiceCall) -> None:
         """Set input 1 or 2 on/off delay for MC3100ZB device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {
-                    "id": switch.unique_id,
-                    "input_number": service.data[ATTR_INPUT_NUMBER],
-                    "onoff": service.data[ATTR_ONOFF],
-                    "delay": service.data[ATTR_DELAY][0],
-                }
-                switch.set_on_off_input_delay(value)
-                switch.schedule_update_ha_state(True)
-                break
+        switch = get_switch(service)
+        value = {
+            "id": switch.unique_id,
+            "input_number": service.data[ATTR_INPUT_NUMBER],
+            "onoff": service.data[ATTR_ONOFF],
+            "delay": service.data[ATTR_DELAY][0],
+        }
+        switch.set_on_off_input_delay(value)
+        switch.schedule_update_ha_state(True)
 
     hass.services.async_register(
         DOMAIN,
