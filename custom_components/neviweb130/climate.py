@@ -627,7 +627,7 @@ async def async_setup_entry(
                                     location_id,
                                     coordinator,
                                 )
-                            else:  #  TH6xxxWF
+                            else:
                                 device = Neviweb130HeatCoolThermostat(
                                     data,
                                     device_info,
@@ -1557,7 +1557,7 @@ async def save_data(id, device_dict, data, mark, conf_dir):
     """Save stat data for one device in the device_dict."""
     entry = device_dict.get(id)
     if entry is None or not isinstance(entry, list) or len(entry) < 3:
-        _LOGGER.warning(f"Entrée invalide pour {id}: {entry}")
+        _LOGGER.warning(f"Invalid entry for {id}: {entry}")
         return
     _LOGGER.debug(f"Device {id} data before update: {entry}")
     entry[1] = data
@@ -5160,7 +5160,12 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 NEW_HP_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            #  _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES)
+            _LOGGER.debug(
+                "Updated attributes for %s: %s",
+                self._name,
+                UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES,
+            )
+
             device_data = await self._client.async_get_device_attributes(
                 self._id,
                 UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES,
