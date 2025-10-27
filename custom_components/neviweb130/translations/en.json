@@ -66,8 +66,14 @@
   },
   "entity": {
     "binary_sensor": {
+      "activation": {
+        "name": "Active"
+      },
       "battery_status": {
         "name": "Battery Status"
+      },
+      "heating": {
+        "name": "Heating"
       },
       "leak_status": {
         "name": "Leak Status"
@@ -91,11 +97,20 @@
       "brightness": {
         "name": "Brightness"
       },
+      "cool_setpoint_away": {
+        "name": "Cool Setpoint Away"
+      },
       "intensity_min": {
         "name": "Min Intensity"
       },
       "fan_filter_remain": {
         "name": "Fan Filter Remainder"
+      },
+      "floor_max_temp": {
+        "name": "floor_max_temp"
+      },
+      "floor_min_temp": {
+        "name": "floor_min_temp"
       },
       "led_off_intensity": {
         "name": "Led Off Intensity"
@@ -115,6 +130,9 @@
       "min_temp": {
         "name": "Setpoint Min"
       },
+      "setpoint_away": {
+        "name": "Setpoint Away"
+      },
       "timer": {
         "name": "Timer"
       },
@@ -123,11 +141,33 @@
       }
     },
     "select": {
+      "aux_cycle_length": {
+        "name": "Aux Cycle Length"
+      },
       "backlight": {
-        "name": "Back Light"
+        "name": "Back Light",
+        "state": {
+          "auto": "Auto",
+          "on": "On",
+          "bedroom": "Bedroom"
+        }
+      },
+      "cycle_length": {
+        "name": "Cycle Length"
+      },
+      "early_start": {
+        "name": "Early Start"
+      },
+      "hc_second_display": {
+        "name": "Second Display"
       },
       "keypad_lock": {
-        "name": "Lock Keypad"
+        "name": "Lock Keypad",
+        "state": {
+          "locked": "Locked",
+          "unlocked": "Unlocked",
+          "tamper protection": "Tamper Protection"
+        }
       },
       "language": {
         "name": "Language"
@@ -139,7 +179,26 @@
         "name": "Led On Color"
       },
       "occupancy_mode": {
-        "name": "Occupancy Mode"
+        "name": "Global Occupancy Mode",
+        "state": {
+          "home": "Home",
+          "away": "Away"
+        }
+      },
+      "second_display": {
+        "name": "Second Display"
+      },
+      "sensor_mode": {
+        "name": "Sensor Mode"
+      },
+      "tank_size": {
+        "name": "Tank Size"
+      },
+      "temp_format": {
+        "name": "temp_format"
+      },
+      "time_format": {
+        "name": "Time Format"
       }
     },
     "sensor": {
@@ -172,6 +231,14 @@
       },
       "total_kwh_count": {
         "name": "Total Energy"
+      },
+      "wattage": {
+        "name": "Wattage"
+      }
+    },
+    "switch": {
+      "onoff2": {
+        "name": "Onoff2"
       }
     }
   }
