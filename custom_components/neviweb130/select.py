@@ -19,7 +19,25 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
-from .schema import BACKLIGHT_LIST, COLOR_LIST, LANGUAGE_LIST, LOCK_LIST, OCCUPANCY_LIST
+from .schema import (
+    BACKLIGHT_LIST,
+    COLOR_LIST,
+    DISPLAY_LIST,
+    FLOOR_MODE,
+    HC_DISPLAY_LIST,
+    LANGUAGE_LIST,
+    LOCK_LIST,
+    LV_AUX_CYCLE,
+    LV_CYCLE,
+    OCCUPANCY_LIST,
+    ON_OFF,
+    STD_CYCLE,
+    TEMP_LIST,
+    TANK_VALUE,
+    TIME_LIST,
+    WIFI_AUX_CYCLE,
+    WIFI_CYCLE,
+)
 
 DEFAULT_NAME = f"{DOMAIN} select"
 DEFAULT_NAME_2 = f"{DOMAIN} select 2"
@@ -36,12 +54,14 @@ class Neviweb130SelectEntityDescription(SelectEntityDescription):
 
 
 SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
+    #  Common attributes
     Neviweb130SelectEntityDescription(
         key="keypad",
         icon="mdi:dialpad",
         translation_key="keypad_lock",
         options=LOCK_LIST,
     ),
+    #  Light attributes
     Neviweb130SelectEntityDescription(
         key="led_on_color",
         icon="mdi:palette",
@@ -54,6 +74,7 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         translation_key="led_off_color",
         options=COLOR_LIST,
     ),
+    #  Thermostat attributes
     Neviweb130SelectEntityDescription(
         key="backlight",
         icon="mdi:fullscreen",
@@ -74,9 +95,82 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
     ),
     Neviweb130SelectEntityDescription(
         key="occupancy_mode",
-        icon="mdi:projector-screen-outline",
+        icon="mdi:home",
         translation_key="occupancy_mode",
         options=OCCUPANCY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="time_format",
+        icon="mdi:camera-timer",
+        translation_key="time_format",
+        options=TIME_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="temp_format",
+        icon="mdi:thermometer",
+        translation_key="temp_format",
+        options=TEMP_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="second_display",
+        icon="mdi:fullscreen",
+        translation_key="second_display",
+        options=DISPLAY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="hc_second_display",
+        icon="mdi:fullscreen",
+        translation_key="second_display",
+        options=HC_DISPLAY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="cycle_length",
+        icon="mdi:reload",
+        translation_key="cycle_length",
+        options=STD_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="aux_cycle_length",
+        icon="mdi:reload",
+        translation_key="aux_cycle_length",
+        options=LV_AUX_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="lv_cycle_length",
+        icon="mdi:reload",
+        translation_key="cycle_length",
+        options=LV_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="wifi_cycle_length",
+        icon="mdi:reload",
+        translation_key="aux_cycle_length",
+        options=WIFI_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="wifi_aux_cycle_length",
+        icon="mdi:reload",
+        translation_key="aux_cycle_length",
+        options=WIFI_AUX_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="sensor_mode",
+        icon="mdi:home-modern",
+        translation_key="sensor_mode",
+        options=FLOOR_MODE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="early_start",
+        icon="mdi:selection-off",
+        translation_key="early_start",
+        options=ON_OFF,
+    ),
+    #  switch attributes
+    Neviweb130SelectEntityDescription(
+        key="tank_size",
+        icon="mdi:cup-water",
+        translation_key="tank_size",
+        options=TANK_VALUE,
     ),
 )
 
@@ -172,13 +266,25 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_entity_category = EntityCategory.CONFIG
 
     _ATTRIBUTE_METHODS = {
-        "keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
-        "led_on_color": lambda self, option: self._client.async_set_led_indicator(self._id, 1, option),
-        "led_off_color": lambda self, option: self._client.async_set_led_indicator(self._id, 0, option),
+        "aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
+        "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option),
+        "early_start": lambda self, option: self._client.async_set_early_start(self._id, option),
+        "hc_second_display": lambda self, option: self._client.async_set_hc_display(self._id, option),
+        "keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
         "keypad_status": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
         "language": lambda self, option: self._client.async_set_language(self._id, option),
-        "occupancy_mode": lambda self, option: self._client.async_post_neviweb_status(self._id, self.location, option),
+        "led_off_color": lambda self, option: self._client.async_set_led_indicator(self._id, 0, option),
+        "led_on_color": lambda self, option: self._client.async_set_led_indicator(self._id, 1, option),
+        "lv_cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option),
+        "occupancy_mode": lambda self, option: self._client.async_post_neviweb_status(self.location, option),
+        "second_display": lambda self, option: self._client.async_set_second_display(self._id, option),
+        "sensor_mode": lambda self, option: self._client.async_set_air_floor_mode(self._id, option),
+        "temp_format": lambda self, option: self._client.async_set_temperature_format(self._id, option),
+        "time_format": lambda self, option: self._client.async_set_time_format(self._id, option),
+        "tank_size": lambda self, option: self._client.async_set_tank_size(self._id, option),
+        "wifi_aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
+        "wifi_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         # ...
     }
 
@@ -218,10 +324,11 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         return device_obj.get("is_wifi", False) if device_obj else False
 
     @property
-    def location(self):
+    def location(self) -> str | None:
         """Return location id"""
         device_obj = self.coordinator.data.get(self._id)
-        return device_obj.get("location", False) if device_obj else False
+        loc = device_obj.get("location", None) if device_obj else None
+        return str(loc) if loc is not None else none
 
     @property
     def is_HC(self):
