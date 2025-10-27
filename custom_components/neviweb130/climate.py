@@ -1001,7 +1001,7 @@ async def async_setup_platform(
 
         thermostat = entity_map.get(entity_id)
         if thermostat is None:
-            raise ServiceValidationError(f"Entity {entity_id} is not supported by {DOMAIN}")
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} thermostat")
         return thermostat
 
     def set_second_display_service(service: ServiceCall) -> None:
@@ -1038,7 +1038,7 @@ async def async_setup_platform(
         """Set time format 12h or 24h."""
         thermostat = get_thermostat(service)
         if isinstance(thermostat, Neviweb130WifiLiteThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} do not have time display.")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} Wi-Fi (lite) thermostat")
 
         value = {
             "id": thermostat.unique_id,
@@ -1144,9 +1144,12 @@ async def async_setup_platform(
     def set_aux_cycle_output_service(service: ServiceCall) -> None:
         """Set options for auxiliary cycle length for low voltage thermostats."""
         thermostat = get_thermostat(service)
+        val = service.data.get(ATTR_VALUE)
+        if val is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_VALUE}")
         value = {
             "id": thermostat.unique_id,
-            "val": service.data[ATTR_VALUE],
+            "val": val,
         }
         thermostat.set_aux_cycle_output(value)
         thermostat.schedule_update_ha_state(True)
@@ -1205,7 +1208,7 @@ async def async_setup_platform(
         """Set away cooling setpoint."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
@@ -1339,7 +1342,7 @@ async def async_setup_platform(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         thermostat.set_min_time_on(service.data)
         thermostat.schedule_update_ha_state(True)
 
@@ -1348,7 +1351,7 @@ async def async_setup_platform(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         thermostat.set_min_time_off(service.data)
         thermostat.schedule_update_ha_state(True)
 
@@ -1357,7 +1360,7 @@ async def async_setup_platform(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         thermostat.set_heat_interstage_delay(service.data)
         thermostat.schedule_update_ha_state(True)
 
@@ -1366,7 +1369,7 @@ async def async_setup_platform(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         thermostat.set_cool_interstage_delay(service.data)
         thermostat.schedule_update_ha_state(True)
 
@@ -1374,7 +1377,7 @@ async def async_setup_platform(
         """Set TH6500WF accessory (humidifier, dehumidifier, air exchanger) type."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "type": service.data[ATTR_ACCESSORY_TYPE],
@@ -1386,7 +1389,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF schedule mode, manual or auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "mode": service.data[ATTR_SETPOINT_MODE],
@@ -1398,7 +1401,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF delta temperature between heating and cooling setpoint."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "level": service.data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA],
@@ -1410,7 +1413,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF fan filter reminder period from 1 to 12 month."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "month": service.data[ATTR_FAN_FILTER_REMAIN],
@@ -1422,7 +1425,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF temperature sensor offset from -2 to 2°C with a 0.5°C increment."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "temp": service.data[ATTR_TEMP_OFFSET_HEAT],
@@ -1434,7 +1437,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF auxiliary heating device."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "dev": service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
@@ -1446,7 +1449,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "speed": service.data[ATTR_FAN_SPEED],
@@ -1458,7 +1461,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
@@ -1470,7 +1473,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             ATTR_TIME: service.data[ATTR_TIME],
@@ -1482,7 +1485,7 @@ async def async_setup_platform(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
             ATTR_TIME: service.data[ATTR_TIME],
@@ -2597,7 +2600,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
 
         else:
-            _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+            _LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
 
         self._operation_mode = hvac_mode
         self.update()
@@ -2616,7 +2619,7 @@ class Neviweb130Thermostat(ClimateEntity):
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
         else:
-            _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+            _LOGGER.error("Unable to set preset mode: %s", preset_mode)
         self._occupancy = preset_mode
 
     def turn_em_heat_on(self):
@@ -2665,7 +2668,7 @@ class Neviweb130Thermostat(ClimateEntity):
         length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         is_wifi = self._is_low_wifi or (self._is_wifi and self._is_HC)
         if is_wifi and length == 0:
-            raise ServiceValidationError(f"Turning off auxiliary cycle length is not supported for {self._id}")
+            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
         self._client.set_aux_cycle_output(value["id"], length, is_wifi)
         if is_wifi:
             self._aux_cycle_length = length
@@ -2681,7 +2684,7 @@ class Neviweb130Thermostat(ClimateEntity):
         val = value["val"]
         length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         if length == 0:
-            raise ServiceValidationError(f"Turning off main cycle length is not supported for {self._id}")
+            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
         self._client.set_cycle_output(value["id"], length, self._is_HC)
         self._cycle_length = length
 
@@ -2883,7 +2886,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
+            _LOGGER.warning("Session expired... Reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
@@ -2892,16 +2895,16 @@ class Neviweb130Thermostat(ClimateEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
         elif error_data == "TimeoutError":
-            _LOGGER.warning("Timeout error detected...Retry later.")
+            _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later.")
+            _LOGGER.warning("Access blocked for maintenance... Retry later")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
+            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -2913,7 +2916,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s... (id: %s, SKU: %s) Report to maintainer.",
+                "Device action not supported for %s... (id: %s, SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -2921,7 +2924,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout... The device %s (id: %s) "
-                + "did not respond to the server within the prescribed delay."
+                + "did not respond to the server within the prescribed delay"
                 + " (SKU: %s)",
                 self._name,
                 str(self._id),
@@ -2954,13 +2957,13 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes",
                     self._name,
                 )
                 _LOGGER.warning(
                     "You can re-activate device %s with "
                     + "service.neviweb130_set_activation or wait 20 minutes "
-                    + "for update to restart or just restart HA.",
+                    + "for update to restart or just restart HA",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
@@ -2994,7 +2997,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 error_data,
@@ -5589,9 +5592,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._aux_heat_min_time_off = aux_heat_min_time_off
 
     def set_heat_interstage_delay(self, value):
-        time_val = int(value.get(ATTR_TIME))
-        if time_val is None:
-            raise ServiceValidationError("time was not provided")
+        try:
+            time_val = int(value[ATTR_TIME])
+        except KeyError:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+        except ValueError:
+            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be an integer")
 
         outputs = self._output_connect_state
         hp_can_heat = self._reversing_valve_polarity == "cooling" or outputs["OB"]
@@ -5599,9 +5605,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         has_multiple_aux_stages = outputs["W"] and outputs["W2"]
         if not has_multiple_hp_heat_stages and not has_multiple_aux_stages:
             raise ServiceValidationError(
-                f"{self._id} does not support multiple levels of heating. "
-                f"Output configuration: {outputs}"
-                f"Reversing valve polarity: {self._reversing_valve_polarity}"
+                f"Entity {self.entity_id} does not support multiple levels of heating with current configuration"
             )
 
         if has_multiple_hp_heat_stages:
@@ -5612,18 +5616,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._client.set_aux_interstage_delay(self.unique_id, time_val * 60 * 2)
 
     def set_cool_interstage_delay(self, value):
-        time_val = int(value.get(ATTR_TIME))
-        if time_val is None:
-            raise ServiceValidationError("time was not provided")
+        try:
+            time_val = int(value[ATTR_TIME])
+        except KeyError:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+        except ValueError:
+            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be an integer")
 
         outputs = self._output_connect_state
         hp_can_cool = self._reversing_valve_polarity == "heating" or outputs["OB"]
         has_multiple_cooling_stages = outputs["Y1"] and outputs["Y2"] and hp_can_cool
         if not has_multiple_cooling_stages:
             raise ServiceValidationError(
-                f"{self._id} does not support multiple levels of cooling. "
-                f"Output configuration: {outputs}"
-                f"Reversing valve polarity: {self._reversing_valve_polarity}"
+                f"Entity {self.entity_id} does not support multiple cooling levels "
+                f"with the current output configuration"
             )
 
         self._client.set_cool_interstage_min_delay(self.unique_id, time_val * 60)

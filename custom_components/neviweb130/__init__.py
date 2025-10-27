@@ -324,7 +324,7 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.")
+            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall")
         if raw_res.status_code != 200:
             _LOGGER.debug("Login status: %s", raw_res.json())
             raise PyNeviweb130Error("Cannot log in")
@@ -343,12 +343,12 @@ class Neviweb130Client:
                     "Too many active sessions. Close all neviweb130 "
                     + "sessions you have opened on other platform "
                     + "(mobile, browser, ...)"
-                    + ", wait a few minutes, then reboot Home Assistant."
+                    + ", wait a few minutes, then reboot Home Assistant"
                 )
                 self.notify_ha(
-                    "Warning: Got ACCSESSEXC error, Too many active sessions."
+                    "Warning: Got ACCSESSEXC error: Too many active sessions."
                     + " Close all neviweb130 sessions, wait few minutes and "
-                    + "restart HA."
+                    + "restart HA"
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
                 _LOGGER.error("Invalid Neviweb username and/or password... Check your configuration parameters")
@@ -429,7 +429,7 @@ class Neviweb130Client:
                                 "Your network name %s do not correspond to "
                                 + "discovered network %s, skipping this one"
                                 + ".... Please check your config if nothing "
-                                + "is discovered.",
+                                + "is discovered",
                                 self._network_name,
                                 network["name"],
                             )
@@ -570,7 +570,7 @@ class Neviweb130Client:
                         + "«sinope neviweb» instead. If the location contain"
                         + " mixed miwi, Zigbee and/or Wi-Fi devices, "
                         + "add parameter: ignore_miwi: True, in your "
-                        + "neviweb130 configuration."
+                        + "neviweb130 configuration"
                     )
         if self._gateway_id2 is not None:
             for device in self.gateway_data2:
@@ -588,7 +588,7 @@ class Neviweb130Client:
                             + "«sinope neviweb» instead. If the location contain"
                             + " mixed miwi, Zigbee and/or Wi-Fi devices, "
                             + "add parameter: ignore_miwi: True, in your "
-                            + "neviweb130 configuration."
+                            + "neviweb130 configuration"
                         )
         if self._gateway_id3 is not None:
             for device in self.gateway_data3:
@@ -606,7 +606,7 @@ class Neviweb130Client:
                             + "«sinope neviweb» instead. If the location contain"
                             + " mixed miwi, Zigbee and/or Wi-Fi devices, "
                             + "add parameter: ignore_miwi: True, in your "
-                            + "neviweb130 configuration."
+                            + "neviweb130 configuration"
                         )
 
     #        _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
@@ -638,9 +638,9 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
+                # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
     def get_device_status(self, device_id: str):
@@ -663,9 +663,9 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
+                # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
     def get_neviweb_status(self, location):
@@ -687,7 +687,7 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
                 )
                 # raise PyNeviweb130Error("Session expired...reconnecting...")
         return data
@@ -717,9 +717,9 @@ class Neviweb130Client:
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
+                # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
     def get_device_monthly_stats(self, device_id: str):
@@ -922,7 +922,7 @@ class Neviweb130Client:
             data = {ATTR_COOL_SETPOINT_AWAY: temperature}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats")
 
     def set_humidity(self, device_id: str, humidity):
         """Set device humidity target."""
@@ -948,7 +948,7 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats")
 
     def set_heatcool_delta(self, device_id: str, level, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -956,7 +956,7 @@ class Neviweb130Client:
             data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats")
 
     def set_fan_filter_reminder(self, device_id: str, month, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -965,7 +965,7 @@ class Neviweb130Client:
             data = {ATTR_FAN_FILTER_REMAIN: month_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats")
 
     def set_temperature_offset(self, device_id: str, temp, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -973,7 +973,7 @@ class Neviweb130Client:
             data = {ATTR_TEMP_OFFSET_HEAT: temp}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats")
 
     def set_humidity_offset(self, device_id: str, offset, HC):
         """Set humidity setpoint offset for TH6500WF and TH6250WF."""
@@ -981,7 +981,7 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats")
 
     def set_humidity_mode(self, device_id: str, mode, HC):
         """Set humidity setpoint mode for TH6500WF and TH6250WF."""
@@ -989,7 +989,7 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats")
 
     def set_air_ex_min_time_on(self, device_id: str, time, HC):
         """Set minimum time the air exchanger is on per hour."""
@@ -1007,7 +1007,7 @@ class Neviweb130Client:
             data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats")
 
     def set_backlight(self, device_id: str, level, is_wifi: bool):
         """Set backlight intensity when idle, on or auto.
@@ -1569,7 +1569,7 @@ class Neviweb130Client:
             _LOGGER.debug("HC heat_dissipation_time.data = %s", data)
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats")
 
     def set_cool_dissipation_time(self, device_id: str, time: int, HC):
         """Set cooling purge time for TH6500WF and TH6250WF thermostats."""
@@ -1578,7 +1578,7 @@ class Neviweb130Client:
             _LOGGER.debug("HC cool_dissipation_time.data = %s", data)
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats")
 
     def set_heat_min_time_on(self, device_id: str, time: int):
         """Set minimum time the heater is on before letting be off again (run-on time).
