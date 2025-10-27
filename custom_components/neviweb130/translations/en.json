@@ -166,7 +166,7 @@
         "state": {
           "locked": "Locked",
           "unlocked": "Unlocked",
-          "tamper protection": "Tamper Protection"
+          "tamper_protection": "Tamper Protection"
         }
       },
       "language": {
