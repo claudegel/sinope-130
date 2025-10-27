@@ -166,7 +166,7 @@
         "state": {
           "locked": "Verrouillé",
           "unlocked": "Déverrouillé",
-          "tamper protection": "Verrouillage Partiel"
+          "tamper_protection": "Verrouillage Partiel"
         }
       },
       "language": {
