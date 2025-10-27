@@ -1512,7 +1512,7 @@ class Neviweb130Client:
         _LOGGER.debug("HC cool_min_time_on/off.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_device_attributes(self, device_id: str, data) -> bool:
+    async def async_set_device_attributes(self, device_id: str, data: dict[str, Any]) -> bool:
         """Set devices attributes and return True if successful."""
         if self._session is None:
             return False
