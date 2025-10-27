@@ -627,7 +627,7 @@ async def async_setup_entry(
                                     location_id,
                                     coordinator,
                                 )
-                            else:
+                            else:  # TH6xxxWF
                                 device = Neviweb130HeatCoolThermostat(
                                     data,
                                     device_info,
@@ -1476,7 +1476,7 @@ async def async_setup_entry(
 
 
 def neviweb_to_ha(value: int) -> str:
-    last = ""
+    last = "unknown"
     for k, v in sorted(HA_TO_NEVIWEB_PERIOD.items(), key=lambda x: x[1]):
         last = k
         if value <= v:
@@ -1648,7 +1648,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._display_conf = None
         self._early_start = None
         self._em_heat = None
-        self._lv_aux_cycle_length = 0
+        self._cycle_length: str | None = None
+        self._lv_aux_cycle_length: str | None = None
+        self._lv_cycle_length: str | None = None
+        self._wifi_cycle_length: str | None = None
+        self._wifi_aux_cycle_length: str | None = None
         self._fan_speed = None
         self._fan_swing_cap = None
         self._fan_swing_cap_horiz = None
@@ -1666,7 +1670,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._heat_level: int | None = 0
         self._keypad = None
         self._backlight = None
-        self._cycle_length = 0
         self._language = None
         self._load2 = None
         self._load2_status = None
@@ -1773,7 +1776,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -2937,7 +2940,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         self._heat_level = 0
         self._keypad = None
         self._backlight = None
-        self._cycle_length = 0
+        self._cycle_length: str | None = None
         self._wattage = 0
         self._error_code = None
         self._is_gen2 = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2
@@ -3018,7 +3021,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
                     self.async_write_ha_state()
@@ -3134,7 +3137,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._heat_level = 0
         self._keypad = None
         self._backlight = None
-        self._cycle_length = 0
+        self._cycle_length: str | None = None
         self._cycle_length_output2_status = "off"
         self._rssi = None
         self._wattage = 0
@@ -3235,7 +3238,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -3485,7 +3488,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._lv_cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._lv_cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -3493,7 +3496,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
                     self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
-                    self._cycle_length_output2_value = str(neviweb_to_ha(device_data[ATTR_CYCLE_OUTPUT2]["value"]))
+                    self._cycle_length_output2_value = neviweb_to_ha(device_data[ATTR_CYCLE_OUTPUT2]["value"])
                     self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                     self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
@@ -3639,7 +3642,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._time_format = "24h"
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._temp_display_value = None
-        self._cycle_length = 0
+        self._cycle_length: str | None = None
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._error_code = None
@@ -3718,7 +3721,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -3833,7 +3836,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._early_start = "off"
         self._target_temp_away = None
         self._load1 = 0
-        self._cycle_length = 0
+        self._cycle_length: str | None = None
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._error_code = None
@@ -3939,7 +3942,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     if ATTR_WIFI_WATTAGE in device_data:
                         self._wattage = device_data[ATTR_WIFI_WATTAGE]["value"]
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
@@ -4164,7 +4167,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_OUTPUT1]
                     if ATTR_CYCLE_LENGTH in device_data:
-                        self._wifi_cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                        self._wifi_cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
@@ -4413,8 +4416,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
-                    self._lv_aux_cycle_length = str(neviweb_to_ha(device_data[ATTR_AUX_CYCLE_LENGTH]))
-                    self._lv_cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                    self._lv_aux_cycle_length = neviweb_to_ha(device_data[ATTR_AUX_CYCLE_LENGTH])
+                    self._lv_cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                     self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
@@ -4830,7 +4833,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._target_cool = None
         self._cool_min = None
         self._cool_max = None
-        self._cycle_length = 0
+        self._cycle_length: str | None = None
         self._cycle_length_output2_status = "off"
         self._HC_device = None
         self._language = None
@@ -4944,7 +4947,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._wattage = device_data[ATTR_WATTAGE]
-                    self._cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
+                    self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
@@ -5577,8 +5580,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._humid_display = device_data[ATTR_HUMID_DISPLAY]
                     self._humid_setpoint = device_data[ATTR_HUMID_SETPOINT]
                     self._humidifier_type = device_data[ATTR_HUMIDIFIER_TYPE]
-                    self._wifi_cycle_length = str(neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH]))
-                    self._wifi_aux_cycle_length = str(neviweb_to_ha(device_data[ATTR_AUX_CYCLE_LENGTH]))
+                    self._wifi_cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
+                    self._wifi_aux_cycle_length = neviweb_to_ha(device_data[ATTR_AUX_CYCLE_LENGTH])
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
                     self._aux_heat_time_on = device_data[ATTR_AUX_HEAT_TIMEON]
