@@ -44,7 +44,6 @@ https://www.sinopetech.com/en/support/#api
 from __future__ import annotations
 
 import logging
-
 import time
 from datetime import date, datetime, timezone
 
@@ -628,7 +627,7 @@ async def async_setup_entry(
                                     location_id,
                                     coordinator,
                                 )
-                            else: #  TH6xxxWF
+                            else:  #  TH6xxxWF
                                 device = Neviweb130HeatCoolThermostat(
                                     data,
                                     device_info,
@@ -1726,11 +1725,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 FIRMWARE_SPECIAL = [ATTR_ROOM_TEMP_DISPLAY]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-#            _LOGGER.debug(
-#                "Updated attributes for %s: %s",
-#                self._name,
-#                UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,
-#            )
+            #            _LOGGER.debug(
+            #                "Updated attributes for %s: %s",
+            #                self._name,
+            #                UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,
+            #            )
             device_data = await self._client.async_get_device_attributes(
                 self._id,
                 UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,

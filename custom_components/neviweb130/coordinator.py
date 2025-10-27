@@ -110,7 +110,6 @@ from .const import (
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
-    DOMAIN,
     EXPOSED_ATTRIBUTES,
     MODE_MANUAL,
 )
@@ -895,7 +894,9 @@ class Neviweb130Client:
             data = {ATTR_COOL_SETPOINT_AWAY: temperature}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            return self.notify_ha("Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats.")
+            return self.notify_ha(
+                "Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats."
+            )
 
     async def async_set_humidity(self, device_id: str, humidity):
         """Set device humidity target."""
@@ -1590,6 +1591,7 @@ class Neviweb130Client:
             _LOGGER.debug("Service error received: %s", resp)
 
         return success
+
 
 create_session = Neviweb130Client.create_session
 

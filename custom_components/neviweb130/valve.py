@@ -980,7 +980,9 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 else:
                     if self._marker != self._mark:
                         self._total_kwh_count += round(self._hour_kwh, 3)
-                        await save_data(self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir)
+                        await save_data(
+                            self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir
+                        )
                         self._mark = self._marker
                 _LOGGER.debug("Device dict updated: %s", self._device_dict)
                 self.async_write_ha_state()

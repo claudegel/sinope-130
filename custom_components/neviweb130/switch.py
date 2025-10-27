@@ -29,7 +29,7 @@ from typing import Any, Callable
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ENTITY_ID, EntityCategory
+from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -119,7 +119,6 @@ from .const import (
     SERVICE_SET_TANK_SIZE,
     SIGNAL_EVENTS_CHANGED,
     STATE_KEYPAD_STATUS,
-    SWITCH_MODEL,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import save_devices
@@ -201,7 +200,7 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
         name="Switch 2",
         device_class=SwitchDeviceClass.SWITCH,
         translation_key="onOff2",
-#        value_fn=lambda data: data["onOff2"],
+        #        value_fn=lambda data: data["onOff2"],
         signal=SIGNAL_EVENTS_CHANGED,
         icon="mdi:alarm",
     ),

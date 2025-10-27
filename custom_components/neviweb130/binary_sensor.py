@@ -106,7 +106,7 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         off_icon="mdi:thermometer",
         translation_key="heating",
         entity_category=EntityCategory.DIAGNOSTIC,
-        is_on_fn=lambda data, attr: bool(data.get(attr))
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
     ),
     #  All devices attributes
     Neviweb130BinarySensorEntityDescription(
@@ -116,7 +116,7 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         off_icon="mdi:cloud-off-outline",
         translation_key="activation",
         entity_category=EntityCategory.DIAGNOSTIC,
-        is_on_fn=lambda data, attr: bool(data.get(attr))
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
     ),
 )
 
