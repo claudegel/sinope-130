@@ -343,10 +343,10 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
             self._id, value, self.is_HC
         ),
         "floor_setpoint_max": lambda self, value: self._client.async_set_floor_limit(
-            self._id, value, "high", is_wifi_floor
+            self._id, value, "high", self.is_wifi_floor
         ),
         "floor_setpoint_min": lambda self, value: self._client.async_set_floor_limit(
-            self._id, value, "low", is_wifi_floor
+            self._id, value, "low", self.is_wifi_floor
         ),
         "flowmeter_timer": lambda self, value: self._client.async_set_flow_alarm_disable_timer(self._id, value),
         "light_timer": lambda self, value: self._client.async_set_timer(self._id, value),
