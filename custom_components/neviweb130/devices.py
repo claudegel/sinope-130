@@ -31,7 +31,13 @@ async def load_devices(conf_dir: str) -> dict[Any, Any]:
 async def save_devices(conf_dir: str, data):
     """Saving devices energy data to file neviweb130.json"""
     conf_file = os.path.join(conf_dir, "neviweb130.json")
-    _LOGGER.info("Saving energy stat data %s to CONF_FILE %s", data, conf_file)
-    async with aiofiles.open(conf_file, "w") as f:
-        for device in data.values():
-            await f.write(json.dumps(device) + "\n")
+    try:
+        _LOGGER.info("Saving energy stat data %s to CONF_FILE %s", data, conf_file)
+        async with aiofiles.open(conf_file, "w") as f:
+            for device in data.values():
+                try:
+                    await f.write(json.dumps(device) + "\n")
+                except Exception as e:
+                    _LOGGER.error("Failed to write device data %s: %s", device, e)
+    except Exception as e:
+        _LOGGER.error("Failed to open or write to file %s: %s", conf_file, e)
