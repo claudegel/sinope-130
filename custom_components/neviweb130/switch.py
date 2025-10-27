@@ -200,7 +200,6 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
         name="Switch 2",
         device_class=SwitchDeviceClass.SWITCH,
         translation_key="onOff2",
-        #        value_fn=lambda data: data["onOff2"],
         signal=SIGNAL_EVENTS_CHANGED,
         icon="mdi:alarm",
     ),
@@ -2270,7 +2269,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_should_poll = True
 
     _ATTRIBUTE_METHODS = {
-        "onOff2": lambda self: self._client.async_set_onoff2(self._id, "on" if state else "off"),
+        "onOff2": lambda self, state: self._client.async_set_onoff2(self._id, "on" if state else "off"),
         # ...
     }
 
@@ -2335,7 +2334,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
             _LOGGER.error("No ON method defined for attribute '%s'", self._attribute)
             return
         try:
-            success = await method(True)
+            success = await method(self, True)
             if success:
                 _LOGGER.debug("Successfully turned on switch attribute '%s'", self._attribute)
                 await self.coordinator.async_request_refresh()
@@ -2352,7 +2351,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
             _LOGGER.error("No OFF method defined for attribute '%s'", self._attribute)
             return
         try:
-            success = await method(False)
+            success = await method(self, False)
             if success:
                 _LOGGER.debug("Successfully turned off switch attribute '%s'", self._attribute)
                 await self.coordinator.async_request_refresh()
