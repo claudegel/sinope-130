@@ -124,8 +124,8 @@ PERIOD_VALUE = {
     "30 min",
 }
 MIN_TIME = {120, 180, 240, 300, 600}
-TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
-HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
+TANK_VALUE = ["40 gal", "50 gal", "60 gal", "80 gal"]
+HUMIDIFIER_TYPE = ["none", "steam", "flowthrough"]
 CONTROLLED_VALUE = {
     "Hot water heater",
     "Pool pump",
@@ -595,7 +595,7 @@ SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
 SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]),
+        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.In(HUMIDIFIER_TYPE),
     }
 )
 
