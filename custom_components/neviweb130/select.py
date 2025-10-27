@@ -328,7 +328,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         """Return location id"""
         device_obj = self.coordinator.data.get(self._id)
         loc = device_obj.get("location", None) if device_obj else None
-        return str(loc) if loc is not None else none
+        return str(loc) if loc is not None else None
 
     @property
     def is_HC(self):
