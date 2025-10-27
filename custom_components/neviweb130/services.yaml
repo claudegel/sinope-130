@@ -660,21 +660,21 @@ set_heat_pump_operation_limit:
   description: Set the outside low temperature limit for heat pump operation. Depend on heat pump model.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 thermostat HP6000 device.
+      description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     balancePoint:
-      description: Possible values, from -5 to -30
-      example: -25
+      description: Possible values, from 10 to 30°C, or "off"
+      example: 22
 
 set_cool_lockout_temperature:
   description: Do not allow cooling for heat pump, if outside temperature is below this temperature.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 thermostat HP6000 device.
+      description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     coolLockoutTemperature:
-      description: Possible values, from 10 to 30°C
-      example: 20
+      description: Possible values, from 10 to 30°C, or "off"
+      example: 22
 
 set_heat_lockout_temperature:
   description: Do not allow heating for registered thermostats, if outside temperature is above this temperature.

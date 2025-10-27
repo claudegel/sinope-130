@@ -184,6 +184,8 @@ async def async_setup_platform(
 
         nonlocal entity_map
         if entity_map is None:
+            if any(entity.entity_id is None for entity in entities):
+                raise ServiceValidationError("Entities not finished loading, try again shortly")
             entity_map = {entity.entity_id: entity for entity in entities}
 
         light = entity_map.get(entity_id)

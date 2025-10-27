@@ -438,14 +438,18 @@ SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
 SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(vol.Coerce(int), vol.Range(min=10, max=30)),
+        vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+        ),
     }
 )
 
 SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(vol.Coerce(int), vol.Range(min=10, max=30)),
+        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+        ),
     }
 )
 
