@@ -29,6 +29,7 @@ import logging
 import time
 from datetime import date, datetime, timezone
 from enum import StrEnum
+from threading import Lock
 from typing import cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -361,6 +362,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     entity_map: dict[str, Neviweb130Valve] | None = None
+    _entity_map_lock = Lock()
 
     def get_valve(service: ServiceCall) -> Neviweb130Valve:
         entity_id = service.data.get(ATTR_ENTITY_ID)
@@ -369,13 +371,16 @@ async def async_setup_platform(
 
         nonlocal entity_map
         if entity_map is None:
-            if any(entity.entity_id is None for entity in entities):
-                raise ServiceValidationError("Entities not finished loading, try again shortly")
-            entity_map = {entity.entity_id: entity for entity in entities}
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
 
         valve = entity_map.get(entity_id)
         if valve is None:
-            raise ServiceValidationError(f"Entity {entity_id} is not supported by {DOMAIN}")
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} valve")
         return valve
 
     def set_valve_alert_service(service: ServiceCall) -> None:

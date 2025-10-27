@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from threading import Lock
 from typing import override
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -465,6 +466,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     entity_map: dict[str, Neviweb130Switch] | None = None
+    _entity_map_lock = Lock()
 
     def get_switch(service: ServiceCall) -> Neviweb130Switch:
         entity_id = service.data.get(ATTR_ENTITY_ID)
@@ -473,13 +475,16 @@ async def async_setup_platform(
 
         nonlocal entity_map
         if entity_map is None:
-            if any(entity.entity_id is None for entity in entities):
-                raise ServiceValidationError("Entities not finished loading, try again shortly")
-            entity_map = {entity.entity_id: entity for entity in entities}
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
 
         switch = entity_map.get(entity_id)
         if switch is None:
-            raise ServiceValidationError(f"Entity {entity_id} is not supported by {DOMAIN}")
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} switch")
         return switch
 
     def set_switch_keypad_lock_service(service: ServiceCall) -> None:

@@ -47,6 +47,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from threading import Lock
 from typing import Any, Mapping, override
 
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature, HVACAction, HVACMode
@@ -989,6 +990,7 @@ async def async_setup_platform(
     async_add_entities(entities, True)
 
     entity_map: dict[str, Neviweb130Thermostat] | None = None
+    _entity_map_lock = Lock()
 
     def get_thermostat(service: ServiceCall) -> Neviweb130Thermostat:
         entity_id = service.data.get(ATTR_ENTITY_ID)
@@ -997,9 +999,12 @@ async def async_setup_platform(
 
         nonlocal entity_map
         if entity_map is None:
-            if any(entity.entity_id is None for entity in entities):
-                raise ServiceValidationError("Entities not finished loading, try again shortly")
-            entity_map = {entity.entity_id: entity for entity in entities}
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
 
         thermostat = entity_map.get(entity_id)
         if thermostat is None:
