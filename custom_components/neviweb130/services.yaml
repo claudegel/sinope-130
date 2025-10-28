@@ -798,11 +798,21 @@ set_cool_interstage_delay:
       example: 15
 
 set_neviweb_status:
-  description: Set global Neviweb status, home or away.
+  description: Set global Neviweb occupancy status, home or away via GT130.
   fields:
     entity_id:
       description: Name of neviweb130 gateway GT130 device.
       example: "sensor.neviweb130_sensor_gt130"
+    mode:
+      description: Possible values are home or away.
+      example: "away"
+
+set_climate_neviweb_status:
+  description: Set global Neviweb occupancy status, home or away via thermostats.
+  fields:
+    entity_id:
+      description: Name of neviweb130 climate device.
+      example: "climate.neviweb130_climate_office"
     mode:
       description: Possible values are home or away.
       example: "away"
