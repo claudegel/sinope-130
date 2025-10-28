@@ -1643,7 +1643,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._balance_pt = None
         self._balance_pt_low = None
         self._cool_lock_temp = None
-        self._cycle_length_output2_status = None
+        self._cycle_length_output2_status: str | None = "off"
         self._cycle_length_output2_value: str | None = None
         self._display2 = None
         self._display_conf = None
@@ -3139,7 +3139,6 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._keypad = None
         self._backlight = None
         self._cycle_length: str | None = None
-        self._cycle_length_output2_status = "off"
         self._rssi = None
         self._wattage = 0
         self._gfci_status = None
@@ -3394,7 +3393,6 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._floor_max_status = "off"
         self._floor_min = None
         self._floor_min_status = "off"
-        self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._floor_mode = None
         self._error_code = None
@@ -3641,7 +3639,6 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._temp_display_value = None
         self._cycle_length: str | None = None
-        self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._error_code = None
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
@@ -3835,7 +3832,6 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         self._target_temp_away = None
         self._load1 = 0
         self._cycle_length: str | None = None
-        self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._error_code = None
         self._heat_level = 0
@@ -4064,7 +4060,6 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._early_start = "off"
         self._target_temp_away = None
         self._load1 = 0
-        self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._error_code = None
         self._heat_level = 0
@@ -4283,7 +4278,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._floor_mode = None
         self._floor_sensor_type = None
         self._em_heat = "off"
-        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._keypad = None
         self._load1 = 0
@@ -4562,7 +4556,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._floor_mode = None
         self._floor_sensor_type = None
         self._em_heat = "off"
-        self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._keypad = None
         self._load1 = 0
@@ -4828,7 +4821,6 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         self._cool_min = None
         self._cool_max = None
         self._cycle_length: str | None = None
-        self._cycle_length_output2_status = "off"
         self._HC_device = None
         self._language = None
         self._model = None
