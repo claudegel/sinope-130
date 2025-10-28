@@ -580,6 +580,13 @@ SET_COOL_DISSIPATION_TIME_SCHEMA = vol.Schema(
     }
 )
 
+SET_CLIMATE_NEVIWEB_STATUS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_MODE): vol.In(["home", "away"]),
+    }
+)
+
 """light schema."""
 
 SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
