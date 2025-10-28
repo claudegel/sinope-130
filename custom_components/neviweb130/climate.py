@@ -1475,14 +1475,6 @@ async def async_setup_entry(
     )
 
 
-def ha_to_neviweb(value: str | None) -> int:
-    """Transform HA string value to neviweb numeric value"""
-    try:
-        return HA_TO_NEVIWEB_PERIOD[value]
-    except KeyError:
-        raise ValueError(f"Invalid HA value: {value}")
-
-
 def neviweb_to_ha(value: int) -> str:
     """Transform numerical value from neviweb to string"""
     last = "unknown"
@@ -2509,15 +2501,15 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_low_voltage:
             value = "on"
             low = "voltage"
-            sec = ha_to_neviweb(self._cycle_length_output2_value)
+            sec = self._cycle_length_output2_value
             self._cycle_length_output2_status = "on"
         elif self._is_low_wifi:
             value = ""
             low = "wifi"
-            sec = ha_to_neviweb(self._lv_aux_cycle_length)
+            sec = self._lv_aux_cycle_length
         else:
             value = "slave"
-            sec = 0
+            sec = "off"
             low = "floor"
             self._em_heat = "slave"
         await self._client.async_set_em_heat(self._id, value, low, sec)
@@ -2527,15 +2519,15 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_low_voltage:
             low = "voltage"
             self._cycle_length_output2_status = "off"
-            sec = ha_to_neviweb(self._cycle_length_output2_value)
+            sec = self._cycle_length_output2_value
         elif self._is_low_wifi:
             low = "wifi"
             self._lv_aux_cycle_length = "off"
-            sec = 0
+            sec = "off"
         else:
             low = "floor"
             self._em_heat = "off"
-            sec = 0
+            sec = "off"
         await self._client.async_set_em_heat(self._id, "off", low, sec)
 
     async def async_set_auxiliary_load(self, value):
@@ -2547,7 +2539,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
         await self._client.async_set_aux_cycle_output(
-            value["id"], value["status"], ha_to_neviweb(value["val"]), self._is_low_wifi
+            value["id"], value["status"], value["val"], self._is_low_wifi
         )
         if self._is_low_wifi:
             self._lv_aux_cycle_length = value["val"]
@@ -2557,7 +2549,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
-        await self._client.async_set_cycle_output(value["id"], ha_to_neviweb(value["val"]))
+        await self._client.async_set_cycle_output(value["id"], value["val"])
         self._cycle_length = value["val"]
 
     async def async_set_pump_protection(self, value):
