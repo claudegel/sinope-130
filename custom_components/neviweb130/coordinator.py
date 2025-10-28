@@ -113,7 +113,7 @@ from .const import (
     EXPOSED_ATTRIBUTES,
     MODE_MANUAL,
 )
-from .schema import HA_TO_NEVIWEB_PERIOD, VERSION, color_to_rgb
+from .schema import VERSION, color_to_rgb
 from .session_manager import session_manager
 
 _LOGGER = logging.getLogger(__name__)
@@ -1588,6 +1588,7 @@ class Neviweb130Client:
             _LOGGER.debug("Service error received: %s", resp)
 
         return success
+
 
 create_session = Neviweb130Client.create_session
 
