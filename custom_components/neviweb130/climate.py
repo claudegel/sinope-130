@@ -1475,7 +1475,7 @@ async def async_setup_entry(
     )
 
 
-def ha_to_neviweb(value: str) -> int:
+def ha_to_neviweb(value: str | None) -> int:
     """Transform HA string value to neviweb numeric value"""
     try:
         return HA_TO_NEVIWEB_PERIOD[value]
@@ -3404,7 +3404,6 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._floor_max_status = "off"
         self._floor_min = None
         self._floor_min_status = "off"
-        self._cycle_length_output2_value = 0
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
         self._floor_mode = None
