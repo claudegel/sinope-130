@@ -1052,18 +1052,16 @@ class Neviweb130Client:
 
     async def async_set_aux_cycle_output(self, device_id: str, status, val, wifi):
         """Set low voltage thermostat aux cycle status and length."""
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
         if wifi:
-            data = {ATTR_AUX_CYCLE_LENGTH: length}
+            data = {ATTR_AUX_CYCLE_LENGTH: val}
         else:
-            data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": length}}
+            data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cycle_output(self, device_id: str, val):
         """Set low voltage thermostat main cycle length."""
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
-        data = {ATTR_CYCLE_LENGTH: length}
+        data = {ATTR_CYCLE_LENGTH: val}
         _LOGGER.debug("Cycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1102,11 +1100,10 @@ class Neviweb130Client:
 
     async def async_set_em_heat(self, device_id: str, heat, low, sec):
         """Set floor, low voltage, Wi-Fi floor and low voltage Wi-Fi thermostats auxiliary heat slave/off or on/off."""
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == sec][0]
         if low == "voltage":
-            data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}}
+            data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": sec}}
         elif low == "wifi":
-            data = {ATTR_AUX_CYCLE_LENGTH: length}
+            data = {ATTR_AUX_CYCLE_LENGTH: sec}
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
@@ -1591,7 +1588,6 @@ class Neviweb130Client:
             _LOGGER.debug("Service error received: %s", resp)
 
         return success
-
 
 create_session = Neviweb130Client.create_session
 
