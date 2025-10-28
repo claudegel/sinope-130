@@ -113,7 +113,7 @@ from .const import (
     EXPOSED_ATTRIBUTES,
     MODE_MANUAL,
 )
-from .schema import VERSION, color_to_rgb
+from .schema import HA_TO_NEVIWEB_PERIOD, VERSION, color_to_rgb
 from .session_manager import session_manager
 
 _LOGGER = logging.getLogger(__name__)
@@ -129,6 +129,13 @@ NEVIWEB_LOCATION = f"{HOST}/api/location/"
 
 def extract_device_attributes(dev) -> dict:
     return {attr: value for attr in EXPOSED_ATTRIBUTES if (value := getattr(dev, attr, None)) is not None}
+
+
+def ha_to_neviweb(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_PERIOD.get(value or "off", 0)
+    if value not in HA_TO_NEVIWEB_PERIOD and value is not None:
+        _LOGGER.warning("Unknown HA value: %s, fallback to %s", value, result)
+    return result
 
 
 class PyNeviweb130Error(Exception):
@@ -1050,18 +1057,20 @@ class Neviweb130Client:
         _LOGGER.debug("CoolsetpointMax.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_aux_cycle_output(self, device_id: str, status, val, wifi):
+    async def async_set_aux_cycle_output(self, device_id: str, status, val: str | None, wifi) -> bool:
         """Set low voltage thermostat aux cycle status and length."""
+        length = ha_to_neviweb(val)
         if wifi:
-            data = {ATTR_AUX_CYCLE_LENGTH: val}
+            data = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
-            data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
+            data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": length}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cycle_output(self, device_id: str, val):
+    async def async_set_cycle_output(self, device_id: str, val: str | None) -> bool:
         """Set low voltage thermostat main cycle length."""
-        data = {ATTR_CYCLE_LENGTH: val}
+        length = ha_to_neviweb(val)
+        data = {ATTR_CYCLE_LENGTH: length}
         _LOGGER.debug("Cycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1098,12 +1107,13 @@ class Neviweb130Client:
         _LOGGER.debug("ControlledDevice.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_em_heat(self, device_id: str, heat, low, sec):
+    async def async_set_em_heat(self, device_id: str, heat, low, sec: str | None) -> bool:
         """Set floor, low voltage, Wi-Fi floor and low voltage Wi-Fi thermostats auxiliary heat slave/off or on/off."""
+        length = ha_to_neviweb(sec)
         if low == "voltage":
-            data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": sec}}
+            data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}}
         elif low == "wifi":
-            data = {ATTR_AUX_CYCLE_LENGTH: sec}
+            data = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
