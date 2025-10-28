@@ -41,7 +41,7 @@ class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
 
 
 BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] = (
-    # Valve attributes
+    #  Valve attributes
     Neviweb130BinarySensorEntityDescription(
         key="temp_alert",
         device_class=BinarySensorDeviceClass.PROBLEM,
@@ -53,27 +53,27 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
     ),
     Neviweb130BinarySensorEntityDescription(
         key="water_leak_status",
-        device_class=BinarySensorDeviceClass.PROBLEM,
+        device_class=BinarySensorDeviceClass.MOISTURE,
         on_icon="mdi:pipe-leak",
         off_icon="mdi:pipe",
         translation_key="leak_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "flowmeter", "probe"},
     ),
-    # Switch attributes
+    #  Switch attributes
     Neviweb130BinarySensorEntityDescription(
         key="battery_status",
-        device_class=BinarySensorDeviceClass.PROBLEM,
+        device_class=BinarySensorDeviceClass.BATTERY,
         on_icon="mdi:battery-80",
         off_icon="mdi:battery-alert-variant-outline",
         translation_key="battery_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
     ),
-    # Real Sensor attributes
+    #  Real Sensor attributes
     Neviweb130BinarySensorEntityDescription(
         key="leak_status",
-        device_class=BinarySensorDeviceClass.PROBLEM,
+        device_class=BinarySensorDeviceClass.MOISTURE,
         on_icon="mdi:pipe-leak",
         off_icon="mdi:pipe",
         translation_key="leak_status",
@@ -82,7 +82,7 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
     ),
     Neviweb130BinarySensorEntityDescription(
         key="refuel_status",
-        device_class=BinarySensorDeviceClass.PROBLEM,
+        device_class=BinarySensorDeviceClass.TAMPER,
         on_icon="mdi:propane-tank",
         off_icon="mdi:propane-tank-outline",
         translation_key="refuel_status",
@@ -97,6 +97,26 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         translation_key="level_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
+    ),
+    #  Thermostat attributes
+    Neviweb130BinarySensorEntityDescription(
+        key="is_heating",
+        device_class=BinarySensorDeviceClass.HEAT,
+        on_icon="mdi:thermometer-lines",
+        off_icon="mdi:thermometer",
+        translation_key="heating",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
+    ),
+    #  All devices attributes
+    Neviweb130BinarySensorEntityDescription(
+        key="activation",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        on_icon="mdi:cloud-download",
+        off_icon="mdi:cloud-off-outline",
+        translation_key="activation",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
     ),
 )
 

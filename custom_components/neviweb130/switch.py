@@ -104,6 +104,7 @@ from .const import (
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
+    MODEL_ATTRIBUTES,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_CONTROL_ONOFF,
     SERVICE_SET_CONTROLLED_DEVICE,
@@ -118,7 +119,6 @@ from .const import (
     SERVICE_SET_TANK_SIZE,
     SIGNAL_EVENTS_CHANGED,
     STATE_KEYPAD_STATUS,
-    SWITCH_MODEL,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import save_devices
@@ -187,7 +187,7 @@ SWITCH_TYPE = {
 class Neviweb130SwitchEntityDescription(SwitchEntityDescription):
     """Describes an attribute sensor entity."""
 
-    value_fn: Callable[[Any], Any] | None = None
+    value_fn: Callable[[Any], Any] = lambda x: x
     signal: str = ""
     icon: str | None = None
     device_class: SwitchDeviceClass | None = None
@@ -200,7 +200,6 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
         name="Switch 2",
         device_class=SwitchDeviceClass.SWITCH,
         translation_key="onOff2",
-        value_fn=lambda data: data["onOff2"],
         signal=SIGNAL_EVENTS_CHANGED,
         icon="mdi:alarm",
     ),
@@ -208,9 +207,7 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
 
 
 def get_attributes_for_model(model):
-    if model in SWITCH_MODEL:
-        return ["onOff2"]
-    return []
+    return MODEL_ATTRIBUTES.get(model, {}).get("switch", [])
 
 
 SUPPORTED_WIFI_MODES = [
@@ -395,7 +392,7 @@ async def async_setup_entry(
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
-    def set_switch_keypad_lock_service(service):
+    async def set_switch_keypad_lock_service(service):
         """Lock/unlock keypad device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -404,11 +401,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "lock": service.data[ATTR_KEYPAD],
                 }
-                switch.async_set_keypad_lock(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_keypad_lock(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_switch_timer_service(service):
+    async def set_switch_timer_service(service):
         """Set timer for switch device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -417,11 +415,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "time": service.data[ATTR_TIMER],
                 }
-                switch.async_set_timer(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_timer(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_switch_timer2_service(service):
+    async def set_switch_timer2_service(service):
         """Set timer for switch device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -430,11 +429,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "time": service.data[ATTR_TIMER2],
                 }
-                switch.async_set_timer2(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_timer2(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_load_dr_options_service(service):
+    async def set_load_dr_options_service(service):
         """Set dr mode options for load controller."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -445,11 +445,12 @@ async def async_setup_entry(
                     "droptout": service.data[ATTR_OPTOUT],
                     "onoff": service.data[ATTR_ONOFF],
                 }
-                switch.async_set_load_dr_options(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_load_dr_options(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_control_onoff_service(service):
+    async def set_control_onoff_service(service):
         """Set status of both onoff controller."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -459,11 +460,12 @@ async def async_setup_entry(
                     "onoff_num": service.data[ATTR_ONOFF_NUM],
                     "status": service.data[ATTR_STATUS],
                 }
-                switch.async_set_control_onoff(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_control_onoff(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_tank_size_service(service):
+    async def set_tank_size_service(service):
         """Set water tank size for RM3500ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -472,11 +474,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "val": service.data[ATTR_VALUE][0],
                 }
-                switch.async_set_tank_size(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_tank_size(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_controlled_device_service(service):
+    async def set_controlled_device_service(service):
         """Set controlled device type for RM3250ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -485,11 +488,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "val": service.data[ATTR_VALUE][0],
                 }
-                switch.async_set_controlled_device(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_controlled_device(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_low_temp_protection_service(service):
+    async def set_low_temp_protection_service(service):
         """Set water tank temperature protection for RM3500ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -498,11 +502,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "val": service.data[ATTR_WATER_TEMP_MIN],
                 }
-                switch.async_set_low_temp_protection(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_low_temp_protection(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_input_output_names_service(service):
+    async def set_input_output_names_service(service):
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -514,11 +519,12 @@ async def async_setup_entry(
                     "output1": service.data[ATTR_OUTPUT_NAME_1],
                     "output2": service.data[ATTR_OUTPUT_NAME_2],
                 }
-                switch.async_set_input_output_names(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_input_output_names(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_activation_service(service):
+    async def set_activation_service(service):
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -527,11 +533,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "active": service.data[ATTR_ACTIVE],
                 }
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_activation(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_remaining_time_service(service):
+    async def set_remaining_time_service(service):
         """Set coldLoadPickupRemainingTime value."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -540,11 +547,12 @@ async def async_setup_entry(
                     "id": switch.unique_id,
                     "time": service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
                 }
-                switch.async_set_remaining_time(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_remaining_time(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_on_off_input_delay_service(service):
+    async def set_on_off_input_delay_service(service):
         """Set input 1 or 2 on/off delay for MC3100ZB device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for switch in entities:
@@ -555,8 +563,9 @@ async def async_setup_entry(
                     "onoff": service.data[ATTR_ONOFF],
                     "delay": service.data[ATTR_DELAY][0],
                 }
-                switch.async_set_on_off_input_delay(value)
-                switch.schedule_update_ha_state(True)
+                await switch.async_set_on_off_input_delay(value)
+                switch.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
     hass.services.async_register(
@@ -762,18 +771,16 @@ def retrieve_data(id, device_dict, data):
             return None
 
 
-def save_data(id, device_dict, data, mark):
+async def save_data(id, device_dict, data, mark, conf_dir):
     """Save stat data for one device in the device_dict."""
     entry = device_dict.get(id)
-    if entry is None:
-        _LOGGER.warning(f"Device id {id} not found in device_dict!")
-        return
-    if not isinstance(entry, list) or len(entry) < 3:
-        _LOGGER.warning(f"Device entry for {id} is not a valid list: {entry}")
+    if entry is None or not isinstance(entry, list) or len(entry) < 3:
+        _LOGGER.warning(f"Invalid entry for {id}: {entry}")
         return
     _LOGGER.debug(f"Device {id} data before update: {entry}")
     entry[1] = data
     entry[2] = mark
+    await save_devices(conf_dir, device_dict)
     _LOGGER.debug(f"Device {id} data updated: {entry}")
 
 
@@ -781,7 +788,7 @@ async def async_add_data(conf_dir, device_dict, id, data, mark):
     """Add new device stat data in the device_dict."""
     if id in device_dict:
         _LOGGER.debug("Device already exist in device_dict %s", id)
-        save_data(id, device_dict, data, mark)
+        await save_data(id, device_dict, data, mark, conf_dir)
         return
     device_dict[id] = [id, data, mark]
     await save_devices(conf_dir, device_dict)  # Persist changes
@@ -850,7 +857,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
         self._energy_stat_time = time.time() - 1500
         self._snooze: float = 0.0
-        self._active = True
+        self._active: bool = True
         self._controlled_device = None
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
@@ -1008,7 +1015,15 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         return None
 
     @property
-    def extra_state_attributes(self):
+    def wattage(self):
+        return self._current_power_w
+
+    @property
+    def activation(self) -> bool:
+        return bool(self._active)
+
+    @property
+    def extra_state_attributes(self) -> dict:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1098,7 +1113,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         await self._client.async_set_low_temp_protection(value["id"], value["val"])
         self._water_temp_min = value["val"]
 
-    def set_activation(self, value):
+    async def async_set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
         self._active = value["active"]
 
@@ -1231,7 +1246,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             else:
                 if self._marker != self._mark:
                     self._total_kwh_count += round(self._hour_kwh, 3)
-                    save_data(self._id, self._device_dict, self._total_kwh_count, self._marker)
+                    await save_data(self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir)
                     self._mark = self._marker
             _LOGGER.debug("Device dict updated: %s", self._device_dict)
             self.async_write_ha_state()
@@ -1390,7 +1405,6 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         self._is_load = device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES
         self._energy_stat_time = time.time() - 1500
         self._snooze: float = 0.0
-        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -1462,7 +1476,11 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         return None
 
     @property
-    def extra_state_attributes(self):
+    def tank_size(self):
+        return neviweb_to_ha(self._tank_size)
+
+    @property
+    def extra_state_attributes(self) -> dict:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1528,7 +1546,6 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         self._is_wifi_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
         self._energy_stat_time = time.time() - 1500
         self._snooze: float = 0.0
-        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -1601,7 +1618,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         return None
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1677,7 +1694,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._is_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze: float = 0.0
-        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -1781,7 +1797,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     )
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1875,7 +1891,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._is_wifi_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._energy_stat_time = time.time() - 1500
         self._snooze: float = 0.0
-        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -1990,7 +2005,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     )
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -2080,7 +2095,6 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
         self._is_zb_control = device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
         self._snooze: float = 0.0
-        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -2204,7 +2218,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
         return None
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -2254,6 +2268,11 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_has_entity_name = True
     _attr_should_poll = True
 
+    _ATTRIBUTE_METHODS = {
+        "onOff2": lambda self, state: self._client.async_set_onoff2(self._id, "on" if state else "off"),
+        # ...
+    }
+
     def __init__(
         self,
         client: Neviweb130Client,
@@ -2284,6 +2303,8 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         self._attr_icon = entity_description.icon
         self._attr_device_class = entity_description.device_class
 
+        _LOGGER.debug("device = %s", self._device)
+
     @property
     def unique_id(self):
         """Return a unique ID."""
@@ -2295,57 +2316,47 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         return self._device_id
 
     @property
-    def is_on(self):
-        """Return True if the switch is on."""
+    def is_on(self) -> bool:
         device_obj = self.coordinator.data.get(self._id)
         if device_obj and self._attribute in device_obj:
-            return device_obj[self._attribute] != MODE_OFF
+            return bool(device_obj.get(self._attribute))
         return False
 
-    # TODO: state is marked @final in SwitchEntity, we should find an alternative
     @property
-    def my_state(self) -> str | None:
-        """Return the state of the switch."""
-
-        device_obj = self.coordinator.data.get(self._id)
-        if device_obj and self._attribute in device_obj:
-            if self.entity_description.value_fn is None:
-                raise ValueError("self.entity_description.value_fn is None")
-            try:
-                return self.entity_description.value_fn(device_obj)
-            except Exception as e:
-                _LOGGER.error(
-                    "Error evaluating value_fn for %s: %s",
-                    self._attr_unique_id,
-                    e,
-                )
-                return None
-        else:
-            _LOGGER.warning(
-                "AttributeSwitch: %s attribute %s not found for device: %s.",
-                self._attr_unique_id,
-                self._attribute,
-                self._id,
-            )
-            return None
-
-    @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes of the switch."""
         return {"device_id": self._attr_unique_id}
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch device on."""
-        success = await self._client.async_set_onoff2(self._id, "on")
-        if success:
-            await self.coordinator.async_request_refresh()
-        else:
-            _LOGGER.warning("Failed to turn on switch attribute '%s'", self._attribute)
+        method = self._ATTRIBUTE_METHODS.get(self._attribute)
+        if method is None:
+            _LOGGER.error("No ON method defined for attribute '%s'", self._attribute)
+            return
+        try:
+            success = await method(self, True)
+            if success:
+                _LOGGER.debug("Successfully turned on switch attribute '%s'", self._attribute)
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning("Failed to turn on switch attribute '%s'", self._attribute)
+
+        except Exception as e:
+            _LOGGER.exception("Error while executing ON method for '%s': %s", self._attribute, e)
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch device off."""
-        success = await self._client.async_set_onoff2(self._id, "off")
-        if success:
-            await self.coordinator.async_request_refresh()
-        else:
-            _LOGGER.warning("Failed to turn off switch attribute '%s'", self._attribute)
+        method = self._ATTRIBUTE_METHODS.get(self._attribute)
+        if method is None:
+            _LOGGER.error("No OFF method defined for attribute '%s'", self._attribute)
+            return
+        try:
+            success = await method(self, False)
+            if success:
+                _LOGGER.debug("Successfully turned off switch attribute '%s'", self._attribute)
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning("Failed to turn off switch attribute '%s'", self._attribute)
+
+        except Exception as e:
+            _LOGGER.exception("Error while executing OFF method for '%s': %s", self._attribute, e)

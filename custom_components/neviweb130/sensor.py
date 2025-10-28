@@ -149,7 +149,7 @@ class Neviweb130SensorEntityDescription(SensorEntityDescription):
 
 
 SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
-    # Common attributes
+    #  Common attributes
     Neviweb130SensorEntityDescription(
         key="rssi",
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
@@ -200,7 +200,17 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         icon="mdi:lightning-bolt",
     ),
-    # Climate attributes
+    Neviweb130SensorEntityDescription(
+        key="wattage",
+        device_class=SensorDeviceClass.ENERGY,
+        state_class="total",
+        translation_key="wattage",
+        value_fn=lambda data: data["wattage"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        icon="mdi:lightning-bolt",
+    ),
+    #  Climate attributes
     Neviweb130SensorEntityDescription(
         key="pi_heating_demand",
         device_class=SensorDeviceClass.POWER_FACTOR,
@@ -221,7 +231,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         icon="mdi:thermometer",
     ),
-    # Valve attributes
+    #  Valve attributes
     Neviweb130SensorEntityDescription(
         key="total_flow_count",
         device_class=SensorDeviceClass.ENERGY,
@@ -262,7 +272,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfVolume.LITERS,
         icon="mdi:lightning-bolt",
     ),
-    # Sensor
+    #  Sensor
     Neviweb130SensorEntityDescription(
         key="gateway_status",
         device_class=SensorDeviceClass.ENERGY,
@@ -425,7 +435,7 @@ async def async_setup_entry(
 
     entities = []
 
-    # Add sensors
+    #  Add sensors
     entities += create_physical_sensors(data, coordinator)
     await coordinator.async_config_entry_first_refresh()
 
@@ -433,13 +443,13 @@ async def async_setup_entry(
         _LOGGER.debug("Pas de coordinator")
         await coordinator.async_config_entry_first_refresh()
 
-    # Add attribute sensors for each device type
+    #  Add attribute sensors for each device type
     entities += create_attribute_sensors(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
-    def set_sensor_alert_service(service):
+    async def set_sensor_alert_service(service):
         """Set different alert and action for water leak sensor."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -451,11 +461,12 @@ async def async_setup_entry(
                     "batt": service.data[ATTR_BATT_ALERT],
                     "close": service.data[ATTR_CONF_CLOSURE],
                 }
-                sensor.async_set_sensor_alert(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_sensor_alert(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_battery_type_service(service):
+    async def set_battery_type_service(service):
         """Set battery type for water leak sensor."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -464,11 +475,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "type": service.data[ATTR_BATTERY_TYPE],
                 }
-                sensor.async_set_battery_type(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_battery_type(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_tank_type_service(service):
+    async def set_tank_type_service(service):
         """Set tank type for fuel tank."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -477,11 +489,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "type": service.data[ATTR_TANK_TYPE],
                 }
-                sensor.async_set_tank_type(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_tank_type(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_gauge_type_service(service):
+    async def set_gauge_type_service(service):
         """Set gauge type for propane tank."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -490,11 +503,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "gauge": service.data[ATTR_GAUGE_TYPE],
                 }
-                sensor.async_set_gauge_type(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_gauge_type(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_low_fuel_alert_service(service):
+    async def set_low_fuel_alert_service(service):
         """Set low fuel alert on tank, propane or oil."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -503,11 +517,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "low": service.data[ATTR_FUEL_PERCENT_ALERT],
                 }
-                sensor.async_set_low_fuel_alert(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_low_fuel_alert(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_tank_height_service(service):
+    async def set_tank_height_service(service):
         """Set tank height for oil tank."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -516,11 +531,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "height": service.data[ATTR_TANK_HEIGHT],
                 }
-                sensor.async_set_tank_height(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_tank_height(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_fuel_alert_service(service):
+    async def set_fuel_alert_service(service):
         """Set fuel alert for LM4110-ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -529,11 +545,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "fuel": service.data[ATTR_FUEL_ALERT],
                 }
-                sensor.async_set_fuel_alert(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_fuel_alert(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_refuel_alert_service(service):
+    async def set_refuel_alert_service(service):
         """Set refuel alert for LM4110-ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -542,11 +559,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "refuel": service.data[ATTR_REFUEL],
                 }
-                sensor.set_refuel_alert(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.set_refuel_alert(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_battery_alert_service(service):
+    async def set_battery_alert_service(service):
         """Set battery alert for LM4110-ZB."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -555,11 +573,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "batt": service.data[ATTR_BATT_ALERT],
                 }
-                sensor.async_set_battery_alert(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_battery_alert(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_activation_service(service):
+    async def set_activation_service(service):
         """Activate or deactivate Neviweb polling for missing device."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -568,11 +587,12 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "active": service.data[ATTR_ACTIVE],
                 }
-                sensor.set_activation(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_activation(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
-    def set_neviweb_status_service(service):
+    async def set_neviweb_status_service(service):
         """Set Neviweb global status, home or away."""
         entity_id = service.data[ATTR_ENTITY_ID]
         for sensor in entities:
@@ -581,8 +601,9 @@ async def async_setup_entry(
                     "id": sensor.unique_id,
                     "mode": service.data[ATTR_MODE],
                 }
-                sensor.async_set_neviweb_status(value)
-                sensor.schedule_update_ha_state(True)
+                await sensor.async_set_neviweb_status(value)
+                sensor.async_schedule_update_ha_state(True)
+                hass.async_create_task(coordinator.async_request_refresh())
                 break
 
     hass.services.async_register(
@@ -748,7 +769,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._is_monitor = device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
         self._snooze: float = 0.0
-        self._active = True
+        self._active: bool = True
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
             name=self._name,
@@ -896,11 +917,15 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     @property
     def rssi(self):
         if self._rssi is not None:
-            return self.extra_state_attributes.get("rssi")
+            return self._rssi
         return None
 
     @property
-    def extra_state_attributes(self):
+    def activation(self) -> bool:
+        return bool(self._active)
+
+    @property
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -971,10 +996,9 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         await self._client.async_set_battery_type(entity, batt)
         self._battery_type = batt
 
-    def set_activation(self, value):
-        """Activate or deactivate neviweb polling for a missing device."""
-        action = value["active"]
-        self._active = action
+    async def async_set_activation(self, value):
+        """Activate (True) or deactivate (False) Neviweb polling for a missing device."""
+        self._active = value["active"]
 
     async def async_notify_ha(
         self,
@@ -1134,7 +1158,6 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         self._is_monitor = False
         self._is_gateway = False
         self._snooze = 0
-        self._active = True
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
 
     async def async_update(self):
@@ -1218,7 +1241,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                     )
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -1407,7 +1430,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         return self._battery_voltage
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -1513,7 +1536,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
             firmware=firmware,
             coordinator=coordinator,
         )
-        self._location = location
+        self._location = str(location)
         self._active = True
         self._snooze = 0
         self._gateway_status: str = ""
@@ -1558,7 +1581,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     @property
     def occupancy_mode(self):
-        """Return the state of the gateway."""
+        """Return the status of Neviweb, Home or Away."""
         return self._occupancyMode
 
     @property
@@ -1567,7 +1590,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         return self._location
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -1580,7 +1603,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "neviweb_location": str(self._location),
+                "neviweb_location": self._location,
                 "id": self._id,
             }
         )
@@ -1588,10 +1611,8 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     async def async_set_neviweb_status(self, value):
         """Set Neviweb global mode away or home"""
-        mode = value["mode"]
-        entity = value["id"]
-        await self._client.async_post_neviweb_status(entity, str(self._location), mode)
-        self._occupancyMode = mode
+        await self._client.async_post_neviweb_status(self._location, value["mode"])
+        self._occupancyMode = value["mode"]
 
 
 class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], SensorEntity):
@@ -1657,6 +1678,6 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
             return None
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes of the sensor."""
         return {"device_id": self._attr_unique_id}
