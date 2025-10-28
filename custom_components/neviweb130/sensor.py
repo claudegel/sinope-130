@@ -1270,9 +1270,9 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
     def __init__(self, data, device_info, name, device_type, sku, firmware, location):
         """Initialize."""
         super().__init__(data, device_info, name, device_type, sku, firmware)
-        self._location = location
+        self._location = str(location)
         self._gateway_status = None
-        self._occupancyMode = None
+        self._occupancyMode = "home"
 
     def update(self):
         """Update device."""
@@ -1328,6 +1328,6 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         return data
 
     def set_neviweb_status(self, value):
-        """Set Neviweb global mode away or home"""
-        self._client.post_neviweb_status(value["id"], str(self._location), value["mode"])
+        """Set Neviweb global occupancy mode, away or home"""
+        self._client.post_neviweb_status(self._location, value["mode"])
         self._occupancyMode = value["mode"]
