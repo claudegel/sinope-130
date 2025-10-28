@@ -54,7 +54,7 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -2538,12 +2538,18 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
-        await self._client.async_set_aux_cycle_output(value["id"], value["status"], value["val"], self._is_low_wifi)
-        if self._is_low_wifi:
+        is_wifi = self._is_low_wifi or (self._is_wifi and self._is_HC)
+        if is_wifi and length == 0:
+            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
+        await self._client.async_set_aux_cycle_output(value["id"], value["val"], is_wifi)
+        if is_wifi:
             self._lv_aux_cycle_length = value["val"]
-        else:
-            self._cycle_length_output2_status = value["status"]
+        elif value["val"] > 0:
+            self._cycle_length_output2_status = "on"
             self._cycle_length_output2_value = value["val"]
+        else:
+            # Leaving self._cycle_length_output2_value to the old value on purpose
+            self._cycle_length_output2_status = "off"
 
     async def async_set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
