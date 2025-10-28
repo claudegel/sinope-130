@@ -2538,9 +2538,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
-        await self._client.async_set_aux_cycle_output(
-            value["id"], value["status"], value["val"], self._is_low_wifi
-        )
+        await self._client.async_set_aux_cycle_output(value["id"], value["status"], value["val"], self._is_low_wifi)
         if self._is_low_wifi:
             self._lv_aux_cycle_length = value["val"]
         else:
