@@ -1475,7 +1475,16 @@ async def async_setup_entry(
     )
 
 
+def ha_to_neviweb(value: str) -> int:
+    """Transform HA string value to neviweb numeric value"""
+    try:
+        return HA_TO_NEVIWEB_PERIOD[value]
+    except KeyError:
+        raise ValueError(f"Invalid HA value: {value}")
+
+
 def neviweb_to_ha(value: int) -> str:
+    """Transform numerical value from neviweb to string"""
     last = "unknown"
     for k, v in sorted(HA_TO_NEVIWEB_PERIOD.items(), key=lambda x: x[1]):
         last = k
@@ -1643,7 +1652,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._balance_pt_low = None
         self._cool_lock_temp = None
         self._cycle_length_output2_status = None
-        self._cycle_length_output2_value = None
+        self._cycle_length_output2_value: str | None = None
         self._display2 = None
         self._display_conf = None
         self._early_start = None
@@ -2044,7 +2053,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             return True
         elif self._cycle_length_output2_status == "on":
             return True
-        elif self._lv_aux_cycle_length > 0:
+        elif self._lv_aux_cycle_length != "off":
             return True
         else:
             return False
@@ -2500,12 +2509,12 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_low_voltage:
             value = "on"
             low = "voltage"
-            sec = self._cycle_length_output2_value
+            sec = ha_to_neviweb(self._cycle_length_output2_value)
             self._cycle_length_output2_status = "on"
         elif self._is_low_wifi:
-            value = self._lv_aux_cycle_length
-            low = "Wi-Fi"
-            sec = self._lv_aux_cycle_length
+            value = ""
+            low = "wifi"
+            sec = ha_to_neviweb(self._lv_aux_cycle_length)
         else:
             value = "slave"
             sec = 0
@@ -2518,10 +2527,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._is_low_voltage:
             low = "voltage"
             self._cycle_length_output2_status = "off"
-            sec = self._cycle_length_output2_value
+            sec = ha_to_neviweb(self._cycle_length_output2_value)
         elif self._is_low_wifi:
-            low = "Wi-Fi"
-            self._lv_aux_cycle_length = 0
+            low = "wifi"
+            self._lv_aux_cycle_length = "off"
             sec = 0
         else:
             low = "floor"
@@ -2537,7 +2546,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
-        await self._client.async_set_aux_cycle_output(value["id"], value["status"], value["val"], self._is_low_wifi)
+        await self._client.async_set_aux_cycle_output(value["id"], value["status"], ha_to_neviweb(value["val"]), self._is_low_wifi)
         if self._is_low_wifi:
             self._lv_aux_cycle_length = value["val"]
         else:
@@ -2546,7 +2555,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
-        await self._client.async_set_cycle_output(value["id"], value["val"])
+        await self._client.async_set_cycle_output(value["id"], ha_to_neviweb(value["val"]))
         self._cycle_length = value["val"]
 
     async def async_set_pump_protection(self, value):
@@ -3144,7 +3153,6 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         self._gfci_status = None
         self._floor_mode = None
         self._em_heat = "off"
-        self._lv_aux_cycle_length = 0
         self._floor_air_limit = None
         self._floor_air_limit_status = None
         self._floor_sensor_type = None
@@ -3397,7 +3405,6 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         self._cycle_length_output2_value = 0
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
-        self._lv_cycle_length = 0
         self._floor_mode = None
         self._error_code = None
         self._load1 = 0
@@ -4066,10 +4073,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._early_start = "off"
         self._target_temp_away = None
         self._load1 = 0
-        self._wifi_cycle_length = 0
         self._cycle_length_output2_status = "off"
         self._em_heat = "off"
-        self._lv_aux_cycle_length = 0
         self._error_code = None
         self._heat_level = 0
         self._temp_display_value = None
@@ -4287,7 +4292,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._floor_mode = None
         self._floor_sensor_type = None
         self._em_heat = "off"
-        self._lv_aux_cycle_length = 0
         self._cycle_length_output2_status = "off"
         self._early_start = "off"
         self._keypad = None
@@ -4306,7 +4310,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._temperature_format = UnitOfTemperature.CELSIUS
         self._temp_display_status = None
         self._temp_display_value = None
-        self._lv_cycle_length = 0
         self._pump_protec_status = None
         self._pump_protec_duration = None
         self._pump_protec_period = None
