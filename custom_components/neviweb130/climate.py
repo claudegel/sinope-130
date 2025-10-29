@@ -4246,7 +4246,6 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 "early_start": self._early_start,
                 "setpoint_away": self._target_temp_away,
                 "load_watt_1": self._load1,
-                "cycle_length": self._cycle_length,
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
