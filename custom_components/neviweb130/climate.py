@@ -2012,11 +2012,13 @@ class Neviweb130Thermostat(ClimateEntity):
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
             or device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+            or device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
         )
         self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
         self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
         self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_color_wifi = device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
         self._active = True
         self._aux_cycle_length = 0
         self._avail_mode = None
