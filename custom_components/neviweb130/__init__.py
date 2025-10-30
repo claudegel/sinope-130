@@ -15,7 +15,7 @@ from requests.cookies import RequestsCookieJar
 from .const import (
     ATTR_ACCESSORY_TYPE,
     ATTR_AIR_EX_MIN_TIME_ON,
-    ATTR_AUX_CYCLE,
+    ATTR_AUX_CYCLE_LENGTH,
     ATTR_AUX_HEAT_MIN_TIME_OFF,
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
@@ -39,7 +39,7 @@ from .const import (
     ATTR_COOL_SETPOINT_AWAY,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_COOL_SETPOINT_MIN,
-    ATTR_CYCLE,
+    ATTR_CYCLE_LENGTH,
     ATTR_CYCLE_OUTPUT2,
     ATTR_DISPLAY2,
     ATTR_DISPLAY_CONF,
@@ -1099,7 +1099,8 @@ class Neviweb130Client:
     def set_aux_cycle_output(self, device_id, status, val, wifi):
         """Set low voltage thermostat aux cycle status and length."""
         if wifi:
-            data = {ATTR_AUX_CYCLE: val}
+            data = {ATTR_AUX_CYCLE_LENGTH: val}
+            _LOGGER.debug("auxCycleLength.data = %s", data)
         else:
             data = {ATTR_CYCLE_OUTPUT2: {"status": status, "value": val}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
@@ -1107,7 +1108,7 @@ class Neviweb130Client:
 
     def set_cycle_output(self, device_id, val):
         """Set low voltage thermostat main cycle length."""
-        data = {ATTR_CYCLE: val}
+        data = {ATTR_CYCLE_LENGTH: val}
         _LOGGER.debug("Cycleoutput.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1149,7 +1150,7 @@ class Neviweb130Client:
         if low == "voltage":
             data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": sec}}
         elif low == "wifi":
-            data = {ATTR_AUX_CYCLE: sec}
+            data = {ATTR_AUX_CYCLE_LENGTH: sec}
         else:
             data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
@@ -1677,8 +1678,9 @@ class Neviweb130Client:
             except OSError:
                 raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data)
 
-    def post_neviweb_status(self, location, mode):
+    def post_neviweb_status(self, location: int | str, mode: str):
         """Send post requests to Neviweb for global occupancy mode"""
+        location = str(location)
         data = {ATTR_MODE: mode}
         try:
             resp = requests.post(
@@ -1688,12 +1690,7 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             )
-            # _LOGGER.debug("Post requests = %s%s%s %s",
-            #               NEVIWEB_LOCATION,
-            #               location,
-            #               "/mode",
-            #               data,
-            #              )
+
             _LOGGER.debug("Data = %s", data)
             _LOGGER.debug("Requests response = %s", resp.status_code)
             _LOGGER.debug("Json Data received= %s", resp.json())

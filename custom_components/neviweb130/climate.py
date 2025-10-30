@@ -20,8 +20,8 @@ model 336 = thermostat TH1133WF 3000W (Wi-Fi lite) Three wires connection
 model 336 = thermostat TH1133CR Sinopé Evo 3000W (Wi-Fi lite)
 model 336 = thermostat TH1134WF 4000W (Wi-Fi lite) three wires connection
 model 336 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
-model 348 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
-model 348 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
+model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
+model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (Wi-Fi floor)
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
 model 742 = thermostat TH1500WF double pole thermostat (Wi-Fi)
@@ -73,7 +73,7 @@ from .const import (
     ATTR_AIR_CONFIG,
     ATTR_AIR_EX_MIN_TIME_ON,
     ATTR_AIR_MAX_POWER_TEMP,
-    ATTR_AUX_CYCLE,
+    ATTR_AUX_CYCLE_LENGTH,
     ATTR_AUX_HEAT_MIN_TIME_OFF,
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
@@ -99,7 +99,7 @@ from .const import (
     ATTR_COOL_SETPOINT_AWAY,
     ATTR_COOL_SETPOINT_MAX,
     ATTR_COOL_SETPOINT_MIN,
-    ATTR_CYCLE,
+    ATTR_CYCLE_LENGTH,
     ATTR_CYCLE_OUTPUT2,
     ATTR_DISPLAY2,
     ATTR_DISPLAY_CAP,
@@ -153,6 +153,7 @@ from .const import (
     ATTR_INTERLOCK_PARTNER,
     ATTR_KEYPAD,
     ATTR_LANGUAGE,
+    ATTR_MODE,
     ATTR_MODEL,
     ATTR_OCCUPANCY,
     ATTR_OPTOUT,
@@ -197,6 +198,7 @@ from .const import (
     SERVICE_SET_AUXILIARY_LOAD,
     SERVICE_SET_BACKLIGHT,
     SERVICE_SET_CLIMATE_KEYPAD_LOCK,
+    SERVICE_SET_CLIMATE_NEVIWEB_STATUS,
     SERVICE_SET_COOL_DISSIPATION_TIME,
     SERVICE_SET_COOL_INTERSTAGE_DELAY,
     SERVICE_SET_COOL_LOCKOUT_TEMPERATURE,
@@ -248,6 +250,7 @@ from .schema import (
     SET_AUXILIARY_LOAD_SCHEMA,
     SET_BACKLIGHT_SCHEMA,
     SET_CLIMATE_KEYPAD_LOCK_SCHEMA,
+    SET_CLIMATE_NEVIWEB_STATUS_SCHEMA,
     SET_COOL_DISSIPATION_TIME_SCHEMA,
     SET_COOL_INTERSTAGE_DELAY_SCHEMA,
     SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA,
@@ -472,7 +475,7 @@ DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
 DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_WIFI_LITE = [336]
-DEVICE_MODEL_COLOR_WIFI = [348]
+DEVICE_MODEL_COLOR_WIFI = [350]
 DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
@@ -514,6 +517,7 @@ async def async_setup_platform(
         ):
             device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
             device_sku = device_info["sku"]
+            location_id = device_info["location$id"]
             device_firmware = "{}.{}.{}".format(
                 device_info["signature"]["softVersion"]["major"],
                 device_info["signature"]["softVersion"]["middle"],
@@ -527,6 +531,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
@@ -537,6 +542,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
@@ -547,6 +553,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
@@ -557,6 +564,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
@@ -567,6 +575,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
@@ -577,6 +586,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
@@ -587,6 +597,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI:
@@ -597,6 +608,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
@@ -607,6 +619,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
@@ -617,6 +630,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
@@ -627,6 +641,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
@@ -637,6 +652,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             else:
@@ -647,6 +663,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
     for device_info in data.neviweb130_client.gateway_data2:
@@ -657,6 +674,7 @@ async def async_setup_platform(
         ):
             device_name = "{} {}".format(DEFAULT_NAME_2, device_info["name"])
             device_sku = device_info["sku"]
+            location_id = device_info["location$id"]
             device_firmware = "{}.{}.{}".format(
                 device_info["signature"]["softVersion"]["major"],
                 device_info["signature"]["softVersion"]["middle"],
@@ -670,6 +688,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
@@ -680,6 +699,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
@@ -690,6 +710,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
@@ -700,6 +721,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
@@ -710,6 +732,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
@@ -720,6 +743,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
@@ -730,6 +754,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI:
@@ -740,6 +765,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
@@ -750,6 +776,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
@@ -760,6 +787,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
@@ -770,6 +798,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
@@ -780,6 +809,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             else:
@@ -790,6 +820,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
     for device_info in data.neviweb130_client.gateway_data3:
@@ -800,6 +831,7 @@ async def async_setup_platform(
         ):
             device_name = "{} {}".format(DEFAULT_NAME_3, device_info["name"])
             device_sku = device_info["sku"]
+            location_id = device_info["location$id"]
             device_firmware = "{}.{}.{}".format(
                 device_info["signature"]["softVersion"]["major"],
                 device_info["signature"]["softVersion"]["middle"],
@@ -813,6 +845,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_G2:
@@ -823,6 +856,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_FLOOR:
@@ -833,6 +867,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW:
@@ -843,6 +878,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE:
@@ -853,6 +889,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
@@ -863,6 +900,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE:
@@ -873,6 +911,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI:
@@ -883,6 +922,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI:
@@ -893,6 +933,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_FLOOR:
@@ -903,6 +944,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
@@ -913,6 +955,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
@@ -923,6 +966,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
             else:
@@ -933,6 +977,7 @@ async def async_setup_platform(
                         device_name,
                         device_sku,
                         device_firmware,
+                        location_id,
                     )
                 )
 
@@ -1562,6 +1607,16 @@ async def async_setup_platform(
                 thermostat.schedule_update_ha_state(True)
                 break
 
+    def set_climate_neviweb_status_service(service):
+        """Set Neviweb global status per location, home or away."""
+        entity_id = service.data[ATTR_ENTITY_ID]
+        for thermostat in entities:
+            if thermostat.entity_id == entity_id:
+                value = {"id": thermostat.unique_id, "mode": service.data[ATTR_MODE]}
+                thermostat.set_climate_neviweb_status(value)
+                thermostat.schedule_update_ha_state(True)
+                break
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_SET_SECOND_DISPLAY,
@@ -1884,6 +1939,13 @@ async def async_setup_platform(
         schema=SET_COOL_DISSIPATION_TIME_SCHEMA,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_CLIMATE_NEVIWEB_STATUS,
+        set_climate_neviweb_status_service,
+        schema=SET_CLIMATE_NEVIWEB_STATUS_SCHEMA,
+    )
+
 
 def neviweb_to_ha(value: int) -> str:
     last = ""
@@ -1927,10 +1989,11 @@ class Neviweb130Thermostat(ClimateEntity):
     _attr_precision = 0.1
     _attr_target_temperature_step = 0.5
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._name = name
+        self._location = str(location)
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
@@ -2012,6 +2075,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._month_kwh = 0
         self._monthly_kwh_count = 0
         self._occupancy = "home"
+        self._occupancy_mode = "home"
         self._operation_mode = None
         self._pump_protec_duration = None
         self._pump_protec_period = None
@@ -2038,7 +2102,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 ATTR_KEYPAD,
                 ATTR_BACKLIGHT,
                 ATTR_SYSTEM_MODE,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_DISPLAY2,
                 ATTR_RSSI,
             ]
@@ -2056,6 +2120,7 @@ class Neviweb130Thermostat(ClimateEntity):
             device_data = self._client.get_device_attributes(
                 self._id, UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL
             )
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug(
@@ -2098,8 +2163,8 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -2115,6 +2180,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -2156,6 +2222,7 @@ class Neviweb130Thermostat(ClimateEntity):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "cycle_length": self._cycle_length,
                 "error_code": self._error_code,
@@ -2803,6 +2870,11 @@ class Neviweb130Thermostat(ClimateEntity):
         self._temperature = weather["temperature"]
         self._weather_icon = weather["icon"]
 
+    def set_climate_neviweb_status(self, value):
+        """Set Neviweb global occupancy mode, away or home"""
+        self._client.post_neviweb_status(self._location, value["mode"])
+        self._occupancy_mode = value["mode"]
+
     def do_stat(self, start):
         """Get device energy statistic."""
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
@@ -3053,8 +3125,8 @@ class Neviweb130Thermostat(ClimateEntity):
 class Neviweb130G2Thermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1123ZB-G2, TH1124ZB-G2 thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
-        super().__init__(data, device_info, name, sku, firmware)
+    def __init__(self, data, device_info, name, sku, firmware, location):
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._cold_load_pickup = None
 
     @override
@@ -3067,7 +3139,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 ATTR_KEYPAD,
                 ATTR_BACKLIGHT,
                 ATTR_SYSTEM_MODE,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_COLD_LOAD_PICKUP,
                 ATTR_HEAT_LOCKOUT_TEMP,
             ]
@@ -3079,6 +3151,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + GEN2_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + GEN2_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3117,8 +3190,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
                 elif device_data["errorCode"] == "ReadTimeout":
@@ -3131,6 +3204,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -3147,6 +3221,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "cycle_length": self._cycle_length,
                 "error_code": self._error_code,
@@ -3193,9 +3268,9 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
 class Neviweb130FloorThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1300ZB, TH1320ZB-04, OTH3600-GA-ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
         self._floor_min_status = "off"
@@ -3221,7 +3296,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 ATTR_KEYPAD,
                 ATTR_BACKLIGHT,
                 ATTR_SYSTEM_MODE,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_DISPLAY2,
                 ATTR_RSSI,
             ]
@@ -3233,6 +3308,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3267,8 +3343,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -3301,6 +3377,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -3317,6 +3394,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "gfci_status": self._gfci_status,
                 "gfci_alert": self._gfci_alert,
@@ -3373,9 +3451,9 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
 class Neviweb130LowThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1400ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
         self._floor_min_status = "off"
@@ -3391,7 +3469,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 ATTR_KEYPAD,
                 ATTR_BACKLIGHT,
                 ATTR_SYSTEM_MODE,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_DISPLAY2,
                 ATTR_RSSI,
                 ATTR_PUMP_PROTEC_DURATION,
@@ -3413,6 +3491,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + LOW_VOLTAGE_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOW_VOLTAGE_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3448,8 +3527,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -3484,6 +3563,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -3500,6 +3580,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "sensor_mode": self._floor_mode,
                 "cycle_length": neviweb_to_ha(self._cycle_length),
                 "auxiliary_cycle_status": self._cycle_length_output2_status,
@@ -3569,7 +3650,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 ATTR_KEYPAD,
                 ATTR_BACKLIGHT,
                 ATTR_SYSTEM_MODE,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_DISPLAY2,
                 ATTR_RSSI,
                 ATTR_WATTAGE,
@@ -3582,6 +3663,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + DOUBLE_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + DOUBLE_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3617,8 +3699,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
@@ -3633,6 +3715,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -3649,6 +3732,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "cycle_length": neviweb_to_ha(self._cycle_length),
                 "error_code": self._error_code,
@@ -3694,9 +3778,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
 class Neviweb130WifiThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1123WF, TH1124WF, TH1500WF thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -3710,7 +3794,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         if self._active:
             WIFI_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_FLOOR_OUTPUT1,
                 ATTR_WIFI_WATTAGE,
                 ATTR_WIFI,
@@ -3730,6 +3814,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + WIFI_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + WIFI_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3775,8 +3860,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
                     if ATTR_WIFI_WATTAGE in device_data:
                         self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
@@ -3790,6 +3875,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -3806,6 +3892,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "occupancy": self._occupancy,
                 "temp_display_status": self._temp_display_status,
@@ -3862,9 +3949,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
     _attr_precision = 1.0
     _attr_target_temperature_step = 1.0
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -3879,7 +3966,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         if self._active:
             LITE_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_OUTPUT1,
                 ATTR_WIFI,
                 ATTR_WIFI_KEYPAD,
@@ -3899,6 +3986,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -3942,8 +4030,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_OUTPUT1]
-                    if ATTR_CYCLE in device_data:
-                        self._cycle_length = device_data[ATTR_CYCLE]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
@@ -3961,6 +4049,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             if (
                 self._sku != "TH1133WF"
                 and self._sku != "TH1133CR"
@@ -3983,6 +4072,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "occupancy": self._occupancy,
                 "temp_display_status": self._temp_display_status,
                 "temp_display_error": self._room_temp_error,
@@ -4038,9 +4128,9 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
     _attr_precision = 0.5
     _attr_target_temperature_step = 0.5
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -4071,6 +4161,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + LITE_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LITE_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -4130,6 +4221,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -4146,6 +4238,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "occupancy": self._occupancy,
                 "temp_display_status": self._temp_display_status,
                 "temp_display_error": self._room_temp_error,
@@ -4153,7 +4246,6 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 "early_start": self._early_start,
                 "setpoint_away": self._target_temp_away,
                 "load_watt_1": self._load1,
-                "cycle_length": self._cycle_length,
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
@@ -4198,9 +4290,9 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
 class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1400WF thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._early_start = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
@@ -4234,8 +4326,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 ATTR_FLOOR_AIR_LIMIT,
                 ATTR_FLOOR_MODE,
                 ATTR_FLOOR_SENSOR,
-                ATTR_AUX_CYCLE,
-                ATTR_CYCLE,
+                ATTR_AUX_CYCLE_LENGTH,
+                ATTR_CYCLE_LENGTH,
                 ATTR_FLOOR_MAX,
                 ATTR_FLOOR_MIN,
             ]
@@ -4247,6 +4339,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + LOW_WIFI_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOW_WIFI_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -4293,8 +4386,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
                     self._floor_mode = device_data[ATTR_FLOOR_MODE]
                     self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
-                    self._aux_cycle_length = device_data[ATTR_AUX_CYCLE]
-                    self._cycle_length = device_data[ATTR_CYCLE]
+                    self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
+                    self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                     self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
@@ -4321,6 +4414,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -4337,6 +4431,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "sensor_mode": self._floor_mode,
                 "floor_sensor_type": self._floor_sensor_type,
                 "load_watt": self._wattage,
@@ -4404,9 +4499,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF and SRM40 thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._early_start = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
@@ -4453,6 +4548,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -4520,6 +4616,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             if self._sku != "FLP55" and self._sku != "True Comfort":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
@@ -4537,6 +4634,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "load_watt": self._wattage,
                 "gfci_status": self._gfci_status,
                 "sensor_mode": self._floor_mode,
@@ -4598,9 +4696,9 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
 class Neviweb130HcThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1134ZB-HC thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._cool_max = 30
         self._cool_min = 16
         self._display_cap = None
@@ -4620,7 +4718,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 ATTR_COOL_SETPOINT_MIN,
                 ATTR_COOL_SETPOINT_MAX,
                 ATTR_SYSTEM_MODE,
-                ATTR_CYCLE,
+                ATTR_CYCLE_LENGTH,
                 ATTR_WATTAGE,
                 ATTR_BACKLIGHT,
                 ATTR_KEYPAD,
@@ -4652,6 +4750,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 UPDATE_ATTRIBUTES + HC_ATTRIBUTES,
             )
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + HC_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -4691,7 +4790,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     self._wattage = device_data[ATTR_WATTAGE]
-                    self._cycle_length = device_data[ATTR_CYCLE]
+                    self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
@@ -4723,6 +4822,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -4739,6 +4839,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "error_code": self._error_code,
                 "cool setpoint min": self._cool_min,
@@ -4805,9 +4906,9 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
 class Neviweb130HPThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb HP6000ZB-GE, HP6000ZB-MA and HP6000ZB-HS heat pump interfaces thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._cool_max = 30
         self._cool_min = 16
         self._display_cap = None
@@ -4858,6 +4959,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             device_data = self._client.get_device_attributes(
                 self._id, UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES
             )
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -4930,6 +5032,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.get_sensor_error_code(start)
             self.get_weather()
         else:
@@ -4945,6 +5048,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "heat_pump_model": self._model,
                 "error_code": self._error_code,
                 "operation modes": self._operation_mode,
@@ -5004,9 +5108,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO heat cool thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware)
+        super().__init__(data, device_info, name, sku, firmware, location)
         self._accessory_type = "none"
         self._air_curt_activation_temp = None
         self._air_curt_activation_temp = None
@@ -5096,8 +5200,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_REVERSING_VALVE_POLARITY,
                 ATTR_HUMIDITY_SETPOINT,
                 ATTR_COOL_CYCLE_LENGTH,
-                ATTR_CYCLE,
-                ATTR_AUX_CYCLE,
+                ATTR_CYCLE_LENGTH,
+                ATTR_AUX_CYCLE_LENGTH,
                 ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
                 ATTR_TEMP_OFFSET_HEAT,
                 ATTR_HUMIDITY_DISPLAY,
@@ -5169,6 +5273,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 self._id,
                 UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_SPECIAL_FIRMWARE + HC_43,
             )
+            neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -5234,8 +5339,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
                     self._humidity_display = device_data[ATTR_HUMIDITY_DISPLAY]
                     self._humidity_setpoint = device_data[ATTR_HUMIDITY_SETPOINT]
-                    self._cycle = device_data[ATTR_CYCLE]
-                    self._aux_cycle = device_data[ATTR_AUX_CYCLE]
+                    self._cycle = device_data[ATTR_CYCLE_LENGTH]
+                    self._aux_cycle = device_data[ATTR_AUX_CYCLE_LENGTH]
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
                     self._aux_heat_min_time_on = device_data[ATTR_AUX_HEAT_MIN_TIME_ON]
@@ -5290,6 +5395,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.get_sensor_error_code(start)
             self.get_weather()
         else:
@@ -5710,6 +5816,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "neviweb_occupancy_mode": self._occupancy_mode,
                 "error_code": self._error_code,
                 "operation_modes": self._operation_mode,
                 "cool_setpoint": self._target_cool,
