@@ -81,7 +81,7 @@ from .const import (
     ATTR_TIMER2,
     ATTR_VALUE,
     ATTR_WATER_LEAK_ALARM_STATUS,
-    ATTR_WATER_LEAK_DISCONECTED_STATUS,
+    ATTR_WATER_LEAK_DISCONNECTED_STATUS,
     ATTR_WATER_LEAK_STATUS,
     ATTR_WATER_TANK_ON,
     ATTR_WATER_TEMP_MIN,
@@ -1653,7 +1653,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             LOAD_ATTRIBUTES = [
                 ATTR_WATER_LEAK_ALARM_STATUS,
                 ATTR_WATER_TEMPERATURE,
-                ATTR_WATER_LEAK_DISCONECTED_STATUS,
+                ATTR_WATER_LEAK_DISCONNECTED_STATUS,
                 ATTR_ERROR_CODE_SET1,
                 ATTR_WIFI_WATTAGE,
                 ATTR_WIFI_WATT_NOW,
@@ -1682,7 +1682,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
-                    self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
+                    self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
@@ -1730,10 +1730,10 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
                     self._water_temp_protect = device_data[ATTR_WATER_TEMP_PROTECT]
                     self._water_leak_closure_conf = device_data[ATTR_LEAK_CLOSURE_CONFIG]
-                    if device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS] == "probe":
+                    if device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS] == "probe":
                         self.notify_ha(
                             "Warning: Neviweb Device error code detected: "
-                            + device_data[ATTR_WATER_LEAK_DISCONECTED_STATUS]
+                            + device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
                             + " for device: "
                             + self._name
                             + ", Sku: "

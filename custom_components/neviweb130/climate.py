@@ -336,6 +336,7 @@ SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
 HA_TO_NEVIWEB_PERIOD: dict[str, int] = {
+    "off": 0,
     "15 sec": 15,
     "5 min": 300,
     "10 min": 600,
@@ -1165,8 +1166,7 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "status": service.data[ATTR_STATUS],
-                    "val": service.data[ATTR_VALUE][0],
+                    "val": service.data[ATTR_VALUE],
                 }
                 thermostat.set_aux_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
@@ -1179,7 +1179,7 @@ async def async_setup_platform(
             if thermostat.entity_id == entity_id:
                 value = {
                     "id": thermostat.unique_id,
-                    "val": service.data[ATTR_VALUE][0],
+                    "val": service.data[ATTR_VALUE],
                 }
                 thermostat.set_cycle_output(value)
                 thermostat.schedule_update_ha_state(True)
@@ -1997,7 +1997,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
@@ -2012,11 +2012,13 @@ class Neviweb130Thermostat(ClimateEntity):
             or device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
             or device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
+            or device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
         )
         self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
         self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
         self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_color_wifi = device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
         self._active = True
         self._aux_cycle_length = 0
         self._avail_mode = None
@@ -2777,19 +2779,27 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
         val = value["val"]
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
-        self._client.set_aux_cycle_output(value["id"], value["status"], length, self._is_low_wifi)
-        if self._is_low_wifi:
+        length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
+        is_wifi = self._is_low_wifi or (self._is_wifi and self._is_HC)
+        if is_wifi and length == 0:
+            raise HomeAssistantError(f"Turning off auxiliary cycle length is not supported for {self._id}")
+        self._client.set_aux_cycle_output(value["id"], length, is_wifi)
+        if is_wifi:
             self._aux_cycle_length = length
-        else:
-            self._cycle_length_output2_status = value["status"]
+        elif length > 0:
+            self._cycle_length_output2_status = "on"
             self._cycle_length_output2_value = length
+        else:
+            # Leaving self._cycle_length_output2_value to the old value on purpose
+            self._cycle_length_output2_status = "off"
 
     def set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
         val = value["val"]
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
-        self._client.set_aux_cycle_output(value["id"], length)
+        length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
+        if length == 0:
+            raise HomeAssistantError(f"Turning off main cycle length is not supported for {self._id}")
+        self._client.set_cycle_output(value["id"], length, self._is_HC)
         self._cycle_length = length
 
     def set_pump_protection(self, value):
