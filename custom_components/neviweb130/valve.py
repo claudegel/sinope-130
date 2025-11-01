@@ -28,11 +28,16 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from enum import StrEnum
+from threading import Lock
+from typing import cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -133,7 +138,7 @@ HA_TO_NEVIWEB_DELAY = {
     "1 week": 604800,
 }
 
-VALVE_TYPES = {
+VALVE_TYPES: dict[str, tuple[str, StrEnum]] = {
     "flow": ("mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE),
     "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER),
 }
@@ -166,7 +171,10 @@ async def async_setup_platform(
     """Set up the Neviweb130 valve."""
     data = hass.data[DOMAIN]
 
-    entities = []
+    # Wait for async migration to be done
+    await data.migration_done.wait()
+
+    entities: list[Neviweb130Valve] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -353,110 +361,108 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_valve_alert_service(service):
+    entity_map: dict[str, Neviweb130Valve] | None = None
+    _entity_map_lock = Lock()
+
+    def get_valve(service: ServiceCall) -> Neviweb130Valve:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+
+        valve = entity_map.get(entity_id)
+        if valve is None:
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} valve")
+        return valve
+
+    def set_valve_alert_service(service: ServiceCall) -> None:
         """Set alert for water valve."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "batt": service.data[ATTR_BATT_ALERT],
-                }
-                valve.set_valve_alert(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "batt": service.data[ATTR_BATT_ALERT],
+        }
+        valve.set_valve_alert(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_valve_temp_alert_service(service):
+    def set_valve_temp_alert_service(service: ServiceCall) -> None:
         """Set alert for water valve temperature location."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "temp": service.data[ATTR_TEMP_ALERT],
-                }
-                valve.set_valve_temp_alert(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "temp": service.data[ATTR_TEMP_ALERT],
+        }
+        valve.set_valve_temp_alert(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_meter_model_service(service):
+    def set_flow_meter_model_service(service: ServiceCall) -> None:
         """Set the flow meter model connected to water valve."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
-                }
-                valve.set_flow_meter_model(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
+        }
+        valve.set_flow_meter_model(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_meter_delay_service(service):
+    def set_flow_meter_delay_service(service: ServiceCall) -> None:
         """Set the flow meter delay before alert is turned on."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
-                }
-                valve.set_flow_meter_delay(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
+        }
+        valve.set_flow_meter_delay(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_meter_options_service(service):
+    def set_flow_meter_options_service(service: ServiceCall) -> None:
         """Set the flow meter options when leak is detected."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "alarm": service.data[ATTR_TRIGGER_ALARM],
-                    "close": service.data[ATTR_CLOSE_VALVE],
-                }
-                valve.set_flow_meter_options(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "alarm": service.data[ATTR_TRIGGER_ALARM],
+            "close": service.data[ATTR_CLOSE_VALVE],
+        }
+        valve.set_flow_meter_options(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_power_supply_service(service):
+    def set_power_supply_service(service: ServiceCall) -> None:
         """Set power supply type for water valve."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "supply": service.data[ATTR_POWER_SUPPLY],
-                }
-                valve.set_power_supply(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "supply": service.data[ATTR_POWER_SUPPLY],
+        }
+        valve.set_power_supply(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "active": service.data[ATTR_ACTIVE],
-                }
-                valve.set_activation(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "active": service.data[ATTR_ACTIVE],
+        }
+        valve.set_activation(value)
+        valve.schedule_update_ha_state(True)
 
-    def set_flow_alarm_disable_timer_service(service):
+    def set_flow_alarm_disable_timer_service(service: ServiceCall) -> None:
         """Set alert for water valve temperature location."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for valve in entities:
-            if valve.entity_id == entity_id:
-                value = {
-                    "id": valve.unique_id,
-                    "timer": service.data[ATTR_FLOW_ALARM_TIMER],
-                }
-                valve.set_flow_alarm_disable_timer(value)
-                valve.schedule_update_ha_state(True)
-                break
+        valve = get_valve(service)
+        value = {
+            "id": valve.unique_id,
+            "timer": service.data[ATTR_FLOW_ALARM_TIMER],
+        }
+        valve.set_flow_alarm_disable_timer(value)
+        valve.schedule_update_ha_state(True)
 
     hass.services.async_register(
         DOMAIN,
@@ -590,7 +596,7 @@ class Neviweb130Valve(ValveEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
@@ -685,17 +691,20 @@ class Neviweb130Valve(ValveEntity):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the valve."""
         return self._name
 
     @property
-    def icon(self):
+    @override
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = VALVE_TYPES.get(self._device_type)
         if device_info is None:
@@ -704,13 +713,14 @@ class Neviweb130Valve(ValveEntity):
         return device_info[0]
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> ValveDeviceClass | None:
         """Return the device class of this entity."""
         device_type = VALVE_TYPES.get(self._device_type)
         if device_type is None:
             return None
 
-        return device_type[1]
+        return cast(ValveDeviceClass, device_type[1])
 
     @property
     def is_open(self):
@@ -775,7 +785,7 @@ class Neviweb130Valve(ValveEntity):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -955,7 +965,7 @@ class Neviweb130Valve(ValveEntity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
+            _LOGGER.warning("Session expired... Reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
@@ -964,16 +974,16 @@ class Neviweb130Valve(ValveEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
         elif error_data == "TimeoutError":
-            _LOGGER.warning("Timeout error detected...Retry later.")
+            _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later.")
+            _LOGGER.warning("Access blocked for maintenance... Retry later")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
+            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -985,7 +995,7 @@ class Neviweb130Valve(ValveEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -993,7 +1003,7 @@ class Neviweb130Valve(ValveEntity):
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout for %s (id: %s)... The device "
-                + "did not respond to the server within the prescribed delay."
+                + "did not respond to the server within the prescribed delay"
                 + " (SKU: %s)",
                 self._name,
                 str(self._id),
@@ -1025,13 +1035,13 @@ class Neviweb130Valve(ValveEntity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes",
                     self._name,
                 )
                 _LOGGER.warning(
                     "You can re-activate device %s with "
                     + "service.neviweb130_set_activation or wait 20 minutes "
-                    + "for update to restart or just restart HA.",
+                    + "for update to restart or just restart HA",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
@@ -1049,7 +1059,7 @@ class Neviweb130Valve(ValveEntity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1268,7 +1278,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1440,7 +1450,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1601,7 +1611,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data

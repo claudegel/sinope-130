@@ -112,6 +112,7 @@ IGNORE_MIWI = False
 NOTIFY = "both"
 
 PERIOD_VALUE = {
+    "off",
     "15 sec",
     "5 min",
     "10 min",
@@ -279,7 +280,7 @@ SET_EM_HEAT_SCHEMA = vol.Schema(
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
+        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.In([12, 24])),
     }
 )
 
@@ -293,14 +294,14 @@ SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
 SET_SETPOINT_MAX_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=8, max=36)),
+        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=6, max=30)),
     }
 )
 
 SET_SETPOINT_MIN_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=5, max=26)),
+        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=5, max=29)),
     }
 )
 
@@ -345,28 +346,28 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
 SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=16, max=30)),
+        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=16, max=36)),
     }
 )
 
 SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=16, max=30)),
+        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=15, max=35)),
     }
 )
 
 SET_ROOM_SETPOINT_AWAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_AWAY): vol.All(vol.Coerce(float), vol.Range(min=5, max=30)),
+        vol.Required(ATTR_ROOM_SETPOINT_AWAY): vol.All(vol.Coerce(int), vol.Range(min=10, max=30)),
     }
 )
 
 SET_COOL_SETPOINT_AWAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_AWAY): vol.All(vol.Coerce(float), vol.Range(min=16, max=30)),
+        vol.Required(ATTR_COOL_SETPOINT_AWAY): vol.All(vol.Coerce(int), vol.Range(min=15, max=35)),
     }
 )
 
@@ -381,15 +382,14 @@ SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
 SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, [vol.In(PERIOD_VALUE)]),
+        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, vol.In(PERIOD_VALUE)),
     }
 )
 
 SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, [vol.In(PERIOD_VALUE)]),
+        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, vol.In(PERIOD_VALUE)),
     }
 )
 
@@ -438,14 +438,18 @@ SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
 SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(vol.Coerce(int), vol.Range(min=10, max=30)),
+        vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+        ),
     }
 )
 
 SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(vol.Coerce(int), vol.Range(min=10, max=30)),
+        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+        ),
     }
 )
 

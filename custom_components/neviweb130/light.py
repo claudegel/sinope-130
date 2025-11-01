@@ -15,10 +15,14 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from threading import Lock
+from typing import override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -108,7 +112,10 @@ async def async_setup_platform(
     """Set up the neviweb light."""
     data = hass.data[DOMAIN]
 
-    entities = []
+    # Wait for async migration to be done
+    await data.migration_done.wait()
+
+    entities: list[Neviweb130Light] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -169,129 +176,121 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_light_keypad_lock_service(service):
+    entity_map: dict[str, Neviweb130Light] | None = None
+    _entity_map_lock = Lock()
+
+    def get_light(service: ServiceCall) -> Neviweb130Light:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+
+        light = entity_map.get(entity_id)
+        if light is None:
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} light")
+        return light
+
+    def set_light_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
-                light.set_keypad_lock(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        light.set_keypad_lock(value)
+        light.schedule_update_ha_state(True)
 
-    def set_light_timer_service(service):
+    def set_light_timer_service(service: ServiceCall) -> None:
         """Set timer for light device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
-                light.set_timer(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
+        light.set_timer(value)
+        light.schedule_update_ha_state(True)
 
-    def set_led_indicator_service(service):
+    def set_led_indicator_service(service: ServiceCall) -> None:
         """Set led color and intensity for light indicator."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "state": service.data[ATTR_STATE],
-                    "red": service.data[ATTR_RED],
-                    "green": service.data[ATTR_GREEN],
-                    "blue": service.data[ATTR_BLUE],
-                }
-                light.set_led_indicator(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "state": service.data[ATTR_STATE],
+            "red": service.data[ATTR_RED],
+            "green": service.data[ATTR_GREEN],
+            "blue": service.data[ATTR_BLUE],
+        }
+        light.set_led_indicator(value)
+        light.schedule_update_ha_state(True)
 
-    def set_led_on_intensity_service(service):
+    def set_led_on_intensity_service(service: ServiceCall) -> None:
         """Set led on intensity for light indicator."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "led_on": service.data[ATTR_LED_ON_INTENSITY],
-                }
-                light.set_led_on_intensity(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "led_on": service.data[ATTR_LED_ON_INTENSITY],
+        }
+        light.set_led_on_intensity(value)
+        light.schedule_update_ha_state(True)
 
-    def set_led_off_intensity_service(service):
+    def set_led_off_intensity_service(service: ServiceCall) -> None:
         """Set led off intensity for light indicator."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "led_off": service.data[ATTR_LED_OFF_INTENSITY],
-                }
-                light.set_led_off_intensity(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "led_off": service.data[ATTR_LED_OFF_INTENSITY],
+        }
+        light.set_led_off_intensity(value)
+        light.schedule_update_ha_state(True)
 
-    def set_light_min_intensity_service(service):
+    def set_light_min_intensity_service(service: ServiceCall) -> None:
         """Set dimmer light minimum intensity."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "intensity": service.data[ATTR_INTENSITY_MIN],
-                }
-                light.set_light_min_intensity(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "intensity": service.data[ATTR_INTENSITY_MIN],
+        }
+        light.set_light_min_intensity(value)
+        light.schedule_update_ha_state(True)
 
-    def set_wattage_service(service):
+    def set_wattage_service(service: ServiceCall) -> None:
         """Set watt load for light device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "watt": service.data[ATTR_LIGHT_WATTAGE],
-                }
-                light.set_wattage(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "watt": service.data[ATTR_LIGHT_WATTAGE],
+        }
+        light.set_wattage(value)
+        light.schedule_update_ha_state(True)
 
-    def set_phase_control_service(service):
+    def set_phase_control_service(service: ServiceCall) -> None:
         """Change phase control mode for dimmer device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "phase": service.data[ATTR_PHASE_CONTROL],
-                }
-                light.set_phase_control(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "phase": service.data[ATTR_PHASE_CONTROL],
+        }
+        light.set_phase_control(value)
+        light.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for switch in entities:
-            if switch.entity_id == entity_id:
-                value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
-                switch.set_activation(value)
-                switch.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {"id": light.unique_id, "active": service.data[ATTR_ACTIVE]}
+        light.set_activation(value)
+        light.schedule_update_ha_state(True)
 
-    def set_key_double_up_service(service):
+    def set_key_double_up_service(service: ServiceCall) -> None:
         """Change key double up action for dimmer device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for light in entities:
-            if light.entity_id == entity_id:
-                value = {
-                    "id": light.unique_id,
-                    "double": service.data[ATTR_KEY_DOUBLE_UP],
-                }
-                light.set_key_double_up(value)
-                light.schedule_update_ha_state(True)
-                break
+        light = get_light(service)
+        value = {
+            "id": light.unique_id,
+            "double": service.data[ATTR_KEY_DOUBLE_UP],
+        }
+        light.set_key_double_up(value)
+        light.schedule_update_ha_state(True)
 
     hass.services.async_register(
         DOMAIN,
@@ -402,7 +401,7 @@ class Neviweb130Light(LightEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
@@ -511,17 +510,20 @@ class Neviweb130Light(LightEntity):
         return ColorMode.ONOFF
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the light."""
         return self._name
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> str:
         """Return the device class of this entity."""
         return "light"
 
@@ -553,7 +555,7 @@ class Neviweb130Light(LightEntity):
                 "rssi": self._rssi,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -734,7 +736,7 @@ class Neviweb130Light(LightEntity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
+            _LOGGER.warning("Session expired... Reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
@@ -743,16 +745,16 @@ class Neviweb130Light(LightEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
         elif error_data == "TimeoutError":
-            _LOGGER.warning("Timeout error detected...Retry later.")
+            _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance...Retry later.")
+            _LOGGER.warning("Access blocked for maintenance... Retry later")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
+            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -764,7 +766,7 @@ class Neviweb130Light(LightEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -772,7 +774,7 @@ class Neviweb130Light(LightEntity):
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout for %s (id: %s)... The device "
-                + "did not respond to the server within the prescribed delay."
+                + "did not respond to the server within the prescribed delay"
                 + "(SKU: %s)",
                 self._name,
                 str(self._id),
@@ -804,13 +806,13 @@ class Neviweb130Light(LightEntity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes",
                     self._name,
                 )
                 _LOGGER.warning(
                     "You can re-activate device %s with "
                     + "service.neviweb130_set_activation or wait 20 minutes "
-                    + "for update to restart or just restart HA.",
+                    + "for update to restart or just restart HA",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
@@ -828,7 +830,7 @@ class Neviweb130Light(LightEntity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 error_data,
@@ -944,7 +946,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1052,7 +1054,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data

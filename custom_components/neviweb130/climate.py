@@ -47,6 +47,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
+from threading import Lock
 from typing import Any, Mapping, override
 
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature, HVACAction, HVACMode
@@ -61,7 +62,8 @@ from homeassistant.components.climate.const import (
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -336,6 +338,7 @@ SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
 HA_TO_NEVIWEB_PERIOD: dict[str, int] = {
+    "off": 0,
     "15 sec": 15,
     "5 min": 300,
     "10 min": 600,
@@ -508,7 +511,10 @@ async def async_setup_platform(
     """Set up the neviweb130 thermostats."""
     data = hass.data[DOMAIN]
 
-    entities = []
+    # Wait for async migration to be done
+    await data.migration_done.wait()
+
+    entities: list[Neviweb130Thermostat] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -983,629 +989,516 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_second_display_service(service):
+    entity_map: dict[str, Neviweb130Thermostat] | None = None
+    _entity_map_lock = Lock()
+
+    def get_thermostat(service: ServiceCall) -> Neviweb130Thermostat:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+
+        thermostat = entity_map.get(entity_id)
+        if thermostat is None:
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} thermostat")
+        return thermostat
+
+    def set_second_display_service(service: ServiceCall) -> None:
         """Set to outside or setpoint temperature display for Wi-Fi thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "display": service.data[ATTR_DISPLAY2],
-                }
-                thermostat.set_second_display(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "display": service.data[ATTR_DISPLAY2],
+        }
+        thermostat.set_second_display(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_backlight_service(service):
+    def set_backlight_service(service: ServiceCall) -> None:
         """Set backlight always on or auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "level": service.data[ATTR_BACKLIGHT],
-                }
-                thermostat.set_backlight(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "level": service.data[ATTR_BACKLIGHT],
+        }
+        thermostat.set_backlight(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_climate_keypad_lock_service(service):
+    def set_climate_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "lock": service.data[ATTR_KEYPAD],
-                }
-                thermostat.set_keypad_lock(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "lock": service.data[ATTR_KEYPAD],
+        }
+        thermostat.set_keypad_lock(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_time_format_service(service):
+    def set_time_format_service(service: ServiceCall) -> None:
         """Set time format 12h or 24h."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if isinstance(thermostat, Neviweb130WifiLiteThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} do not have time display.")
-                value = {
-                    "id": thermostat.unique_id,
-                    ATTR_TIME: service.data[ATTR_TIME_FORMAT],
-                }
-                thermostat.set_time_format(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if isinstance(thermostat, Neviweb130WifiLiteThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} Wi-Fi (lite) thermostat")
 
-    def set_temperature_format_service(service):
+        value = {
+            "id": thermostat.unique_id,
+            ATTR_TIME: service.data[ATTR_TIME_FORMAT],
+        }
+        thermostat.set_time_format(value)
+        thermostat.schedule_update_ha_state(True)
+
+    def set_temperature_format_service(service: ServiceCall) -> None:
         """Set temperature format, celsius or fahrenheit."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_TEMP],
-                }
-                thermostat.set_temperature_format(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_TEMP],
+        }
+        thermostat.set_temperature_format(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_setpoint_max_service(service):
+    def set_setpoint_max_service(service: ServiceCall) -> None:
         """Set maximum setpoint for device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_ROOM_SETPOINT_MAX],
-                }
-                thermostat.set_setpoint_max(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_ROOM_SETPOINT_MAX],
+        }
+        thermostat.set_setpoint_max(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_setpoint_min_service(service):
+    def set_setpoint_min_service(service: ServiceCall) -> None:
         """Set minimum setpoint for device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_ROOM_SETPOINT_MIN],
-                }
-                thermostat.set_setpoint_min(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_ROOM_SETPOINT_MIN],
+        }
+        thermostat.set_setpoint_min(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_floor_air_limit_service(service):
+    def set_floor_air_limit_service(service: ServiceCall) -> None:
         """Set minimum setpoint for device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_FLOOR_AIR_LIMIT],
-                }
-                thermostat.set_floor_air_limit(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_FLOOR_AIR_LIMIT],
+        }
+        thermostat.set_floor_air_limit(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_early_start_service(service):
+    def set_early_start_service(service: ServiceCall) -> None:
         """Set early heating on/off for Wi-Fi thermostat."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "start": service.data[ATTR_EARLY_START],
-                }
-                thermostat.set_early_start(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "start": service.data[ATTR_EARLY_START],
+        }
+        thermostat.set_early_start(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_air_floor_mode_service(service):
+    def set_air_floor_mode_service(service: ServiceCall) -> None:
         """Switch between ambient or floor temperature sensor."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "mode": service.data[ATTR_FLOOR_MODE],
-                }
-                thermostat.set_air_floor_mode(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "mode": service.data[ATTR_FLOOR_MODE],
+        }
+        thermostat.set_air_floor_mode(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_hvac_dr_options_service(service):
+    def set_hvac_dr_options_service(service: ServiceCall) -> None:
         """Set options for hvac dr in Eco Sinope."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "dractive": service.data[ATTR_DRACTIVE],
-                    "optout": service.data[ATTR_OPTOUT],
-                    "setpoint": service.data[ATTR_SETPOINT],
-                }
-                thermostat.set_hvac_dr_options(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "dractive": service.data[ATTR_DRACTIVE],
+            "optout": service.data[ATTR_OPTOUT],
+            "setpoint": service.data[ATTR_SETPOINT],
+        }
+        thermostat.set_hvac_dr_options(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_hvac_dr_setpoint_service(service):
+    def set_hvac_dr_setpoint_service(service: ServiceCall) -> None:
         """Set options for hvac dr setpoint in Eco Sinope."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "status": service.data[ATTR_STATUS],
-                    "val": service.data[ATTR_VALUE],
-                }
-                thermostat.set_hvac_dr_setpoint(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "status": service.data[ATTR_STATUS],
+            "val": service.data[ATTR_VALUE],
+        }
+        thermostat.set_hvac_dr_setpoint(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_auxiliary_load_service(service):
+    def set_auxiliary_load_service(service: ServiceCall) -> None:
         """Set options for auxiliary heating."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "status": service.data[ATTR_STATUS],
-                    "val": service.data[ATTR_VALUE],
-                }
-                thermostat.set_auxiliary_load(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "status": service.data[ATTR_STATUS],
+            "val": service.data[ATTR_VALUE],
+        }
+        thermostat.set_auxiliary_load(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_aux_cycle_output_service(service):
+    def set_aux_cycle_output_service(service: ServiceCall) -> None:
         """Set options for auxiliary cycle length for low voltage thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "status": service.data[ATTR_STATUS],
-                    "val": service.data[ATTR_VALUE][0],
-                }
-                thermostat.set_aux_cycle_output(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        val = service.data.get(ATTR_VALUE)
+        if val is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_VALUE}")
+        value = {
+            "id": thermostat.unique_id,
+            "val": val,
+        }
+        thermostat.set_aux_cycle_output(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cycle_output_service(service):
+    def set_cycle_output_service(service: ServiceCall) -> None:
         """Set options for main cycle length for low voltage thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "val": service.data[ATTR_VALUE][0],
-                }
-                thermostat.set_cycle_output(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "val": service.data[ATTR_VALUE],
+        }
+        thermostat.set_cycle_output(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_pump_protection_service(service):
+    def set_pump_protection_service(service: ServiceCall) -> None:
         """Set status of pump protection for low voltage thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "status": service.data[ATTR_STATUS],
-                }
-                thermostat.set_pump_protection(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "status": service.data[ATTR_STATUS],
+        }
+        thermostat.set_pump_protection(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cool_setpoint_max_service(service):
+    def set_cool_setpoint_max_service(service: ServiceCall) -> None:
         """Set maximum cooling setpoint for device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_COOL_SETPOINT_MAX],
-                }
-                thermostat.set_cool_setpoint_max(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_COOL_SETPOINT_MAX],
+        }
+        thermostat.set_cool_setpoint_max(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cool_setpoint_min_service(service):
+    def set_cool_setpoint_min_service(service: ServiceCall) -> None:
         """Set minimum cooling setpoint for device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_COOL_SETPOINT_MIN],
-                }
-                thermostat.set_cool_setpoint_min(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_COOL_SETPOINT_MIN],
+        }
+        thermostat.set_cool_setpoint_min(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_room_setpoint_away_service(service):
+    def set_room_setpoint_away_service(service: ServiceCall) -> None:
         """Set away heating setpoint."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_ROOM_SETPOINT_AWAY],
-                }
-                thermostat.set_room_setpoint_away(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_ROOM_SETPOINT_AWAY],
+        }
+        thermostat.set_room_setpoint_away(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cool_setpoint_away_service(service):
+    def set_cool_setpoint_away_service(service: ServiceCall) -> None:
         """Set away cooling setpoint."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
-                }
-                thermostat.set_cool_setpoint_away(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
+        }
+        thermostat.set_cool_setpoint_away(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_floor_limit_high_service(service):
+    def set_floor_limit_high_service(service: ServiceCall) -> None:
         """Set maximum floor heating limit for floor device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "level": service.data[ATTR_FLOOR_MAX],
-                    "limit": "high",
-                }
-                thermostat.set_floor_limit(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "level": service.data[ATTR_FLOOR_MAX],
+            "limit": "high",
+        }
+        thermostat.set_floor_limit(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_floor_limit_low_service(service):
+    def set_floor_limit_low_service(service: ServiceCall) -> None:
         """Set minimum floor heating limit for floor device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "level": service.data[ATTR_FLOOR_MIN],
-                    "limit": "low",
-                }
-                thermostat.set_floor_limit(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "level": service.data[ATTR_FLOOR_MIN],
+            "limit": "low",
+        }
+        thermostat.set_floor_limit(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "active": service.data[ATTR_ACTIVE],
-                }
-                thermostat.set_activation(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "active": service.data[ATTR_ACTIVE],
+        }
+        thermostat.set_activation(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_sensor_type_service(service):
+    def set_sensor_type_service(service: ServiceCall) -> None:
         """Set floor sensor type."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "type": service.data[ATTR_FLOOR_SENSOR],
-                }
-                thermostat.set_sensor_type(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "type": service.data[ATTR_FLOOR_SENSOR],
+        }
+        thermostat.set_sensor_type(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_em_heat_service(service):
+    def set_em_heat_service(service: ServiceCall) -> None:
         """Set emergency heat on/off for thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if service.data[ATTR_VALUE] == "on":
-                    thermostat.turn_em_heat_on()
-                else:
-                    thermostat.turn_em_heat_off()
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if service.data[ATTR_VALUE] == "on":
+            thermostat.turn_em_heat_on()
+        else:
+            thermostat.turn_em_heat_off()
+        thermostat.schedule_update_ha_state(True)
 
-    def set_heat_pump_operation_limit_service(service):
+    def set_heat_pump_operation_limit_service(service: ServiceCall) -> None:
         """Set minimum temperature for heat pump device operation."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_BALANCE_PT],
-                }
-                thermostat.set_heat_pump_operation_limit(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_BALANCE_PT],
+        }
+        thermostat.set_heat_pump_operation_limit(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_heat_lockout_temperature_service(service):
+    def set_heat_lockout_temperature_service(service: ServiceCall) -> None:
         """Set maximum outside temperature limit to allow heating device operation."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_HEAT_LOCK_TEMP],
-                }
-                thermostat.set_heat_lockout_temperature(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_HEAT_LOCK_TEMP],
+        }
+        thermostat.set_heat_lockout_temperature(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cool_lockout_temperature_service(service):
+    def set_cool_lockout_temperature_service(service: ServiceCall) -> None:
         """Set minimum outside temperature limit to allow cooling device operation."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_COOL_LOCK_TEMP],
-                }
-                thermostat.set_cool_lockout_temperature(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_COOL_LOCK_TEMP],
+        }
+        thermostat.set_cool_lockout_temperature(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_display_config_service(service):
+    def set_display_config_service(service: ServiceCall) -> None:
         """Set display on/off for heat pump."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "display": service.data[ATTR_DISPLAY_CONF],
-                }
-                thermostat.set_display_config(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "display": service.data[ATTR_DISPLAY_CONF],
+        }
+        thermostat.set_display_config(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_sound_config_service(service):
+    def set_sound_config_service(service: ServiceCall) -> None:
         """Set sound on/off for heat pump."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "sound": service.data[ATTR_SOUND_CONF],
-                }
-                thermostat.set_sound_config(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "sound": service.data[ATTR_SOUND_CONF],
+        }
+        thermostat.set_sound_config(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_hc_second_display_service(service):
+    def set_hc_second_display_service(service: ServiceCall) -> None:
         """Set second display for TH1134ZB-HC thermostat."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "display": service.data[ATTR_DISPLAY2],
-                }
-                thermostat.set_hc_second_display(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "display": service.data[ATTR_DISPLAY2],
+        }
+        thermostat.set_hc_second_display(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_language_service(service):
+    def set_language_service(service: ServiceCall) -> None:
         """Set display language for TH1134ZB-HC thermostat."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                value = {
-                    "id": thermostat.unique_id,
-                    "lang": service.data[ATTR_LANGUAGE],
-                }
-                thermostat.set_language(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        value = {
+            "id": thermostat.unique_id,
+            "lang": service.data[ATTR_LANGUAGE],
+        }
+        thermostat.set_language(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_min_time_on_service(service):
+    def set_min_time_on_service(service: ServiceCall) -> None:
         """Set minimum time the device is on before letting be off again (run-on time)
         for TH6500WF and TH6250WF thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                thermostat.set_min_time_on(service.data)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        thermostat.set_min_time_on(service.data)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_min_time_off_service(service):
+    def set_min_time_off_service(service: ServiceCall) -> None:
         """Set minimum time the device is off before letting it be on again (cooldown time)
         for TH6500WF and TH6250WF thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                thermostat.set_min_time_off(service.data)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        thermostat.set_min_time_off(service.data)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_heat_interstage_delay(service):
+    def set_heat_interstage_delay(service: ServiceCall) -> None:
         """Set minimum time the device is heating before letting it increment the heater stage
         for TH6500WF and TH6250WF thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                thermostat.set_heat_interstage_delay(service.data)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        thermostat.set_heat_interstage_delay(service.data)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cool_interstage_delay(service):
+    def set_cool_interstage_delay(service: ServiceCall) -> None:
         """Set minimum time the device is cooling before letting it increment the cooler stage
         for TH6500WF and TH6250WF thermostats."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                thermostat.set_cool_interstage_delay(service.data)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        thermostat.set_cool_interstage_delay(service.data)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_accessory_type_service(service):
+    def set_accessory_type_service(service: ServiceCall) -> None:
         """Set TH6500WF accessory (humidifier, dehumidifier, air exchanger) type."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "type": service.data[ATTR_ACCESSORY_TYPE],
-                }
-                thermostat.set_accessory_type(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "type": service.data[ATTR_ACCESSORY_TYPE],
+        }
+        thermostat.set_accessory_type(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_schedule_mode_service(service):
+    def set_schedule_mode_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF schedule mode, manual or auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "mode": service.data[ATTR_SETPOINT_MODE],
-                }
-                thermostat.set_schedule_mode(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "mode": service.data[ATTR_SETPOINT_MODE],
+        }
+        thermostat.set_schedule_mode(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_heatcool_setpoint_delta_service(service):
+    def set_heatcool_setpoint_delta_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF delta temperature between heating and cooling setpoint."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "level": service.data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA],
-                }
-                thermostat.set_heatcool_setpoint_delta(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "level": service.data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA],
+        }
+        thermostat.set_heatcool_setpoint_delta(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_fan_filter_reminder_service(service):
+    def set_fan_filter_reminder_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF fan filter reminder period from 1 to 12 month."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "month": service.data[ATTR_FAN_FILTER_REMAIN],
-                }
-                thermostat.set_fan_filter_reminder(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "month": service.data[ATTR_FAN_FILTER_REMAIN],
+        }
+        thermostat.set_fan_filter_reminder(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_temperature_offset_service(service):
+    def set_temperature_offset_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF temperature sensor offset from -2 to 2°C with a 0.5°C increment."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "temp": service.data[ATTR_TEMP_OFFSET_HEAT],
-                }
-                thermostat.set_temperature_offset(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "temp": service.data[ATTR_TEMP_OFFSET_HEAT],
+        }
+        thermostat.set_temperature_offset(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_aux_heating_source_service(service):
+    def set_aux_heating_source_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF auxiliary heating device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "dev": service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
-                }
-                thermostat.set_aux_heating_source(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "dev": service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
+        }
+        thermostat.set_aux_heating_source(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_fan_speed_service(service):
+    def set_fan_speed_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "speed": service.data[ATTR_FAN_SPEED],
-                }
-                thermostat.set_fan_speed(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "speed": service.data[ATTR_FAN_SPEED],
+        }
+        thermostat.set_fan_speed(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_humidity_mode_service(service):
+    def set_humidity_mode_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
-                }
-                thermostat.set_humidity_mode(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
+        }
+        thermostat.set_humidity_mode(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_heat_dissipation_time_service(service):
+    def set_heat_dissipation_time_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    ATTR_TIME: service.data[ATTR_TIME],
-                }
-                thermostat.set_heat_dissipation_time(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            ATTR_TIME: service.data[ATTR_TIME],
+        }
+        thermostat.set_heat_dissipation_time(value)
+        thermostat.schedule_update_ha_state(True)
 
-    def set_cool_dissipation_time_service(service):
+    def set_cool_dissipation_time_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for thermostat in entities:
-            if thermostat.entity_id == entity_id:
-                if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-                    raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
-                value = {
-                    "id": thermostat.unique_id,
-                    ATTR_TIME: service.data[ATTR_TIME],
-                }
-                thermostat.set_cool_dissipation_time(value)
-                thermostat.schedule_update_ha_state(True)
-                break
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            ATTR_TIME: service.data[ATTR_TIME],
+        }
+        thermostat.set_cool_dissipation_time(value)
+        thermostat.schedule_update_ha_state(True)
 
     def set_climate_neviweb_status_service(service):
         """Set Neviweb global status per location, home or away."""
@@ -1997,7 +1890,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._is_double = device_info["signature"]["model"] in DEVICE_MODEL_DOUBLE
@@ -2261,7 +2154,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -2714,7 +2607,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
 
         else:
-            _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
+            _LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
 
         self._operation_mode = hvac_mode
         self.update()
@@ -2733,7 +2626,7 @@ class Neviweb130Thermostat(ClimateEntity):
             # Re-apply current hvac_mode without any preset
             self.set_hvac_mode(self.hvac_mode)
         else:
-            _LOGGER.error("Unable to set preset mode: %s.", preset_mode)
+            _LOGGER.error("Unable to set preset mode: %s", preset_mode)
         self._occupancy = preset_mode
 
     def turn_em_heat_on(self):
@@ -2779,19 +2672,27 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
         val = value["val"]
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
-        self._client.set_aux_cycle_output(value["id"], value["status"], length, self._is_low_wifi)
-        if self._is_low_wifi:
+        length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
+        is_wifi = self._is_low_wifi or (self._is_wifi and self._is_HC)
+        if is_wifi and length == 0:
+            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
+        self._client.set_aux_cycle_output(value["id"], length, is_wifi)
+        if is_wifi:
             self._aux_cycle_length = length
-        else:
-            self._cycle_length_output2_status = value["status"]
+        elif length > 0:
+            self._cycle_length_output2_status = "on"
             self._cycle_length_output2_value = length
+        else:
+            # Leaving self._cycle_length_output2_value to the old value on purpose
+            self._cycle_length_output2_status = "off"
 
     def set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
         val = value["val"]
-        length = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
-        self._client.set_aux_cycle_output(value["id"], length)
+        length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
+        if length == 0:
+            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
+        self._client.set_cycle_output(value["id"], length, self._is_HC)
         self._cycle_length = length
 
     def set_pump_protection(self, value):
@@ -2992,7 +2893,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
+            _LOGGER.warning("Session expired... Reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
@@ -3001,16 +2902,16 @@ class Neviweb130Thermostat(ClimateEntity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
         elif error_data == "TimeoutError":
-            _LOGGER.warning("Timeout error detected...Retry later.")
+            _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later.")
+            _LOGGER.warning("Access blocked for maintenance... Retry later")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
+            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -3022,7 +2923,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s... (id: %s, SKU: %s) Report to maintainer.",
+                "Device action not supported for %s... (id: %s, SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -3030,7 +2931,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout... The device %s (id: %s) "
-                + "did not respond to the server within the prescribed delay."
+                + "did not respond to the server within the prescribed delay"
                 + " (SKU: %s)",
                 self._name,
                 str(self._id),
@@ -3063,13 +2964,13 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes",
                     self._name,
                 )
                 _LOGGER.warning(
                     "You can re-activate device %s with "
                     + "service.neviweb130_set_activation or wait 20 minutes "
-                    + "for update to restart or just restart HA.",
+                    + "for update to restart or just restart HA",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
@@ -3103,7 +3004,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 error_data,
@@ -3261,7 +3162,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3444,7 +3345,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3635,7 +3536,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3771,7 +3672,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -3939,7 +3840,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4118,7 +4019,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4492,7 +4393,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4689,7 +4590,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -4899,7 +4800,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -5101,7 +5002,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -5698,19 +5599,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._aux_heat_min_time_off = aux_heat_min_time_off
 
     def set_heat_interstage_delay(self, value):
-        time_val = int(value.get(ATTR_TIME))
-        if time_val is None:
-            raise HomeAssistantError("time was not provided")
+        try:
+            time_val = int(value[ATTR_TIME])
+        except KeyError:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+        except ValueError:
+            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be an integer")
 
         outputs = self._output_connect_state
         hp_can_heat = self._reversing_valve_polarity == "cooling" or outputs["OB"]
         has_multiple_hp_heat_stages = outputs["Y1"] and outputs["Y2"] and hp_can_heat
         has_multiple_aux_stages = outputs["W"] and outputs["W2"]
         if not has_multiple_hp_heat_stages and not has_multiple_aux_stages:
-            raise HomeAssistantError(
-                f"{self._id} does not support multiple levels of heating. "
-                f"Output configuration: {outputs}"
-                f"Reversing valve polarity: {self._reversing_valve_polarity}"
+            raise ServiceValidationError(
+                f"Entity {self.entity_id} does not support multiple levels of heating with current configuration"
             )
 
         if has_multiple_hp_heat_stages:
@@ -5721,18 +5623,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._client.set_aux_interstage_delay(self.unique_id, time_val * 60 * 2)
 
     def set_cool_interstage_delay(self, value):
-        time_val = int(value.get(ATTR_TIME))
-        if time_val is None:
-            raise HomeAssistantError("time was not provided")
+        try:
+            time_val = int(value[ATTR_TIME])
+        except KeyError:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+        except ValueError:
+            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be an integer")
 
         outputs = self._output_connect_state
         hp_can_cool = self._reversing_valve_polarity == "heating" or outputs["OB"]
         has_multiple_cooling_stages = outputs["Y1"] and outputs["Y2"] and hp_can_cool
         if not has_multiple_cooling_stages:
-            raise HomeAssistantError(
-                f"{self._id} does not support multiple levels of cooling. "
-                f"Output configuration: {outputs}"
-                f"Reversing valve polarity: {self._reversing_valve_polarity}"
+            raise ServiceValidationError(
+                f"Entity {self.entity_id} does not support multiple cooling levels "
+                f"with the current output configuration"
             )
 
         self._client.set_cool_interstage_min_delay(self.unique_id, time_val * 60)
@@ -5874,7 +5778,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         if self._device_model == 6727:

@@ -19,13 +19,15 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime
-from typing import Any
+from threading import Lock
+from typing import Any, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.core import ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity
 
 from . import NOTIFY
@@ -114,7 +116,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
 
-SENSOR_TYPES = {
+SENSOR_TYPES: dict[str, tuple[str | None, None, BinarySensorDeviceClass | SensorStateClass]] = {
     "leak": (None, None, BinarySensorDeviceClass.MOISTURE),
     "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT),
     "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY),
@@ -130,7 +132,10 @@ async def async_setup_platform(
     """Set up the Neviweb sensor."""
     data = hass.data[DOMAIN]
 
-    entities = []
+    # Wait for async migration to be done
+    await data.migration_done.wait()
+
+    entities: list[Neviweb130Sensor] = []
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -344,146 +349,135 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    def set_sensor_alert_service(service):
+    entity_map: dict[str, Neviweb130Sensor] | None = None
+    _entity_map_lock = Lock()
+
+    def get_sensor(service: ServiceCall) -> Neviweb130Sensor:
+        entity_id = service.data.get(ATTR_ENTITY_ID)
+        if entity_id is None:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+
+        nonlocal entity_map
+        if entity_map is None:
+            with _entity_map_lock:
+                if entity_map is None:
+                    entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
+                    if len(entity_map) != len(entities):
+                        entity_map = None
+                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+
+        sensor = entity_map.get(entity_id)
+        if sensor is None:
+            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} sensor")
+        return sensor
+
+    def set_sensor_alert_service(service: ServiceCall) -> None:
         """Set different alert and action for water leak sensor."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                value = {
-                    "id": sensor.unique_id,
-                    "leak": service.data[ATTR_LEAK_ALERT],
-                    "temp": service.data[ATTR_TEMP_ALERT],
-                    "batt": service.data[ATTR_BATT_ALERT],
-                    "close": service.data[ATTR_CONF_CLOSURE],
-                }
-                sensor.set_sensor_alert(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        value = {
+            "id": sensor.unique_id,
+            "leak": service.data[ATTR_LEAK_ALERT],
+            "temp": service.data[ATTR_TEMP_ALERT],
+            "batt": service.data[ATTR_BATT_ALERT],
+            "close": service.data[ATTR_CONF_CLOSURE],
+        }
+        sensor.set_sensor_alert(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_battery_type_service(service):
+    def set_battery_type_service(service: ServiceCall) -> None:
         """Set battery type for water leak sensor."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                value = {
-                    "id": sensor.unique_id,
-                    "type": service.data[ATTR_BATTERY_TYPE],
-                }
-                sensor.set_battery_type(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        value = {
+            "id": sensor.unique_id,
+            "type": service.data[ATTR_BATTERY_TYPE],
+        }
+        sensor.set_battery_type(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_tank_type_service(service):
+    def set_tank_type_service(service: ServiceCall) -> None:
         """Set tank type for fuel tank."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
-                sensor.set_tank_type(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} cannot be used with this service")
+        value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
+        sensor.set_tank_type(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_gauge_type_service(service):
+    def set_gauge_type_service(service: ServiceCall) -> None:
         """Set gauge type for propane tank."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
-                sensor.set_gauge_type(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} must be a {DOMAIN} tank sensor")
+        value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
+        sensor.set_gauge_type(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_low_fuel_alert_service(service):
+    def set_low_fuel_alert_service(service: ServiceCall) -> None:
         """Set low fuel alert on tank, propane or oil."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {
-                    "id": sensor.unique_id,
-                    "low": service.data[ATTR_FUEL_PERCENT_ALERT],
-                }
-                sensor.set_low_fuel_alert(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} must be a {DOMAIN} tank sensor")
+        value = {
+            "id": sensor.unique_id,
+            "low": service.data[ATTR_FUEL_PERCENT_ALERT],
+        }
+        sensor.set_low_fuel_alert(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_tank_height_service(service):
+    def set_tank_height_service(service: ServiceCall) -> None:
         """Set tank height for oil tank."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {
-                    "id": sensor.unique_id,
-                    "height": service.data[ATTR_TANK_HEIGHT],
-                }
-                sensor.set_tank_height(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+        value = {
+            "id": sensor.unique_id,
+            "height": service.data[ATTR_TANK_HEIGHT],
+        }
+        sensor.set_tank_height(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_fuel_alert_service(service):
+    def set_fuel_alert_service(service: ServiceCall) -> None:
         """Set fuel alert for LM4110-ZB."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
-                sensor.set_fuel_alert(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+        value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
+        sensor.set_fuel_alert(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_refuel_alert_service(service):
+    def set_refuel_alert_service(service: ServiceCall) -> None:
         """Set refuel alert for LM4110-ZB."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
-                sensor.set_refuel_alert(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+        value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
+        sensor.set_refuel_alert(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_battery_alert_service(service):
+    def set_battery_alert_service(service: ServiceCall) -> None:
         """Set battery alert for LM4110-ZB."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130TankSensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
-                value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
-                sensor.set_battery_alert(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130TankSensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+        value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+        sensor.set_battery_alert(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_activation_service(service):
+    def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
-                sensor.set_activation(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
+        sensor.set_activation(value)
+        sensor.schedule_update_ha_state(True)
 
-    def set_neviweb_status_service(service):
+    def set_neviweb_status_service(service: ServiceCall) -> None:
         """Set Neviweb global status, home or away."""
-        entity_id = service.data[ATTR_ENTITY_ID]
-        for sensor in entities:
-            if sensor.entity_id == entity_id:
-                if not isinstance(sensor, Neviweb130GatewaySensor):
-                    raise HomeAssistantError(f"Entity {sensor.entity_id} is not a Neviweb130GatewaySensor")
-                value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
-                sensor.set_neviweb_status(value)
-                sensor.schedule_update_ha_state(True)
-                break
+        sensor = get_sensor(service)
+        if not isinstance(sensor, Neviweb130GatewaySensor):
+            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130GatewaySensor")
+        value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
+        sensor.set_neviweb_status(value)
+        sensor.schedule_update_ha_state(True)
 
     hass.services.async_register(
         DOMAIN,
@@ -608,7 +602,7 @@ class Neviweb130Sensor(Entity):
         self._sku = sku
         self._firmware = firmware
         self._client = data.neviweb130_client
-        self._id = device_info["id"]
+        self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
@@ -714,7 +708,7 @@ class Neviweb130Sensor(Entity):
                                 + self._name
                                 + ", Sku: "
                                 + self._sku
-                                + ", Leak sensor disconnected."
+                                + ", Leak sensor disconnected"
                             )
                     self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                     if ATTR_RSSI in device_data:
@@ -731,17 +725,20 @@ class Neviweb130Sensor(Entity):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
-    def unique_id(self):
+    @override
+    def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._id
 
     @property
-    def name(self):
+    @override
+    def name(self) -> str:
         """Return the name of the sensor."""
         return self._name
 
     @property
-    def icon(self):
+    @override
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:
@@ -750,7 +747,8 @@ class Neviweb130Sensor(Entity):
         return device_info[1]
 
     @property
-    def unit_of_measurement(self):
+    @override
+    def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
         device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:
@@ -759,7 +757,8 @@ class Neviweb130Sensor(Entity):
         return device_info[0]
 
     @property
-    def device_class(self):
+    @override
+    def device_class(self) -> BinarySensorDeviceClass | SensorStateClass | None:
         """Return the device class of this entity."""
         device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:
@@ -808,7 +807,7 @@ class Neviweb130Sensor(Entity):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -861,7 +860,7 @@ class Neviweb130Sensor(Entity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            _LOGGER.warning("Session expired... reconnecting...")
+            _LOGGER.warning("Session expired... Reconnecting...")
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
@@ -869,16 +868,16 @@ class Neviweb130Sensor(Entity):
                 )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximum daily request reached...Reduce polling frequency.")
+            _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
         elif error_data == "TimeoutError":
-            _LOGGER.warning("Timeout error detected...Retry later.")
+            _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance...Retry later.")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance...Retry later.")
+            _LOGGER.warning("Access blocked for maintenance... Retry later")
+            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached...Close other connections and try again.")
-            self.notify_ha("Warning: Maximum Neviweb session number reached...Close other connections and try again.")
+            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
+            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again")
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -890,7 +889,7 @@ class Neviweb130Sensor(Entity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer.",
+                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 self._sku,
@@ -898,7 +897,7 @@ class Neviweb130Sensor(Entity):
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout for %s (id: %s)... The device "
-                + "did not respond to the server within the prescribed delay."
+                + "did not respond to the server within the prescribed delay"
                 + "(SKU: %s)",
                 self._name,
                 str(self._id),
@@ -930,13 +929,13 @@ class Neviweb130Sensor(Entity):
                     self._sku,
                 )
                 _LOGGER.warning(
-                    "This device %s is de-activated and won't be updated for 20 minutes.",
+                    "This device %s is de-activated and won't be updated for 20 minutes",
                     self._name,
                 )
                 _LOGGER.warning(
                     "You can re-activate device %s with "
                     + "service.neviweb130_set_activation or wait 20 minutes "
-                    + "for update to restart or just restart HA.",
+                    + "for update to restart or just restart HA",
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
@@ -954,7 +953,7 @@ class Neviweb130Sensor(Entity):
             self._snooze = time.time()
         else:
             _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer.",
+                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
                 self._name,
                 str(self._id),
                 error_data,
@@ -1027,7 +1026,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             + str(self._id)
                             + ", Sku: "
                             + self._sku
-                            + ", Leak sensor disconnected."
+                            + ", Leak sensor disconnected"
                         )
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1071,7 +1070,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1216,7 +1215,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data
@@ -1322,7 +1321,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "neviweb_location": str(self._location),
-                "id": str(self._id),
+                "id": self._id,
             }
         )
         return data

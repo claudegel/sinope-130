@@ -138,7 +138,7 @@ set_second_display:
       example: "exteriorTemperature"
 
 set_backlight:
-  description: Set backlight intensity, auto = on when active (off when idle), on = always on. Need to specify device type; Wi-Fi or Zigbee
+  description: Set backlight intensity, auto = on when active (off when idle), on = always on.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device to set the backlight intensity.
@@ -365,11 +365,8 @@ set_aux_cycle_output:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
       example: "climate.neviweb130_climate_kitchen"
-    status:
-      description: Set to «on» or «off» to change status of auxiliary cycle length.
-      example: "on"
     value:
-      description: Cycle length in minutes. Accepted values are "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
+      description: Cycle length in minutes. Accepted values are "off", "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min".
       example: "10 min"
 
 set_battery_type:
@@ -413,23 +410,23 @@ set_controlled_device:
       example: "Pool pump"
 
 set_cool_setpoint_max:
-  description: Set climate device room cooling setpoint max temperature for TH1134ZB-HC.
+  description: Set climate device room cooling setpoint max temperature for TH1134ZB-HC, TH6500WF and TH6250WF.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
+      description: Name(s) of compatible neviweb130 device thermostat.
       example: "climate.neviweb130_climate_office"
     coolSetpointMax:
-      description: Maximum cooling setpoint temperature to set. Between 16 and 30°C.
+      description: Maximum cooling setpoint temperature to set.
       example: 26
 
 set_cool_setpoint_min:
-  description: Set climate device room cooling setpoint min temperature for TH1134ZB-HC.
+  description: Set climate device room cooling setpoint min temperature for TH1134ZB-HC, TH6500WF and TH6250WF.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 device thermostat (TH1134ZB-HC).
+      description: Name(s) of compatible neviweb130 device thermostat.
       example: "climate.neviweb130_climate_office"
     coolSetpointMin:
-      description: Minimum cooling setpoint temperature to set. Between 16 and 30°C.
+      description: Minimum cooling setpoint temperature to set.
       example: 22
 
 set_low_temp_protection:
@@ -663,21 +660,21 @@ set_heat_pump_operation_limit:
   description: Set the outside low temperature limit for heat pump operation. Depend on heat pump model.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 thermostat HP6000 device.
+      description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     balancePoint:
-      description: Possible values, from -5 to -30
-      example: -25
+      description: Possible values, from 10 to 30°C, or "off"
+      example: 22
 
 set_cool_lockout_temperature:
   description: Do not allow cooling for heat pump, if outside temperature is below this temperature.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 thermostat HP6000 device.
+      description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     coolLockoutTemperature:
-      description: Possible values, from 10 to 30°C
-      example: 20
+      description: Possible values, from 10 to 30°C, or "off"
+      example: 22
 
 set_heat_lockout_temperature:
   description: Do not allow heating for registered thermostats, if outside temperature is above this temperature.
@@ -720,10 +717,10 @@ set_hc_second_display:
       example: "exteriorTemperature"
 
 set_language:
-  description: Set the language for neviweb130 thermostat for TH1134ZB-HC and HP6000ZB-xx.
+  description: Set the device display language for neviweb130 thermostat for TH1134ZB-HC, HP6000ZB-xx, TH6500WF and TH6250WF.
   fields:
     entity_id:
-      description: Name(s) of neviweb130 TH1134ZB-HC device to set the second display.
+      description: Name(s) of neviweb130 device to set the display language.
       example: "climate.neviweb130_climate_office"
     language:
       description: «fr» = french language, «en» for english.

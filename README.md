@@ -503,7 +503,7 @@ messages.
 
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
-- ACCDAYREQMAX: Maximum daily request reached...Reduce polling frequency.
+- ACCDAYREQMAX: Maximum daily request reached... Reduce polling frequency.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
   also have an open session on Neviweb.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
@@ -515,14 +515,14 @@ In you log you can get those messages from Neviweb:
   frequently.
 - DVCNOTSYNC: Device is not in sync with Neviweb. Check your network, router and/or Wi-Fi gateway.
 - DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly Wi-Fi devices. 
-- MAINTENANCE: Neviweb access temporary blocked for maintenance...Retry later.
+- MAINTENANCE: Neviweb access temporary blocked for maintenance... Retry later.
 - SVCERR: Service error. Service unavailable. Try later.
 - SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
 - USRBADLOGIN: your login and/or password provided in configuration for Neviweb is no good.
 - USRSESSEXP: User session expired. Reduce your scan_interval below 6 minutes or your session will be terminated.
 - VALINVLD: Invalid value sent to Neviweb.
 - ReadTimeout: Request was sent to the device but no answer came back. Network problem.
-- TimeoutError: Timeout error detected...Retry later.
+- TimeoutError: Timeout error detected... Retry later.
 
 ## Customization
 Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your 
