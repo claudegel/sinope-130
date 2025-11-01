@@ -284,6 +284,7 @@ set_hvac_dr_options:
     entity_id:
       description: Name(s) of neviweb130 thermostats.
       example: "climate.neviweb130_climate_kitchen"
+      required: true
     drActive:
       description: Set to «on» or «off» to activate Éco Sinopé mode.
       example: "on"
@@ -293,6 +294,26 @@ set_hvac_dr_options:
     setpoint:
       description: Set to «on» or «off» to activate Éco Sinopé setpoint reduction control.
       example: "on"
+    auxOptim:
+      description: >
+        Activate or deactivate Éco Sinopé auxiliary heater optimization on TH6500WF and TH6250WF. 
+        This option is only useful if the auxiliary heater does not consume electricity (e.g. fuel-based heaters).
+      example: "on"
+      selector:
+        select:
+          options:
+            - "on"
+            - "off"
+    fanSpeedOptim:
+      description: >
+        Activate or deactivate Éco Sinopé fan optimization on TH6500WF and TH6250WF. When enabled, 
+        the fan will automatically switch to "auto" mode during Eco periods to reduce electrical consumption.
+      example: "on"
+      selector:
+        select:
+          options:
+            - "on"
+            - "off"
 
 set_hvac_dr_setpoint:
   description: Set demand response setpoint reduction value for thermostats in Éco Sinopé mode.

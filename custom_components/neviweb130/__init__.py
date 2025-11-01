@@ -46,6 +46,8 @@ from .const import (
     ATTR_CYCLE_OUTPUT2,
     ATTR_DISPLAY2,
     ATTR_DISPLAY_CONF,
+    ATTR_DR_AUX_CONF,
+    ATTR_DR_FAN_SPEED_CONF,
     ATTR_DRSETPOINT,
     ATTR_DRSTATUS,
     ATTR_EARLY_START,
@@ -1388,17 +1390,34 @@ class Neviweb130Client:
         _LOGGER.debug("Load.DR.options = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_hvac_dr_options(self, device_id: str, dr, optout, setpoint):
+    def set_hvac_dr_options(
+        self, device_id: str, *, dr=None, optout=None, setpoint=None, aux_conf=None, fan_speed_conf=None
+    ):
         """Set load controller Eco Sinope attributes."""
-        data = {
-            ATTR_DRSTATUS: {
-                "drActive": dr,
-                "optOut": optout,
-                "setpoint": setpoint,
+        data: dict[str, Any]
+        if dr is not None and optout is not None and setpoint is not None:
+            data = {
+                ATTR_DRSTATUS: {
+                    "drActive": dr,
+                    "optOut": optout,
+                    "setpoint": setpoint,
+                }
             }
-        }
-        _LOGGER.debug("hvac.DR.options = %s", data)
-        self.set_device_attributes(device_id, data)
+            _LOGGER.debug("hvac.DR.options = %s", data)
+            self.set_device_attributes(device_id, data)
+
+        if aux_conf is not None:
+            data = {ATTR_DR_AUX_CONF: "activated" if aux_conf == "on" else "deactivated"}
+            _LOGGER.debug("hvac.DR.options = %s", data)
+            self.set_device_attributes(device_id, data)
+
+        if fan_speed_conf is not None:
+            data = {
+                # Not a typo: Disabled is really sending "on" (allow fan to be always on when the optim is disabled)
+                ATTR_DR_FAN_SPEED_CONF: "auto" if fan_speed_conf == "on" else "on"
+            }
+            _LOGGER.debug("hvac.DR.options = %s", data)
+            self.set_device_attributes(device_id, data)
 
     def set_hvac_dr_setpoint(self, device_id: str, status, val):
         """Set load controller Eco Sinope attributes."""

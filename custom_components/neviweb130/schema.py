@@ -15,6 +15,7 @@ from .const import (
     ATTR_AUX_HEAT_MIN_TIME_OFF,
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
+    ATTR_AUX_OPTIM,
     ATTR_BACKLIGHT,
     ATTR_BALANCE_PT,
     ATTR_BATT_ALERT,
@@ -35,6 +36,7 @@ from .const import (
     ATTR_EARLY_START,
     ATTR_FAN_FILTER_REMAIN,
     ATTR_FAN_SPEED,
+    ATTR_FAN_SPEED_OPTIM,
     ATTR_FLOOR_AIR_LIMIT,
     ATTR_FLOOR_MAX,
     ATTR_FLOOR_MIN,
@@ -329,9 +331,11 @@ SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
 SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DRACTIVE): vol.In(["on", "off"]),
-        vol.Required(ATTR_OPTOUT): vol.In(["on", "off"]),
-        vol.Required(ATTR_SETPOINT): vol.In(["on", "off"]),
+        vol.Optional(ATTR_DRACTIVE): vol.In(["on", "off"]),
+        vol.Optional(ATTR_OPTOUT): vol.In(["on", "off"]),
+        vol.Optional(ATTR_SETPOINT): vol.In(["on", "off"]),
+        vol.Optional(ATTR_AUX_OPTIM): vol.In(["on", "off"]),
+        vol.Optional(ATTR_FAN_SPEED_OPTIM): vol.In(["on", "off"]),
     }
 )
 

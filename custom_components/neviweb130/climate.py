@@ -82,6 +82,7 @@ from .const import (
     ATTR_AUX_HEAT_START_DELAY,
     ATTR_AUX_INTERSTAGE_DELAY,
     ATTR_AUX_INTERSTAGE_MIN_DELAY,
+    ATTR_AUX_OPTIM,
     ATTR_AVAIL_MODE,
     ATTR_BACK_LIGHT,
     ATTR_BACKLIGHT,
@@ -119,6 +120,7 @@ from .const import (
     ATTR_FAN_FILTER_LIFE,
     ATTR_FAN_FILTER_REMAIN,
     ATTR_FAN_SPEED,
+    ATTR_FAN_SPEED_OPTIM,
     ATTR_FAN_SWING_CAP,
     ATTR_FAN_SWING_CAP_HORIZ,
     ATTR_FAN_SWING_CAP_VERT,
@@ -1117,12 +1119,19 @@ async def async_setup_platform(
     def set_hvac_dr_options_service(service: ServiceCall) -> None:
         """Set options for hvac dr in Eco Sinope."""
         thermostat = get_thermostat(service)
-        value = {
-            "id": thermostat.unique_id,
-            "dractive": service.data[ATTR_DRACTIVE],
-            "optout": service.data[ATTR_OPTOUT],
-            "setpoint": service.data[ATTR_SETPOINT],
-        }
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            value = {
+                "id": thermostat.unique_id,
+                "dractive": service.data(ATTR_DRACTIVE),
+                "optout": service.data(ATTR_OPTOUT),
+                "setpoint": service.data(ATTR_SETPOINT),
+            }
+        else:
+            value = {
+                "id": thermostat.unique_id,
+                ATTR_AUX_OPTIM: service.data.get(ATTR_AUX_OPTIM),
+                ATTR_FAN_SPEED_OPTIM: service.data.get(ATTR_FAN_SPEED_OPTIM),
+            }
         thermostat.set_hvac_dr_options(value)
         thermostat.schedule_update_ha_state(True)
 
@@ -2567,7 +2576,9 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_hvac_dr_options(self, value):
         """Set thermostat DR options for Eco Sinope."""
-        self._client.set_hvac_dr_options(value["id"], value["dractive"], value["optout"], value["setpoint"])
+        self._client.set_hvac_dr_options(
+            value["id"], dractive=value["dractive"], optout=value["optout"], setpoint=value["setpoint"]
+        )
         self._drstatus_active = value["dractive"]
         self._drstatus_optout = value["optout"]
         self._drstatus_setpoint = value["setpoint"]
@@ -5714,6 +5725,21 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Set thermostat humidity setpoint mode, defog or manual"""
         self._client.set_humidity_mode(value["id"], value["mode"], self._is_HC)
         self._humidity_setpoint_mode = value["mode"]
+
+    def set_hvac_dr_options(self, value):
+        """Set thermostat DR options for Eco Sinope."""
+        aux_conf = value.get(ATTR_AUX_OPTIM)
+        fan_speed_config = value.get(ATTR_FAN_SPEED_OPTIM)
+        if aux_conf is None and fan_speed_config is None:
+            raise ServiceValidationError(
+                f"Missing required parameter: either {ATTR_AUX_OPTIM} or {ATTR_FAN_SPEED_OPTIM} must be set"
+            )
+        self._client.set_hvac_dr_options(value["id"], aux_conf=aux_conf, fan_speed_conf=fan_speed_config)
+        if aux_conf is not None:
+            self._dr_aux_config = "activated" if aux_conf == "on" else "deactivated"
+        if fan_speed_config is not None:
+            # Not a typo: Disabled is really sending "on" (allow fan to be always on when the optim is disabled)
+            self._dr_fan_speed_conf = "auto" if fan_speed_config == "on" else "on"
 
     @property
     @override
