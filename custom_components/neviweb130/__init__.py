@@ -11,7 +11,7 @@ from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVA
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady, IntegrationError
 from homeassistant.helpers import discovery, entity_registry
 from requests.cookies import RequestsCookieJar
 
@@ -183,12 +183,18 @@ def migrate_entity_unique_id(hass: HomeAssistant):
     hass.data[DOMAIN].migration_done.set()
 
 
-def setup(hass: HomeAssistant, hass_config: dict[str, Any]):
+def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     """Set up neviweb130."""
     _LOGGER.info(STARTUP_MESSAGE)
 
-    data = Neviweb130Data(hass, hass_config[DOMAIN])
-    hass.data[DOMAIN] = data
+    try:
+        data = Neviweb130Data(hass, hass_config[DOMAIN])
+        hass.data[DOMAIN] = data
+    except IntegrationError as e:
+        # Temporary workaround for sync setup: Avoid verbose traceback in logs. Once async_setup_entry is used,
+        # we can remove the try-except as HomeAssistant will correctly handle the raised exception
+        _LOGGER.error("Neviweb initialization failed: %s", e)
+        return False
 
     # Migrate entity unique_ids from int -> str.
     hass.add_job(migrate_entity_unique_id, hass)
@@ -1425,7 +1431,7 @@ class Neviweb130Client:
         _LOGGER.debug("gauge_type.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_aux_heating_source(self, device_id: str, equip):
+    def set_aux_heating_source(self, device_id: str, equip: str):
         """Set auxiliary heating source for TH6500WF and TH6250WF."""
         data = {ATTR_AUX_HEAT_SOURCE_TYPE: equip}
         _LOGGER.debug("aux_heating_source.data = %s", data)
