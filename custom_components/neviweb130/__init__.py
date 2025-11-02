@@ -174,10 +174,12 @@ NOTIFY = DEFAULT_NOTIFY
 @callback
 def migrate_entity_unique_id(hass: HomeAssistant):
     registry = entity_registry.async_get(hass)
-    for entity in registry.entities.values():
+    for entity in list(registry.entities.values()):
         if entity.platform == DOMAIN and isinstance(entity.unique_id, int):
             registry.async_update_entity(entity.entity_id, new_unique_id=str(entity.unique_id))
             _LOGGER.debug(f"Migrated unique_id from int to str for {entity.entity_id}")
+
+    # All platforms will wait for this asynchronously, before loading anything.
     hass.data[DOMAIN].migration_done.set()
 
 
