@@ -902,7 +902,7 @@ set_aux_heating_source:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     auxHeatSourceType:
-      description: Possibles values, "Electric", "Fossil", "SSR".
+      description: Electric or Fossil (fuel or gaz).
       example: "Electric"
 
 set_fan_speed:

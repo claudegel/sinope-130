@@ -243,6 +243,7 @@ from .const import (
     SERVICE_SET_TIME_FORMAT,
 )
 from .schema import (
+    AUX_HEATING,
     FAN_SPEED,
     FULL_SWING,
     FULL_SWING_OFF,
@@ -1456,7 +1457,7 @@ async def async_setup_platform(
             raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
-            "dev": service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
+            ATTR_AUX_HEAT_SOURCE_TYPE: service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
         }
         thermostat.set_aux_heating_source(value)
         thermostat.schedule_update_ha_state(True)
@@ -5655,16 +5656,14 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     def set_aux_heating_source(self, value):
         """Set auxiliary heating device."""
-        equip = None
-        match value["dev"]:
-            case "Electric":
-                equip = "hvacElectrique"
-            case "Fossil":
-                equip = "hvacGaz"
-            case "SSR":
-                equip = "plintheElectrique"
+        equip = AUX_HEATING.get(value[ATTR_AUX_HEAT_SOURCE_TYPE])
+        if equip is None:
+            raise ServiceValidationError(
+                f"Invalid value for {ATTR_AUX_HEAT_SOURCE_TYPE}, must be one of {AUX_HEATING.keys()}"
+            )
+
         self._client.set_aux_heating_source(value["id"], equip)
-        self._aux_heat_source_type = value["dev"]
+        self._aux_heat_source_type = equip
 
     def set_fan_speed(self, value):
         """Set fan speed On or Auto."""

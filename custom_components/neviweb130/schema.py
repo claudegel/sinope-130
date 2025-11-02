@@ -214,7 +214,7 @@ SWING_CAPABILITY_HORIZONTAL = {
 }
 FULL_SWING = ["swingFullRange"]
 FULL_SWING_OFF = ["off"]
-AUX_HEATING = ["Electric", "Fossil", "SSR"]
+AUX_HEATING = {"Electric": "hvacElectrique", "Fossil": "hvacGaz"}
 ACCESSORY = [
     "none",
     "humOnHeat",
@@ -556,7 +556,7 @@ SET_TEMPERATURE_OFFSET_SCHEMA = vol.Schema(
 SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AUX_HEAT_SOURCE_TYPE): vol.All(cv.ensure_list, [vol.In(AUX_HEATING)]),
+        vol.Required(ATTR_AUX_HEAT_SOURCE_TYPE): vol.In(AUX_HEATING.keys()),
     }
 )
 
