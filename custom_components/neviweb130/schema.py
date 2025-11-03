@@ -71,6 +71,7 @@ from .const import (
     ATTR_OUTPUT_NAME_1,
     ATTR_OUTPUT_NAME_2,
     ATTR_PHASE_CONTROL,
+    ATTR_POLARITY,
     ATTR_POWER_SUPPLY,
     ATTR_RED,
     ATTR_REFUEL,
@@ -123,6 +124,7 @@ PERIOD_VALUE = {
     "25 min",
     "30 min",
 }
+REVERSING_VALVE_POLARITY = ["cooling", "heating"]
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
@@ -482,6 +484,13 @@ SET_LANGUAGE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LANGUAGE): vol.In(["en", "fr"]),
+    }
+)
+
+SET_REVERSING_VALVE_POLARITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_POLARITY): vol.In(REVERSING_VALVE_POLARITY),
     }
 )
 

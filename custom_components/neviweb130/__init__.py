@@ -115,6 +115,7 @@ from .const import (
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
     ATTR_REFUEL,
+    ATTR_REVERSING_VALVE_POLARITY,
     ATTR_ROOM_SETPOINT,
     ATTR_ROOM_SETPOINT_AWAY,
     ATTR_ROOM_SETPOINT_MAX,
@@ -1583,6 +1584,13 @@ class Neviweb130Client:
             self.set_device_attributes(device_id, data)
         else:
             self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+
+    def set_reversing_valve_polarity(self, device_id: str, polarity: str):
+        """Set minimum time the heater is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_REVERSING_VALVE_POLARITY: polarity}
+        _LOGGER.debug("HC set_reversing_valve_polarity.data = %s", data)
+        self.set_device_attributes(device_id, data)
 
     def set_heat_min_time_on(self, device_id: str, time: int):
         """Set minimum time the heater is on before letting be off again (run-on time).

@@ -164,6 +164,7 @@ from .const import (
     ATTR_OUTPUT1,
     ATTR_OUTPUT_CONNECT_STATE,
     ATTR_OUTPUT_PERCENT_DISPLAY,
+    ATTR_POLARITY,
     ATTR_PUMP_PROTEC,
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
@@ -231,6 +232,7 @@ from .const import (
     SERVICE_SET_MIN_TIME_OFF,
     SERVICE_SET_MIN_TIME_ON,
     SERVICE_SET_PUMP_PROTECTION,
+    SERVICE_SET_REVERSING_VALVE_POLARITY,
     SERVICE_SET_ROOM_SETPOINT_AWAY,
     SERVICE_SET_SCHEDULE_MODE,
     SERVICE_SET_SECOND_DISPLAY,
@@ -284,6 +286,7 @@ from .schema import (
     SET_MIN_TIME_OFF_SCHEMA,
     SET_MIN_TIME_ON_SCHEMA,
     SET_PUMP_PROTECTION_SCHEMA,
+    SET_REVERSING_VALVE_POLARITY_SCHEMA,
     SET_ROOM_SETPOINT_AWAY_SCHEMA,
     SET_SCHEDULE_MODE_SCHEMA,
     SET_SECOND_DISPLAY_SCHEMA,
@@ -1354,6 +1357,15 @@ async def async_setup_platform(
         thermostat.set_language(value)
         thermostat.schedule_update_ha_state(True)
 
+    def set_reversing_valve_polarity(service: ServiceCall) -> None:
+        """Set minimum time the device is on before letting be off again (run-on time)
+        for TH6500WF and TH6250WF thermostats."""
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        thermostat.set_reversing_valve_polarity(service.data)
+        thermostat.schedule_update_ha_state(True)
+
     def set_min_time_on_service(service: ServiceCall) -> None:
         """Set minimum time the device is on before letting be off again (run-on time)
         for TH6500WF and TH6250WF thermostats."""
@@ -1742,6 +1754,13 @@ async def async_setup_platform(
         SERVICE_SET_LANGUAGE,
         set_language_service,
         schema=SET_LANGUAGE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_REVERSING_VALVE_POLARITY,
+        set_reversing_valve_polarity,
+        schema=SET_REVERSING_VALVE_POLARITY_SCHEMA,
     )
 
     hass.services.async_register(
@@ -5593,6 +5612,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if air_ex_min_time_on is not None:
             self._client.set_air_ex_min_time_on(self.unique_id, air_ex_min_time_on)
             self._air_ex_min_time_on = air_ex_min_time_on
+
+    def set_reversing_valve_polarity(self, value):
+        """Set minimum time the device is on before letting be off again (run-on time)"""
+        polarity = value[ATTR_POLARITY]
+        self._client.set_reversing_valve_polarity(self.unique_id, polarity)
+        self._reversing_valve_polarity = polarity
 
     def set_min_time_off(self, value):
         """Set minimum time the device is off before letting it be on again (cooldown time)"""

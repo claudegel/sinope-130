@@ -371,7 +371,9 @@ set_auxiliary_load:
       example: 2500
 
 set_cycle_output:
-  description: Set both Wi-Fi and Zigbee low voltage thermostats primary cycle time in minutes.
+  description:  >
+    Equipment configuration should be performed by a professional. 
+    Set both Wi-Fi and Zigbee low voltage thermostats primary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -381,7 +383,9 @@ set_cycle_output:
       example: "10 min"
 
 set_aux_cycle_output:
-  description: Set both Wi-Fi and Zigbee low voltage thermostats auxiliary cycle time in minutes.
+  description:  >
+    Equipment configuration should be performed by a professional. 
+    Set both Wi-Fi and Zigbee low voltage thermostats auxiliary cycle time in minutes.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat.
@@ -678,7 +682,9 @@ set_em_heat:
       description: Set to «on» or «off» to turn_on or turn_off emergency heat.
 
 set_heat_pump_operation_limit:
-  description: Set the outside low temperature limit for heat pump operation. Depend on heat pump model.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set the outside low temperature limit for heat pump operation. Depend on heat pump model.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
@@ -747,8 +753,22 @@ set_language:
       description: «fr» = french language, «en» for english.
       example: "en"
 
+set_reversing_valve_polarity:
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set the polarity of the Heat Pump reversing valve for TH6500WF and TH6250WF thermostats.
+  fields:
+    entity_id:
+      description: Name(s) of neviweb130 device
+      example: "climate.neviweb130_climate_office"
+    polarity:
+      description: cooling (cool when reversing valve is on, heat when off) or heating (heat when on, cool when off)
+      example: "cooling"
+
 set_min_time_on:
-  description: Set minimum time the device is on before letting be off again (run-on time) for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set minimum time the device is on before letting be off again (run-on time) for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
@@ -772,7 +792,9 @@ set_min_time_on:
       example: "40 min"
 
 set_min_time_off:
-  description: Set minimum time the device is off before letting it be on again (cooldown time) for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set minimum time the device is off before letting it be on again (cooldown time) for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
@@ -792,7 +814,9 @@ set_min_time_off:
       example: 120
 
 set_heat_interstage_delay:
-  description: Set minimum time the device is heating before letting it increment the heater stage for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set minimum time the device is heating before letting it increment the heater stage for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the heat interstage delay.
@@ -804,7 +828,9 @@ set_heat_interstage_delay:
       example: 15
 
 set_cool_interstage_delay:
-  description: Set minimum time the device is cooling before letting it increment the cooler stage for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set minimum time the device is cooling before letting it increment the cooler stage for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the cool interstage delay.
@@ -836,7 +862,9 @@ set_climate_neviweb_status:
       example: "away"
 
 set_accessory_type:
-  description: Set accessory type (humidifier, dehumidifier, air-exchanger) for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set accessory type (humidifier, dehumidifier, air-exchanger) for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
@@ -866,7 +894,9 @@ set_flow_alarm_disable_timer:
       example: 21600
 
 set_heatcool_setpoint_delta:
-  description: Set delta temperature between heating and cooling setpoint in auto mode.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set delta temperature between heating and cooling setpoint in auto mode.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
@@ -886,7 +916,9 @@ set_fan_filter_reminder:
       example: 4
 
 set_temperature_offset:
-  description: Set sensor temperature offset for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set sensor temperature offset for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
@@ -896,7 +928,9 @@ set_temperature_offset:
       example: -0.5
 
 set_aux_heating_source:
-  description: Set auxiliary heating source for TH6500WF and TH6250WF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set auxiliary heating source for TH6500WF and TH6250WF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
@@ -926,7 +960,9 @@ set_humidity_mode:
       example: "manual"
 
 set_heat_dissipation_time:
-  description: Set climate device heating purge time for TH6xxxWF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set climate device heating purge time for TH6xxxWF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device thermostat.
@@ -937,7 +973,9 @@ set_heat_dissipation_time:
       example: 60
 
 set_cool_dissipation_time:
-  description: Set climate device cooling purge time for TH6xxxWF thermostats.
+  description: >
+    Equipment configuration should be performed by a professional. 
+    Set climate device cooling purge time for TH6xxxWF thermostats.
   fields:
     entity_id:
       description: Name(s) of neviweb130 device thermostat.
