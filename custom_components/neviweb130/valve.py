@@ -1080,7 +1080,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._batt_action_low = None
         self._flowmeter_divisor = 1
         self._flowmeter_offset = 0
-        self._flowmeter_opt_action = None
         self._flowmeter_opt_action_1 = None
         self._flowmeter_opt_action_2 = None
         self._flowmeter_opt_alarm_1 = None
@@ -1284,6 +1283,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._flowmeter_divisor = 1
         self._flowmeter_enabled = None
         self._flowmeter_offset = 0
+        self._flowmeter_opt_action = None
         self._stm8Error_motorJam = None
         self._stm8Error_motorLimit = None
         self._stm8Error_motorPosition = None
