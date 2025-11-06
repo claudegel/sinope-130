@@ -246,6 +246,7 @@ from .const import (
 )
 from .schema import (
     AUX_HEATING,
+    CYCLE_LENGTH_VALUES,
     FAN_SPEED,
     FULL_SWING,
     FULL_SWING_OFF,
@@ -342,17 +343,6 @@ DEFAULT_NAME_2 = f"{DOMAIN} climate 2"
 DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
-
-HA_TO_NEVIWEB_PERIOD: dict[str, int] = {
-    "off": 0,
-    "15 sec": 15,
-    "5 min": 300,
-    "10 min": 600,
-    "15 min": 900,
-    "20 min": 1200,
-    "25 min": 1500,
-    "30 min": 1800,
-}
 
 UPDATE_ATTRIBUTES = [
     ATTR_DRSETPOINT,
@@ -1871,7 +1861,7 @@ async def async_setup_platform(
 
 def neviweb_to_ha(value: int) -> str:
     last = ""
-    for k, v in sorted(HA_TO_NEVIWEB_PERIOD.items(), key=lambda x: x[1]):
+    for k, v in sorted(CYCLE_LENGTH_VALUES.items(), key=lambda x: x[1]):
         last = k
         if value <= v:
             return k
@@ -2148,7 +2138,7 @@ class Neviweb130Thermostat(ClimateEntity):
             {
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
-                "cycle_length": self._cycle_length,
+                "cycle_length": neviweb_to_ha(self._cycle_length),
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
@@ -2702,8 +2692,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_aux_cycle_output(self, value):
         """Set low voltage thermostats auxiliary cycle status and length."""
-        val = value["val"]
-        length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
+        length: int = CYCLE_LENGTH_VALUES[value["val"]]
         is_wifi = self._is_low_wifi or (self._is_wifi and self._is_HC)
         if is_wifi and length == 0:
             raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
@@ -2719,8 +2708,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
-        val = value["val"]
-        length: int = [v for k, v in HA_TO_NEVIWEB_PERIOD.items() if k == val][0]
+        length: int = CYCLE_LENGTH_VALUES[value["val"]]
         if length == 0:
             raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
         self._client.set_cycle_output(value["id"], length, self._is_HC)
@@ -3157,7 +3145,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             {
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
-                "cycle_length": self._cycle_length,
+                "cycle_length": neviweb_to_ha(self._cycle_length),
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
@@ -3344,7 +3332,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
-                "cycle_length": self._cycle_length,
+                "cycle_length": neviweb_to_ha(self._cycle_length),
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -3835,7 +3823,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "early_start": self._early_start,
                 "setpoint_away": self._target_temp_away,
                 "load_watt_1": self._load1,
-                "cycle_length": self._cycle_length,
+                "cycle_length": neviweb_to_ha(self._cycle_length),
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
@@ -4014,7 +4002,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "early_start": self._early_start,
                 "setpoint_away": self._target_temp_away,
                 "load_watt_1": self._load1,
-                "cycle_length": self._cycle_length,
+                "cycle_length": neviweb_to_ha(self._cycle_length),
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
@@ -4369,7 +4357,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "sensor_mode": self._floor_mode,
                 "floor_sensor_type": self._floor_sensor_type,
                 "load_watt": self._wattage,
-                "auxiliary_cycle_length": self._aux_cycle_length,
+                "auxiliary_cycle_length": neviweb_to_ha(self._aux_cycle_length),
                 "cycle_length": neviweb_to_ha(self._cycle_length),
                 "pump_protection_status": self._pump_protec_status,
                 "pump_protection_duration": self._pump_protec_duration,
@@ -4779,7 +4767,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "cool setpoint min": self._cool_min,
                 "cool setpoint max": self._cool_max,
                 "cool setpoint": self._target_cool,
-                "cycle_length": self._cycle_length,
+                "cycle_length": neviweb_to_ha(self._cycle_length),
                 "hc_device": self._hc_device,
                 "language": self._language,
                 "model": self._model,
@@ -5062,7 +5050,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._reversing_valve_polarity = "cooling"
         self._backlight_auto_dim = None
         self._balance_pt = -15
-        self._cool_cycle_length = None
+        self._cool_cycle_length = 0
         self._cool_interstage_delay = None
         self._cool_interstage_min_delay = None
         self._cool_max = 36
@@ -5801,7 +5789,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "sensor_temp_offset": self._temp_offset_heat,
                 "cycle": self._cycle,
                 "aux_cycle": self._aux_cycle,
-                "cool_cycle_length": self._cool_cycle_length,
+                "cool_cycle_length": neviweb_to_ha(self._cool_cycle_length),
                 "humidity_display": self._humidity_display,
                 "humidity_setpoint": self._humidity_setpoint,
                 "accessory_type": self._accessory_type,

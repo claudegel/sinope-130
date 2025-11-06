@@ -114,16 +114,6 @@ STAT_INTERVAL = 1800
 IGNORE_MIWI = False
 NOTIFY = "both"
 
-PERIOD_VALUE = {
-    "off",
-    "15 sec",
-    "5 min",
-    "10 min",
-    "15 min",
-    "20 min",
-    "25 min",
-    "30 min",
-}
 REVERSING_VALVE_POLARITY = ["cooling", "heating"]
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
@@ -226,6 +216,17 @@ ACCESSORY = [
 ]
 INSTALL_TYPE = ["addOn", "Conventional"]
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
+
+CYCLE_LENGTH_VALUES: dict[str, int] = {
+    "off": 0,
+    "15 sec": 15,
+    "5 min": 300,
+    "10 min": 600,
+    "15 min": 900,
+    "20 min": 1200,
+    "25 min": 1500,
+    "30 min": 1800,
+}
 
 """Config schema."""
 
@@ -388,14 +389,14 @@ SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
 SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, vol.In(PERIOD_VALUE)),
+        vol.Required(ATTR_VALUE): vol.In(CYCLE_LENGTH_VALUES.keys()),
     }
 )
 
 SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, vol.In(PERIOD_VALUE)),
+        vol.Required(ATTR_VALUE): vol.In(CYCLE_LENGTH_VALUES.keys()),
     }
 )
 
