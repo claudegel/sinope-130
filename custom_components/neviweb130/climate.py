@@ -2583,7 +2583,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._name,
                 self._sku,
                 device_hourly_stats,
-                len(device_hourly_stats),
+                len(device_hourly_stats) if device_hourly_stats is not None else None,
             )
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
