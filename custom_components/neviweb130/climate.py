@@ -5040,7 +5040,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._air_curt_max_temp = None
         self._air_ex_min_time_on = None
         self._air_min_time_on = 0
-        self._aux_cycle = None
         self._aux_heat_min_time_off = None
         self._aux_heat_min_time_on = None
         self._aux_heat_source_type = None
@@ -5060,7 +5059,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._cool_purge_time = 0
         self._cool_target_temp = None
         self._cool_target_temp_away = None
-        self._cycle = None
         self._dr_accessory_conf = None
         self._dr_air_curt_conf = None
         self._dr_aux_config = None
@@ -5261,8 +5259,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
                     self._humidity_display = device_data[ATTR_HUMIDITY_DISPLAY]
                     self._humidity_setpoint = device_data[ATTR_HUMIDITY_SETPOINT]
-                    self._cycle = device_data[ATTR_CYCLE_LENGTH]
-                    self._aux_cycle = device_data[ATTR_AUX_CYCLE_LENGTH]
+                    self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
                     self._aux_heat_min_time_on = device_data[ATTR_AUX_HEAT_MIN_TIME_ON]
@@ -5787,8 +5784,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "fan_filter_remain": self._fan_filter_remain,
                 "fan_filter_life": self._fan_filter_life,
                 "sensor_temp_offset": self._temp_offset_heat,
-                "cycle": self._cycle,
-                "aux_cycle": self._aux_cycle,
+                "aux_cycle_length": self._aux_cycle_length,
                 "cool_cycle_length": neviweb_to_ha(self._cool_cycle_length),
                 "humidity_display": self._humidity_display,
                 "humidity_setpoint": self._humidity_setpoint,
