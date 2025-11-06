@@ -573,7 +573,7 @@ sensor.neviweb130_sensor_spa:
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';
       return ''/local/leak.png'';'
 ```
-Icons are available from www directory. copy them in config/www
+Icons are available from www directory. Copy them in config/www
 
 # Device hard reset:
 - Thermostats:
