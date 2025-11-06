@@ -968,9 +968,9 @@ set_heat_dissipation_time:
       description: Name(s) of neviweb130 device thermostat.
       example: "climate.neviweb130_climate_office"
     time:
-      description: Possible values between 0 and 300. 0 = off.
+      description: Possible values between 0 and 5 min. 0 = off.
       required: true
-      example: 60
+      example: 1
 
 set_cool_dissipation_time:
   description: >
@@ -981,6 +981,6 @@ set_cool_dissipation_time:
       description: Name(s) of neviweb130 device thermostat.
       example: "climate.neviweb130_climate_office"
     time:
-      description: Possible values between 0 and 300. 0 = off.
+      description: Possible values between 0 and 5. 0 = off.
       required: true
-      example: 60
+      example: 1

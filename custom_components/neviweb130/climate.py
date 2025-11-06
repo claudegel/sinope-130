@@ -1505,7 +1505,7 @@ async def async_setup_platform(
             raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
-            ATTR_TIME: service.data[ATTR_TIME],
+            ATTR_TIME: service.data[ATTR_TIME] * 60,
         }
         thermostat.set_heat_dissipation_time(value)
         thermostat.schedule_update_ha_state(True)
@@ -1517,7 +1517,7 @@ async def async_setup_platform(
             raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
         value = {
             "id": thermostat.unique_id,
-            ATTR_TIME: service.data[ATTR_TIME],
+            ATTR_TIME: service.data[ATTR_TIME] * 60,
         }
         thermostat.set_cool_dissipation_time(value)
         thermostat.schedule_update_ha_state(True)

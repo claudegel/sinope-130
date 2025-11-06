@@ -586,14 +586,14 @@ SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
 SET_HEAT_DISSIPATION_TIME_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME): vol.Range(min=0, max=300),
+        vol.Required(ATTR_TIME): vol.Range(min=0, max=5),
     }
 )
 
 SET_COOL_DISSIPATION_TIME_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME): vol.Range(min=0, max=300),
+        vol.Required(ATTR_TIME): vol.Range(min=0, max=5),
     }
 )
 
