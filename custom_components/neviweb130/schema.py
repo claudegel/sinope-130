@@ -33,9 +33,10 @@ from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT,
                     ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME,
                     ATTR_TIMER, ATTR_TIMER2, ATTR_TRIGGER_ALARM, ATTR_TYPE,
-                    ATTR_VALUE, ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE,
-                    CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
-                    CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN)
+                    ATTR_VALUE, ATTR_WATER_TEMP_MIN, CONF_ACCOUNTS,
+                    CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_LOCATION,
+                    CONF_NETWORK, CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY,
+                    CONF_PREFIX, CONF_STAT_INTERVAL, DOMAIN)
 
 """Default parameters values."""
 
@@ -149,15 +150,30 @@ FULL_SWING_OFF = ["off"]
 
 """Config schema."""
 
+# Account schema for multi-account configuration
+ACCOUNT_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_LOCATION): cv.string,  # Preferred name
+        vol.Optional(CONF_NETWORK): cv.string,   # Alias for backward compatibility
+        vol.Optional(CONF_PREFIX): cv.string,
+    }
+)
+
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
-                vol.Required(CONF_USERNAME): cv.string,
-                vol.Required(CONF_PASSWORD): cv.string,
+                # New multi-account format
+                vol.Optional(CONF_ACCOUNTS): vol.All(cv.ensure_list, [ACCOUNT_SCHEMA]),
+                # Legacy single-account format (for backward compatibility)
+                vol.Optional(CONF_USERNAME): cv.string,
+                vol.Optional(CONF_PASSWORD): cv.string,
                 vol.Optional(CONF_NETWORK): cv.string,
                 vol.Optional(CONF_NETWORK2): cv.string,
                 vol.Optional(CONF_NETWORK3): cv.string,
+                # Global settings
                 vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
                 vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
                 vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,

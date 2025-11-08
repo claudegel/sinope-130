@@ -177,6 +177,65 @@ Networks names are the names found on top of first page after loging into Neviwe
 
 If you have a GT125 also connected to Neviweb the network parameter is mandatory or it is possible that during the setup, the GT125 network will be picked up accidentally. If you have only two GT130/wifi network, you can omit there names as during setup, the first two network found will be picked up automatically. If you prefer to add networs names make sure that they are written «exactly» as in Neviweb. (first letter capitalized or not). Avoid also accented letters as Home Assistant will remove them and location name won't match preventing custom_component loading.
 
+## Multi-Account Configuration (New in v3.1.0)
+
+If you need to control devices from **multiple Neviweb accounts** (e.g., your home and a neighbor's), you can now use the new multi-account configuration format. This eliminates the need to duplicate the custom component folder.
+
+```yaml
+# Multi-account configuration example
+neviweb130:
+  accounts:
+    # Account with multiple locations (home + chalet)
+    - username: 'your_email@example.com'
+      password: 'your_password'
+      location: '1234'  # Optional: specify specific location like address
+      # location was called network in previous versions
+      # location: not specified = auto-discover all locations (home, chalet, etc.)
+      # This will create entities like:
+      #   climate.neviweb130_climate_bedroom (from first location - home)
+      #   climate.neviweb130_climate_2_bedroom (from second location - chalet)
+    
+    # Separate account for parents (using 'network' - works the same as 'location')
+    - username: 'parents_email@example.com'
+      password: 'parents_password'
+      network: '5678'  # Optional: 'network' is an alias for 'location'
+      prefix: 'neviweb_parents'  # Optional: customize entity prefix
+  
+  # Global settings (apply to all accounts)
+  scan_interval: 360
+  homekit_mode: False
+  ignore_miwi: False
+  stat_interval: 1800
+  notify: "both"
+```
+
+**Multi-account configuration options:**
+
+| key | required | default | description
+| --- | --- | --- | ---
+| **accounts** | yes (for multi-account) | | List of accounts to connect to
+| **username** | yes | | Your email address for this Neviweb account
+| **password** | yes | | The password for this Neviweb account
+| **location** (or **network**) | no | first location found | The location ID/name (e.g., '1234' or 'Home') for this account. Both `location` and `network` work (they are aliases).
+| **prefix** | no | neviweb130 | Custom prefix for entity names (e.g., 'neviweb1234' creates entities like `climate.neviweb1234_climate_bedroom`)
+
+**Notes:**
+- The `prefix` parameter allows you to customize entity names to distinguish between accounts. If not specified, defaults to `neviweb130`.
+- Each account maintains its own independent connection to Neviweb.
+- **Multiple locations per account**: If you omit the `location` (or `network`) parameter, the component will automatically discover all locations associated with that account (e.g., home, chalet, cottage). Devices from all locations will use the same prefix but will be distinguished by their device names.
+- **Single location per account**: If you specify a `location` (or `network`), only devices from that specific location will be loaded.
+- Both `location` and `network` are accepted as aliases in the new format for consistency with the legacy format.
+- Global settings (`scan_interval`, `homekit_mode`, etc.) apply to all accounts.
+- The legacy single-account configuration format (shown above) remains fully supported for backward compatibility.
+
+**Example entity names with multi-account:**
+- **Single location account** with default prefix → `climate.neviweb130_climate_bedroom`
+- **Multiple locations** under one account (home + chalet):
+  - First location → `climate.neviweb130_climate_bedroom` 
+  - Second location → `climate.neviweb130_climate_2_chalet_bedroom`
+  - Third location → `climate.neviweb130_climate_3_cottage_bedroom`
+- **Separate account** with custom prefix `'neviweb_parents'` → `climate.neviweb_parents_climate_living_room`
+
 ## Sedna valve
 For Sedna valve there is two way to connect it to Neviweb:
 - Via wifi direct connection. This way leak sensor are connected directly to the Sedna valve which will close if leak is detected.

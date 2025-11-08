@@ -146,96 +146,109 @@ async def async_setup_platform(
     data = hass.data[DOMAIN]
 
     entities = []
-    for device_info in data.neviweb130_client.gateway_data:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            device_sku = device_info["sku"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
-            if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
-                device_type = "outlet"
-                entities.append(
-                    Neviweb130Switch(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
-                    )
-                )
-            elif device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
-                device_type = "power"
-                entities.append(
-                    Neviweb130PowerSwitch(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
-                    )
-                )
-            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES:
-                device_type = "power"
-                entities.append(
-                    Neviweb130WifiPowerSwitch(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
-                    )
-                )
-            elif (
-                device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
+    
+    # Loop through all clients (supports multi-account)
+    for client in data.neviweb130_clients:
+        prefix = getattr(client, 'prefix', 'neviweb130')
+        default_name = f"{prefix} switch"
+        
+        # Process gateway_data for this client
+        for device_info in client.gateway_data:
+            if (
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
             ):
-                device_type = "power"
-                entities.append(
-                    Neviweb130TankPowerSwitch(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
-                    )
+                device_name = "{} {}".format(default_name, device_info["name"])
+                device_sku = device_info["sku"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
                 )
-            elif (
-                device_info["signature"]["model"]
-                in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
-            ):
-                device_type = "power"
-                entities.append(
-                    Neviweb130WifiTankPowerSwitch(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
+                if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                    device_type = "outlet"
+                    entities.append(
+                        Neviweb130Switch(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
                     )
-                )
-            else:
-                device_type = "control"
-                entities.append(
-                    Neviweb130ControlerSwitch(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
+                elif device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES:
+                    device_type = "power"
+                    entities.append(
+                        Neviweb130PowerSwitch(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
                     )
-                )
+                elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES:
+                    device_type = "power"
+                    entities.append(
+                        Neviweb130WifiPowerSwitch(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
+                    )
+                elif (
+                    device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
+                ):
+                    device_type = "power"
+                    entities.append(
+                        Neviweb130TankPowerSwitch(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
+                    )
+                elif (
+                    device_info["signature"]["model"]
+                    in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
+                ):
+                    device_type = "power"
+                    entities.append(
+                        Neviweb130WifiTankPowerSwitch(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
+                    )
+                else:
+                    device_type = "control"
+                    entities.append(
+                        Neviweb130ControlerSwitch(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
+                    )
     for device_info in data.neviweb130_client.gateway_data2:
         if (
             "signature" in device_info
@@ -765,12 +778,12 @@ def remainig_time(time):
 class Neviweb130Switch(SwitchEntity):
     """Implementation of a Neviweb switch, SP2600ZB and SP2610ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1291,12 +1304,12 @@ class Neviweb130Switch(SwitchEntity):
 class Neviweb130PowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb power controler switch, RM3250ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1441,12 +1454,12 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 class Neviweb130WifiPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb power controler switch, RM3250WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1591,12 +1604,12 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 class Neviweb130TankPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb water heater power controler switch, RM3500ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1806,12 +1819,12 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb wifi power controler switch, RM3500WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -2055,12 +2068,12 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 class Neviweb130ControlerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb multi controler switch, MC3100ZB connected to GT130 or Sedna."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]

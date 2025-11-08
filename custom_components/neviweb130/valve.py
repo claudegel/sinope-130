@@ -135,67 +135,78 @@ async def async_setup_platform(
     data = hass.data[DOMAIN]
 
     entities = []
-    for device_info in data.neviweb130_client.gateway_data:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            device_sku = device_info["sku"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
-            if device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL:
-                device_type = "valve"
-                entities.append(
-                    Neviweb130Valve(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
-                    )
+    
+    # Loop through all clients (supports multi-account)
+    for client in data.neviweb130_clients:
+        prefix = getattr(client, 'prefix', 'neviweb130')
+        default_name = f"{prefix} valve"
+        
+        # Process gateway_data for this client
+        for device_info in client.gateway_data:
+            if (
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
+            ):
+                device_name = "{} {}".format(default_name, device_info["name"])
+                device_sku = device_info["sku"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
                 )
-            elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
-                device_type = "valve"
-                entities.append(
-                    Neviweb130WifiValve(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
+                if device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL:
+                    device_type = "valve"
+                    entities.append(
+                        Neviweb130Valve(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
                     )
-                )
-            elif device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL:
-                device_type = "flow"
-                entities.append(
-                    Neviweb130MeshValve(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
+                elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
+                    device_type = "valve"
+                    entities.append(
+                        Neviweb130WifiValve(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
                     )
-                )
-            else:
-                device_type = "flow"
-                entities.append(
-                    Neviweb130WifiMeshValve(
-                        data,
-                        device_info,
-                        device_name,
-                        device_sku,
-                        device_firmware,
-                        device_type,
+                elif device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL:
+                    device_type = "flow"
+                    entities.append(
+                        Neviweb130MeshValve(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
                     )
-                )
+                else:
+                    device_type = "flow"
+                    entities.append(
+                        Neviweb130WifiMeshValve(
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            device_type,
+                            client,
+                        )
+                    )
     for device_info in data.neviweb130_client.gateway_data2:
         if (
             "signature" in device_info
@@ -557,12 +568,12 @@ def model_to_HA(value):
 class Neviweb130Valve(ValveEntity):
     """Implementation of a Neviweb valve."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1104,12 +1115,12 @@ class Neviweb130Valve(ValveEntity):
 class Neviweb130WifiValve(Neviweb130Valve):
     """Implementation of a Neviweb wifi valve, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1408,12 +1419,12 @@ class Neviweb130WifiValve(Neviweb130Valve):
 class Neviweb130MeshValve(Neviweb130Valve):
     """Implementation of a Neviweb mesh valve VA4220ZB and ACT4220ZB-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -1670,12 +1681,12 @@ class Neviweb130MeshValve(Neviweb130Valve):
 class Neviweb130WifiMeshValve(Neviweb130Valve):
     """Implementation of a Neviweb wifi mesh valve, ACT4220WF-M, ACT4221WF-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = device_info["id"]
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
