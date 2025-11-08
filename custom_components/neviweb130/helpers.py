@@ -162,19 +162,18 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
     _LOGGER.debug("Available attributes: %s", dir(coordinator._devices))
     _LOGGER.debug("Available clients: %s", dir(coordinator.client))
     _LOGGER.debug("Available data: %s", dir(coordinator.data.values))
-    # Log simple attributes without risking recursion
     for attr in ["data", "_devices", "update_interval"]:
         value = getattr(coordinator, attr, "<inconnu>")
         try:
             _LOGGER.debug("%s: %s", attr, value)
         except Exception as e:
-            _LOGGER.warning("Impossible d'afficher %s: %s", attr, e)
+            _LOGGER.warning("Can't show %s: %s", attr, e)
 
-    _LOGGER.debug("Données du coordinator (data):")
+    _LOGGER.debug("Coordinator data (data):")
     for dev_id, dev_obj in coordinator.data.items():
         _LOGGER.debug("[%s] %s", dev_id, getattr(dev_obj, "name", "??"))
 
-    # Inspection ciblée
+    # Targetted inspection
     target_device = None
     _LOGGER.debug("device_id  = %s", device_id)
     _LOGGER.debug("device_name  = %s", device_name)
@@ -188,13 +187,13 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
 
     if target_device:
         _LOGGER.debug(
-            "Device ciblé (%s):\n%s",
+            "Targetted device (%s):\n%s",
             getattr(target_device, "name", "inconnu"),
             pprint.pformat(vars(target_device)),
         )
     else:
         _LOGGER.warning(
-            "Device non trouvé avec ID '%s' ou nom '%s'",
+            "Device not found with ID '%s' or name '%s'",
             device_id,
             device_name,
         )
@@ -205,6 +204,6 @@ def write_debug_file(hass, content: dict):
     try:
         with open(config_path, "w", encoding="utf-8") as file:
             json.dump(content, file, indent=2, ensure_ascii=False)
-        _LOGGER.info("Fichier de debug écrit : %s", config_path)
+        _LOGGER.info("Log file written : %s", config_path)
     except Exception as e:
-        _LOGGER.error("Impossible d'écrire le fichier de debug : %s", e)
+        _LOGGER.error("Cannot write log file : %s", e)
