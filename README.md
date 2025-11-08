@@ -209,6 +209,28 @@ neviweb130:
   notify: "both"
 ```
 
+> **⚠️ Important: Entity Name Conflicts in Multi-Account Setup**
+> 
+> When using multiple accounts, **the `location` parameter is NOT included in entity names**. Only the `prefix` determines the entity name prefix.
+> 
+> **Problem:** If you don't specify different prefixes for each account, and both accounts have devices with similar names (e.g., both have a thermostat called "LivingRoom"), Home Assistant will create conflicting entity names:
+> - First account: `climate.neviweb130_climate_livingroom`
+> - Second account: `climate.neviweb130_climate_livingroom_2` ← Conflict!
+> 
+> **Solution:** Always use unique `prefix` values for each account:
+> ```yaml
+> accounts:
+>   - username: 'user1@example.com'
+>     password: 'pass1'
+>     location: '1234'
+>     prefix: 'neviweb_home'     # ← Unique prefix
+>   - username: 'user2@example.com'
+>     password: 'pass2'
+>     location: '5678'
+>     prefix: 'neviweb_parents'  # ← Different prefix
+> ```
+> This ensures all entities have unique names: `climate.neviweb_home_climate_livingroom` and `climate.neviweb_parents_climate_livingroom`.
+
 **Multi-account configuration options:**
 
 | key | required | default | description
