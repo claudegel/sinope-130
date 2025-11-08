@@ -97,12 +97,12 @@ async def async_setup_platform(
     data = hass.data[DOMAIN]
 
     entities = []
-    
+
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        prefix = getattr(client, 'prefix', 'neviweb130')
+        prefix = getattr(client, "prefix", "neviweb130")
         default_name = f"{prefix} sensor"
-        
+
         # Process gateway_data for this client
         for device_info in client.gateway_data:
             if (
@@ -136,7 +136,8 @@ async def async_setup_platform(
                     )
                 elif (
                     device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
-                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+                    or device_info["signature"]["model"]
+                    in IMPLEMENTED_NEW_CONNECTED_SENSOR
                 ):
                     device_type = "leak"
                     entities.append(
@@ -1402,7 +1403,9 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 class Neviweb130GatewaySensor(Neviweb130Sensor):
     """Implementation of a Neviweb gateway sensor."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, location, client):
+    def __init__(
+        self, data, device_info, name, device_type, sku, firmware, location, client
+    ):
         """Initialize."""
         self._name = name
         self._sku = sku

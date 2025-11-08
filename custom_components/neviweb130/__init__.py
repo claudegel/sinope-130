@@ -49,9 +49,9 @@ from .const import (ATTR_AUX_CYCLE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
                     ATTR_TANK_SIZE, ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT,
                     ATTR_TIME, ATTR_TIMER, ATTR_TIMER2, ATTR_WATER_TEMP_MIN,
                     ATTR_WIFI_KEYPAD, CONF_ACCOUNTS, CONF_HOMEKIT_MODE,
-                    CONF_IGNORE_MIWI, CONF_LOCATION, CONF_NETWORK, CONF_NETWORK2,
-                    CONF_NETWORK3, CONF_NOTIFY, CONF_PREFIX, CONF_STAT_INTERVAL,
-                    DOMAIN, MODE_MANUAL, STARTUP_MESSAGE)
+                    CONF_IGNORE_MIWI, CONF_LOCATION, CONF_NETWORK,
+                    CONF_NETWORK2, CONF_NETWORK3, CONF_NOTIFY, CONF_PREFIX,
+                    CONF_STAT_INTERVAL, DOMAIN, MODE_MANUAL, STARTUP_MESSAGE)
 from .schema import CONFIG_SCHEMA as config_schema
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -115,31 +115,33 @@ class Neviweb130Data:
         """Init the neviweb130 data object."""
         self.hass = hass
         self.neviweb130_clients = []
-        
+
         # Check if using new multi-account format
         if CONF_ACCOUNTS in config:
             _LOGGER.debug("Using multi-account configuration")
             accounts = config.get(CONF_ACCOUNTS, [])
             ignore_miwi = config.get(CONF_IGNORE_MIWI)
-            
+
             for account in accounts:
                 username = account.get(CONF_USERNAME)
                 password = account.get(CONF_PASSWORD)
                 # Support both 'location' (preferred) and 'network' (alias) for flexibility
                 location = account.get(CONF_LOCATION) or account.get(CONF_NETWORK)
                 prefix = account.get(CONF_PREFIX, "neviweb130")  # Default prefix
-                
+
                 _LOGGER.debug(
                     "Creating client for account %s with location %s and prefix %s",
-                    username, location, prefix
+                    username,
+                    location,
+                    prefix,
                 )
-                
+
                 client = Neviweb130Client(
                     hass, username, password, location, None, None, ignore_miwi
                 )
                 client.prefix = prefix  # Store the prefix for entity naming
                 self.neviweb130_clients.append(client)
-        
+
         # Legacy single-account format (backward compatibility)
         elif CONF_USERNAME in config:
             _LOGGER.debug("Using legacy single-account configuration")
@@ -149,19 +151,21 @@ class Neviweb130Data:
             network2 = config.get(CONF_NETWORK2)
             network3 = config.get(CONF_NETWORK3)
             ignore_miwi = config.get(CONF_IGNORE_MIWI)
-            prefix = config.get(CONF_PREFIX, "neviweb130")  # Allow prefix even in legacy mode
-            
+            prefix = config.get(
+                CONF_PREFIX, "neviweb130"
+            )  # Allow prefix even in legacy mode
+
             client = Neviweb130Client(
                 hass, username, password, network, network2, network3, ignore_miwi
             )
             client.prefix = prefix
             self.neviweb130_clients.append(client)
-        
+
         else:
             _LOGGER.error(
                 "Invalid configuration: must specify either 'accounts' or 'username/password'"
             )
-        
+
         # Maintain backward compatibility: expose first client as neviweb130_client
         if self.neviweb130_clients:
             self.neviweb130_client = self.neviweb130_clients[0]

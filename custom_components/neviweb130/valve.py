@@ -135,12 +135,12 @@ async def async_setup_platform(
     data = hass.data[DOMAIN]
 
     entities = []
-    
+
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        prefix = getattr(client, 'prefix', 'neviweb130')
+        prefix = getattr(client, "prefix", "neviweb130")
         default_name = f"{prefix} valve"
-        
+
         # Process gateway_data for this client
         for device_info in client.gateway_data:
             if (
@@ -181,7 +181,9 @@ async def async_setup_platform(
                             client,
                         )
                     )
-                elif device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL:
+                elif (
+                    device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL
+                ):
                     device_type = "flow"
                     entities.append(
                         Neviweb130MeshValve(

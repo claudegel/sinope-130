@@ -84,12 +84,12 @@ async def async_setup_platform(
     data = hass.data[DOMAIN]
 
     entities = []
-    
+
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        prefix = getattr(client, 'prefix', 'neviweb130')
+        prefix = getattr(client, "prefix", "neviweb130")
         default_name = f"{prefix} light"
-        
+
         # Process gateway_data for this client
         for device_info in client.gateway_data:
             if (
@@ -107,19 +107,34 @@ async def async_setup_platform(
                 if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
                     entities.append(
                         Neviweb130Light(
-                            data, device_info, device_name, device_sku, device_firmware, client
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            client,
                         )
                     )
                 elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
                     entities.append(
                         Neviweb130Dimmer(
-                            data, device_info, device_name, device_sku, device_firmware, client
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            client,
                         )
                     )
                 elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
                     entities.append(
                         Neviweb130NewDimmer(
-                            data, device_info, device_name, device_sku, device_firmware, client
+                            data,
+                            device_info,
+                            device_name,
+                            device_sku,
+                            device_firmware,
+                            client,
                         )
                     )
     for device_info in data.neviweb130_client.gateway_data2:

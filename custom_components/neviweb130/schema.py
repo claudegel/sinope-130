@@ -156,7 +156,7 @@ ACCOUNT_SCHEMA = vol.Schema(
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_LOCATION): cv.string,  # Preferred name
-        vol.Optional(CONF_NETWORK): cv.string,   # Alias for backward compatibility
+        vol.Optional(CONF_NETWORK): cv.string,  # Alias for backward compatibility
         vol.Optional(CONF_PREFIX): cv.string,
     }
 )

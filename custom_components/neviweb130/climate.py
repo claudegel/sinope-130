@@ -364,14 +364,14 @@ async def async_setup_platform(
     data = hass.data[DOMAIN]
 
     entities = []
-    
+
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        prefix = getattr(client, 'prefix', 'neviweb130')
+        prefix = getattr(client, "prefix", "neviweb130")
         default_name = f"{prefix} climate"
         default_name_2 = f"{prefix} climate 2"
         default_name_3 = f"{prefix} climate 3"
-        
+
         # Process gateway_data for this client
         for device_info in client.gateway_data:
             if (
@@ -518,7 +518,7 @@ async def async_setup_platform(
                             client,
                         )
                     )
-        
+
         # Process gateway_data2 for this client
         for device_info in client.gateway_data2:
             if (
@@ -665,7 +665,7 @@ async def async_setup_platform(
                             client,
                         )
                     )
-        
+
         # Process gateway_data3 for this client
         for device_info in client.gateway_data3:
             if (
@@ -812,7 +812,7 @@ async def async_setup_platform(
                             client,
                         )
                     )
-    
+
     async_add_entities(entities, True)
 
     def set_second_display_service(service):
