@@ -437,8 +437,8 @@ class Neviweb130Client:
         _LOGGER.debug("Gateway_data : %s", self.gateway_data)
 
         # Check for API errors in the response
-        if isinstance(self.gateway_data, dict) and 'error' in self.gateway_data:
-            error_info = self.gateway_data['error']
+        if isinstance(self.gateway_data, dict) and "error" in self.gateway_data:
+            error_info = self.gateway_data["error"]
             _LOGGER.error("API returned error for gateway_data: %s", error_info)
             # Handle the error gracefully by setting to empty list
             self.gateway_data = []
@@ -459,8 +459,8 @@ class Neviweb130Client:
             _LOGGER.debug("Gateway_data2 : %s", self.gateway_data2)
 
             # Check for API errors in the response
-            if isinstance(self.gateway_data2, dict) and 'error' in self.gateway_data2:
-                error_info = self.gateway_data2['error']
+            if isinstance(self.gateway_data2, dict) and "error" in self.gateway_data2:
+                error_info = self.gateway_data2["error"]
                 _LOGGER.error("API returned error for gateway_data2: %s", error_info)
                 # Handle the error gracefully by setting to empty list
                 self.gateway_data2 = []
@@ -481,8 +481,8 @@ class Neviweb130Client:
             _LOGGER.debug("Gateway_data3 : %s", self.gateway_data3)
 
             # Check for API errors in the response
-            if isinstance(self.gateway_data3, dict) and 'error' in self.gateway_data3:
-                error_info = self.gateway_data3['error']
+            if isinstance(self.gateway_data3, dict) and "error" in self.gateway_data3:
+                error_info = self.gateway_data3["error"]
                 _LOGGER.error("API returned error for gateway_data3: %s", error_info)
                 # Handle the error gracefully by setting to empty list
                 self.gateway_data3 = []
