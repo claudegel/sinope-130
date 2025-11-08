@@ -719,7 +719,7 @@ class Neviweb130Sensor(Entity):
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return str(self._id)
 
     @property
     def name(self):

@@ -1731,7 +1731,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def unique_id(self):
         """Return unique ID based on Neviweb130 device ID."""
-        return self._id
+        return str(self._id)
 
     @property
     def name(self):

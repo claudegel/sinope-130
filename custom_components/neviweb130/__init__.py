@@ -409,6 +409,16 @@ class Neviweb130Client:
 
     def __get_gateway_data(self):
         """Get gateway data."""
+        # Check if gateway_id was set
+        if self._gateway_id is None:
+            _LOGGER.error(
+                "Gateway ID is None. Network selection failed. "
+                "Check that your network name matches one of the networks in your Neviweb account. "
+                "Available networks were logged during network selection."
+            )
+            self.gateway_data = []
+            return
+
         # Http requests
         try:
             raw_res = requests.get(
@@ -425,6 +435,14 @@ class Neviweb130Client:
         # Prepare data
         self.gateway_data = raw_res.json()
         _LOGGER.debug("Gateway_data : %s", self.gateway_data)
+
+        # Check for API errors in the response
+        if isinstance(self.gateway_data, dict) and 'error' in self.gateway_data:
+            error_info = self.gateway_data['error']
+            _LOGGER.error("API returned error for gateway_data: %s", error_info)
+            # Handle the error gracefully by setting to empty list
+            self.gateway_data = []
+
         if self._gateway_id2 is not None:
             try:
                 raw_res2 = requests.get(
@@ -439,6 +457,14 @@ class Neviweb130Client:
             # Prepare data
             self.gateway_data2 = raw_res2.json()
             _LOGGER.debug("Gateway_data2 : %s", self.gateway_data2)
+
+            # Check for API errors in the response
+            if isinstance(self.gateway_data2, dict) and 'error' in self.gateway_data2:
+                error_info = self.gateway_data2['error']
+                _LOGGER.error("API returned error for gateway_data2: %s", error_info)
+                # Handle the error gracefully by setting to empty list
+                self.gateway_data2 = []
+
         if self._gateway_id3 is not None:
             try:
                 raw_res3 = requests.get(
@@ -453,6 +479,15 @@ class Neviweb130Client:
             # Prepare data
             self.gateway_data3 = raw_res3.json()
             _LOGGER.debug("Gateway_data3 : %s", self.gateway_data3)
+
+            # Check for API errors in the response
+            if isinstance(self.gateway_data3, dict) and 'error' in self.gateway_data3:
+                error_info = self.gateway_data3['error']
+                _LOGGER.error("API returned error for gateway_data3: %s", error_info)
+                # Handle the error gracefully by setting to empty list
+                self.gateway_data3 = []
+
+        # Now all gateway_data should be lists - iterate through devices
         for device in self.gateway_data:
             data = self.get_device_attributes(device["id"], [ATTR_SIGNATURE])
             if ATTR_SIGNATURE in data:
