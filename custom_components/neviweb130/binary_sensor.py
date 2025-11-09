@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Callable, Final
+from typing import Callable, Final, Optional
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -21,7 +21,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES
+from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES, SIGNAL_EVENTS_CHANGED
 from .coordinator import Neviweb130Coordinator
 
 DEFAULT_NAME = f"{DOMAIN} binary_sensor"
@@ -38,12 +38,13 @@ class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
     is_on_fn: Callable[[dict, str], bool] | None = None
     on_icon: str = "mdi:checkbox-marked"
     off_icon: str = "mdi:checkbox-blank-outline"
+    signal: Optional[str] = None
 
 
 BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] = (
     #  Valve attributes
     Neviweb130BinarySensorEntityDescription(
-        key="temp_alert",
+        key="valve_temp_alert",
         device_class=BinarySensorDeviceClass.PROBLEM,
         on_icon="mdi:thermometer-alert",
         off_icon="mdi:thermometer",
@@ -69,6 +70,26 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         translation_key="battery_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="gauge_error",
+        name="Gauge disconected",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        translation_key="gauge_error",
+        is_on_fn=lambda data, attr: data.get(attr) == -2,
+        signal=SIGNAL_EVENTS_CHANGED,
+        on_icon="mdi:alert",
+        off_icon="mdi:gauge",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="low_temp_status",
+        device_class=BinarySensorDeviceClass.BATTERY,
+        on_icon="mdi:thermometer-lines",
+        off_icon="mdi:thermometer",
+        translation_key="low_temp_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
     ),
     #  Real Sensor attributes
     Neviweb130BinarySensorEntityDescription(
