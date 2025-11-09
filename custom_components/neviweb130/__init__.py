@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
+
 from datetime import timedelta
 from functools import partial
 
@@ -17,12 +20,24 @@ from homeassistant.helpers.typing import ConfigType
 from .const import CONF_HOMEKIT_MODE, CONF_IGNORE_MIWI, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN, STARTUP_MESSAGE
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import load_devices, save_devices
+from .helpers import setup_logger, extract_log_options, update_logger_level, update_logger_config, sanitize_entry_data
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import PLATFORMS
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
+
+LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviweb130_log.txt"))
+
+setup_logger(
+    name="custom_components.neviweb130",
+    log_path=LOG_PATH,
+    level="DEBUG",
+    max_bytes=2 * 1024 * 1024,
+    backup_count=2,
+    reset_on_start=True
+)
 
 SCAN_INTERVAL = DEFAULT_SCAN_INTERVAL
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -170,7 +185,19 @@ def get_scan_interval(entry: ConfigEntry) -> timedelta:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up neviweb130 from a config entry."""
-    _LOGGER.debug("The entry_id = %s", entry.data)
+    log_options = extract_log_options(entry)
+    update_logger_level("custom_components.neviweb130", log_options["log_level"])
+
+    update_logger_config(
+        name="custom_components.neviweb130",
+        log_path=LOG_PATH,
+        level=log_options["log_level"],
+        max_bytes=log_options["log_max_bytes"],
+        backup_count=log_options["log_backup_count"]
+    )
+
+    sanitized = sanitize_entry_data(entry.data)
+    _LOGGER.debug("The entry_id = %s", sanitized)
 
     # Register the event listener for Home Assistant stop event
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass))
