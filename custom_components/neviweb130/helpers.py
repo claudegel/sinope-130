@@ -8,8 +8,6 @@ import shutil
 
 from logging.handlers import RotatingFileHandler
 
-DEBUG_FILE_PATH = "neviweb130_debug.txt"  # in /config
-
 # ─────────────────────────────────────────────
 # SECTION LOGGER SETUP
 # ─────────────────────────────────────────────
@@ -197,13 +195,3 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
             device_id,
             device_name,
         )
-
-
-def write_debug_file(hass, content: dict):
-    config_path = hass.config.path(DEBUG_FILE_PATH)
-    try:
-        with open(config_path, "w", encoding="utf-8") as file:
-            json.dump(content, file, indent=2, ensure_ascii=False)
-        _LOGGER.info("Log file written : %s", config_path)
-    except Exception as e:
-        _LOGGER.error("Cannot write log file : %s", e)
