@@ -17,7 +17,7 @@ from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 
-from . import async_migrate_unique_ids, async_shutdown
+from . import LOG_PATH, async_migrate_unique_ids, async_shutdown
 from .const import (
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
@@ -30,10 +30,12 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import PyNeviweb130Error
+from .helpers import expose_log_file
 from .schema import HOMEKIT_MODE, IGNORE_MIWI, NOTIFY, SCAN_INTERVAL, STAT_INTERVAL
 from .session_manager import session_manager
 
 _LOGGER = logging.getLogger(__name__)
+
 HOST = "https://neviweb.com"
 LOGIN_URL = f"{HOST}/api/login"
 
@@ -333,7 +335,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
 
             # Process each option separately
             if user_input.get("download_log"):
-                await self._trigger_download_log()
+                self._trigger_download_log()
 
             if user_input.get("reload"):
                 await self._trigger_reload()
@@ -347,7 +349,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="init",
             data_schema=self._get_options_schema(),
             description_placeholders={
-                "log_level_changed": "",
+                "log_level_changed": f"Log level set to {self._config_entry.options.get('log_level', 'info')}",
                 "log_downloaded": "",
                 "reloaded": "",
                 "entry_migrated": "",
@@ -360,6 +362,9 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
         return vol.Schema(
             {
                 vol.Optional("log_level", default=options.get("log_level", "info")): vol.In(log_levels),
+                vol.Optional("log_max_bytes", default=options.get("log_max_bytes", 2 * 1024 * 1024)): int,
+                vol.Optional("log_backup_count", default=options.get("log_backup_count", 2)): int,
+                vol.Optional("log_reset_on_start", default=options.get("log_reset_on_start", True)): bool,
                 vol.Optional("download_log", default=False): bool,
                 vol.Optional("reload", default=False): bool,
                 vol.Optional("migrate", default=False): bool,
@@ -370,58 +375,34 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
     def _set_log_level(log_level):
         """Set the log level for the neviweb130 component."""
         level = getattr(logging, log_level.upper(), logging.INFO)
-        _LOGGER.setLevel(level)
-        _LOGGER.info("Log level set to %s", log_level)
 
-    async def _trigger_download_log(self):
-        """Method to handle log download."""
-        try:
-            # Implement your log download logic here
-            log_content = await self._capture_logs()
-            log_path = self.hass.config.path("neviweb130_log.txt")
+        # Apply to global logger global
+        logger = logging.getLogger("custom_components.neviweb130")
+        logger.setLevel(level)
 
-            async with aiofiles.open(log_path, "w") as log_file:
-                await log_file.write(log_content)
+        # Optionnal : corfirmation log
+        logger.warning("neviweb130 log level set to %s", log_level)
 
-            _LOGGER.info("Log file has been downloaded to %s", log_path)
-            # Create a persistent notification
+    def _trigger_download_log(self):
+        """Copy neviweb130_log.txt to config/www to allow user to download it."""
+        public_path = expose_log_file(self.hass, LOG_PATH, expire_after=1800)
+        if public_path:
+            # Create a persistent notification to tell how to download log file and expire after xx seconds
             self.hass.async_create_task(
                 self.hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
-                        "title": "Log Downloaded",
-                        "message": f"Log file has been downloaded to {log_path}",
-                        "notification_id": "neviweb130_log_download",
+                        "title": "Log file ready for download",
+                        "message": (
+                            "Download log file: "
+                            + "<a href='/local/neviweb130.log'  download target='_blank'>click here</a>."
+                            + "<br>File will be deleted after 30 minutes"
+                        ),
+                        "notification_id": "neviweb130_log_ready",
                     },
                 )
             )
-        except Exception as e:
-            _LOGGER.error("Failed to write log file: %s", e)
-            # Create a persistent notification for the error
-            await self.hass.services.async_call(
-                "persistent_notification",
-                "create",
-                {
-                    "title": "Log Download Failed",
-                    "message": f"Failed to write log file: {e}",
-                    "notification_id": "neviweb130_log_download_error",
-                },
-            )
-
-    async def _capture_logs(self):
-        """Capture recent logs for writing to a file."""
-        log_path = os.path.join(self.hass.config.config_dir, "home-assistant.log")
-        filtered_logs = []
-        try:
-            async with aiofiles.open(log_path, "r") as log_file:
-                async for line in log_file:
-                    if "[custom_components.neviweb130" in line:
-                        filtered_logs.append(line)
-            return "".join(filtered_logs)
-        except Exception as e:
-            _LOGGER.error("Error reading log file: %s", e)
-            return "Failed to capture logs."
 
     async def _trigger_reload(self):
         """Method to handle reloading the integration."""
