@@ -1046,7 +1046,9 @@ async def async_setup_platform(
         """Set time format 12h or 24h."""
         thermostat = get_thermostat(service)
         if isinstance(thermostat, Neviweb130WifiLiteThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} Wi-Fi (lite) thermostat")
+            raise ServiceValidationError(
+                f"Entity {thermostat.entity_id} is {DOMAIN} Wi-Fi (lite) thermostat and does not support time format"
+            )
 
         value = {
             "id": thermostat.unique_id,
