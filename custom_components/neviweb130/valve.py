@@ -1293,6 +1293,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
         self._flowmeter_divisor = 1
         self._flowmeter_enabled = None
         self._flowmeter_offset = 0
+        self._flowmeter_opt_action = None
         self._stm8Error_motorJam = None
         self._stm8Error_motorLimit = None
         self._stm8Error_motorPosition = None
