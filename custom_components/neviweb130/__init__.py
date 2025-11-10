@@ -75,6 +75,7 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_HEAT_COOL,
+    ATTR_HEAT_INSTALLATION_TYPE,
     ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
@@ -997,6 +998,11 @@ class Neviweb130Client:
             self.set_device_attributes(device_id, data)
         else:
             self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats")
+
+    def set_heat_installation_type(self, device_id: str, type_val: str):
+        """Set heater installation type (add-on or conventional)."""
+        data = {ATTR_HEAT_INSTALLATION_TYPE: type_val}
+        self.set_device_attributes(device_id, data)
 
     def set_backlight(self, device_id: str, level, is_wifi: bool):
         """Set backlight intensity when idle, on or auto.

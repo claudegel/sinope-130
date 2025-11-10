@@ -93,6 +93,7 @@ from .const import (
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_TRIGGER_ALARM,
+    ATTR_TYPE,
     ATTR_VALUE,
     ATTR_WATER_TEMP_MIN,
     CONF_HOMEKIT_MODE,
@@ -207,6 +208,7 @@ SWING_CAPABILITY_HORIZONTAL = {
 FULL_SWING = ["swingFullRange"]
 FULL_SWING_OFF = ["off"]
 AUX_HEATING = {"Electric": "hvacElectrique", "Fossil": "hvacGaz"}
+HEAT_INSTALL_TYPE = ["addOn", "conventional"]
 ACCESSORY = [
     "none",
     "humOnHeat",
@@ -439,6 +441,13 @@ SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BALANCE_PT): vol.All(vol.Coerce(int), vol.Range(min=-30, max=0)),
+    }
+)
+
+SET_HEAT_INSTALLATION_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TYPE): vol.In(HEAT_INSTALL_TYPE),
     }
 )
 

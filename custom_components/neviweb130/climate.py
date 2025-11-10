@@ -139,7 +139,7 @@ from .const import (
     ATTR_HC_DEV,
     ATTR_HC_LOCK_STATUS,
     ATTR_HEAT_COOL,
-    ATTR_HEAT_INSTALL_TYPE,
+    ATTR_HEAT_INSTALLATION_TYPE,
     ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
@@ -186,6 +186,7 @@ from .const import (
     ATTR_TEMP_OFFSET_HEAT,
     ATTR_TIME,
     ATTR_TIME_FORMAT,
+    ATTR_TYPE,
     ATTR_VALUE,
     ATTR_WATTAGE,
     ATTR_WIFI,
@@ -222,6 +223,7 @@ from .const import (
     SERVICE_SET_FLOOR_LIMIT_LOW,
     SERVICE_SET_HC_SECOND_DISPLAY,
     SERVICE_SET_HEAT_DISSIPATION_TIME,
+    SERVICE_SET_HEAT_INSTALLATION_TYPE,
     SERVICE_SET_HEAT_INTERSTAGE_DELAY,
     SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE,
     SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
@@ -278,6 +280,7 @@ from .schema import (
     SET_FLOOR_LIMIT_LOW_SCHEMA,
     SET_HC_SECOND_DISPLAY_SCHEMA,
     SET_HEAT_DISSIPATION_TIME_SCHEMA,
+    SET_HEAT_INSTALLATION_TYPE_SCHEMA,
     SET_HEAT_INTERSTAGE_DELAY_SCHEMA,
     SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA,
     SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
@@ -1289,6 +1292,18 @@ async def async_setup_platform(
         thermostat.set_heat_pump_operation_limit(value)
         thermostat.schedule_update_ha_state(True)
 
+    def set_heat_installation_type_service(service: ServiceCall) -> None:
+        """Set minimum temperature for heat pump device operation."""
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        value = {
+            "id": thermostat.unique_id,
+            ATTR_TYPE: service.data[ATTR_TYPE],
+        }
+        thermostat.set_heat_installation_type(value)
+        thermostat.schedule_update_ha_state(True)
+
     def set_heat_lockout_temperature_service(service: ServiceCall) -> None:
         """Set maximum outside temperature limit to allow heating device operation."""
         thermostat = get_thermostat(service)
@@ -1713,6 +1728,13 @@ async def async_setup_platform(
         SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT,
         set_heat_pump_operation_limit_service,
         schema=SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HEAT_INSTALLATION_TYPE,
+        set_heat_installation_type_service,
+        schema=SET_HEAT_INSTALLATION_TYPE_SCHEMA,
     )
 
     hass.services.async_register(
@@ -5085,7 +5107,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_filter_life = None
         self._fan_filter_remain = None
         self._heat_cool = None
-        self._heat_inst_type = None
+        self._heat_installation_type = None
         self._heat_interstage_delay = None
         self._heat_interstage_min_delay = None
         self._heat_level_source_type = "heating"
@@ -5154,7 +5176,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_OUTPUT_CONNECT_STATE,
                 ATTR_COOL_MIN_TIME_ON,
                 ATTR_COOL_MIN_TIME_OFF,
-                ATTR_HEAT_INSTALL_TYPE,
+                ATTR_HEAT_INSTALLATION_TYPE,
                 ATTR_OCCUPANCY,
             ]
             """Get specific attributes"""
@@ -5292,8 +5314,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
-                    if ATTR_HEAT_INSTALL_TYPE in device_data:
-                        self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
+                    if ATTR_HEAT_INSTALLATION_TYPE in device_data:
+                        self._heat_installation_type = device_data[ATTR_HEAT_INSTALLATION_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
                     if self._firmware == "4.2.1" or self._firmware == "4.3.0":
                         accessory_type = [
@@ -5616,6 +5638,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._client.set_air_ex_min_time_on(self.unique_id, air_ex_min_time_on)
             self._air_ex_min_time_on = air_ex_min_time_on
 
+    def set_heat_installation_type(self, value):
+        """Set minimum time the device is on before letting be off again (run-on time)"""
+        type_val = value[ATTR_TYPE]
+        self._client.set_heat_installation_type(self.unique_id, type_val)
+        self._heat_installation_type = type_val
+
     def set_reversing_valve_polarity(self, value):
         """Set minimum time the device is on before letting be off again (run-on time)"""
         polarity = value[ATTR_POLARITY]
@@ -5838,7 +5866,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "temp_offset_heat": self._temp_offset_heat,
                 "cool_min_time_on": self._cool_min_time_on,
                 "cool_min_time_off": self._cool_min_time_off,
-                "heat_installation_type": self._heat_inst_type,
+                "heat_installation_type": self._heat_installation_type,
                 "aux_heat_min_time_on": self._aux_heat_min_time_on,
                 "aux_heat_start_delay": self._aux_heat_start_delay,
                 "reversing_valve_polarity": self._reversing_valve_polarity,
