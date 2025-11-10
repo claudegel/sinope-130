@@ -22,6 +22,7 @@ from .const import (
     ATTR_AUX_HEAT_MIN_TIME_OFF,
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
+    ATTR_AUX_HEAT_START_DELAY,
     ATTR_AUX_INTERSTAGE_DELAY,
     ATTR_AUX_INTERSTAGE_MIN_DELAY,
     ATTR_BACKLIGHT,
@@ -1674,6 +1675,13 @@ class Neviweb130Client:
         for TH6500WF and TH6250WF thermostats."""
         data = {ATTR_COOL_INTERSTAGE_MIN_DELAY: time}
         _LOGGER.debug("HC set_cool_min_interstage_delay.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
+    def set_aux_heat_start_delay(self, device_id: str, time: int):
+        """Set minimum time using the heat pump before using the auxiliary heaters.
+        for TH6500WF and TH6250WF thermostats."""
+        data = {ATTR_AUX_HEAT_START_DELAY: time}
+        _LOGGER.debug("HC set_aux_heat_start_delay.data = %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_device_attributes(self, device_id: str, data: dict[str, Any]):

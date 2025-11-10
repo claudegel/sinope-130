@@ -199,6 +199,7 @@ from .const import (
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_AIR_FLOOR_MODE,
     SERVICE_SET_AUX_CYCLE_OUTPUT,
+    SERVICE_SET_AUX_HEAT_START_DELAY,
     SERVICE_SET_AUX_HEATING_SOURCE,
     SERVICE_SET_AUXILIARY_LOAD,
     SERVICE_SET_BACKLIGHT,
@@ -254,6 +255,7 @@ from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_AIR_FLOOR_MODE_SCHEMA,
     SET_AUX_CYCLE_OUTPUT_SCHEMA,
+    SET_AUX_HEAT_START_DELAY_SCHEMA,
     SET_AUX_HEATING_SOURCE_SCHEMA,
     SET_AUXILIARY_LOAD_SCHEMA,
     SET_BACKLIGHT_SCHEMA,
@@ -1392,6 +1394,15 @@ async def async_setup_platform(
         thermostat.set_cool_interstage_delay(service.data)
         thermostat.schedule_update_ha_state(True)
 
+    def set_aux_heat_start_delay(service: ServiceCall) -> None:
+        """Set minimum time the device is cooling before letting it increment the cooler stage
+        for TH6500WF and TH6250WF thermostats."""
+        thermostat = get_thermostat(service)
+        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+        thermostat.set_aux_heat_start_delay(service.data)
+        thermostat.schedule_update_ha_state(True)
+
     def set_accessory_type_service(service: ServiceCall) -> None:
         """Set TH6500WF accessory (humidifier, dehumidifier, air exchanger) type."""
         thermostat = get_thermostat(service)
@@ -1779,6 +1790,13 @@ async def async_setup_platform(
         SERVICE_SET_COOL_INTERSTAGE_DELAY,
         set_cool_interstage_delay,
         schema=SET_COOL_INTERSTAGE_DELAY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_AUX_HEAT_START_DELAY,
+        set_aux_heat_start_delay,
+        schema=SET_AUX_HEAT_START_DELAY_SCHEMA,
     )
 
     hass.services.async_register(
@@ -5663,6 +5681,26 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         self._client.set_cool_interstage_min_delay(self.unique_id, time_val * 60)
         self._client.set_cool_interstage_delay(self.unique_id, time_val * 60 * 2)
+
+    def set_aux_heat_start_delay(self, value):
+        try:
+            time_val = float(value[ATTR_TIME])
+        except KeyError:
+            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+        except ValueError:
+            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be a float")
+
+        outputs = self._output_connect_state
+        hp_can_heat = (outputs["Y1"] or outputs["Y2"]) and (
+            self._reversing_valve_polarity == "cooling" or outputs["OB"]
+        )
+        has_aux_heating = outputs["W"] or outputs["W2"]
+        if not hp_can_heat or not has_aux_heating:
+            raise ServiceValidationError(
+                f"Entity {self.entity_id} does not have both a heat pump and an auxiliary heater"
+            )
+
+        self._client.set_aux_heat_start_delay(self.unique_id, time_val)
 
     def set_aux_heating_source(self, value):
         """Set auxiliary heating device."""

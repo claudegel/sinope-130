@@ -528,6 +528,13 @@ SET_COOL_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
     }
 )
 
+SET_AUX_HEAT_START_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=0.5, max=8.0),
+    }
+)
+
 SET_ACCESSORY_TYPE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
