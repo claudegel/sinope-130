@@ -181,63 +181,19 @@ NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
         translation_key="led_off_intensity",
         native_unit_of_measurement=PERCENTAGE,
     ),
-    Neviweb130NumberEntityDescription(
-        key="light_timer",
-        icon="mdi:timer-edit-outline",
-        device_class=NumberDeviceClass.DURATION,
-        mode=NumberMode.AUTO,
-        native_min_value=0,
-        native_max_value=10800,
-        native_step=10,
-        translation_key="timer",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-    ),
     #  Switch attributes
     Neviweb130NumberEntityDescription(
-        key="timer",
-        icon="mdi:timer-edit-outline",
+        key="water_remaining_time",
+        icon="mdi:backup-restore",
         device_class=NumberDeviceClass.DURATION,
         mode=NumberMode.AUTO,
         native_min_value=0,
-        native_max_value=10800,
-        native_step=10,
-        translation_key="timer",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-    ),
-    Neviweb130NumberEntityDescription(
-        key="timer2",
-        icon="mdi:timer-edit-outline",
-        device_class=NumberDeviceClass.DURATION,
-        mode=NumberMode.AUTO,
-        native_min_value=0,
-        native_max_value=10800,
-        native_step=10,
-        translation_key="timer 2",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-    ),
-    Neviweb130NumberEntityDescription(
-        key="power_timer",
-        icon="mdi:timer-edit-outline",
-        device_class=NumberDeviceClass.DURATION,
-        mode=NumberMode.AUTO,
-        native_min_value=0,
-        native_max_value=86400,
-        native_step=10,
-        translation_key="timer",
+        native_max_value=65535,
+        native_step=900,
+        translation_key="water_remaining_time",
         native_unit_of_measurement=UnitOfTime.SECONDS,
     ),
     #  Valve attributes
-    Neviweb130NumberEntityDescription(
-        key="flowmeter_timer",
-        icon="mdi:timer-edit-outline",
-        device_class=NumberDeviceClass.DURATION,
-        mode=NumberMode.AUTO,
-        native_min_value=0,
-        native_max_value=86400,
-        native_step=10,
-        translation_key="timer",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-    ),
 )
 
 
@@ -266,7 +222,7 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
+                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
             device_name = f"{default_name} {device_info['name']}"
             device_entry = device_registry.async_get_or_create(
@@ -348,16 +304,12 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         "floor_setpoint_min": lambda self, value: self._client.async_set_floor_limit(
             self._id, value, "low", self.is_wifi_floor
         ),
-        "flowmeter_timer": lambda self, value: self._client.async_set_flow_alarm_disable_timer(self._id, value),
-        "light_timer": lambda self, value: self._client.async_set_timer(self._id, value),
         "max_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_max(self._id, value),
         "min_cool_temp": lambda self, value: self._client.async_set_cool_setpoint_min(self._id, value),
         "max_temp": lambda self, value: self._client.async_set_setpoint_max(self._id, value),
         "min_temp": lambda self, value: self._client.async_set_setpoint_min(self._id, value),
-        "power_timer": lambda self, value: self._client.async_set_timer(self._id, value),
+        "water_remaining_time": lambda self, value: self._client.async_set_remaining_time(self._id, value),
         "setpoint_away": lambda self, value: self._client.async_set_room_setpoint_away(self._id, value),
-        "timer": lambda self, value: self._client.async_set_timer(self._id, value),
-        "timer2": lambda self, value: self._client.async_set_timer2(self._id, value),
         # ...
     }
 
