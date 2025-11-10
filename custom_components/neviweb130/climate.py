@@ -1049,6 +1049,15 @@ async def async_setup_platform(
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Wi-Fi (lite) thermostat and does not support time format"
             )
+        if isinstance(thermostat, Neviweb130HPThermostat):
+            raise ServiceValidationError(
+                f"Entity {thermostat.entity_id} is {DOMAIN} Heat-Pump thermostat and does not support time format"
+            )
+        # TODO: uncomment this when it exists
+        if False:  # isinstance(thermostat, Neviweb130WifiHPThermostat):
+            raise ServiceValidationError(
+                f"Entity {thermostat.entity_id} is {DOMAIN} Wi-Fi Heat-Pump thermostat and does not support time format"
+            )
 
         value = {
             "id": thermostat.unique_id,
