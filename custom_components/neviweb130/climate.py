@@ -5730,6 +5730,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_temperature_offset(value["id"], value["temp"], self._is_HC)
         self._temp_offset_heat = value["temp"]
 
+    @override
+    def set_heat_pump_operation_limit(self, value):
+        """Set minimum temperature for heat pump operation."""
+        temp = value["temp"]
+        self._client.set_heat_pump_limit(value["id"], temp)
+        self._balance_pt = temp
+
     def set_humidity_mode(self, value):
         """Set thermostat humidity setpoint mode, defog or manual"""
         self._client.set_humidity_mode(value["id"], value["mode"], self._is_HC)

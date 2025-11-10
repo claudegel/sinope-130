@@ -299,21 +299,11 @@ set_hvac_dr_options:
         Activate or deactivate Éco Sinopé auxiliary heater optimization on TH6500WF and TH6250WF. 
         This option is only useful if the auxiliary heater does not consume electricity (e.g. fuel-based heaters).
       example: "on"
-      selector:
-        select:
-          options:
-            - "on"
-            - "off"
     fanSpeedOptim:
       description: >
         Activate or deactivate Éco Sinopé fan optimization on TH6500WF and TH6250WF. When enabled, 
         the fan will automatically switch to "auto" mode during Eco periods to reduce electrical consumption.
       example: "on"
-      selector:
-        select:
-          options:
-            - "on"
-            - "off"
 
 set_hvac_dr_setpoint:
   description: Set demand response setpoint reduction value for thermostats in Éco Sinopé mode.
@@ -690,8 +680,8 @@ set_heat_pump_operation_limit:
       description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     balancePoint:
-      description: Possible values, from 10 to 30°C, or "off"
-      example: 22
+      description: Possible values, from -30°C to 0°C
+      example: -22
 
 set_cool_lockout_temperature:
   description: Do not allow cooling for heat pump, if outside temperature is below this temperature.
