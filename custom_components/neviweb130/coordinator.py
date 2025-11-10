@@ -2,7 +2,7 @@
 
 import logging
 from http.cookies import SimpleCookie
-from typing import Any, Mapping
+from typing import Any, Mapping, Union
 
 import aiohttp
 from aiohttp import ClientSession
@@ -12,8 +12,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    ATTR_ACCESSORY_TYPE,
+    ATTR_AIR_EX_MIN_TIME_ON,
     ATTR_AUX_CYCLE_LENGTH,
-    ATTR_AUX_HEAT_TIMEON,
+    ATTR_AUX_HEAT_MIN_TIME_OFF,
+    ATTR_AUX_HEAT_MIN_TIME_ON,
+    ATTR_AUX_HEAT_SOURCE_TYPE,
+    ATTR_AUX_INTERSTAGE_DELAY,
+    ATTR_AUX_INTERSTAGE_MIN_DELAY,
     ATTR_BACKLIGHT,
     ATTR_BACKLIGHT_AUTO_DIM,
     ATTR_BALANCE_PT,
@@ -22,9 +28,13 @@ from .const import (
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
     ATTR_CONF_CLOSURE,
     ATTR_CONTROLLED_DEVICE,
+    ATTR_COOL_CYCLE_LENGTH,
+    ATTR_COOL_INTERSTAGE_DELAY,
+    ATTR_COOL_INTERSTAGE_MIN_DELAY,
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_MIN_TIME_OFF,
     ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_PURGE_TIME,
     ATTR_COOL_SETPOINT,
     ATTR_COOL_SETPOINT_AWAY,
     ATTR_COOL_SETPOINT_MAX,
@@ -33,6 +43,8 @@ from .const import (
     ATTR_CYCLE_OUTPUT2,
     ATTR_DISPLAY2,
     ATTR_DISPLAY_CONF,
+    ATTR_DR_AUX_CONF,
+    ATTR_DR_FAN_SPEED_CONF,
     ATTR_DRSETPOINT,
     ATTR_DRSTATUS,
     ATTR_EARLY_START,
@@ -58,9 +70,16 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_HEAT_COOL,
+    ATTR_HEAT_INTERSTAGE_DELAY,
+    ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
-    ATTR_HUMID_SETPOINT,
-    ATTR_HUMIDIFIER_TYPE,
+    ATTR_HEAT_MIN_TIME_OFF,
+    ATTR_HEAT_MIN_TIME_ON,
+    ATTR_HEAT_PURGE_TIME,
+    ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+    ATTR_HUMIDITY_SETPOINT,
+    ATTR_HUMIDITY_SETPOINT_MODE,
+    ATTR_HUMIDITY_SETPOINT_OFFSET,
     ATTR_INPUT_1_OFF_DELAY,
     ATTR_INPUT_1_ON_DELAY,
     ATTR_INPUT_2_OFF_DELAY,
@@ -92,6 +111,7 @@ from .const import (
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
     ATTR_REFUEL,
+    ATTR_REVERSING_VALVE_POLARITY,
     ATTR_ROOM_SETPOINT,
     ATTR_ROOM_SETPOINT_AWAY,
     ATTR_ROOM_SETPOINT_MAX,
@@ -105,6 +125,7 @@ from .const import (
     ATTR_TANK_TYPE,
     ATTR_TEMP,
     ATTR_TEMP_ALERT,
+    ATTR_TEMP_OFFSET_HEAT,
     ATTR_TIME_FORMAT,
     ATTR_TIMER,
     ATTR_TIMER2,
@@ -113,7 +134,21 @@ from .const import (
     EXPOSED_ATTRIBUTES,
     MODE_MANUAL,
 )
-from .schema import HA_TO_NEVIWEB_PERIOD, VERSION, color_to_rgb
+from .schema import (
+    HA_TO_NEVIWEB_CONTROLLED,
+    HA_TO_NEVIWEB_DELAY,
+    HA_TO_NEVIWEB_DURATION,
+    HA_TO_NEVIWEB_FLOW,
+    HA_TO_NEVIWEB_GAUGE,
+    HA_TO_NEVIWEB_HEIGHT,
+    HA_TO_NEVIWEB_LEVEL,
+    HA_TO_NEVIWEB_PERIOD,
+    HA_TO_NEVIWEB_SUPPLY,
+    HA_TO_NEVIWEB_TEMPERATURE,
+    HA_TO_NEVIWEB_TIMER,
+    VERSION,
+    color_to_rgb,
+)
 from .session_manager import session_manager
 
 _LOGGER = logging.getLogger(__name__)
@@ -125,6 +160,7 @@ LOCATIONS_URL = f"{HOST}/api/locations?account$id="
 GATEWAY_DEVICE_URL = f"{HOST}/api/devices?location$id="
 DEVICE_DATA_URL = f"{HOST}/api/device/"
 NEVIWEB_LOCATION = f"{HOST}/api/location/"
+NEVIWEB_WEATHER = f"{HOST}/api/weather?code="
 
 
 def extract_device_attributes(dev) -> dict:
@@ -134,7 +170,77 @@ def extract_device_attributes(dev) -> dict:
 def ha_to_neviweb(value: str | None) -> int:
     result = HA_TO_NEVIWEB_PERIOD.get(value or "off", 0)
     if value not in HA_TO_NEVIWEB_PERIOD and value is not None:
-        _LOGGER.warning("Unknown HA value: %s, fallback to %s", value, result)
+        _LOGGER.warning("Unknown HA value for period: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_controlled(value: str | None) -> str:
+    result = HA_TO_NEVIWEB_CONTROLLED.get(value or "unknown", "-")
+    if value not in HA_TO_NEVIWEB_CONTROLLED and value is not None:
+        _LOGGER.warning("Unknown HA value for controlled device: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_delay(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_DELAY.get(value or "off", 0)
+    if value not in HA_TO_NEVIWEB_DELAY and value is not None:
+        _LOGGER.warning("Unknown HA value for output delay: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_duration(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_DURATION.get(value or "off", 0)
+    if value not in HA_TO_NEVIWEB_DURATION and value is not None:
+        _LOGGER.warning("Unknown HA value for output delay: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_flow(value: str | None) -> str:
+    result = HA_TO_NEVIWEB_FLOW.get(value or "Noflow", "No flow meter")
+    if value not in HA_TO_NEVIWEB_FLOW and value is not None:
+        _LOGGER.warning("Unknown HA value for controlled device: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_gauge(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_GAUGE.get(value or "unknown", 0)
+    if value not in HA_TO_NEVIWEB_GAUGE and value is not None:
+        _LOGGER.warning("Unknown HA value for gauge type: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_height(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_HEIGHT.get(value or "none", 0)
+    if value not in HA_TO_NEVIWEB_HEIGHT and value is not None:
+        _LOGGER.warning("Unknown HA value for output delay: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_level(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_LEVEL.get(value or "off", 0)
+    if value not in HA_TO_NEVIWEB_LEVEL and value is not None:
+        _LOGGER.warning("Unknown HA value for gauge type: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_supply(value: str | None) -> str:
+    result = HA_TO_NEVIWEB_SUPPLY.get(value or "unknown", "-")
+    if value not in HA_TO_NEVIWEB_SUPPLY and value is not None:
+        _LOGGER.warning("Unknown HA value for controlled device: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_temperature(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_TEMPERATURE.get(value or "off", 0)
+    if value not in HA_TO_NEVIWEB_CONTROLLED and value is not None:
+        _LOGGER.warning("Unknown HA value for temperature value: %s, fallback to %s", value, result)
+    return result
+
+
+def ha_to_neviweb_timer(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_TIMER.get(value or "off", 0)
+    if value not in HA_TO_NEVIWEB_TIMER and value is not None:
+        _LOGGER.warning("Unknown HA value for timer: %s, fallback to %s", value, result)
     return result
 
 
@@ -162,6 +268,7 @@ class Neviweb130Client:
         self._network_name = network
         self._network_name2 = network2
         self._network_name3 = network3
+        self._code: str | None = None
         self._ignore_miwi = ignore_miwi
         self._gateway_id = None
         self._gateway_id2 = None
@@ -307,35 +414,35 @@ class Neviweb130Client:
             ) as response:
                 raw_res = await response.json()
                 networks = raw_res
-                _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
-                _LOGGER.debug("networks: %s", networks)
+                _LOGGER.warning("Number of networks found on Neviweb: %s", len(networks))
+                _LOGGER.warning("networks: %s", networks)
                 if self._network_name is None and self._network_name2 is None and self._network_name3 is None:
                     # Use 1st network found, second or third if found
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
                     self._occupancyMode = networks[0]["mode"]
-                    _LOGGER.debug("Selecting %s as first network", self._network_name)
+                    self._code = networks[0]["postalCode"]
+                    _LOGGER.warning("Selecting %s as first network", self._network_name)
                     if len(networks) > 1:
                         self._gateway_id2 = networks[1]["id"]
                         self._network_name2 = networks[1]["name"]
-                        _LOGGER.debug(
-                            "Selecting %s as second network",
-                            self._network_name2,
-                        )
+                        self._occupancyMode = networks[1]["mode"]
+                        self._code = networks[1]["postalCode"]
+                        _LOGGER.warning("Selecting %s as second network", self._network_name2)
                         if len(networks) > 2:
                             self._gateway_id3 = networks[2]["id"]
                             self._network_name3 = networks[2]["name"]
-                            _LOGGER.debug(
-                                "Selecting %s as third network",
-                                self._network_name3,
-                            )
+                            self._occupancyMode = networks[2]["mode"]
+                            self._code = networks[2]["postalCode"]
+                            _LOGGER.warning("Selecting %s as third network", self._network_name3)
                 else:
                     for network in networks:
                         if self._network_name is not None and self._network_name != "":
                             if network["name"] == self._network_name:
                                 self._gateway_id = network["id"]
                                 self._occupancyMode = network["mode"]
-                                _LOGGER.debug(
+                                self._code = network["postalCode"]
+                                _LOGGER.warning(
                                     "Selecting %s network among: %s",
                                     self._network_name,
                                     networks,
@@ -345,27 +452,26 @@ class Neviweb130Client:
                                 network["name"] == self._network_name[0].lower() + self._network_name[1:]
                             ):
                                 self._gateway_id = network["id"]
-                                _LOGGER.debug(
-                                    "Please check first letter of your network "
-                                    + "name, In capital letter or not? Selecting "
-                                    + "%s network among: %s",
-                                    self._network_name,
-                                    networks,
+                                self._occupancyMode = network["mode"]
+                                self._code = network["postalCode"]
+                                _LOGGER.warning(
+                                    "Please check first letter of your network name. "
+                                    "Is it a capital letter or not? "
+                                    f"Selecting {self._network_name} network among: {networks}"
                                 )
                                 continue
                             else:
-                                _LOGGER.debug(
-                                    "Your network name %s do not correspond to "
-                                    + "discovered network %s, skipping this one"
-                                    + "... Please check your config if nothing "
-                                    + "is discovered.",
-                                    self._network_name,
-                                    network["name"],
+                                _LOGGER.warning(
+                                    f"Your network name {self._network_name} do not correspond to "
+                                    f"discovered network {network['name']}, skipping this one... "
+                                    f"Please check your config if nothing get discovered"
                                 )
                         if self._network_name2 is not None and self._network_name2 != "":
                             if network["name"] == self._network_name2:
                                 self._gateway_id2 = network["id"]
-                                _LOGGER.debug(
+                                self._occupancyMode = network["mode"]
+                                self._code = network["postalCode"]
+                                _LOGGER.warning(
                                     "Selecting %s network among: %s",
                                     self._network_name2,
                                     networks,
@@ -375,26 +481,25 @@ class Neviweb130Client:
                                 network["name"] == self._network_name2[0].lower() + self._network_name2[1:]
                             ):
                                 self._gateway_id = network["id"]
-                                _LOGGER.debug(
-                                    "Please check first letter of your "
-                                    + "network2 name, In capital letter or "
-                                    + "not? Selecting %s network among: %s",
-                                    self._network_name2,
-                                    networks,
+                                self._occupancyMode = network["mode"]
+                                self._code = network["postalCode"]
+                                _LOGGER.warning(
+                                    "Please check first letter of your network2 name. "
+                                    "Is it a capital letter or not? "
+                                    f"Selecting {self._network_name2} network among: {networks}"
                                 )
                                 continue
                             else:
-                                _LOGGER.debug(
-                                    "Your network name %s do not correspond "
-                                    + "to discovered network %s, skipping "
-                                    + "this one...",
-                                    self._network_name2,
-                                    network["name"],
+                                _LOGGER.warning(
+                                    f"Your network2 name {self._network_name2} do not correspond to "
+                                    f"discovered network {network['name']}, skipping this one..."
                                 )
                         if self._network_name3 is not None and self._network_name3 != "":
                             if network["name"] == self._network_name3:
                                 self._gateway_id3 = network["id"]
-                                _LOGGER.debug(
+                                self._occupancyMode = network["mode"]
+                                self._code = network["postalCode"]
+                                _LOGGER.warning(
                                     "Selecting %s network among: %s",
                                     self._network_name3,
                                     networks,
@@ -404,16 +509,16 @@ class Neviweb130Client:
                                 network["name"] == self._network_name3[0].lower() + self._network_name3[1:]
                             ):
                                 self._gateway_id = network["id"]
-                                _LOGGER.debug(
-                                    "Please check first letter of your "
-                                    + "network3 name, In capital letter or "
-                                    + "not? Selecting %s network among: %s",
-                                    self._network_name3,
-                                    networks,
+                                self._occupancyMode = network["mode"]
+                                self._code = network["postalCode"]
+                                _LOGGER.warning(
+                                    "Please check first letter of your network3 name. "
+                                    "Is it a capital letter or not? "
+                                    f"Selecting {self._network_name3} network among: {networks}"
                                 )
                                 continue
                             else:
-                                _LOGGER.debug(
+                                _LOGGER.warning(
                                     "Your network name %s do not correspond "
                                     + "to discovered network %s, skipping "
                                     + "this one...",
@@ -440,7 +545,12 @@ class Neviweb130Client:
             raise ValueError("self._session is None")
 
         if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
-            _LOGGER.debug("No gateway defined, check your config for networks names...")
+            _LOGGER.warning("No gateway defined, check your config for networks names...")
+            self.notify_ha(
+                "All Gateway ID are None. Network selection failed. "
+                + "Check that your configuration network names match one of the networks in your Neviweb account. "
+                + "Available networks were logged during network selection. Check your log"
+            )
             return False
         else:
             #            session = await create_session()
@@ -791,6 +901,34 @@ class Neviweb130Client:
             _LOGGER.debug("Hourly stat error: %s", data)
             return None
 
+    async def async_get_weather(self):
+        """Get Neviweb weather for my location."""
+        if self._session is None:
+            raise ValueError("self._session is None")
+
+        if self._code is None:
+            raise ValueError("self._code is None")
+
+        try:
+            async with self._session.get(
+                NEVIWEB_WEATHER + self._code,
+                headers=self._headers,
+                cookies=self._cookies,
+                timeout=self._timeout,
+            ) as response:
+                raw_res = await response.json()
+                # Update cookies
+                if self._cookies is None:
+                    self._cookies = response.cookies
+                else:
+                    self._cookies.update(response.cookies)
+        except OSError:
+            raise PyNeviweb130Error("Cannot get Neviweb weather and icon...")
+        # Prepare data
+        data = raw_res
+        # _LOGGER.debug("weather data: %s", data)
+        return data
+
     async def async_get_device_sensor_error(self, device_id: str):
         """Get device error code status."""
         # session = await create_session()
@@ -824,42 +962,45 @@ class Neviweb130Client:
             _LOGGER.debug("Error code status data: %s", data)
             return None
 
-    async def async_set_brightness(self, device_id: str, brightness):
+    async def async_set_brightness(self, device_id: str, brightness) -> bool:
         """Set device brightness."""
         data = {ATTR_INTENSITY: brightness}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_onoff(self, device_id: str, onoff):
+    async def async_set_onoff(self, device_id: str, onoff) -> bool:
         """Set device onOff state."""
         data = {ATTR_ONOFF: onoff}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_onoff2(self, device_id: str, onoff):
+    async def async_set_onoff2(self, device_id: str, onoff) -> bool:
         """Set device onOff state for MC3100ZB."""
         data = {ATTR_ONOFF2: onoff}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_light_onoff(self, device_id: str, onoff, brightness):
+    async def async_set_light_onoff(self, device_id: str, onoff, brightness) -> bool:
         """Set light device onOff state."""
         data = {ATTR_ONOFF: onoff, ATTR_INTENSITY: brightness}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_valve_onoff(self, device_id: str, onoff):
+    async def async_set_valve_onoff(self, device_id: str, onoff) -> bool:
         """Set sedna valve onOff state."""
         data = {ATTR_MOTOR_TARGET: onoff}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_mode(self, device_id: str, mode):
+    async def async_set_mode(self, device_id: str, mode) -> bool:
         """Set device operation mode."""
         data = {ATTR_POWER_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_setpoint_mode(self, device_id: str, mode, wifi, HC):
+    async def async_set_setpoint_mode(self, device_id: str, mode, wifi, HC) -> bool:
         """Set thermostat operation mode."""
         """Work differently for Wi-Fi and Zigbee devices."""
         if wifi:
             if HC:
-                data = {ATTR_HEAT_COOL: mode}
+                if mode == HVACMode.HEAT_COOL:
+                    data = {ATTR_HEAT_COOL: HVACMode.AUTO}
+                else:
+                    data = {ATTR_HEAT_COOL: mode}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
                     mode = MODE_MANUAL
@@ -868,7 +1009,7 @@ class Neviweb130Client:
             data = {ATTR_SYSTEM_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_occupancy_mode(self, device_id: str, mode, wifi):
+    async def async_set_occupancy_mode(self, device_id: str, mode, wifi) -> bool:
         """Set thermostat preset mode."""
         """Work differently for Wi-Fi and Zigbee devices."""
         if wifi:
@@ -880,50 +1021,69 @@ class Neviweb130Client:
             data = {ATTR_SYSTEM_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_temperature(self, device_id: str, temperature):
+    async def async_set_temperature(self, device_id: str, temperature) -> bool:
         """Set device heating temperature target."""
         data = {ATTR_ROOM_SETPOINT: temperature}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cool_temperature(self, device_id: str, temperature):
+    async def async_set_cool_temperature(self, device_id: str, temperature) -> bool:
         """Set device cooling temperature target."""
         data = {ATTR_COOL_SETPOINT: temperature}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_room_setpoint_away(self, device_id: str, temperature):
+    async def async_set_room_setpoint_away(self, device_id: str, temperature) -> bool:
         """Set device away heating temperature target for all Wi-Fi thermostats."""
         data = {ATTR_ROOM_SETPOINT_AWAY: temperature}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cool_setpoint_away(self, device_id: str, temperature, HC):
+    async def async_set_cool_setpoint_away(self, device_id: str, temperature, HC) -> bool:
         """Set device away cooling temperature target for TH6500WF and TH6250WF."""
         if HC:
             data = {ATTR_COOL_SETPOINT_AWAY: temperature}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            return self.notify_ha(
+            self.notify_ha(
                 "Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats."
             )
+            return False
 
-    async def async_set_humidity(self, device_id: str, humidity):
+    async def async_set_humidity(self, device_id: str, humidity) -> bool:
         """Set device humidity target."""
         data = {ATTR_HUMID_SETPOINT: humidity}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_humidifier_type(self, device_id: str, type_val):
-        """Set humidifier type for TH6500WF and TH6250WF."""
-        data = {ATTR_HUMIDIFIER_TYPE: type_val}
+    async def async_set_accessory_type(self, device_id: str, accessory_type) -> bool:
+        """Set accessory (humidifier, dehumidifier, air exchanger) type for TH6500WF and TH6250WF."""
+        data = {
+            ATTR_ACCESSORY_TYPE: {
+                "humOnHeat": accessory_type == "humOnHeat",
+                "humOnFan": accessory_type == "humOnFan",
+                "humStandalone": False,
+                "dehumStandalone": accessory_type == "dehum",
+                "airExchangerStandalone": accessory_type == "airExchanger",
+            }
+        }
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_schedule_mode(self, device_id: str, mode, HC):
+    async def async_set_schedule_mode(self, device_id: str, mode, HC) -> bool:
         """Set schedule mode for TH6500WF and TH6250WF."""
         if HC:
             data = {ATTR_SETPOINT_MODE: mode}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            return self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.")
+            self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.")
+            return False
 
-    async def async_set_fan_filter_reminder(self, device_id: str, month, HC):
+    async def async_set_heatcool_delta(self, device_id: str, level, HC) -> bool:
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_fan_filter_reminder(self, device_id: str, month, HC) -> bool:
         """Set schedule mode for TH6500WF and TH6250WF."""
         if HC:
             month_val = month * 720
@@ -931,8 +1091,55 @@ class Neviweb130Client:
             return await self.async_set_device_attributes(device_id, data)
         else:
             self.notify_ha("Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats.")
+            return False
 
-    async def async_set_backlight(self, device_id: str, level, wifi):
+    async def async_set_temperature_offset(self, device_id: str, temp, HC) -> bool:
+        """Set schedule mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_TEMP_OFFSET_HEAT: temp}
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_humidity_offset(self, device_id: str, offset, HC) -> bool:
+        """Set humidity setpoint offset for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_humidity_mode(self, device_id: str, mode, HC) -> bool:
+        """Set humidity setpoint mode for TH6500WF and TH6250WF."""
+        if HC:
+            data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_air_ex_min_time_on(self, device_id: str, time, HC) -> bool:
+        """Set minimum time the air exchanger is on per hour."""
+        if HC:
+            time_val = None
+            match time:
+                case "Off":
+                    time_val = 0
+                case "20 min":
+                    time_val = 20
+                case "40 min":
+                    time_val = 40
+                case "Continuous":
+                    time_val = 60
+            data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_backlight(self, device_id: str, level: str, wifi: bool) -> bool:
         """Set backlight intensity when idle, on or auto."""
         """Work differently for Wi-Fi and Zigbee devices."""
         if wifi:
@@ -952,13 +1159,13 @@ class Neviweb130Client:
         _LOGGER.debug("backlight.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_second_display(self, device_id: str, display):
+    async def async_set_second_display(self, device_id: str, display) -> bool:
         """Set device second display for outside temperature or setpoint temperature."""
         data = {ATTR_DISPLAY2: display}
         _LOGGER.debug("display.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_keypad_lock(self, device_id: str, lock, wifi):
+    async def async_set_keypad_lock(self, device_id: str, lock: str | None, wifi: bool) -> bool:
         """Set device keyboard locked/unlocked."""
         if wifi:
             match lock:
@@ -977,43 +1184,45 @@ class Neviweb130Client:
         _LOGGER.debug("lock.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_phase(self, device_id: str, phase):
+    async def async_set_phase(self, device_id: str, phase: str | None) -> bool:
         """Set device phase control mode."""
-        data = {ATTR_PHASE_CONTROL: phase}
+        data: dict[str, Any] = {ATTR_PHASE_CONTROL: phase}
         _LOGGER.debug("phase.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_double_up(self, device_id: str, double):
+    async def async_set_double_up(self, device_id: str, double) -> bool:
         """Set device key double up action."""
         data = {ATTR_KEY_DOUBLE_UP: double}
         _LOGGER.debug("double_up.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_timer(self, device_id: str, time):
-        """Set device auto off for timer on switch and multi controller."""
-        data = {ATTR_TIMER: time}
+    async def async_set_timer(self, device_id: str, time: str | None) -> bool:
+        """Set device auto off for timer on light, switch and multi controller."""
+        seconds = ha_to_neviweb_timer(time)
+        data: dict[str, Any] = {ATTR_TIMER: seconds}
         _LOGGER.debug("timer.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_timer2(self, device_id: str, time):
+    async def async_set_timer2(self, device_id: str, time: str | None) -> bool:
         """Set device auto off for timer2 on multi controller."""
-        data = {ATTR_TIMER2: time}
+        seconds = ha_to_neviweb_timer(time)
+        data: dict[str, Any] = {ATTR_TIMER2: seconds}
         _LOGGER.debug("timer2.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_time_format(self, device_id: str, time):
+    async def async_set_time_format(self, device_id: str, time) -> bool:
         """Set device time format 12h or 24h."""
         data = {ATTR_TIME_FORMAT: time}
         _LOGGER.debug("time.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_temperature_format(self, device_id: str, deg):
+    async def async_set_temperature_format(self, device_id: str, deg) -> bool:
         """Set device temperature format: celsius or fahrenheit."""
         data = {ATTR_TEMP: deg}
         _LOGGER.debug("temperature.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_floor_air_limit(self, device_id: str, status, temp):
+    async def async_set_floor_air_limit(self, device_id: str, status, temp) -> bool:
         """Set device maximum air temperature limit."""
         if temp == 0:
             temp = None
@@ -1021,37 +1230,37 @@ class Neviweb130Client:
         _LOGGER.debug("floorairlimit.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_early_start(self, device_id: str, start):
+    async def async_set_early_start(self, device_id: str, start) -> bool:
         """Set early start on/off for Wi-Fi thermostats."""
         data = {ATTR_EARLY_START: start}
         _LOGGER.debug("early_start.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_air_floor_mode(self, device_id: str, mode):
+    async def async_set_air_floor_mode(self, device_id: str, mode) -> bool:
         """Switch temperature control between floor and ambient sensor."""
         data = {ATTR_FLOOR_MODE: mode}
         _LOGGER.debug("floor_mode.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_setpoint_min(self, device_id: str, temp):
+    async def async_set_setpoint_min(self, device_id: str, temp) -> bool:
         """Set device setpoint minimum temperature."""
         data = {ATTR_ROOM_SETPOINT_MIN: temp}
         _LOGGER.debug("setpointMin.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_setpoint_max(self, device_id: str, temp):
+    async def async_set_setpoint_max(self, device_id: str, temp) -> bool:
         """Set device setpoint maximum temperature."""
         data = {ATTR_ROOM_SETPOINT_MAX: temp}
         _LOGGER.debug("setpointMax.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cool_setpoint_min(self, device_id: str, temp):
+    async def async_set_cool_setpoint_min(self, device_id: str, temp) -> bool:
         """Set device cooling setpoint minimum temperature."""
         data = {ATTR_COOL_SETPOINT_MIN: temp}
         _LOGGER.debug("CoolsetpointMin.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cool_setpoint_max(self, device_id: str, temp):
+    async def async_set_cool_setpoint_max(self, device_id: str, temp) -> bool:
         """Set device cooling setpoint maximum temperature."""
         data = {ATTR_COOL_SETPOINT_MAX: temp}
         _LOGGER.debug("CoolsetpointMax.data = %s", data)
@@ -1059,35 +1268,38 @@ class Neviweb130Client:
 
     async def async_set_aux_cycle_output(self, device_id: str, val: str | None, wifi: bool) -> bool:
         """Set low voltage thermostat aux cycle status and length."""
-        data: dict[str, Any]
         length = ha_to_neviweb(val)
         if wifi:
-            data = {ATTR_AUX_CYCLE_LENGTH: length}
+            data: dict[str, Any] = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
-            data = {ATTR_CYCLE_OUTPUT2: {"status": "on" if length > 0 else "off", "value": length}}
+            data: dict[str, Any] = {ATTR_CYCLE_OUTPUT2: {"status": "on" if length > 0 else "off", "value": length}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cycle_output(self, device_id: str, val: str | None) -> bool:
+    async def async_set_cycle_output(self, device_id: str, val: str | None, is_hc: bool) -> bool:
         """Set low voltage thermostat main cycle length."""
         length = ha_to_neviweb(val)
-        data = {ATTR_CYCLE_LENGTH: length}
-        _LOGGER.debug("Cycleoutput.data = %s", data)
+        if is_hc:
+            datadict[str, Any] = {ATTR_COOL_CYCLE_LENGTH: val}
+            _LOGGER.debug("coolCycleLength.data = %s", data)
+        else:
+            data: dict[str, Any] = {ATTR_CYCLE_LENGTH: length}
+            _LOGGER.debug("Cycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_tank_size(self, device_id: str, val):
+    async def async_set_tank_size(self, device_id: str, val) -> bool:
         """Set water heater tank size for RM3500ZB."""
         data = {ATTR_TANK_SIZE: val}
         _LOGGER.debug("TankSize.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_remaining_time(self, device_id: str, time):
+    async def async_set_remaining_time(self, device_id: str, time) -> bool:
         """Activate or deactivate calypso for time period."""
         data = {ATTR_COLD_LOAD_PICKUP_REMAIN_TIME: time}
         _LOGGER.debug("RemainingTime.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_sensor_type(self, device_id: str, val):
+    async def async_set_sensor_type(self, device_id: str, val) -> bool:
         """Set floor sensor type 10k, 12k."""
         data = {
             ATTR_FLOOR_SENSOR: val,
@@ -1096,32 +1308,35 @@ class Neviweb130Client:
         _LOGGER.debug("sensor.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_low_temp_protection(self, device_id: str, val):
+    async def async_set_low_temp_protection(self, device_id: str, val: str | None) -> bool:
         """Set water heater temperature protection for RM3500ZB."""
-        data = {ATTR_WATER_TEMP_MIN: val}
+        value = ha_to_neviweb_temperature(val)
+        data: dict[str, Any] = {ATTR_WATER_TEMP_MIN: value}
         _LOGGER.debug("Low temp protection.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_controlled_device(self, device_id: str, val):
-        """Set device name controlled by RM3250ZB."""
-        data = {ATTR_CONTROLLED_DEVICE: val}
+    async def async_set_controlled_device(self, device_id: str, val: str | None) -> bool:
+        """Set device name controlled by RM3250ZB and RM3250WF."""
+        name_id = ha_to_neviweb_controlled(val)
+        data: dict[str, Any] = {ATTR_CONTROLLED_DEVICE: name_id}
         _LOGGER.debug("ControlledDevice.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_em_heat(self, device_id: str, heat: str, low: str, sec: str | None) -> bool:
         """Set floor, low voltage, Wi-Fi floor and low voltage Wi-Fi thermostats auxiliary heat slave/off or on/off."""
-        data: dict[str, Any]
         length = ha_to_neviweb(sec)
         if low == "voltage":
-            data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}}
+            data: dict[str, dict[str, str | int]] = {
+                ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}
+            }
         elif low == "wifi":
-            data = {ATTR_AUX_CYCLE_LENGTH: length}
+            data: dict[str, int] = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
-            data = {ATTR_FLOOR_AUX: heat}
+            data: dict[str, str] = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_floor_limit(self, device_id: str, level, low, wifi):
+    async def async_set_floor_limit(self, device_id: str, level: int, low: str, wifi: bool) -> bool:
         """Set floor setpoint limit low and high for Zigbee and Wi-Fi thermostats. (0 = off)."""
         data: dict[str, dict[str, None | str | int]]
         if level == 0:
@@ -1161,7 +1376,7 @@ class Neviweb130Client:
         _LOGGER.debug("Floor limit = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_pump_protection(self, device_id: str, status, wifi):
+    async def async_set_pump_protection(self, device_id: str, status: str, wifi: bool) -> bool:
         """Set low voltage thermostat pump protection status."""
         """Work differently for Wi-Fi and Zigbee devices."""
         if wifi:
@@ -1180,9 +1395,11 @@ class Neviweb130Client:
         _LOGGER.debug("pump.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_flow_meter_model(self, device_id: str, model):
+    async def async_set_flow_meter_model(self, device_id: str, model: str | None) -> bool:
         """Set flow meter model connected to the Sedna valve 2e gen."""
-        if model == "FS4221":
+        data: dict[str, Union[dict[str, int], bool]]
+        model_val = ha_to_neviweb_flow(model)
+        if model_val == "FS4221":
             data = {
                 ATTR_FLOW_METER_CONFIG: {
                     "multiplier": 9887,
@@ -1191,7 +1408,7 @@ class Neviweb130Client:
                 },
                 ATTR_FLOW_ENABLED: True,
             }
-        elif model == "FS4220":
+        elif model_val == "FS4220":
             data = {
                 ATTR_FLOW_METER_CONFIG: {
                     "multiplier": 4546,
@@ -1212,15 +1429,22 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter model.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_flow_meter_delay(self, device_id: str, delay):
+    async def async_set_flow_meter_delay(self, device_id: str, delay: str | None) -> bool:
         """Set flow meter delay before alarm is activated on Sedna valve 2e gen."""
-        data = {ATTR_FLOW_ALARM1_PERIOD: delay}
+        delay_val = ha_to_neviweb_duration(delay)
+        data: dict[str, Any] = {ATTR_FLOW_ALARM1_PERIOD: delay_val}
         _LOGGER.debug("Flowmeter delay.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_flow_meter_options(self, device_id: str, alarm, action, length, threshold):
-        """Set flow meter options when leak alarm is activated on Sedna valve 2e gen."""
-        data = {
+    async def async_set_flow_meter_options(self, device_id: str, action: bool, alarm: bool) -> bool:
+        """Set valve action with optional alert."""
+        if not alarm and not action:
+            length = 0
+            threshold = 0
+        else:
+            length = 60
+            threshold = 1
+        data: dict[str, dict[str, bool] | int] = {
             ATTR_FLOW_ALARM1_OPTION: {
                 "triggerAlarm": alarm,
                 "closeValve": action,
@@ -1231,13 +1455,14 @@ class Neviweb130Client:
         _LOGGER.debug("Flowmeter options.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_flow_alarm_timer(self, device_id: str, timer):
+    async def async_set_flow_alarm_timer(self, device_id: str, timer: str | None) -> bool:
         """Set flowmeter alarm action disabled timer, for valves with flowmeter."""
-        data = {ATTR_FLOW_ALARM_TIMER: timer}
+        timer_val = ha_to_neviweb_duration(timer)
+        data: dict[str, Any] = {ATTR_FLOW_ALARM_TIMER: timer_val}
         _LOGGER.debug("Flowmeter alarm disable timer.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_led_indicator(self, device_id: str, state, color):
+    async def async_set_led_indicator(self, device_id: str, state: int, color: str) -> bool:
         """Set device led indicator color for on and off state."""
         color = color_to_rgb(color)
         r, g, b = map(int, color.split(","))
@@ -1261,66 +1486,94 @@ class Neviweb130Client:
             _LOGGER.debug("led off color.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_led_on_intensity(self, device_id: str, intensity):
+    async def async_set_led_on_intensity(self, device_id: str, intensity) -> bool:
         """Set device led indicator intensity for on state."""
         data = {ATTR_LED_ON_INTENSITY: intensity}
         _LOGGER.debug("led on intensity.data on = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_led_off_intensity(self, device_id: str, intensity):
+    async def async_set_led_off_intensity(self, device_id: str, intensity) -> bool:
         """Set device led indicator intensity for off state."""
         data = {ATTR_LED_OFF_INTENSITY: intensity}
         _LOGGER.debug("led off intensity.data on = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_light_min_intensity(self, device_id: str, intensity):
+    async def async_set_light_min_intensity(self, device_id: str, intensity) -> bool:
         """Set dimmer light minimum intensity from 1 to 3000."""
         data = {ATTR_INTENSITY_MIN: intensity}
         _LOGGER.debug("led min intensity.data on = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_wattage(self, device_id: str, watt):
+    async def async_set_wattage(self, device_id: str, watt) -> bool:
         """Set light and dimmer watt load."""
         data = {ATTR_LIGHT_WATTAGE: {"status": "on", "value": watt}}
         _LOGGER.debug("wattage.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_auxiliary_load(self, device_id: str, status, load):
+    async def async_set_auxiliary_load(self, device_id: str, status, load) -> bool:
         """Set auxiliary output load in watt."""
         data = {ATTR_FLOOR_OUTPUT2: {"status": status, "value": load}}
         _LOGGER.debug("auxiliary_load.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_valve_alert(self, device_id: str, batt):
+    async def async_set_valve_alert(self, device_id: str, batt: bool | None, ZB_valve: bool, mesh: bool) -> bool:
         """Set Sedna valve battery alert on/off."""
-        data = {ATTR_BATT_ALERT: batt}
+        if ZB_valve or mesh:
+            if batt:
+                data: dict[str, Any] = {ATTR_BATT_ALERT: 1}
+            else:
+                data: dict[str, Any] = {ATTR_BATT_ALERT: 0}
+        else:
+            data: dict[str, Any] = {ATTR_BATT_ALERT: batt}
         _LOGGER.debug("valve.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_valve_temp_alert(self, device_id: str, temp):
+    async def async_set_valve_temp_alert(self, device_id: str, temp: bool | None) -> bool:
         """Set Sedna valve temperature alert on/off."""
-        data = {ATTR_TEMP_ALERT: temp}
-        _LOGGER.debug("valve.data = %s", data)
+        data: dict[str, Any] = {ATTR_TEMP_ALERT: temp}
+        _LOGGER.debug("valve temp alert.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_battery_type(self, device_id: str, batt):
+    async def async_set_switch_temp_alert(self, device_id: str, temp: int | None) -> bool:
+        """Set Sedna valve temperature alert on/off."""
+        data: dict[str, Any] = {ATTR_TEMP_ALERT: temp}
+        _LOGGER.debug("switch temp alert.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_battery_type(self, device_id: str, batt: str) -> bool:
         """Set water leak sensor battery type, lithium or alkaline."""
-        data = {ATTR_BATTERY_TYPE: batt}
+        data: dict[str, Any] = {ATTR_BATTERY_TYPE: batt}
         _LOGGER.debug("battery_type.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_sensor_alert(self, device_id: str, leak, batt, temp, close):
-        """Set leak detector alert, battery, temperature, leak, Sedna valve closing."""
-        data = {
-            ATTR_LEAK_ALERT: leak,
-            ATTR_BATT_ALERT: batt,
-            ATTR_TEMP_ALERT: temp,
-            ATTR_CONF_CLOSURE: close,
-        }
+    async def async_set_sensor_leak_alert(self, device_id: str, leak: bool | None) -> bool:
+        """Set leak detector water leak alert action."""
+        if leak is None:
+            _LOGGER.warning("Leak alert value is None for device %s", device_id)
+            return False
+        data: dict[str, Any] = {ATTR_BATT_ALERT: leak}
         _LOGGER.debug("leak.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_load_dr_options(self, device_id: str, onoff, optout, dr):
+    async def async_set_sensor_temp_alert(self, device_id: str, temp: bool | None) -> bool:
+        """Set leak detector low temperature alert action."""
+        if temp is None:
+            _LOGGER.warning("Temperature alert value is None for device %s", device_id)
+            return False
+        data: dict[str, Any] = {ATTR_BATT_ALERT: temp}
+        _LOGGER.debug("leak.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_sensor_closure_action(self, device_id: str, close: str | None) -> bool:
+        """Set leak detector connected to Sedna valve, closure action in case of leak alert."""
+        if close is None:
+            _LOGGER.warning("Closure action value is None for device %s", device_id)
+            return False
+        data: dict[str, Any] = {ATTR_BATT_ALERT: close}
+        _LOGGER.debug("leak.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_load_dr_options(self, device_id: str, onoff, optout, dr) -> bool:
         """Set load controller Eco Sinope attributes."""
         data = {
             ATTR_DRSTATUS: {
@@ -1332,25 +1585,42 @@ class Neviweb130Client:
         _LOGGER.debug("Load.DR.options = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_hvac_dr_options(self, device_id: str, dr, optout, setpoint):
+    async def async_set_hvac_dr_options(
+        self, device_id: str, *,dr=None, optout=None, setpoint=None, aux_conf=None, fan_speed_conf=None
+    ) -> bool:
         """Set load controller Eco Sinope attributes."""
-        data = {
-            ATTR_DRSTATUS: {
-                "drActive": dr,
-                "optOut": optout,
-                "setpoint": setpoint,
+        data: dict[str, Any]
+        if dr is not None and optout is not None and setpoint is not None:
+            data = {
+                ATTR_DRSTATUS: {
+                    "drActive": dr,
+                    "optOut": optout,
+                    "setpoint": setpoint,
+                }
             }
-        }
-        _LOGGER.debug("hvac.DR.options = %s", data)
-        return await self.async_set_device_attributes(device_id, data)
+            _LOGGER.debug("hvac.DR.options = %s", data)
+            return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_hvac_dr_setpoint(self, device_id: str, status, val):
+        if aux_conf is not None:
+            data = {ATTR_DR_AUX_CONF: "activated" if aux_conf == "on" else "deactivated"}
+            _LOGGER.debug("hvac.DR.options = %s", data)
+            return await self.async_set_device_attributes(device_id, data)
+
+        if fan_speed_conf is not None:
+            data = {
+                # Not a typo: Disabled is really sending "on" (allow fan to be always on when the optim is disabled)
+                ATTR_DR_FAN_SPEED_CONF: "auto" if fan_speed_conf == "on" else "on"
+            }
+            _LOGGER.debug("hvac.DR.options = %s", data)
+            return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_hvac_dr_setpoint(self, device_id: str, status, val) -> bool:
         """Set load controller Eco Sinope attributes."""
         data = {ATTR_DRSETPOINT: {"status": status, "value": val}}
         _LOGGER.debug("hvac.DR.setpoint = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_control_onoff(self, device_id: str, number, status):
+    async def async_set_control_onoff(self, device_id: str, number, status) -> bool:
         """Set valve controller onOff or OnOff2 status, on or off."""
         if number == 1:
             data = {ATTR_ONOFF: status}
@@ -1359,74 +1629,89 @@ class Neviweb130Client:
         _LOGGER.debug("control.valve.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_tank_type(self, device_id: str, tank):
+    async def async_set_tank_type(self, device_id: str, tank: str | None) -> bool:
         """Set tank type for LM4110-ZB sensor."""
-        data = {ATTR_TANK_TYPE: tank}
+        data: dict[str, Any] = {ATTR_TANK_TYPE: tank}
         _LOGGER.debug("tank_type.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_gauge_type(self, device_id: str, gauge):
+    async def async_set_gauge_type(self, device_id: str, gauge: str | None) -> bool:
         """Set gauge type for LM4110-ZB sensor on propane tank."""
-        data = {ATTR_GAUGE_TYPE: gauge}
+        gauge_type = ha_to_neviweb_gauge(gauge)
+        data: dict[str, Any] = {ATTR_GAUGE_TYPE: gauge_type}
         _LOGGER.debug("gauge_type.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_low_fuel_alert(self, device_id: str, alert):
+    async def async_set_aux_heating_source(self, device_id: str, equip: str) -> bool:
+        """Set auxiliary heating source for TH6500WF and TH6250WF."""
+        data: dict[str, Any] = {ATTR_AUX_HEAT_SOURCE_TYPE: equip}
+        _LOGGER.debug("aux_heating_source.data = %s", data)
+        return  await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_low_fuel_alert(self, device_id: str, alert: str | None) -> bool:
         """Set low fuel alert limit for LM4110-ZB sensor."""
-        data = {ATTR_FUEL_PERCENT_ALERT: alert}
+        level = ha_to_neviweb_level(alert)
+        data: dict[str, Any] = {ATTR_FUEL_PERCENT_ALERT: level}
         _LOGGER.debug("low_fuel_alert.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_refuel_alert(self, device_id: str, alert):
+    async def async_set_refuel_alert(self, device_id: str, alert: bool) -> bool:
         """Set refuel alert for LM4110-ZB sensor."""
-        data = {ATTR_REFUEL: alert}
+        data: dict[str, Any] = {ATTR_REFUEL: alert}
         _LOGGER.debug("Refuel_alert.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_tank_height(self, device_id: str, height):
-        """Set low fuel alert limit for LM4110-ZB sensor."""
-        data = {ATTR_TANK_HEIGHT: height}
+    async def async_set_tank_height(self, device_id: str, height: str | None) -> bool:
+        """Set tank height in inch for LM4110-ZB sensor."""
+        high = ha_to_neviweb_height(height)
+        data: dict[str, Any] = {ATTR_TANK_HEIGHT: high}
         _LOGGER.debug("tank_height.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_fuel_alert(self, device_id: str, fuel):
+    async def async_set_fuel_alert(self, device_id: str, fuel: bool | None) -> bool:
         """Set low fuel alert limit for LM4110-ZB sensor."""
-        data = {ATTR_FUEL_ALERT: fuel}
+        data: dict[str, Any] = {ATTR_FUEL_ALERT: fuel}
         _LOGGER.debug("Fuel_alert.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_battery_alert(self, device_id: str, batt):
+    async def async_set_battery_alert(self, device_id: str, batt: bool | None) -> bool:
         """Set low fuel alert limit for LM4110-ZB sensor."""
-        data = {ATTR_BATT_ALERT: batt}
+        if batt is None:
+            _LOGGER.warning("Battery alert value is None for device %s", device_id)
+            return False
+        data: dict[str, Any] = {ATTR_BATT_ALERT: batt}
         _LOGGER.debug("battery_alert.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_power_supply(self, device_id: str, supply):
+    async def async_set_power_supply(self, device_id: str, supply: str | None) -> bool:
         """Set power supply for Sedna valve."""
-        data = {ATTR_POWER_SUPPLY: supply}
+        supply_val = ha_to_neviweb_supply(supply)
+        data: dict[str, Any] = {ATTR_POWER_SUPPLY: supply_val}
         _LOGGER.debug("power_supply.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_on_off_input_delay(self, device_id: str, delay, onoff, input_number):
+    async def async_set_on_off_input_delay(self, device_id: str, delay: str | None, onoff: str, input_number: int) -> bool:
         """Set input 1 or 2 on/off delay in seconds."""
+        data: dict[str, Any]
+        length = ha_to_neviweb_delay(delay)
         if input_number == 1:
             match onoff:
                 case "on":
-                    data = {ATTR_INPUT_1_ON_DELAY: delay}
+                    data = {ATTR_INPUT_1_ON_DELAY: length}
                 case _:
-                    data = {ATTR_INPUT_1_OFF_DELAY: delay}
+                    data = {ATTR_INPUT_1_OFF_DELAY: length}
         else:
             match onoff:
                 case "on":
-                    data = {ATTR_INPUT_2_ON_DELAY: delay}
+                    data = {ATTR_INPUT_2_ON_DELAY: length}
                 case _:
-                    data = {ATTR_INPUT_2_OFF_DELAY: delay}
+                    data = {ATTR_INPUT_2_OFF_DELAY: length}
         _LOGGER.debug("input_delay.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_input_output_names(self, device_id: str, in1, in2, out1, out2):
+    async def async_set_input_output_names(self, device_id: str, in1: str, in2: str, out1: str, out2: str) -> bool:
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
-        data = {}
+        data: dict[str, Any] = {}
         if len(in1) > 0:
             data.update({ATTR_NAME_1: in1})
         else:
@@ -1446,79 +1731,175 @@ class Neviweb130Client:
         _LOGGER.debug("in/out names.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_heat_pump_limit(self, device_id: str, temp):
+    async def async_set_heat_pump_limit(self, device_id: str, temp: int) -> bool:
         """Set minimum temperature for heat pump operation."""
-        data = {ATTR_BALANCE_PT: temp}
+        data: dict[str, Any] = {ATTR_BALANCE_PT: temp}
         _LOGGER.debug("Heat pump limit value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_heat_lockout(self, device_id: str, temp):
+    async def async_set_heat_lockout(self, device_id: str, temp: int) -> bool:
         """Set maximum outside temperature limit to allow heating device operation."""
-        data = {ATTR_HEAT_LOCK_TEMP: temp}
+        data: dict[str, Any] = {ATTR_HEAT_LOCK_TEMP: temp}
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cool_lockout(self, device_id: str, temp):
+    async def async_set_cool_lockout(self, device_id: str, temp: int) -> bool:
         """Set minimum outside temperature limit to allow cooling devices operation."""
-        data = {ATTR_COOL_LOCK_TEMP: temp}
+        data: dict[str, Any] = {ATTR_COOL_LOCK_TEMP: temp}
         _LOGGER.debug("Cool lockout limit value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_hp_display(self, device_id: str, display):
+    async def async_set_hp_display(self, device_id: str, display: str) -> bool:
         """Set display on/off for heat pump."""
-        data = {ATTR_DISPLAY_CONF: display}
+        data: dict[str, Any] = {ATTR_DISPLAY_CONF: display}
         _LOGGER.debug("Display config value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_hp_sound(self, device_id: str, sound):
+    async def async_set_hp_sound(self, device_id: str, sound: str) -> bool:
         """Set display on/off for heat pump."""
-        data = {ATTR_SOUND_CONF: sound}
+        data: dict[str, Any] = {ATTR_SOUND_CONF: sound}
         _LOGGER.debug("Sound config value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_swing_horizontal(self, device_id: str, swing):
+    async def async_set_swing_horizontal(self, device_id: str, swing: str) -> bool:
         """Set horizontal fan swing action for heat pump."""
-        data = {ATTR_FAN_SWING_HORIZ: swing}
+        data: dict[str, Any] = {ATTR_FAN_SWING_HORIZ: swing}
         _LOGGER.debug("Fan horizontal swing value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_swing_vertical(self, device_id: str, swing):
+    async def async_set_swing_vertical(self, device_id: str, swing: str) -> bool:
         """Set vertical fan swing action for heat pump."""
-        data = {ATTR_FAN_SWING_VERT: swing}
+        data: dict[str, Any] = {ATTR_FAN_SWING_VERT: swing}
         _LOGGER.debug("Fan vertical swing value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_fan_mode(self, device_id: str, speed):
+    async def async_set_fan_mode(self, device_id: str, speed: str) -> bool:
         """Set fan speed (mode) for heat pump."""
-        data = {ATTR_FAN_SPEED: speed}
+        data: dict[str, Any] = {ATTR_FAN_SPEED: speed}
         _LOGGER.debug("Fan speed value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_hc_display(self, device_id: str, display):
+    async def async_set_hc_display(self, device_id: str, display: str) -> bool:
         """Set device second display for outside temperature or setpoint temperature for TH1134ZB-HC."""
-        data = {ATTR_DISPLAY2: display}
+        data: dict[str, Any] = {ATTR_DISPLAY2: display}
         _LOGGER.debug("Hc display.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_language(self, device_id: str, lang):
+    async def async_set_language(self, device_id: str, lang: str) -> bool:
         """Set display language for TH1134ZB-HC."""
-        data = {ATTR_LANGUAGE: lang}
+        data: dict[str, Any] = {ATTR_LANGUAGE: lang}
         _LOGGER.debug("Hc language.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_aux_heat_time_on(self, device_id: str, time):
-        """Set auxiliary heating minimum time on for TH6500WF and TH6250WF."""
-        data = {ATTR_AUX_HEAT_TIMEON: time}
-        _LOGGER.debug("HC aux_heat_time_on.data = %s", data)
+    async def async_set_heat_dissipation_time(self, device_id: str, time: int, HC: bool) -> bool:
+        """Set heating purge time for TH6500WF and TH6250WF thermostats."""
+        if HC:
+            data: dict[str, Any] = {ATTR_HEAT_PURGE_TIME: time}
+            _LOGGER.debug("HC heat_dissipation_time.data = %s", data)
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            await self.notify_ha("Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_cool_dissipation_time(self, device_id: str, time: int, HC: bool) -> bool:
+        """Set cooling purge time for TH6500WF and TH6250WF thermostats."""
+        if HC:
+            data: dict[str, Any] = {ATTR_COOL_PURGE_TIME: time}
+            _LOGGER.debug("HC cool_dissipation_time.data = %s", data)
+            return await self.async_set_device_attributes(device_id, data)
+        else:
+            self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+            return False
+
+    async def async_set_reversing_valve_polarity(self, device_id: str, polarity: str) -> bool:
+        """Set minimum time the heater is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_REVERSING_VALVE_POLARITY: polarity}
+        _LOGGER.debug("HC set_reversing_valve_polarity.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_cool_time(self, device_id: str, time, state):
-        """Set minimum cooling time on for TH6500WF and TH6250WF."""
-        if state == "on":
-            data = {ATTR_COOL_MIN_TIME_ON: time}
-        else:
-            data = {ATTR_COOL_MIN_TIME_OFF: time}
-        _LOGGER.debug("HC cool_min_time_on/off.data = %s", data)
+    async def async_set_heat_min_time_on(self, device_id: str, time: int) -> bool:
+        """Set minimum time the heater is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_HEAT_MIN_TIME_ON: time}
+        _LOGGER.debug("HC heat_min_time_on.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_heat_min_time_off(self, device_id: str, time: int) -> bool:
+        """Set minimum time the heater is off before letting it be on again (cooldown time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_HEAT_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC heat_min_time_off.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_cool_min_time_on(self, device_id: str, time: int) -> bool:
+        """Set minimum time the cooler is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_COOL_MIN_TIME_ON: time}
+        _LOGGER.debug("HC cool_min_time_on.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_cool_min_time_off(self, device_id: str, time: int) -> bool:
+        """Set minimum time the cooler is off before letting it be on again (cooldown time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_COOL_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC cool_min_time_off.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_aux_heat_min_time_on(self, device_id: str, time: int) -> bool:
+        """Set minimum time the auxiliary heater is on before letting be off again (run-on time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_AUX_HEAT_MIN_TIME_ON: time}
+        _LOGGER.debug("HC aux_heat_min_time_on.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_aux_heat_min_time_off(self, device_id: str, time: int) -> bool:
+        """Set minimum time the auxiliary heater is off before letting it be on again (cooldown time).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_AUX_HEAT_MIN_TIME_OFF: time}
+        _LOGGER.debug("HC aux_heat_min_time_off.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_heat_interstage_delay(self, device_id: str, time: int) -> bool:
+        """Set total time before reaching last heat stage (interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_HEAT_INTERSTAGE_DELAY: time}
+        _LOGGER.debug("HC set_heat_interstage_delay.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_aux_interstage_delay(self, device_id: str, time: int) -> bool:
+        """Set total time before reaching last auxiliary heat stage (interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_AUX_INTERSTAGE_DELAY: time}
+        _LOGGER.debug("HC set_aux_interstage_delay.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_cool_interstage_delay(self, device_id: str, time: int) -> bool:
+        """Set total time before reaching last cool stage (interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_COOL_INTERSTAGE_DELAY: time}
+        _LOGGER.debug("HC set_cool_interstage_delay.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_heat_interstage_min_delay(self, device_id: str, time: int) -> bool:
+        """Set minimum time before reaching next heat stage (min interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_HEAT_INTERSTAGE_MIN_DELAY: time}
+        _LOGGER.debug("HC set_heat_min_interstage_delay.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_aux_interstage_min_delay(self, device_id: str, time: int) -> bool:
+        """Set minimum time before reaching next auxiliary stage (min interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_AUX_INTERSTAGE_MIN_DELAY: time}
+        _LOGGER.debug("HC set_aux_min_interstage_delay.data = %s", data)
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_cool_interstage_min_delay(self, device_id: str, time: int) -> bool:
+        """Set minimum time before reaching next cool stage (min interstage delay).
+        for TH6500WF and TH6250WF thermostats."""
+        data: dict[str, Any] = {ATTR_COOL_INTERSTAGE_MIN_DELAY: time}
+        _LOGGER.debug("HC set_cool_min_interstage_delay.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_device_attributes(self, device_id: str, data: dict[str, Any]) -> bool:
@@ -1569,7 +1950,7 @@ class Neviweb130Client:
 
         return success
 
-    async def async_post_neviweb_status(self, location: int | str, mode: str):
+    async def async_post_neviweb_status(self, location: int | str, mode: str) -> bool:
         """Send post requests to Neviweb for global occupancy mode"""
         # session = await create_session()
         location = str(location)
