@@ -386,8 +386,8 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
             networks = raw_res.json()
-            _LOGGER.debug("Number of networks found on Neviweb: %s", len(networks))
-            _LOGGER.debug("networks: %s", networks)
+            _LOGGER.warning("Number of networks found on Neviweb: %s", len(networks))
+            _LOGGER.warning("networks: %s", networks)
             if (
                 self._network_name is None and self._network_name2 is None and self._network_name3 is None
             ):  # Use 1st network found, second or third if found
@@ -395,24 +395,26 @@ class Neviweb130Client:
                 self._network_name = networks[0]["name"]
                 self._occupancyMode = networks[0]["mode"]
                 self._code = networks[0]["postalCode"]
-                _LOGGER.debug("Selecting %s as first network", self._network_name)
+                _LOGGER.warning("Selecting %s as first network", self._network_name)
                 if len(networks) > 1:
                     self._gateway_id2 = networks[1]["id"]
                     self._network_name2 = networks[1]["name"]
+                    self._occupancyMode = networks[1]["mode"]
                     self._code = networks[1]["postalCode"]
-                    _LOGGER.debug("Selecting %s as second network", self._network_name2)
+                    _LOGGER.warning("Selecting %s as second network", self._network_name2)
                     if len(networks) > 2:
                         self._gateway_id3 = networks[2]["id"]
                         self._network_name3 = networks[2]["name"]
+                        self._occupancyMode = networks[2]["mode"]
                         self._code = networks[2]["postalCode"]
-                        _LOGGER.debug("Selecting %s as third network", self._network_name3)
+                        _LOGGER.warning("Selecting %s as third network", self._network_name3)
             else:
                 for network in networks:
                     if network["name"] == self._network_name:
                         self._gateway_id = network["id"]
                         self._occupancyMode = network["mode"]
                         self._code = network["postalCode"]
-                        _LOGGER.debug(
+                        _LOGGER.warning(
                             "Selecting %s network among: %s",
                             self._network_name,
                             networks,
@@ -424,14 +426,14 @@ class Neviweb130Client:
                         self._gateway_id = network["id"]
                         self._occupancyMode = network["mode"]
                         self._code = network["postalCode"]
-                        _LOGGER.debug(
+                        _LOGGER.warning(
                             "Please check first letter of your network name. "
                             "Is it a capital letter or not? "
                             f"Selecting {self._network_name} network among: {networks}"
                         )
                         continue
                     else:
-                        _LOGGER.debug(
+                        _LOGGER.warning(
                             f"Your network name {self._network_name} do not correspond to "
                             f"discovered network {network['name']}, skipping this one... "
                             f"Please check your config if nothing get discovered"
@@ -440,6 +442,7 @@ class Neviweb130Client:
                     if self._network_name2 is not None and self._network_name2 != "":
                         if network["name"] == self._network_name2:
                             self._gateway_id2 = network["id"]
+                            self._occupancyMode = network["mode"]
                             self._code = network["postalCode"]
                             _LOGGER.debug(
                                 "Selecting %s network among: %s",
@@ -451,15 +454,16 @@ class Neviweb130Client:
                             network["name"] == self._network_name2[0].lower() + self._network_name2[1:]
                         ):
                             self._gateway_id = network["id"]
+                            self._occupancyMode = network["mode"]
                             self._code = network["postalCode"]
-                            _LOGGER.debug(
+                            _LOGGER.warning(
                                 "Please check first letter of your network2 name. "
                                 "Is it a capital letter or not? "
                                 f"Selecting {self._network_name2} network among: {networks}"
                             )
                             continue
                         else:
-                            _LOGGER.debug(
+                            _LOGGER.warning(
                                 f"Your network2 name {self._network_name2} do not correspond to "
                                 f"discovered network {network['name']}, skipping this one..."
                             )
@@ -467,8 +471,9 @@ class Neviweb130Client:
                     if self._network_name3 is not None and self._network_name3 != "":
                         if network["name"] == self._network_name3:
                             self._gateway_id3 = network["id"]
+                            self._occupancyMode = network["mode"]
                             self._code = network["postalCode"]
-                            _LOGGER.debug(
+                            _LOGGER.warning(
                                 "Selecting %s network among: %s",
                                 self._network_name3,
                                 networks,
@@ -478,15 +483,16 @@ class Neviweb130Client:
                             network["name"] == self._network_name3[0].lower() + self._network_name3[1:]
                         ):
                             self._gateway_id = network["id"]
+                            self._occupancyMode = network["mode"]
                             self._code = network["postalCode"]
-                            _LOGGER.debug(
+                            _LOGGER.warning(
                                 "Please check first letter of your network3 name. "
                                 "Is it a capital letter or not? "
                                 f"Selecting {self._network_name3} network among: {networks}"
                             )
                             continue
                         else:
-                            _LOGGER.debug(
+                            _LOGGER.warning(
                                 f"Your network3 name {self._network_name3} do not correspond to "
                                 f"discovered network {network['name']}, skipping this one..."
                             )
@@ -504,6 +510,14 @@ class Neviweb130Client:
 
     def __get_gateway_data(self) -> None:
         """Get gateway data."""
+        # Check if gateway_id was set
+        if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
+            _LOGGER.warning("No gateway defined, check your config for networks names...")
+            self.notify_ha(
+                "All Gateway ID are None. Network selection failed. "
+                + "Check that your configuration network names match one of the networks in your Neviweb account. "
+                + "Available networks were logged during network selection. Check your log"
+            )
         # Http requests
         try:
             raw_res = requests.get(
@@ -1158,7 +1172,7 @@ class Neviweb130Client:
         self.set_device_attributes(device_id, data)
 
     def set_controlled_device(self, device_id: str, val):
-        """Set device name controlled by RM3250ZB."""
+        """Set device name controlled by RM3250ZB and RM3250WF."""
         data = {ATTR_CONTROLLED_DEVICE: val}
         _LOGGER.debug("ControlledDevice.data = %s", data)
         self.set_device_attributes(device_id, data)
