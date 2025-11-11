@@ -22,7 +22,8 @@ model 336 = thermostat TH1134WF 4000W (Wi-Fi lite) three wires connection
 model 336 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
-model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (Wi-Fi floor)
+model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (sku: PS120_240WF)
+    (wifi floor), no energy stat for True Comfort
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
 model 742 = thermostat TH1500WF double pole thermostat (Wi-Fi)
 model 6727 = thermostat TH6500WF heat/cool (Wi-Fi)
@@ -31,12 +32,18 @@ model 6730 = thermostat TH6250WF heat/cool (Wi-Fi)
 model 6730 = thermostat TH6250WF-PRO heat/cool (Wi-Fi)
 
 Support for Flextherm Wi-Fi thermostat
-model 738 = Thermostat Flextherm concerto connect FLP55 (Wi-Fi floor), (sku: FLP55), no energy stats
+model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
+    (sku: FLP55), no energy stats
 
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
 model 6811 = HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
 model 6812 = HP6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
+
+Support for Wi-Fi heat pump interfaces
+model 6813 = HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
+model 6814 = HP6000WF-XX for Hisense, Haxxair and Zephyr heat pump
+model xxxx = HP6000WF-XX for Ouellet heat pump with Gree connector
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -182,6 +189,7 @@ from .const import (
     ATTR_SOUND_CONF,
     ATTR_STATUS,
     ATTR_SYSTEM_MODE,
+    ATTR_SYSTEM_MODE_AVAIL,
     ATTR_TEMP,
     ATTR_TEMP_OFFSET_HEAT,
     ATTR_TIME,
@@ -404,6 +412,7 @@ SUPPORTED_HVAC_WIFI_MODES: list[HVACMode] = [
 
 SUPPORTED_HVAC_WIFI_LITE_MODES: list[HVACMode] = [
     HVACMode.AUTO,
+    HVACMode.HEAT,
     HVACMode.OFF,
 ]
 
@@ -485,6 +494,7 @@ DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1512]
 DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
+DEVICE_MODEL_WIFI_HEAT_PUMP = [6813, 6814]
 DEVICE_MODEL_HEAT_COOL = [6727, 6730]
 IMPLEMENTED_DEVICE_MODEL = (
     DEVICE_MODEL_HEAT
@@ -500,6 +510,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + DEVICE_MODEL_HEAT_COOL
     + DEVICE_MODEL_WIFI_LITE
     + DEVICE_MODEL_COLOR_WIFI
+    + DEVICE_MODEL_WIFI_HEAT_PUMP
 )
 
 
@@ -654,6 +665,17 @@ async def async_setup_platform(
             elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
                 entities.append(
                     Neviweb130HPThermostat(
+                        data,
+                        device_info,
+                        device_name,
+                        device_sku,
+                        device_firmware,
+                        location_id,
+                    )
+                )
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP:
+                entities.append(
+                    Neviweb130WifiHPThermostat(
                         data,
                         device_info,
                         device_name,
@@ -819,6 +841,17 @@ async def async_setup_platform(
                         location_id,
                     )
                 )
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP:
+                entities.append(
+                    Neviweb130WifiHPThermostat(
+                        data,
+                        device_info,
+                        device_name,
+                        device_sku,
+                        device_firmware,
+                        location_id,
+                    )
+                )
             else:
                 entities.append(
                     Neviweb130HeatCoolThermostat(
@@ -976,6 +1009,17 @@ async def async_setup_platform(
                         location_id,
                     )
                 )
+            elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP:
+                entities.append(
+                    Neviweb130WifiHPThermostat(
+                        data,
+                        device_info,
+                        device_name,
+                        device_sku,
+                        device_firmware,
+                        location_id,
+                    )
+                )
             else:
                 entities.append(
                     Neviweb130HeatCoolThermostat(
@@ -1053,8 +1097,7 @@ async def async_setup_platform(
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Heat-Pump thermostat and does not support time format"
             )
-        # TODO: uncomment this when it exists
-        if False:  # isinstance(thermostat, Neviweb130WifiHPThermostat):
+        if isinstance(thermostat, Neviweb130WifiHPThermostat):
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Wi-Fi Heat-Pump thermostat and does not support time format"
             )
@@ -1976,11 +2019,13 @@ class Neviweb130Thermostat(ClimateEntity):
             or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
             or device_info["signature"]["model"] in DEVICE_MODEL_HEAT_COOL
             or device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
+            or device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP
         )
         self._is_wifi_lite = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_LITE
         self._is_low_voltage = device_info["signature"]["model"] in DEVICE_MODEL_LOW
         self._is_low_wifi = device_info["signature"]["model"] in DEVICE_MODEL_LOW_WIFI
         self._is_HP = device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP
+        self._is_WHP = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP
         self._is_color_wifi = device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
         self._active = True
         self._aux_cycle_length = 0
@@ -2240,7 +2285,7 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of supported features."""
         if self._is_floor or self._is_wifi_floor or self._is_low_wifi or self._is_low_voltage:
             return SUPPORT_AUX_FLAGS
-        elif self._is_HP:
+        elif self._is_HP or self._is_WHP:
             return SUPPORT_HP_FLAGS
         elif self._is_h_c:
             return SUPPORT_H_c_FLAGS
@@ -2328,7 +2373,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return SUPPORTED_HVAC_WIFI_MODES
         elif self._is_h_c:
             return SUPPORTED_HVAC_H_C_MODES
-        elif self._is_HP:
+        elif self._is_HP or self._is_WHP:
             if self._avail_mode == "heatingOnly":
                 return SUPPORTED_HVAC_HEAT_MODES
             elif self._avail_mode == "coolingOnly":
@@ -2421,6 +2466,7 @@ class Neviweb130Thermostat(ClimateEntity):
             or self._operation_mode == HVACMode.DRY
             or self._operation_mode == HVACMode.AUTO
             or self._operation_mode == MODE_MANUAL
+            or self._operation_mode == HVACMode.FAN_ONLY
         )
 
     @property
@@ -2435,6 +2481,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return available fan modes."""
         if self._is_HP or self._is_h_c:
             return FAN_SPEED
+        elif self._is_WHP:
+            return WIFI_FAN_SPEED
         else:
             return None
 
@@ -2442,7 +2490,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def swing_mode(self) -> str | None:
         """Return the fan vertical swing setting."""
-        if self._is_HP or self._is_h_c:
+        if self._is_HP or self._is_WHP or self._is_h_c:
             return self._fan_swing_vert
         return None
 
@@ -2450,7 +2498,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def swing_modes(self) -> list[str] | None:
         """Return available vertical swing modes."""
-        if self._is_HP or self._is_h_c:
+        if self._is_HP or self._is_WHP or self._is_h_c:
             if self._fan_swing_cap is None or self._fan_swing_cap_vert is None:
                 return None
             elif not extract_capability(self._fan_swing_cap):
@@ -2466,7 +2514,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def swing_horizontal_mode(self) -> str | None:
         """Return the fan swing setting."""
-        if self._is_HP or self._is_h_c:
+        if self._is_HP or self._is_WHP or self._is_h_c:
             return self._fan_swing_horiz
         return None
 
@@ -2474,7 +2522,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
-        if self._is_HP or self._is_h_c:
+        if self._is_HP or self._is_WHP or self._is_h_c:
             if self._fan_swing_cap is None or self._fan_swing_cap_horiz is None:
                 return None
             elif not extract_capability(self._fan_swing_cap):
@@ -2900,7 +2948,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._name,
                 self._sku,
                 device_hourly_stats,
-                len(device_hourly_stats) if device_hourly_stats is not None else None,
+                len(device_hourly_stats),
             )
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
@@ -2940,25 +2988,24 @@ class Neviweb130Thermostat(ClimateEntity):
 
     def get_sensor_error_code(self, start):
         """Get device sensor error code."""
-        if not self._is_wifi:
-            device_error_code = self._client.get_device_sensor_error(self._id)
-            if device_error_code is not None and device_error_code != {}:
-                if device_error_code["raw"] != 0:
-                    self._error_code = device_error_code["raw"]
-                    self.notify_ha(
-                        "Warning: Neviweb Device error code detected: "
-                        + str(device_error_code["raw"])
-                        + " for device: "
-                        + self._name
-                        + ", ID: "
-                        + str(self._id)
-                        + ", Sku: "
-                        + self._sku
-                    )
-                    _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
-                    self._energy_stat_time = time.time()
-                if self._energy_stat_time == 0:
-                    self._energy_stat_time = start
+        device_error_code = self._client.get_device_sensor_error(self._id)
+        if device_error_code is not None and device_error_code != {}:
+            if device_error_code["raw"] != 0:
+                self._error_code = device_error_code["raw"]
+                self.notify_ha(
+                    "Warning: Neviweb Device error code detected: "
+                    + str(device_error_code["raw"])
+                    + " for device: "
+                    + self._name
+                    + ", ID: "
+                    + str(self._id)
+                    + ", Sku: "
+                    + self._sku
+                )
+                _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
+                self._energy_stat_time = time.time()
+            if self._energy_stat_time == 0:
+                self._energy_stat_time = start
 
     def log_error(self, error_data):
         """Send error message to LOG."""
@@ -4470,7 +4517,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF and SRM40 thermostat."""
+    """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF, SRM40 and True Comfort thermostat."""
 
     def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
@@ -4590,7 +4637,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            if self._sku != "FLP55" and self._sku != "True Comfort":
+            if self._sku != "FLP55" and self._sku != "PS120_240WF":
                 self.do_stat(start)
             self.get_sensor_error_code(start)
             self.get_weather()
@@ -5064,6 +5111,203 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             )
         data.update(
             {
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
+                "rssi": self._rssi,
+                "sku": self._sku,
+                "device_model": str(self._device_model),
+                "device_model_cfg": self._device_model_cfg,
+                "firmware": self._firmware,
+                "activation": self._active,
+                "id": self._id,
+            }
+        )
+        return data
+
+
+class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
+    """Implementation of Neviweb HP6000WF-MA and HP6000WF-XX Wi-Fi heat pump interfaces thermostats."""
+
+    def __init__(self, data, device_info, name, sku, firmware, location):
+        """Initialize."""
+        super().__init__(data, device_info, name, sku, firmware, location)
+        self._cool_max = 31
+        self._cool_min = 16
+        self._cool_target_temp_away = None
+        self._display_cap = None
+        self._fan_cap = None
+        self._heat_cool = None
+        self._heat_lock_temp = None
+        self._interlock_id = None
+        self._system_mode_avail = None
+        self._model = None
+        self._sound_cap = None
+
+    @override
+    def update(self) -> None:
+        if self._active:
+            WHP_ATTRIBUTES = [
+                ATTR_BALANCE_PT,
+                ATTR_COOL_LOCK_TEMP,
+                ATTR_COOL_SETPOINT,
+                ATTR_COOL_SETPOINT_AWAY,
+                ATTR_DISPLAY_CAP,
+                ATTR_DISPLAY_CONF,
+                ATTR_DRSETPOINT,
+                ATTR_DRSTATUS,
+                ATTR_FAN_CAP,
+                ATTR_FAN_SPEED,
+                ATTR_FAN_SWING_CAP,
+                ATTR_FAN_SWING_CAP_HORIZ,
+                ATTR_FAN_SWING_CAP_VERT,
+                ATTR_FAN_SWING_HORIZ,
+                ATTR_FAN_SWING_VERT,
+                ATTR_HEAT_COOL,
+                ATTR_HEAT_LOCK_TEMP,
+                ATTR_INTERLOCK_ID,
+                ATTR_MODEL,
+                ATTR_OCCUPANCY,
+                ATTR_ROOM_SETPOINT_AWAY,
+                ATTR_ROOM_TEMP_DISPLAY,
+                ATTR_SETPOINT_MODE,
+                ATTR_SOUND_CAP,
+                ATTR_SOUND_CONF,
+                ATTR_SYSTEM_MODE_AVAIL,
+                ATTR_WIFI,
+                ATTR_WIFI_KEYPAD,
+            ]
+
+            """Get the latest data from Neviweb and update the state."""
+            start = time.time()
+            _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES)
+            device_data = self._client.get_device_attributes(self._id, UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES)
+            neviweb_status = self._client.get_neviweb_status(self._location)
+            end = time.time()
+            elapsed = round(end - start, 3)
+            _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
+
+            if "error" not in device_data:
+                if "errorCode" not in device_data:
+                    self._cur_temp_before = self._cur_temp
+                    self._cur_temp = (
+                        float(device_data[ATTR_ROOM_TEMPERATURE])
+                        if device_data[ATTR_ROOM_TEMPERATURE] is not None
+                        else self._cur_temp_before
+                    )
+                    self._operation_mode = device_data[ATTR_SETPOINT_MODE]
+                    self._target_temp = (
+                        float(device_data[ATTR_COOL_SETPOINT])
+                        if self._operation_mode == "cool"
+                        else float(device_data[ATTR_ROOM_SETPOINT])
+                    )
+                    self._heat_cool = device_data[ATTR_HEAT_COOL]
+                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
+                    self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
+                    self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
+                    self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
+                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                    self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
+                    self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
+                    self._cool_target_temp_away = device_data[ATTR_COOL_SETPOINT_AWAY]
+                    self._temperature_format = device_data[ATTR_TEMP]
+                    if ATTR_OCCUPANCY in device_data:
+                        self._occupancy = device_data[ATTR_OCCUPANCY]
+                    if ATTR_MODEL in device_data and ATTR_MODEL is not None:
+                        self._model = device_data[ATTR_MODEL]
+                    if ATTR_DRSETPOINT in device_data:
+                        self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
+                        self._drsetpoint_value = (
+                            device_data[ATTR_DRSETPOINT]["value"]
+                            if device_data[ATTR_DRSETPOINT]["value"] is not None
+                            else 0
+                        )
+                    if ATTR_DRSTATUS in device_data:
+                        self._drstatus_active = device_data[ATTR_DRSTATUS]["drActive"]
+                        self._drstatus_optout = device_data[ATTR_DRSTATUS]["optOut"]
+                        self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
+                        self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
+                        self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
+                    self._keypad = device_data[ATTR_WIFI_KEYPAD]
+                    if ATTR_WIFI in device_data:
+                        self._rssi = device_data[ATTR_WIFI]
+                    self._fan_speed = device_data[ATTR_FAN_SPEED]
+                    self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
+                    self._fan_cap = device_data[ATTR_FAN_CAP]
+                    self._system_mode_avail = device_data[ATTR_SYSTEM_MODE_AVAIL]
+                    if ATTR_FAN_SWING_HORIZ in device_data:
+                        self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
+                        self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
+                        self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
+                        self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
+                        self._balance_pt = device_data[ATTR_BALANCE_PT]
+                        self._heat_lock_temp = device_data[ATTR_HEAT_LOCK_TEMP]
+                        self._cool_lock_temp = device_data[ATTR_COOL_LOCK_TEMP]
+                    if ATTR_DISPLAY_CONF in device_data:
+                        self._display_conf = device_data[ATTR_DISPLAY_CONF]
+                        self._display_cap = device_data[ATTR_DISPLAY_CAP]
+                        self._sound_conf = device_data[ATTR_SOUND_CONF]
+                        self._sound_cap = device_data[ATTR_SOUND_CAP]
+                    self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                elif device_data["errorCode"] == "ReadTimeout":
+                    _LOGGER.warning(
+                        "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
+                        self._name,
+                        device_data,
+                    )
+                else:
+                    _LOGGER.warning("Error in updating device %s: (%s)", self._name, device_data)
+            else:
+                self.log_error(device_data["error"]["code"])
+            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
+            self.get_sensor_error_code(start)
+            self.get_weather()
+        else:
+            if time.time() - self._snooze > SNOOZE_TIME:
+                self._active = True
+                if NOTIFY == "notification" or NOTIFY == "both":
+                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+
+    @property
+    @override
+    def extra_state_attributes(self) -> Mapping[str, Any]:
+        """Return the state attributes."""
+        data = {}
+        data.update(
+            {
+                "neviweb_occupancy_mode": self._occupancy_mode,
+                "heat_pump_model": self._model,
+                "error_code": self._error_code,
+                "operation modes": self._operation_mode,
+                "cool setpoint min": self._cool_min,
+                "cool setpoint max": self._cool_max,
+                "setpoint_max": self._max_temp,
+                "setpoint_min": self._min_temp,
+                "temperature_format": self._temperature_format,
+                "keypad": lock_to_ha(self._keypad),
+                "fan_speed": self._fan_speed,
+                "fan_swing_vertical": self._fan_swing_vert,
+                "fan_capability": self._fan_cap,
+                "modes_availables": self._system_mode_avail,
+                "heat_pump_limit_temp": self._balance_pt,
+                "min_heat_pump_limit_temp": self._balance_pt_low,
+                "max_heat_pump_limit_temp": self._balance_pt_high,
+                "heat_lock_temp": self._heat_lock_temp,
+                "cool_lock_temp": self._cool_lock_temp,
+                "fan_swing_horizontal": self._fan_swing_horiz,
+                "fan_swing_capability": extract_capability(self._fan_swing_cap),
+                "fan_swing_capability_vertical": extract_capability_full(self._fan_swing_cap_vert),
+                "fan_swing_capability_horizontal": extract_capability_full(self._fan_swing_cap_horiz),
+                "display_conf": self._display_conf,
+                "display_capability": extract_capability(self._display_cap),
+                "sound_conf": self._sound_conf,
+                "sound_capability": extract_capability(self._sound_cap),
+                "eco_status": self._drstatus_active,
+                "eco_optOut": self._drstatus_optout,
+                "eco_setpoint": self._drstatus_setpoint,
+                "eco_power_relative": self._drstatus_rel,
+                "eco_power_absolute": self._drstatus_abs,
+                "eco_setpoint_status": self._drsetpoint_status,
+                "eco_setpoint_delta": self._drsetpoint_value,
                 "outdoor_temp": self._temperature,
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
