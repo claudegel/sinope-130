@@ -5,63 +5,124 @@ from __future__ import annotations
 from datetime import timedelta
 
 import voluptuous as vol
-from homeassistant.const import (ATTR_ENTITY_ID, CONF_PASSWORD,
-                                 CONF_SCAN_INTERVAL, CONF_USERNAME)
+from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 
-from .const import (ATTR_ACTIVE, ATTR_AUX_HEAT_TIMEON, ATTR_BACKLIGHT,
-                    ATTR_BALANCE_PT, ATTR_BATT_ALERT, ATTR_BATTERY_TYPE,
-                    ATTR_BLUE, ATTR_CLOSE_VALVE,
-                    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME, ATTR_CONF_CLOSURE,
-                    ATTR_COOL_LOCK_TEMP, ATTR_COOL_MIN_TIME_OFF,
-                    ATTR_COOL_MIN_TIME_ON, ATTR_COOL_SETPOINT_MAX,
-                    ATTR_COOL_SETPOINT_MIN, ATTR_DISPLAY2, ATTR_DISPLAY_CONF,
-                    ATTR_DRACTIVE, ATTR_EARLY_START, ATTR_FLOOR_AIR_LIMIT,
-                    ATTR_FLOOR_MAX, ATTR_FLOOR_MIN, ATTR_FLOOR_MODE,
-                    ATTR_FLOOR_SENSOR, ATTR_FLOW_ALARM1_PERIOD,
-                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_MODEL_CONFIG,
-                    ATTR_FUEL_ALERT, ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE,
-                    ATTR_GREEN, ATTR_HEAT_LOCK_TEMP, ATTR_HUMIDIFIER_TYPE,
-                    ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP, ATTR_KEYPAD,
-                    ATTR_LANGUAGE, ATTR_LEAK_ALERT, ATTR_LED_OFF_INTENSITY,
-                    ATTR_LED_ON_INTENSITY, ATTR_LIGHT_WATTAGE, ATTR_MODE,
-                    ATTR_NAME_1, ATTR_NAME_2, ATTR_ONOFF, ATTR_ONOFF_NUM,
-                    ATTR_OPTOUT, ATTR_OUTPUT_NAME_1, ATTR_OUTPUT_NAME_2,
-                    ATTR_PHASE_CONTROL, ATTR_POWER_SUPPLY, ATTR_RED,
-                    ATTR_REFUEL, ATTR_ROOM_SETPOINT_MAX,
-                    ATTR_ROOM_SETPOINT_MIN, ATTR_SETPOINT, ATTR_SETPOINT_MODE,
-                    ATTR_SOUND_CONF, ATTR_STATE, ATTR_STATUS, ATTR_TANK_HEIGHT,
-                    ATTR_TANK_TYPE, ATTR_TEMP, ATTR_TEMP_ALERT, ATTR_TIME,
-                    ATTR_TIMER, ATTR_TIMER2, ATTR_TRIGGER_ALARM, ATTR_TYPE,
-                    ATTR_VALUE, ATTR_WATER_TEMP_MIN, CONF_HOMEKIT_MODE,
-                    CONF_IGNORE_MIWI, CONF_NETWORK, CONF_NETWORK2,
-                    CONF_NETWORK3, CONF_NOTIFY, CONF_STAT_INTERVAL, DOMAIN)
+from .const import (
+    ATTR_ACCESSORY_TYPE,
+    ATTR_ACTIVE,
+    ATTR_AIR_EX_MIN_TIME_ON,
+    ATTR_AUX_HEAT_MIN_TIME_OFF,
+    ATTR_AUX_HEAT_MIN_TIME_ON,
+    ATTR_AUX_HEAT_SOURCE_TYPE,
+    ATTR_AUX_OPTIM,
+    ATTR_BACKLIGHT,
+    ATTR_BALANCE_PT,
+    ATTR_BATT_ALERT,
+    ATTR_BATTERY_TYPE,
+    ATTR_BLUE,
+    ATTR_CLOSE_VALVE,
+    ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
+    ATTR_CONF_CLOSURE,
+    ATTR_COOL_LOCK_TEMP,
+    ATTR_COOL_MIN_TIME_OFF,
+    ATTR_COOL_MIN_TIME_ON,
+    ATTR_COOL_SETPOINT_AWAY,
+    ATTR_COOL_SETPOINT_MAX,
+    ATTR_COOL_SETPOINT_MIN,
+    ATTR_DISPLAY2,
+    ATTR_DISPLAY_CONF,
+    ATTR_DRACTIVE,
+    ATTR_EARLY_START,
+    ATTR_FAN_FILTER_REMAIN,
+    ATTR_FAN_SPEED,
+    ATTR_FAN_SPEED_OPTIM,
+    ATTR_FLOOR_AIR_LIMIT,
+    ATTR_FLOOR_MAX,
+    ATTR_FLOOR_MIN,
+    ATTR_FLOOR_MODE,
+    ATTR_FLOOR_SENSOR,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_MODEL_CONFIG,
+    ATTR_FUEL_ALERT,
+    ATTR_FUEL_PERCENT_ALERT,
+    ATTR_GAUGE_TYPE,
+    ATTR_GREEN,
+    ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_MIN_TIME_OFF,
+    ATTR_HEAT_MIN_TIME_ON,
+    ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+    ATTR_HUMIDITY_SETPOINT_MODE,
+    ATTR_INTENSITY_MIN,
+    ATTR_KEY_DOUBLE_UP,
+    ATTR_KEYPAD,
+    ATTR_LANGUAGE,
+    ATTR_LEAK_ALERT,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LIGHT_WATTAGE,
+    ATTR_MODE,
+    ATTR_NAME_1,
+    ATTR_NAME_2,
+    ATTR_ONOFF,
+    ATTR_ONOFF_NUM,
+    ATTR_OPTOUT,
+    ATTR_OUTPUT_NAME_1,
+    ATTR_OUTPUT_NAME_2,
+    ATTR_PHASE_CONTROL,
+    ATTR_POLARITY,
+    ATTR_POWER_SUPPLY,
+    ATTR_RED,
+    ATTR_REFUEL,
+    ATTR_ROOM_SETPOINT_AWAY,
+    ATTR_ROOM_SETPOINT_MAX,
+    ATTR_ROOM_SETPOINT_MIN,
+    ATTR_SETPOINT,
+    ATTR_SETPOINT_MODE,
+    ATTR_SOUND_CONF,
+    ATTR_STATE,
+    ATTR_STATUS,
+    ATTR_TANK_HEIGHT,
+    ATTR_TANK_TYPE,
+    ATTR_TEMP,
+    ATTR_TEMP_ALERT,
+    ATTR_TEMP_OFFSET_HEAT,
+    ATTR_TIME,
+    ATTR_TIME_FORMAT,
+    ATTR_TIMER,
+    ATTR_TIMER2,
+    ATTR_TRIGGER_ALARM,
+    ATTR_TYPE,
+    ATTR_VALUE,
+    ATTR_WATER_TEMP_MIN,
+    CONF_HOMEKIT_MODE,
+    CONF_IGNORE_MIWI,
+    CONF_NETWORK,
+    CONF_NETWORK2,
+    CONF_NETWORK3,
+    CONF_NOTIFY,
+    CONF_STAT_INTERVAL,
+    DOMAIN,
+)
 
 """Default parameters values."""
 
-VERSION = "3.0.8"
+VERSION = "3.0.9"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 IGNORE_MIWI = False
 NOTIFY = "both"
-PERIOD_VALUE = {
-    "15 sec",
-    "5 min",
-    "10 min",
-    "15 min",
-    "20 min",
-    "25 min",
-    "30 min",
-}
+
+REVERSING_VALVE_POLARITY = ["cooling", "heating"]
 MIN_TIME = {120, 180, 240, 300, 600}
 WIFI_CYCLE = {600, 900, 1200, 1500}
 TANK_VALUE = {"40 gal", "50 gal", "60 gal", "80 gal"}
-HUMIDIFIER_TYPE = {"none", "steam", "flowthrough"}
 CONTROLLED_VALUE = {
     "Hot water heater",
     "Pool pump",
-    "Eletric vehicle charger",
+    "Electric vehicle charger",
     "Other",
 }
 FLOW_MODEL = {"FS4220", "FS4221", "No flow meter"}
@@ -93,8 +154,8 @@ TANK_HEIGHT = {23, 24, 35, 38, 47, 48, 50}
 LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
-FAN_SPEED = {"high", "medium", "low", "auto", "off"}
-WIFI_FAN_SPEED = {"auto", "on", "off"}
+FAN_SPEED = ["high", "medium", "low", "auto", "off"]
+WIFI_FAN_SPEED = ["auto", "on"]
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {
     "fullHorizontal",
@@ -146,6 +207,28 @@ SWING_CAPABILITY_HORIZONTAL = {
 }
 FULL_SWING = ["swingFullRange"]
 FULL_SWING_OFF = ["off"]
+AUX_HEATING = {"Electric": "hvacElectrique", "Fossil": "hvacGaz"}
+HEAT_INSTALL_TYPE = ["addOn", "conventional"]
+ACCESSORY = [
+    "none",
+    "humOnHeat",
+    "humOnFan",
+    "dehum",
+    "airExchanger",
+]
+INSTALL_TYPE = ["addOn", "Conventional"]
+AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
+
+CYCLE_LENGTH_VALUES: dict[str, int] = {
+    "off": 0,
+    "15 sec": 15,
+    "5 min": 300,
+    "10 min": 600,
+    "15 min": 900,
+    "20 min": 1200,
+    "25 min": 1500,
+    "30 min": 1800,
+}
 
 """Config schema."""
 
@@ -164,9 +247,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(
                     vol.Coerce(int), vol.Range(min=300, max=1800)
                 ),
-                vol.Optional(CONF_NOTIFY, default=NOTIFY): vol.In(
-                    ["both", "logging", "nothing", "notification"]
-                ),
+                vol.Optional(CONF_NOTIFY, default=NOTIFY): vol.In(["both", "logging", "nothing", "notification"]),
             }
         )
     },
@@ -178,16 +259,13 @@ CONFIG_SCHEMA = vol.Schema(
 SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DISPLAY2): vol.In(
-            ["exteriorTemperature", "setpoint", "default"]
-        ),
+        vol.Required(ATTR_DISPLAY2): vol.In(["exteriorTemperature", "setpoint", "default"]),
     }
 )
 
 SET_BACKLIGHT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TYPE): vol.In(["wifi", "zigbee"]),
         vol.Required(ATTR_BACKLIGHT): vol.In(["auto", "on", "bedroom"]),
     }
 )
@@ -209,7 +287,7 @@ SET_EM_HEAT_SCHEMA = vol.Schema(
 SET_TIME_FORMAT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIME): vol.All(vol.Coerce(int), vol.Range(min=12, max=24)),
+        vol.Required(ATTR_TIME_FORMAT): vol.All(vol.Coerce(int), vol.In([12, 24])),
     }
 )
 
@@ -223,27 +301,21 @@ SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
 SET_SETPOINT_MAX_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=8, max=36)
-        ),
+        vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=6, max=30)),
     }
 )
 
 SET_SETPOINT_MIN_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=5, max=26)
-        ),
+        vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=5, max=29)),
     }
 )
 
 SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(
-            vol.Coerce(float), vol.Range(min=0, max=36)
-        ),
+        vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(vol.Coerce(float), vol.Range(min=0, max=36)),
     }
 )
 
@@ -264,9 +336,11 @@ SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
 SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DRACTIVE): vol.In(["on", "off"]),
-        vol.Required(ATTR_OPTOUT): vol.In(["on", "off"]),
-        vol.Required(ATTR_SETPOINT): vol.In(["on", "off"]),
+        vol.Optional(ATTR_DRACTIVE): vol.In(["on", "off"]),
+        vol.Optional(ATTR_OPTOUT): vol.In(["on", "off"]),
+        vol.Optional(ATTR_SETPOINT): vol.In(["on", "off"]),
+        vol.Optional(ATTR_AUX_OPTIM): vol.In(["on", "off"]),
+        vol.Optional(ATTR_FAN_SPEED_OPTIM): vol.In(["on", "off"]),
     }
 )
 
@@ -274,27 +348,35 @@ SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required(ATTR_VALUE): vol.All(
-            vol.Coerce(float), vol.Range(min=-10, max=10)
-        ),
+        vol.Required(ATTR_VALUE): vol.All(vol.Coerce(float), vol.Range(min=-10, max=10)),
     }
 )
 
 SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
-        ),
+        vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=16, max=36)),
     }
 )
 
 SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=16, max=30)
-        ),
+        vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=15, max=35)),
+    }
+)
+
+SET_ROOM_SETPOINT_AWAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ROOM_SETPOINT_AWAY): vol.All(vol.Coerce(int), vol.Range(min=10, max=30)),
+    }
+)
+
+SET_COOL_SETPOINT_AWAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_COOL_SETPOINT_AWAY): vol.All(vol.Coerce(int), vol.Range(min=15, max=35)),
     }
 )
 
@@ -309,15 +391,14 @@ SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
 SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_STATUS): vol.In(["on", "off"]),
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, [vol.In(PERIOD_VALUE)]),
+        vol.Required(ATTR_VALUE): vol.In(CYCLE_LENGTH_VALUES.keys()),
     }
 )
 
 SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_VALUE): vol.All(cv.ensure_list, [vol.In(PERIOD_VALUE)]),
+        vol.Required(ATTR_VALUE): vol.In(CYCLE_LENGTH_VALUES.keys()),
     }
 )
 
@@ -331,18 +412,14 @@ SET_PUMP_PROTECTION_SCHEMA = vol.Schema(
 SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MIN): vol.All(
-            vol.Coerce(float), vol.Range(min=0, max=34)
-        ),
+        vol.Required(ATTR_FLOOR_MIN): vol.All(vol.Coerce(float), vol.Range(min=0, max=34)),
     }
 )
 
 SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOOR_MAX): vol.All(
-            vol.Coerce(float), vol.Range(min=0, max=36)
-        ),
+        vol.Required(ATTR_FLOOR_MAX): vol.All(vol.Coerce(float), vol.Range(min=0, max=36)),
     }
 )
 
@@ -363,9 +440,14 @@ SET_SENSOR_TYPE_SCHEMA = vol.Schema(
 SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_BALANCE_PT): vol.All(
-            vol.Coerce(int), vol.Range(min=-30, max=-5)
-        ),
+        vol.Required(ATTR_BALANCE_PT): vol.All(vol.Coerce(int), vol.Range(min=-30, max=0)),
+    }
+)
+
+SET_HEAT_INSTALLATION_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TYPE): vol.In(HEAT_INSTALL_TYPE),
     }
 )
 
@@ -373,7 +455,7 @@ SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
-            vol.Coerce(int), vol.Range(min=10, max=30)
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
         ),
     }
 )
@@ -382,7 +464,7 @@ SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
-            vol.Coerce(int), vol.Range(min=10, max=30)
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
         ),
     }
 )
@@ -390,27 +472,21 @@ SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
 SET_DISPLAY_CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DISPLAY_CONF): vol.All(
-            cv.ensure_list, [vol.In(DISPLAY_CAPABILITY)]
-        ),
+        vol.Required(ATTR_DISPLAY_CONF): vol.All(cv.ensure_list, [vol.In(DISPLAY_CAPABILITY)]),
     }
 )
 
 SET_SOUND_CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_SOUND_CONF): vol.All(
-            cv.ensure_list, [vol.In(SOUND_CAPABILITY)]
-        ),
+        vol.Required(ATTR_SOUND_CONF): vol.All(cv.ensure_list, [vol.In(SOUND_CAPABILITY)]),
     }
 )
 
 SET_HC_SECOND_DISPLAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_DISPLAY2): vol.In(
-            ["exteriorTemperature", "setpoint", "none"]
-        ),
+        vol.Required(ATTR_DISPLAY2): vol.In(["exteriorTemperature", "setpoint", "none"]),
     }
 )
 
@@ -421,37 +497,57 @@ SET_LANGUAGE_SCHEMA = vol.Schema(
     }
 )
 
-SET_AUX_HEAT_MIN_TIME_ON_SCHEMA = vol.Schema(
+SET_REVERSING_VALVE_POLARITY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_AUX_HEAT_TIMEON): vol.All(cv.ensure_list, [vol.In(MIN_TIME)]),
+        vol.Required(ATTR_POLARITY): vol.In(REVERSING_VALVE_POLARITY),
     }
 )
 
-SET_COOL_MIN_TIME_ON_SCHEMA = vol.Schema(
+SET_MIN_TIME_ON_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_MIN_TIME_ON): vol.All(
-            cv.ensure_list, [vol.In(MIN_TIME)]
-        ),
+        vol.Optional(ATTR_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AUX_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_COOL_MIN_TIME_ON): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
     }
 )
 
-SET_COOL_MIN_TIME_OFF_SCHEMA = vol.Schema(
+SET_MIN_TIME_OFF_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COOL_MIN_TIME_OFF): vol.All(
-            cv.ensure_list, [vol.In(MIN_TIME)]
-        ),
+        vol.Optional(ATTR_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
+        vol.Optional(ATTR_AUX_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
+        vol.Optional(ATTR_COOL_MIN_TIME_OFF): vol.In(MIN_TIME),
     }
 )
 
-SET_HUMIDIFIER_TYPE_SCHEMA = vol.Schema(
+SET_HEAT_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HUMIDIFIER_TYPE): vol.All(
-            cv.ensure_list, [vol.In(HUMIDIFIER_TYPE)]
-        ),
+        vol.Required(ATTR_TIME): vol.Range(min=1, max=60),
+    }
+)
+
+SET_COOL_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=1, max=60),
+    }
+)
+
+SET_AUX_HEAT_START_DELAY_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=0.5, max=8.0),
+    }
+)
+
+SET_ACCESSORY_TYPE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_ACCESSORY_TYPE): vol.In(ACCESSORY),
     }
 )
 
@@ -459,6 +555,69 @@ SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SETPOINT_MODE): vol.In(["auto", "manual"]),
+    }
+)
+
+SET_HEATCOOL_SETPOINT_DELTA_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HEATCOOL_SETPOINT_MIN_DELTA): vol.All(vol.Coerce(int), vol.Range(min=1, max=5)),
+    }
+)
+
+SET_FAN_FILTER_REMINDER_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_FILTER_REMAIN): vol.All(vol.Coerce(int), vol.Range(min=1, max=12)),
+    }
+)
+
+SET_TEMPERATURE_OFFSET_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TEMP_OFFSET_HEAT): vol.All(vol.Coerce(int), vol.Range(min=-2, max=2)),
+    }
+)
+
+SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_AUX_HEAT_SOURCE_TYPE): vol.In(AUX_HEATING.keys()),
+    }
+)
+
+SET_FAN_SPEED_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_FAN_SPEED): vol.In(["On", "Auto"]),
+    }
+)
+
+SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_HUMIDITY_SETPOINT_MODE): vol.In(["defog", "manual"]),
+    }
+)
+
+SET_HEAT_DISSIPATION_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=0, max=5),
+    }
+)
+
+SET_COOL_DISSIPATION_TIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TIME): vol.Range(min=0, max=5),
+    }
+)
+
+SET_CLIMATE_NEVIWEB_STATUS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_MODE): vol.In(["home", "away"]),
     }
 )
 
@@ -474,7 +633,7 @@ SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
 SET_LIGHT_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
@@ -491,36 +650,28 @@ SET_LED_INDICATOR_SCHEMA = vol.Schema(
 SET_LED_ON_INTENSITY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_LED_ON_INTENSITY): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=100)
-        ),
+        vol.Required(ATTR_LED_ON_INTENSITY): vol.All(vol.Coerce(int), vol.Range(min=0, max=100)),
     }
 )
 
 SET_LED_OFF_INTENSITY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_LED_OFF_INTENSITY): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=100)
-        ),
+        vol.Required(ATTR_LED_OFF_INTENSITY): vol.All(vol.Coerce(int), vol.Range(min=0, max=100)),
     }
 )
 
 SET_LIGHT_MIN_INTENSITY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_INTENSITY_MIN): vol.All(
-            vol.Coerce(int), vol.Range(min=10, max=3000)
-        ),
+        vol.Required(ATTR_INTENSITY_MIN): vol.All(vol.Coerce(int), vol.Range(min=10, max=3000)),
     }
 )
 
 SET_WATTAGE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_LIGHT_WATTAGE): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1800)
-        ),
+        vol.Required(ATTR_LIGHT_WATTAGE): vol.All(vol.Coerce(int), vol.Range(min=0, max=1800)),
     }
 )
 
@@ -550,14 +701,14 @@ SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
 SET_SWITCH_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+        vol.Required(ATTR_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
 SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TIMER2): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+        vol.Required(ATTR_TIMER2): vol.All(vol.Coerce(int), vol.Range(min=0, max=10800)),
     }
 )
 
@@ -595,36 +746,24 @@ SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema(
 SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_WATER_TEMP_MIN): vol.All(
-            cv.ensure_list, [vol.In(WATER_TEMP)]
-        ),
+        vol.Required(ATTR_WATER_TEMP_MIN): vol.All(cv.ensure_list, [vol.In(WATER_TEMP)]),
     }
 )
 
 SET_INPUT_OUTPUT_NAMES_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Optional(ATTR_NAME_1, default=None): vol.All(
-            str, vol.Length(min=0, max=10)
-        ),
-        vol.Optional(ATTR_NAME_2, default=None): vol.All(
-            str, vol.Length(min=0, max=10)
-        ),
-        vol.Optional(ATTR_OUTPUT_NAME_1, default=None): vol.All(
-            str, vol.Length(min=0, max=10)
-        ),
-        vol.Optional(ATTR_OUTPUT_NAME_2, default=None): vol.All(
-            str, vol.Length(min=0, max=10)
-        ),
+        vol.Optional(ATTR_NAME_1, default=None): vol.All(str, vol.Length(min=0, max=10)),
+        vol.Optional(ATTR_NAME_2, default=None): vol.All(str, vol.Length(min=0, max=10)),
+        vol.Optional(ATTR_OUTPUT_NAME_1, default=None): vol.All(str, vol.Length(min=0, max=10)),
+        vol.Optional(ATTR_OUTPUT_NAME_2, default=None): vol.All(str, vol.Length(min=0, max=10)),
     }
 )
 
 SET_REMAINING_TIME_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_COLD_LOAD_PICKUP_REMAIN_TIME): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=65535)
-        ),
+        vol.Required(ATTR_COLD_LOAD_PICKUP_REMAIN_TIME): vol.All(vol.Coerce(int), vol.Range(min=0, max=65535)),
     }
 )
 
@@ -642,15 +781,9 @@ SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema(
 SET_SENSOR_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_LEAK_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_BATT_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
-        vol.Required(ATTR_TEMP_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
+        vol.Required(ATTR_LEAK_ALERT): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
+        vol.Required(ATTR_BATT_ALERT): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
+        vol.Required(ATTR_TEMP_ALERT): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
         vol.Required(ATTR_CONF_CLOSURE): vol.In(["on", "off"]),
     }
 )
@@ -679,9 +812,7 @@ SET_GAUGE_TYPE_SCHEMA = vol.Schema(
 SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.All(
-            vol.Coerce(int), vol.In(LOW_FUEL_LEVEL)
-        ),
+        vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.All(vol.Coerce(int), vol.In(LOW_FUEL_LEVEL)),
     }
 )
 
@@ -732,18 +863,14 @@ SET_POWER_SUPPLY_SCHEMA = vol.Schema(
 SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.All(
-            cv.ensure_list, [vol.In(FLOW_MODEL)]
-        ),
+        vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.All(cv.ensure_list, [vol.In(FLOW_MODEL)]),
     }
 )
 
 SET_FLOW_METER_DELAY_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(
-            cv.ensure_list, [vol.In(FLOW_DURATION)]
-        ),
+        vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.All(cv.ensure_list, [vol.In(FLOW_DURATION)]),
     }
 )
 
@@ -765,17 +892,13 @@ SET_VALVE_ALERT_SCHEMA = vol.Schema(
 SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP_ALERT): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=1)
-        ),
+        vol.Required(ATTR_TEMP_ALERT): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
     }
 )
 
 SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FLOW_ALARM_TIMER): vol.All(
-            vol.Coerce(int), vol.Range(min=0, max=86400)
-        ),
+        vol.Required(ATTR_FLOW_ALARM_TIMER): vol.All(vol.Coerce(int), vol.Range(min=0, max=86400)),
     }
 )
