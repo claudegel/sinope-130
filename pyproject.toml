@@ -1,6 +1,6 @@
 [project]
 name = "neviweb130"
-version = "3.0.9"
+version = "3.0.8"
 description = "Sinope Neviweb130: Home assistant custom_components to manage Sinopé Zigbee and Wi-Fi devices."
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
 requires-python = ">=3.13.2"
