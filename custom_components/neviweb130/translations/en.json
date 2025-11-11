@@ -57,8 +57,12 @@
           "notify": "Notify",
           "homekit_mode": "HomeKit Mode",
           "ignore_miwi": "Ignore miwi devices",
-          "reload": "Reload Integration",
+          "log_level": "Log Level",
+          "log_max_bytes": "Log Max Size",
+          "log_backup_count": "Backucp Files Number",
+          "log_reset_on_start": "Log Reset on Start",
           "download_log": "Download log",
+          "reload": "Reload Integration",
           "migrate": "Migrate numeric unique_id"
         }
       }
@@ -72,6 +76,13 @@
       "battery_status": {
         "name": "Battery Status"
       },
+      "gauge_error": {
+        "name": "Gauge disconnected",
+        "state": {
+          "on": "Disconnected",
+          "off": "Connected"
+        }
+      },
       "heating": {
         "name": "Heating"
       },
@@ -84,8 +95,8 @@
       "refuel_status": {
         "name": "Refuel Status"
       },
-      "temp_alert": {
-        "name": "Temp Alert"
+      "valve_temp_alert": {
+        "name": "Temperature Alert"
       }
     },
     "button": {
@@ -133,11 +144,11 @@
       "setpoint_away": {
         "name": "Setpoint Away"
       },
-      "timer": {
-        "name": "Timer"
-      },
-      "timer2": {
-        "name": "Timer 2"
+      "water_remaining_time": {
+        "name": "remaining_time",
+        "state": {
+          "measurement": "Remaining time"
+        }
       }
     },
     "select": {
@@ -152,11 +163,33 @@
           "bedroom": "Bedroom"
         }
       },
+      "battery_type": {
+        "name": "Battery Type",
+        "state": {
+          "alkaline": "Alkaline",
+          "lithium": "Lithium"
+        }
+      },
       "cycle_length": {
         "name": "Cycle Length"
       },
       "early_start": {
         "name": "Early Start"
+      },
+      "flow_duration": {
+        "name": "Flow Duration"
+      },
+      "flowmeter_timer": {
+        "name": "Flow_meter Timer"
+      },
+      "flow_meter": {
+        "name": "Flow Meter"
+      },
+      "fuel_alert": {
+        "name": "Fuel Alert"
+      },
+      "gauge_type": {
+        "name": "Gauge Model"
       },
       "hc_second_display": {
         "name": "Second Display"
@@ -164,9 +197,12 @@
       "keypad_lock": {
         "name": "Lock Keypad",
         "state": {
+          "lock": "Locked",
           "locked": "Locked",
+          "unlock": "Unlocked",
           "unlocked": "Unlocked",
-          "tamper_protection": "Tamper Protection"
+          "partialLock": "Tamper Protection",
+          "partiallyLocked": "Tamper Protection"
         }
       },
       "language": {
@@ -185,20 +221,55 @@
           "away": "Away"
         }
       },
+      "phase": {
+        "name": "Phase"
+      },
+      "power_supply": {
+        "name": "Power Supply"
+      },
       "second_display": {
         "name": "Second Display"
       },
       "sensor_mode": {
         "name": "Sensor Mode"
       },
+      "tank_height": {
+        "name": "Tank Height",
+        "state": {
+          "none": "Unknown",
+          "23_inch": "23 inches",
+          "24_inch": "24 inches",
+          "35_inch": "35 inches",
+          "38_inch": "38 inches",
+          "47_inch": "47 inches",
+          "48_inch": "48 inches",
+          "50_inch": "50 inches"
+        }
+      },
       "tank_size": {
         "name": "Tank Size"
+      },
+      "tank_type": {
+        "name": "Tank Type",
+        "state": {
+          "propane": "Propane",
+          "oil": "Oil"
+        }
       },
       "temp_format": {
         "name": "temp_format"
       },
+      "temp_protection": {
+        "name": "Temp. Protection"
+      },
       "time_format": {
         "name": "Time Format"
+      },
+      "timer": {
+        "name": "Timer"
+      },
+      "timer2": {
+        "name": "Timer 2"
       }
     },
     "sensor": {
@@ -208,11 +279,17 @@
       "daily_kwh_count": {
         "name": "Daily Energy"
       },
+      "gauge_angle": {
+        "name": "Gauge Angle"
+      },
       "hourly_flow_count": {
         "name": "Hourly Flow"
       },
       "hourly_kwh_count": {
         "name": "Hourly Energy"
+      },
+      "humidity": {
+        "name": "Humidity"
       },
       "monthly_flow_count": {
         "name": "Monthly Flow"
@@ -237,8 +314,29 @@
       }
     },
     "switch": {
+      "batt_alert": {
+        "name": "Battery Alert"
+      },
+      "close_valve": {
+        "name": "Close valve"
+      },
+      "fuel_alert": {
+        "name": "Fuel Alert"
+      },
+      "leak_alert": {
+        "name": "Leak Alert"
+      },
       "onoff2": {
         "name": "Onoff2"
+      },
+      "temperature_alert": {
+        "name": "Temperature Alert"
+      },
+      "refuel_alert": {
+        "name": "Refuel Alert"
+      },
+      "temp_alert": {
+        "name": "Low Temperature Alert"
       }
     }
   }
