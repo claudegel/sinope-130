@@ -57,8 +57,12 @@
           "notify": "Annonce",
           "homekit_mode": "Mode HomeKit",
           "ignore_miwi": "Ignorer appareils miwi",
-          "reload": "Recharger l'integration",
+          "log_level": "Niveau de journalisation",
+          "log_max_bytes": "Taille maximale du journal",
+          "log_backup_count": "Nombre de fichiers de sauvegarde",
+          "log_reset_on_start": "Réinitialisation du journal au démarrage",
           "download_log": "Télécharger les diagnostiques",
+          "reload": "Recharger l'integration",
           "migrate": "Migrer les unique_id numériques"
         }
       }
@@ -72,6 +76,13 @@
       "battery_status": {
         "name": "Alerte Batterie"
       },
+      "gauge_error": {
+        "name": "Jauge Débranchée",
+        "state": {
+          "on": "Débranchée",
+          "off": "Connectée"
+        }
+      },
       "heating": {
         "name": "Chauffe"
       },
@@ -84,8 +95,8 @@
       "refuel_status": {
         "name": "Alerte Remplissage"
       },
-      "temp_alert": {
-        "name": "Alerte Temperature"
+      "valve_temp_alert": {
+        "name": "Alerte Température"
       }
     },
     "button": {
@@ -133,11 +144,11 @@
       "setpoint_away": {
         "name": "Consigne en Absence"
       },
-      "timer": {
-        "name": "Minuterie"
-      },
-      "timer2": {
-        "name": "Minuterie 2"
+      "water_remaining_time": {
+        "name": "Temps Restant",
+        "state": {
+          "measurement": "Durée restante"
+        }
       }
     },
     "select": {
@@ -152,11 +163,33 @@
           "bedroom": "Chambre"
         }
       },
+      "battery_type": {
+        "name": "Battery Type",
+        "state": {
+          "alkaline": "Alcaline",
+          "lithium": "Lithium"
+        }
+      },
       "cycle_length": {
         "name": "Durée du cycle"
       },
       "early_start": {
         "name": "Démarrage Anticipé"
+      },
+      "flow_duration": {
+        "name": "Durée du Débit"
+      },
+      "flowmeter_timer": {
+        "name": "Minuterie Débitmètre"
+      },
+      "flow_meter": {
+        "name": "Débitmètre"
+      },
+      "fuel_alert": {
+        "name": "Alerte Carburant"
+      },
+      "gauge_type": {
+        "name": "Modèle de Jauge"
       },
       "hc_second_display": {
         "name": "Affichage secondaire"
@@ -164,9 +197,12 @@
       "keypad_lock": {
         "name": "Verrouillage du clavier",
         "state": {
+          "lock": "Verrouillé",
           "locked": "Verrouillé",
+          "unlock": "Déverrouillé",
           "unlocked": "Déverrouillé",
-          "tamper_protection": "Verrouillage Partiel"
+          "partialLock": "Limité",
+          "partiallyLocked": "Limité"
         }
       },
       "language": {
@@ -185,20 +221,55 @@
           "away": "Absent"
         }
       },
+      "phase": {
+        "name": "Controle de Phase"
+      },
+      "power_supply": {
+        "name": "Alimentation"
+      },
       "second_display": {
         "name": "Affichage secondaire"
       },
       "sensor_mode": {
         "name": "Mode Capteur"
       },
-      "temp_format": {
-        "name": "Format Température"
+      "tank_height": {
+        "name": "Hauteur Réservoir",
+        "state": {
+          "none": "Unknown",
+          "23_inch": "23 pouces",
+          "24_inch": "24 pouces",
+          "35_inch": "35 pouces",
+          "38_inch": "38 pouces",
+          "47_inch": "47 pouces",
+          "48_inch": "48 pouces",
+          "50_inch": "50 pouces"
+        }
       },
       "tank_size": {
         "name": "Taille du Réservoir"
       },
+      "tank_type": {
+        "name": "Type de Réservoir",
+        "state": {
+          "propane": "Propane",
+          "oil": "Mazout"
+        }
+      },
+      "temp_format": {
+        "name": "Format Température"
+      },
+      "temp_protection": {
+        "name": "Protection Température"
+      },
       "time_format": {
         "name": "Format Heure"
+      },
+      "timer": {
+        "name": "Minuterie"
+      },
+      "timer2": {
+        "name": "Minuterie 2"
       }
     },
     "sensor": {
@@ -208,11 +279,17 @@
       "daily_kwh_count": {
         "name": "Énergie Quotidienne"
       },
+      "gauge_angle": {
+        "name": "Angle de Jauge"
+      },
       "hourly_flow_count": {
         "name": "Débit Horaire"
       },
       "hourly_kwh_count": {
         "name": "Énergie Horaire"
+      },
+      "humidity": {
+        "name": "Humidité"
       },
       "monthly_flow_count": {
         "name": "Débit Mensuel"
@@ -237,8 +314,29 @@
       }
     },
     "switch": {
+      "batt_alert": {
+        "name": "Alerte Batterie"
+      },
+      "close_valve": {
+        "name": "Fermer la Valve"
+      },
+      "fuel_alert": {
+        "name": "Alerte Combustible"
+      },
+      "leak_alert": {
+        "name": "Alerte fuite"
+      },
       "onoff2": {
         "name": "Onoff2"
+      },
+      "temperature_alert": {
+        "name": "Alerte température"
+      },
+      "refuel_alert": {
+        "name": "Alerte Remplissage"
+      },
+      "temp_alert": {
+        "name": "Alerte basse Temperature"
       }
     }
   }
