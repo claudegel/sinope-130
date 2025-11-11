@@ -25,7 +25,8 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from threading import Lock
-from typing import Any, Callable, override, Union
+from typing import Any, Callable, Mapping, Union, override
+
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, SwitchEntityDescription
