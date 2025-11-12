@@ -216,7 +216,6 @@ ACCESSORY = [
     "dehum",
     "airExchanger",
 ]
-INSTALL_TYPE = ["addOn", "Conventional"]
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 
 CYCLE_LENGTH_VALUES: dict[str, int] = {
