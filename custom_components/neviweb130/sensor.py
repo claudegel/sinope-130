@@ -25,6 +25,7 @@ from typing import Any, Callable, Mapping, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -156,6 +157,8 @@ class Neviweb130SensorEntityDescription(SensorEntityDescription):
     state_class: str | None = "measurement"
     device_class: SensorDeviceClass | None = None
     native_unit_of_measurement: str | None = None
+    unit_class: str | None = None
+    mean_type: StatisticMeanType | None = None
 
 
 SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
@@ -178,6 +181,8 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         value_fn=lambda data: data["total_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        unit_class="energy",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
@@ -188,6 +193,8 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         value_fn=lambda data: data["monthly_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        unit_class="energy",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
@@ -198,6 +205,8 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         value_fn=lambda data: data["daily_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        unit_class="energy",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
@@ -208,6 +217,8 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         value_fn=lambda data: data["hourly_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        unit_class="energy",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
@@ -218,6 +229,8 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         value_fn=lambda data: data["wattage"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        unit_class="energy",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:lightning-bolt",
     ),
     #  Climate attributes
@@ -244,42 +257,50 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     #  Valve attributes
     Neviweb130SensorEntityDescription(
         key="total_flow_count",
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.WATER,
         state_class="total_increasing",
         translation_key="total_flow_count",
         value_fn=lambda data: data["total_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfVolume.LITERS,
+        unit_class="volume",
+        mean_type=StatisticMeanType.NONE,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
         key="monthly_flow_count",
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.WATER,
         state_class="total",
         translation_key="monthly_flow_count",
         value_fn=lambda data: data["monthly_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfVolume.LITERS,
+        unit_class="volume",
+        mean_type=StatisticMeanType.NONE,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
         key="daily_flow_count",
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.WATER,
         state_class="total",
         translation_key="daily_flow_count",
         value_fn=lambda data: data["daily_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfVolume.LITERS,
+        unit_class="volume",
+        mean_type=StatisticMeanType.NONE,
         icon="mdi:lightning-bolt",
     ),
     Neviweb130SensorEntityDescription(
         key="hourly_flow_count",
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.WATER,
         state_class="total",
         translation_key="hourly_flow_count",
         value_fn=lambda data: data["hourly_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfVolume.LITERS,
+        unit_class="volume",
+        mean_type=StatisticMeanType.NONE,
         icon="mdi:lightning-bolt",
     ),
     #  Sensor attributes
@@ -306,14 +327,16 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     #  Switch attributes
     Neviweb130SensorEntityDescription(
         key="room_humidity",
-        device_class=SensorDeviceClass.MOISTURE,
+        device_class=SensorDeviceClass.HUMIDITY,
         state_class="measurement",
         translation_key="humidity",
         value_fn=lambda data: data["room_humidity"],
         signal=SIGNAL_EVENTS_CHANGED,
-        native_unit_of_measurement="%",
+        native_unit_of_measurement=PERCENTAGE,
         entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:gauge",
+        unit_class="humidity",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        icon="mdi:water-percent",
     ),
 )
 
