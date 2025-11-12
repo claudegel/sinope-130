@@ -54,7 +54,6 @@ repos:
         name: update version
         exclude: .*
         always_run: true
-        language: system
         entry: scripts/update-version.sh
       - id: hassfest
         name: hassfest (docker_image)
