@@ -27,6 +27,8 @@ from threading import Lock
 from typing import override
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
@@ -114,6 +116,7 @@ from .const import (
     SERVICE_SET_SWITCH_TIMER_2,
     SERVICE_SET_TANK_SIZE,
     STATE_KEYPAD_STATUS,
+    VERSION,
 )
 from .schema import (
     SET_ACTIVATION_SCHEMA,
@@ -128,7 +131,6 @@ from .schema import (
     SET_SWITCH_TIMER_2_SCHEMA,
     SET_SWITCH_TIMER_SCHEMA,
     SET_TANK_SIZE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -773,6 +775,11 @@ class Neviweb130Switch(SwitchEntity):
     def __init__(self, data, device_info, name, sku, firmware, device_type):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_of_measurement = "kWh"
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._name = name
         self._sku = sku
         self._firmware = firmware
