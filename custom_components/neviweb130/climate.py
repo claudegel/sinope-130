@@ -67,12 +67,13 @@ from homeassistant.components.climate.const import (
     PRESET_NONE,
 )
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from . import NOTIFY
+from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 from .const import (
@@ -254,6 +255,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_TEMPERATURE_OFFSET,
     SERVICE_SET_TIME_FORMAT,
+    VERSION,
 )
 from .schema import (
     AUX_HEATING,
@@ -311,7 +313,6 @@ from .schema import (
     SET_TEMPERATURE_FORMAT_SCHEMA,
     SET_TEMPERATURE_OFFSET_SCHEMA,
     SET_TIME_FORMAT_SCHEMA,
-    VERSION,
     WIFI_FAN_SPEED,
 )
 
@@ -1998,6 +1999,11 @@ class Neviweb130Thermostat(ClimateEntity):
     def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_of_measurement = "kWh"
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._name = name
         self._location = str(location)
         self._sku = sku
@@ -2452,6 +2458,11 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
             return HVACAction.DRYING
+        elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
+            if self._heat_level == 0:
+                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+            else:
+                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
