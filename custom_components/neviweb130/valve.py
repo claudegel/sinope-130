@@ -140,7 +140,7 @@ HA_TO_NEVIWEB_DELAY = {
 }
 
 VALVE_TYPES: dict[str, tuple[str, StrEnum, str | None, str | None, StatisticMeanType | None]] = {
-    "flow": ("mdi:pipe-valve", SensorDeviceClass.WATER, "L/min", "volume_flow_rate", StatisticMeanType.ARITHMETIC),
+    "flow": ("mdi:pipe-valve", SensorDeviceClass.WATER, None, "volume_flow_rate", StatisticMeanType.ARITHMETIC),
     "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER, None, None, None),
 }
 
