@@ -347,8 +347,9 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
 
 ## Logging for debugging
-As the file home-assistant.log is no longer available, we have added a new logger that write all logging data from neviwen130 
-to a file neviweb130_log.txt in your config file. This file is overwritten each time Ha is restarted. the file is also rotated each time it reach 2 meg in size.
+As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviwen130 
+to a file neviweb130_log.txt in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
+each time it reach 2 meg in size.
 
 To help debugging add snippet of this file to any issue you may have.
 
