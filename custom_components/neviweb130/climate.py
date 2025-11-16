@@ -67,8 +67,7 @@ from homeassistant.components.climate.const import (
     PRESET_NONE,
 )
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-from homeassistant.components.recorder.models import StatisticMeanType
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -1999,11 +1998,6 @@ class Neviweb130Thermostat(ClimateEntity):
     def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
-        self._attr_state_class = SensorStateClass.TOTAL
-        self._attr_unit_of_measurement = "kWh"
-        self._attr_unit_class = "energy"
-        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
-
         self._name = name
         self._location = str(location)
         self._sku = sku
