@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import Any
 
 import requests
@@ -147,16 +148,15 @@ from .const import (
     DOMAIN,
     MODE_MANUAL,
     STARTUP_MESSAGE,
+    VERSION,
 )
+from .helpers import setup_logger
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
-from .schema import VERSION
-
-_LOGGER = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -172,6 +172,27 @@ HOMEKIT_MODE = DEFAULT_HOMEKIT_MODE
 IGNORE_MIWI = DEFAULT_IGNORE_MIWI
 STAT_INTERVAL = DEFAULT_STAT_INTERVAL
 NOTIFY = DEFAULT_NOTIFY
+
+DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
+DEFAULT_LOG_BACKUP_COUNT = 3
+DEFAULT_LOG_RESET_ON_START = True
+LOGGER_NAME = "custom_components.neviweb130"
+
+LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviweb130_log.txt"))
+
+existing_logger = logging.getLogger(LOGGER_NAME)
+level_name = logging.getLevelName(existing_logger.level)
+
+setup_logger(
+    name=LOGGER_NAME,
+    log_path=LOG_PATH,
+    level=level_name,
+    max_bytes=DEFAULT_LOG_MAX_BYTES,
+    backup_count=DEFAULT_LOG_BACKUP_COUNT,
+    reset_on_start=DEFAULT_LOG_RESET_ON_START
+)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @callback
@@ -356,7 +377,7 @@ class Neviweb130Client:
                 raise ConfigEntryNotReady(
                     "Too many active sessions. "
                     "Close all neviweb130 sessions you have opened on other platform (mobile, browser, ...). "
-                    f"If this error persists, deactivate this integration (or shutdown homeassistant), "
+                    "If this error persists, deactivate this integration (or shutdown homeassistant), "
                     f"wait a few minutes, then reactivate (or restart) it. Error code: {data['error']['code']}"
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
