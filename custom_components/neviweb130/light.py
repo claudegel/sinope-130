@@ -400,7 +400,7 @@ class Neviweb130Light(LightEntity):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._attr_state_class = SensorStateClass.TOTAL
-        self._attr_unit_of_measurement = "kWh"
+        self._attr_unit_of_measurement = None
         self._attr_unit_class = "energy"
         self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
 
