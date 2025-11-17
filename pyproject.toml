@@ -1,6 +1,6 @@
 [project]
 name = "neviweb130"
-version = "3.0.8"
+version = "4.0.0b0"
 description = "Sinope Neviweb130: Home assistant custom_components to manage Sinopé Zigbee and Wi-Fi devices."
 authors = [{ name = "Claude Gélinas", email = "claude@phyto.qc.ca" }]
 requires-python = ">=3.13.2"
@@ -15,12 +15,12 @@ dev = [
     "isal~=1.8.0",
     "pre-commit",
     "types-requests~=2.32.4",
-    "homeassistant-stubs~=2025.10.4",
+    "homeassistant-stubs~=2025.11.2",
 ]
 ci = [
     "mypy",
     "types-requests~=2.32.4",
-    "homeassistant-stubs~=2025.10.4",
+    "homeassistant-stubs~=2025.11.2",
 ]
 
 [tool.hatch.build.targets.sdist]
