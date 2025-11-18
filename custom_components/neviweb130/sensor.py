@@ -24,6 +24,7 @@ from typing import Any, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE, UnitOfTemperature, UnitOfVolume, UnitOfEnergy
 from homeassistant.core import ServiceCall
