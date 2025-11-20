@@ -138,10 +138,25 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
 
-SENSOR_TYPE: dict[str, tuple[str | None, None, BinarySensorDeviceClass | SensorStateClass]] = {
-    "leak": [None, None, BinarySensorDeviceClass.MOISTURE],
-    "level": [PERCENTAGE, None, SensorStateClass.MEASUREMENT],
-    "gateway": [None, None, BinarySensorDeviceClass.CONNECTIVITY],
+SENSOR_TYPES: dict[
+    str,
+    tuple[
+        str | None,
+        str | None,
+        BinarySensorDeviceClass | SensorStateClass,
+        str | None,
+        StatisticMeanType | None
+    ]
+] = {
+    "leak": (None, None, BinarySensorDeviceClass.MOISTURE, None, None),
+    "level": (
+        PERCENTAGE,
+        None,
+        SensorStateClass.MEASUREMENT,
+        "percentage",
+        StatisticMeanType.ARITHMETIC
+    ),
+    "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY, None, None),
 }
 
 # Define attributes to be monitored for each device type
@@ -166,17 +181,19 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="rssi",
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
-        state_class="measurement",
+        state_class=SensorStateClass.MEASUREMENT,
         translation_key="rssi",
         value_fn=lambda data: data["rssi"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        unit_class="signal_strength",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:wifi",
     ),
     Neviweb130SensorEntityDescription(
         key="total_kwh_count",
         device_class=SensorDeviceClass.ENERGY,
-        state_class="total_increasing",
+        state_class=SensorStateClass.TOTAL_INCREASING,
         translation_key="total_kwh_count",
         value_fn=lambda data: data["total_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -188,7 +205,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="monthly_kwh_count",
         device_class=SensorDeviceClass.ENERGY,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="monthly_kwh_count",
         value_fn=lambda data: data["monthly_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -200,7 +217,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="daily_kwh_count",
         device_class=SensorDeviceClass.ENERGY,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="daily_kwh_count",
         value_fn=lambda data: data["daily_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -212,7 +229,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="hourly_kwh_count",
         device_class=SensorDeviceClass.ENERGY,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="hourly_kwh_count",
         value_fn=lambda data: data["hourly_kwh_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -224,7 +241,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="wattage",
         device_class=SensorDeviceClass.ENERGY,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="wattage",
         value_fn=lambda data: data["wattage"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -237,28 +254,32 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="pi_heating_demand",
         device_class=SensorDeviceClass.POWER_FACTOR,
-        state_class="measurement",
+        state_class=SensorStateClass.MEASUREMENT,
         translation_key="pi_heating_demand",
         value_fn=lambda data: data["pi_heating_demand"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=PERCENTAGE,
+        unit_class="percentage",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:thermometer",
     ),
     Neviweb130SensorEntityDescription(
         key="current_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
-        state_class="measurement",
+        state_class=SensorStateClass.MEASUREMENT,
         translation_key="current_temperature",
         value_fn=lambda data: data["current_temperature"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        unit_class="temperature",
+        mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:thermometer",
     ),
     #  Valve attributes
     Neviweb130SensorEntityDescription(
         key="total_flow_count",
         device_class=SensorDeviceClass.WATER,
-        state_class="total_increasing",
+        state_class=SensorStateClass.TOTAL_INCREASING,
         translation_key="total_flow_count",
         value_fn=lambda data: data["total_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -270,7 +291,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="monthly_flow_count",
         device_class=SensorDeviceClass.WATER,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="monthly_flow_count",
         value_fn=lambda data: data["monthly_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -282,7 +303,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="daily_flow_count",
         device_class=SensorDeviceClass.WATER,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="daily_flow_count",
         value_fn=lambda data: data["daily_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -294,7 +315,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     Neviweb130SensorEntityDescription(
         key="hourly_flow_count",
         device_class=SensorDeviceClass.WATER,
-        state_class="total",
+        state_class=SensorStateClass.TOTAL,
         translation_key="hourly_flow_count",
         value_fn=lambda data: data["hourly_flow_count"],
         signal=SIGNAL_EVENTS_CHANGED,
@@ -305,22 +326,15 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     ),
     #  Sensor attributes
     Neviweb130SensorEntityDescription(
-        key="gateway_status",
-        device_class=SensorDeviceClass.ENERGY,
-        state_class="measurement",
-        translation_key="gateway_status",
-        value_fn=lambda data: data["gateway_status"],
-        signal=SIGNAL_EVENTS_CHANGED,
-        native_unit_of_measurement=None,
-        icon="mdi:lightning-bolt",
-    ),
-    Neviweb130SensorEntityDescription(
         key="gauge_angle",
-        state_class="measurement_angle",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT_ANGLE,
         translation_key="gauge_angle",
         value_fn=lambda data: data["gauge_angle"],
         signal=SIGNAL_EVENTS_CHANGED,
         native_unit_of_measurement="°",
+        unit_class="angle",
+        mean_type=StatisticMeanType.ARITHMETIC,
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:gauge",
     ),
@@ -968,7 +982,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
 
     @property
     @override
-    def icon(self):
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = SENSOR_TYPE.get(self._device_type)
         if device_info is None:
@@ -988,9 +1002,21 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
 
     @property
     @override
-    def device_class(self):
+    def unit_class(self) -> str | None:
+        device_info = SENSOR_TYPES.get(self._device_type)
+        return device_info[3] if device_info else None
+
+    @property
+    @override
+    def statistic_mean_type(self) -> StatisticMeanType | None:
+        device_info = SENSOR_TYPES.get(self._device_type)
+        return device_info[4] if device_info else None
+
+    @property
+    @override
+    def device_class(self) -> BinarySensorDeviceClass | SensorStateClass | None:
         """Return the device class of this entity."""
-        device_info = SENSOR_TYPE.get(self._device_type)
+        device_info = SENSOR_TYPES.get(self._device_type)
         if device_info is None:
             return None
 
