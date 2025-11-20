@@ -287,6 +287,8 @@ OCCUPANCY_LIST = ["home", "away"]
 ON_OFF = ["off", "on"]
 PHASE_LIST = ["reverse", "forward"]
 POWER_TIMER_LIST = list(HA_TO_NEVIWEB_TIMER.keys())
+# for TH6250WF-PRO, TH6500WF and TH6510WF
+PRO_AUX_CYCLE = ["off", "1 sec", "15 sec", "10 min", "15 min", "20 min", "25 min"]
 REVERSING_VALVE_POLARITY = ["cooling", "heating"]
 SCHEDULE_LIST = ["auto", "manual"]
 SENSOR_LIST = ["10k", "12k"]
@@ -343,7 +345,6 @@ TIMER_LIST = [
 ]
 TRUE_LIST = [True, False]
 WATER_TEMP = list(HA_TO_NEVIWEB_TEMPERATURE.keys())
-WIFI_AUX_CYCLE = ["1 min", "10 min", "15 min", "20 min", "25 min"]
 WIFI_CYCLE = ["10 min", "15 min", "20 min", "25 min"]
 WIFI_FAN_SPEED = ["auto", "on"]
 WIFI_LOCK_LIST = ["lock", "unlock", "partialLock"]
