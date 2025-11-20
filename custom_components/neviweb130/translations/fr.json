@@ -76,6 +76,9 @@
       "battery_status": {
         "name": "Alerte Batterie"
       },
+      "gateway_status": {
+        "name": "État de la passerelle"
+      },
       "gauge_error": {
         "name": "Jauge Débranchée",
         "state": {
