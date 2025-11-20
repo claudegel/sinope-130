@@ -27,8 +27,9 @@ from datetime import date, datetime, timezone
 from threading import Lock
 from typing import Any, Callable, Mapping, Union, override
 
-
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, EntityCategory
@@ -853,6 +854,10 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._conf_dir = data["conf_dir"]
         self._device_dict = data["device_dict"]
         self._device = device_info
