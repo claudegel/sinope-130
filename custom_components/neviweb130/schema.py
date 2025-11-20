@@ -111,7 +111,7 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = "3.0.9"
+VERSION = "4.0.0"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -219,7 +219,6 @@ ACCESSORY = [
     "dehum",
     "airExchanger",
 ]
-INSTALL_TYPE = ["addOn", "Conventional"]
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 
 CYCLE_LENGTH_VALUES: dict[str, int] = {
