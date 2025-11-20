@@ -110,8 +110,7 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_ERROR_CODE_SET1 = "errorCodeSet1"
 ATTR_EXT_TEMP = "externalTemperature"
 ATTR_FAN_CAP = "fanCapabilities"
-ATTR_FAN_FILTER_LIFE = "fanFilterRemainingLife"
-ATTR_FAN_FILTER_REMAIN = "fanFilterReminderPeriod"  # ATTR_FAN_FILTER_LIFE
+ATTR_FAN_FILTER_REMAIN = "fanFilterReminderPeriod"
 ATTR_FAN_SPEED = "fanSpeed"
 ATTR_FAN_SPEED_OPTIM = "fanSpeedOptim"
 ATTR_FAN_SWING_CAP = "fanSwingCapabilities"
@@ -170,6 +169,7 @@ ATTR_INPUT_NUMBER = "input_number"
 ATTR_INPUT_STATUS = "inputStatus"
 ATTR_INTENSITY = "intensity"
 ATTR_INTENSITY_MIN = "intensityMin"
+ATTR_INTERLOCK_HC_MODE = "interlockMasterHeatCoolMode"
 ATTR_INTERLOCK_ID = "interlockUniqueId"
 ATTR_INTERLOCK_PARTNER = "interlockPartnerActive"
 ATTR_KEYPAD = "lockKeypad"
@@ -386,6 +386,7 @@ CLIMATE_MODEL = [
     1512,
     6727,
     6730,
+    6731,
     6810,
     6811,
     6812,
@@ -781,7 +782,7 @@ MODEL_ATTRIBUTES = {
             "occupancy_mode",
             "temp_format",
             "time_format",
-            "wifi_aux_cycle",
+            "pro_aux_cycle_length",
             "wifi_cycle",
             "wifi_keypad",
         ],
@@ -789,7 +790,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
-    6730: {  # TH6250WF, TH6250WF-PRO
+    6730: {  # TH6250WF
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -814,7 +815,40 @@ MODEL_ATTRIBUTES = {
             "occupancy_mode",
             "temp_format",
             "time_format",
-            "wifi_aux_cycle",
+            "wifi_aux_cycle_length",
+            "wifi_cycle",
+            "wifi_keypad",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    6731: {  # TH6250WF-PRO
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "pi_heating_demand",
+            "total_kwh_count",
+        ],
+        "number": [
+            "cool_setpoint_away",
+            "fan_filter_remain",
+            "max_cool_temp",
+            "max_temp",
+            "min_cool_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+            "pro_aux_cycle_length",
             "wifi_cycle",
             "wifi_keypad",
         ],
@@ -1254,10 +1288,13 @@ MODEL_ATTRIBUTES = {
     },
     # sensors
     130: {  # GT130
-        "sensor": ["gateway_status"],
+        "sensor": [],
         "number": [],
         "select": ["occupancy_mode"],
-        "binary_sensor": ["activation"],
+        "binary_sensor": [
+            "activation",
+            "gateway_status",
+        ],
         "button": [],
         "switch": [],
     },
@@ -1483,6 +1520,7 @@ EXPOSED_ATTRIBUTES = [
     "pi_heating_demand",
     "power_supply",
     "power_timer",
+    "pro_aux_cycle_length",
     "refuel_alert",
     "refuel_status",
     "room_humidity",
@@ -1507,7 +1545,7 @@ EXPOSED_ATTRIBUTES = [
     "wattage",
     "water_leak_status",
     "water_remaining_time",
-    "wifi_aux_cycle",
+    "wifi_aux_cycle_length",
     "wifi_cycle",
     "wifi_keypad",
     # Constants
@@ -1518,5 +1556,6 @@ EXPOSED_ATTRIBUTES = [
     "is_wifi_floor",
     "is_zb_valve",
     "is_zb_mesh_valve",
+    "sku",
     # ... etc.
 ]
