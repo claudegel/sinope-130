@@ -20,6 +20,8 @@ from typing import Any, Mapping, override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -470,6 +472,10 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._conf_dir = data["conf_dir"]
         self._device_dict = data["device_dict"]
         self._device = device_info
