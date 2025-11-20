@@ -385,7 +385,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
             return None
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the state attributes of the number."""
         return {"device_id": self._attr_unique_id}
 
