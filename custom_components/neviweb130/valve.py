@@ -34,6 +34,8 @@ from typing import Mapping, cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
@@ -120,9 +122,9 @@ SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
 
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
-VALVE_TYPES: dict[str, tuple[str, StrEnum]] = {
-    "flow": ("mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE),
-    "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER),
+VALVE_TYPES: dict[str, tuple[str, StrEnum, str | None, str | None, StatisticMeanType | None]] = {
+    "flow": ("mdi:pipe-valve", SensorDeviceClass.WATER, None, "volume_flow_rate", StatisticMeanType.ARITHMETIC),
+    "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER, None, None, None),
 }
 
 SUPPORTED_WIFI_MODES = [
@@ -666,7 +668,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     @property
     @override
-    def icon(self):
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
         device_info = VALVE_TYPES.get(self._device_type)
         if device_info is None:
@@ -676,13 +678,28 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     @property
     @override
-    def device_class(self):
+    def device_class(self) -> ValveDeviceClass | None:
         """Return the device class of this entity."""
         device_type = VALVE_TYPES.get(self._device_type)
         if device_type is None:
             return None
 
         return cast(ValveDeviceClass, device_type[1])
+
+    @property
+    @override
+    def unit_of_measurement(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
+
+    @property
+    @override
+    def unit_class(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[3]
+
+    @property
+    @override
+    def statistic_mean_type(self) -> StatisticMeanType | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[4]
 
     @property
     def is_open(self):
