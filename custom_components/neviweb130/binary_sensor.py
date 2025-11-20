@@ -31,11 +31,17 @@ DEFAULT_NAME_3 = f"{DOMAIN} binary_sensor 3"
 _LOGGER = logging.getLogger(__name__)
 
 
+def static_icon(on_icon: str, off_icon: str) -> Callable[[bool, dict | None, str | None], str]:
+    """Return icon_fn function compatible for Neviweb130BinarySensorEntityDescription."""
+    return lambda is_on, *_: on_icon if is_on else off_icon
+
+
 @dataclass(frozen=True)
 class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes Sensibo Motion binary sensor entity."""
 
     is_on_fn: Callable[[dict, str], bool] | None = None
+    icon_fn: Callable[[bool, dict | None, str | None], str] | None = None
     on_icon: str = "mdi:checkbox-marked"
     off_icon: str = "mdi:checkbox-blank-outline"
     signal: Optional[str] = None
@@ -46,30 +52,27 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
     Neviweb130BinarySensorEntityDescription(
         key="valve_temp_alert",
         device_class=BinarySensorDeviceClass.PROBLEM,
-        on_icon="mdi:thermometer-alert",
-        off_icon="mdi:thermometer",
         translation_key="temp_alert",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
+        icon_fn=static_icon("mdi:thermometer-alert", "mdi:thermometer"),
     ),
     Neviweb130BinarySensorEntityDescription(
         key="water_leak_status",
         device_class=BinarySensorDeviceClass.MOISTURE,
-        on_icon="mdi:pipe-leak",
-        off_icon="mdi:pipe",
         translation_key="leak_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "flowmeter", "probe"},
+        icon_fn=static_icon("mdi:pipe-leak", "mdi:pipe"),
     ),
     #  Switch attributes
     Neviweb130BinarySensorEntityDescription(
         key="battery_status",
         device_class=BinarySensorDeviceClass.BATTERY,
-        on_icon="mdi:battery-80",
-        off_icon="mdi:battery-alert-variant-outline",
         translation_key="battery_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
+        icon_fn=static_icon("mdi:battery-80", "mdi:battery-alert-variant-outline"),
     ),
     Neviweb130BinarySensorEntityDescription(
         key="gauge_error",
@@ -77,57 +80,60 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         device_class=BinarySensorDeviceClass.PROBLEM,
         translation_key="gauge_error",
         is_on_fn=lambda data, attr: data.get(attr) == -2,
+        icon_fn=static_icon("mdi:alert", "mdi:gauge"),
         signal=SIGNAL_EVENTS_CHANGED,
-        on_icon="mdi:alert",
-        off_icon="mdi:gauge",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     Neviweb130BinarySensorEntityDescription(
         key="low_temp_status",
         device_class=BinarySensorDeviceClass.BATTERY,
-        on_icon="mdi:thermometer-lines",
-        off_icon="mdi:thermometer",
         translation_key="low_temp_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:thermometer-lines", "mdi:thermometer"),
     ),
     #  Real Sensor attributes
     Neviweb130BinarySensorEntityDescription(
         key="leak_status",
         device_class=BinarySensorDeviceClass.MOISTURE,
-        on_icon="mdi:pipe-leak",
-        off_icon="mdi:pipe",
         translation_key="leak_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "probe"},
+        icon_fn=static_icon("mdi:pipe-leak", "mdi:pipe"),
     ),
     Neviweb130BinarySensorEntityDescription(
         key="refuel_status",
         device_class=BinarySensorDeviceClass.TAMPER,
-        on_icon="mdi:propane-tank",
-        off_icon="mdi:propane-tank-outline",
         translation_key="refuel_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"refueled"},
+        icon_fn=static_icon("mdi:propane-tank", "mdi:propane-tank-outline"),
     ),
     Neviweb130BinarySensorEntityDescription(
         key="level_status",
         device_class=BinarySensorDeviceClass.PROBLEM,
-        on_icon="mdi:propane-tank-outline",
-        off_icon="mdi:propane-tank",
         translation_key="level_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"low"},
+        icon_fn=static_icon("mdi:propane-tank-outline", "mdi:propane-tank"),
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="gateway_status",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        translation_key="gateway_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"online"},
+        icon_fn=static_icon("mdi:router-wireless", "mdi:router-off"),
+        signal=SIGNAL_EVENTS_CHANGED,
     ),
     #  Thermostat attributes
     Neviweb130BinarySensorEntityDescription(
         key="is_heating",
         device_class=BinarySensorDeviceClass.HEAT,
-        on_icon="mdi:thermometer-lines",
-        off_icon="mdi:thermometer",
         translation_key="heating",
         entity_category=EntityCategory.DIAGNOSTIC,
         is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:thermometer-lines", "mdi:thermometer"),
     ),
     #  All devices attributes
     Neviweb130BinarySensorEntityDescription(
@@ -266,9 +272,18 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         return self._attr_unique_id
 
     @property
-    def icon(self):
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
-        # Get icons from entity description
+
+        # Priority to icon_fn if defined
+        if self.entity_description.icon_fn:
+            try:
+                device_obj = self.coordinator.data.get(self._id)
+                return self.entity_description.icon_fn(self.is_on, device_obj, self._attribute)
+            except Exception as exc:
+                _LOGGER.warning("icon_fn error for %s: %s", self._attr_unique_id, exc)
+
+        # Falback to Get icons from entity description
         on_icon = getattr(self.entity_description, "on_icon", None)
         off_icon = getattr(self.entity_description, "off_icon", None)
 
