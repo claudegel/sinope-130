@@ -77,6 +77,9 @@
       "battery_status": {
         "name": "Battery Status"
       },
+      "gateway_status": {
+        "name": "Gateway status"
+      },
       "gauge_error": {
         "name": "Gauge disconnected",
         "state": {
