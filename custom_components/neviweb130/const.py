@@ -2,7 +2,6 @@
 
 import json
 import pathlib
-
 from enum import StrEnum
 
 
