@@ -189,7 +189,7 @@ setup_logger(
     level=level_name,
     max_bytes=DEFAULT_LOG_MAX_BYTES,
     backup_count=DEFAULT_LOG_BACKUP_COUNT,
-    reset_on_start=DEFAULT_LOG_RESET_ON_START
+    reset_on_start=DEFAULT_LOG_RESET_ON_START,
 )
 
 _LOGGER = logging.getLogger(__name__)

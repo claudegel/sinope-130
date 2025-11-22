@@ -1,11 +1,8 @@
 """Helpers for debugging and logger setup in neviweb130"""
 
-import aiofiles
-import json
 import logging
 import os
 import shutil
-
 from logging.handlers import RotatingFileHandler
 
 # ─────────────────────────────────────────────
@@ -19,7 +16,7 @@ def setup_logger(
     level: str = "INFO",
     max_bytes: int = 2 * 1024 * 1024,
     backup_count: int = 2,
-    reset_on_start: bool = True
+    reset_on_start: bool = True,
 ):
     if reset_on_start and os.path.exists(log_path):
         clear_log_file(log_path)
@@ -28,23 +25,16 @@ def setup_logger(
     numeric_level = getattr(logging, level.upper(), logging.WARNING)
     logger.setLevel(numeric_level)
 
-    handler = RotatingFileHandler(
-        log_path,
-        maxBytes=max_bytes,
-        backupCount=backup_count,
-        encoding="utf-8"
-    )
+    handler = RotatingFileHandler(log_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8")
     handler.setLevel(numeric_level)
     formatter = logging.Formatter(
-        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
 
     # Delete hold handlers on same file
     logger.handlers = [
-        h for h in logger.handlers
-        if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
+        h for h in logger.handlers if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
     ]
     logger.addHandler(handler)
     logger.propagate = False

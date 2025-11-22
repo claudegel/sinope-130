@@ -26,11 +26,10 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
-from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE, UnitOfTemperature, UnitOfVolume, UnitOfEnergy
+from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.recorder.models import StatisticMeanType
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -119,23 +118,10 @@ IMPLEMENTED_DEVICE_MODEL = (
 )
 
 SENSOR_TYPES: dict[
-    str,
-    tuple[
-        str | None,
-        str | None,
-        BinarySensorDeviceClass | SensorStateClass,
-        str | None,
-        StatisticMeanType | None
-    ]
+    str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
 ] = {
     "leak": (None, None, BinarySensorDeviceClass.MOISTURE, None, None),
-    "level": (
-        PERCENTAGE,
-        None,
-        SensorStateClass.MEASUREMENT,
-        "percentage",
-        StatisticMeanType.ARITHMETIC
-    ),
+    "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT, "percentage", StatisticMeanType.ARITHMETIC),
     "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY, None, None),
 }
 
