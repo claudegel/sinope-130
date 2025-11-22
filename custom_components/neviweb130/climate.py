@@ -202,6 +202,7 @@ from .const import (
     ATTR_WIFI_KEYPAD,
     ATTR_WIFI_WATTAGE,
     DOMAIN,
+    ExtendedHVACAction,
     MODE_AUTO_BYPASS,
     MODE_EM_HEAT,
     MODE_MANUAL,
@@ -2447,25 +2448,25 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     @override
-    def hvac_action(self) -> HVACAction:
+    def hvac_action(self) -> ExtendedHVACAction:
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
-            return HVACAction.OFF
+            return ExtendedHVACAction.OFF
         elif self._operation_mode == HVACMode.COOL:
-            return HVACAction.COOLING
+            return ExtendedHVACAction.COOLING
         elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACAction.FAN
+            return ExtendedHVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
-            return HVACAction.DRYING
+            return ExtendedHVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+                return ExtendedHVACAction.AUTO_BYPASS_IDLE
             else:
-                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
+                return ExtendedHVACAction.AUTO_BYPASS_HEATING
         elif self._heat_level == 0:
-            return HVACAction.IDLE
+            return ExtendedHVACAction.IDLE
         else:
-            return HVACAction.HEATING
+            return ExtendedHVACAction.HEATING
 
     @property
     def is_on(self) -> bool:
