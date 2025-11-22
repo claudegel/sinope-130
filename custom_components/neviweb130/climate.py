@@ -202,7 +202,6 @@ from .const import (
     ATTR_WIFI_KEYPAD,
     ATTR_WIFI_WATTAGE,
     DOMAIN,
-    ExtendedHVACAction,
     MODE_AUTO_BYPASS,
     MODE_EM_HEAT,
     MODE_MANUAL,
@@ -257,6 +256,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_OFFSET,
     SERVICE_SET_TIME_FORMAT,
     VERSION,
+    ExtendedHVACAction,
 )
 from .schema import (
     AUX_HEATING,
