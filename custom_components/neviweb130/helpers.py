@@ -4,7 +4,6 @@ import asyncio
 import logging
 import os
 import shutil
-
 from logging.handlers import RotatingFileHandler
 
 _LOGGER = logging.getLogger(__name__)
