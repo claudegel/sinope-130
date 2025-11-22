@@ -74,11 +74,11 @@ def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, b
             h.setLevel(numeric_level)
             h.maxBytes = max_bytes
             h.backupCount = backup_count
-            logger.debug("Logger handler mis à jour : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
+            logger.debug("Logger handler updated : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
             updated = True
 
     if not updated:
-        logger.warning("Aucun handler mis à jour — vérifie le log_path ou l’attachement initial")
+        logger.warning("No handler updated — check log path or level")
 
     logger.debug("Logger config updated to level %s", level.upper())
 
