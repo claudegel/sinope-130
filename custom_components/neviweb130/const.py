@@ -2,6 +2,19 @@
 
 import json
 import pathlib
+from enum import StrEnum
+
+
+class ExtendedHVACAction(StrEnum):
+    OFF = "off"
+    COOLING = "cooling"
+    FAN = "fan"
+    DRYING = "drying"
+    IDLE = "idle"
+    HEATING = "heating"
+    AUTO_BYPASS_IDLE = "idle (auto_bypass)"
+    AUTO_BYPASS_HEATING = "heating (auto_bypass)"
+
 
 # Base component constants, some loaded directly from the manifest
 _LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore[name-defined]
@@ -108,7 +121,6 @@ ATTR_EARLY_START = "earlyStartCfg"
 ATTR_ERROR_CODE_SET1 = "errorCodeSet1"
 ATTR_EXT_TEMP = "externalTemperature"
 ATTR_FAN_CAP = "fanCapabilities"
-ATTR_FAN_FILTER_LIFE = "fanFilterRemainingLife"
 ATTR_FAN_FILTER_REMAIN = "fanFilterReminderPeriod"
 ATTR_FAN_SPEED = "fanSpeed"
 ATTR_FAN_SPEED_OPTIM = "fanSpeedOptim"
@@ -168,6 +180,7 @@ ATTR_INPUT_NUMBER = "input_number"
 ATTR_INPUT_STATUS = "inputStatus"
 ATTR_INTENSITY = "intensity"
 ATTR_INTENSITY_MIN = "intensityMin"
+ATTR_INTERLOCK_HC_MODE = "interlockMasterHeatCoolMode"
 ATTR_INTERLOCK_ID = "interlockUniqueId"
 ATTR_INTERLOCK_PARTNER = "interlockPartnerActive"
 ATTR_KEYPAD = "lockKeypad"

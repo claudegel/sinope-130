@@ -40,13 +40,17 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1133CR Sinopé Evo 3000w Line voltage thermostat lite
   - Sinopé TH1134WF Wi-Fi 4000W Line voltage thermostat lite
   - Sinopé TH1134CR Sinopé Evo 4000w Line voltage thermostat lite
+  - Sinopé TH1143WF Wi-Fi 3000W two wires connection, color screen
+  - Sinopé TH1144WF WI-Fi 4000W two wires connection, color screen
   - Sinopé TH1300WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1310WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1325WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1400WF Wi-Fi low voltage thermostat
   - Sinopé TH1500WF Wi-Fi 3600W double pole thermostat
-  - Sinopé TH6500WF Wi-Fi heat/cool (preliminary, need voluntary to test)
-  - Sinopé TH6250WF Wi-Fi heat/cool (preliminary, need voluntary to test)
+  - Sinopé TH6500WF Wi-Fi heat/cool
+  - Sinopé TH6510WF Wi-Fi heat/cool
+  - Sinopé TH6250WF Wi-Fi heat/cool
+  - Sinopé TH6250WF_PRO Wi-Fi heat/cool
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
@@ -54,6 +58,9 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
   - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
+- Wi-Fi Heatpump controller:
+  - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
+  - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -148,6 +155,7 @@ There are two methods to install this custom component:
           const.py
           switch.py
           climate.py
+          helpers.py
           sensor.py
           valve.py
           schema.py
@@ -337,6 +345,13 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_temperature_offset, to adjust temperature sensor from -2 to 2°C with 0.5°C increment, for TH6xxxWF.
 - neviweb130.set_aux_heating_source, to select which type of auxiliary heating source is in use for TH6xxxWF.
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
+
+## Logging for debugging
+As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviwen130 
+to a file neviweb130_log.txt in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
+each time it reach 2 meg in size.
+
+To help debugging add snippet of this file to any issue you may have.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controller registered with Éco-Sinopé program, it is now possible to 

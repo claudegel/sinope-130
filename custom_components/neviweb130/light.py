@@ -20,6 +20,8 @@ from typing import override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -61,6 +63,7 @@ from .const import (
     SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
+    VERSION,
 )
 from .schema import (
     SET_ACTIVATION_SCHEMA,
@@ -73,7 +76,6 @@ from .schema import (
     SET_LIGHT_TIMER_SCHEMA,
     SET_PHASE_CONTROL_SCHEMA,
     SET_WATTAGE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -397,6 +399,10 @@ class Neviweb130Light(LightEntity):
     def __init__(self, data, device_info, name, sku, firmware):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._name = name
         self._sku = sku
         self._firmware = firmware

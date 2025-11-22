@@ -108,7 +108,6 @@ from .const import (
 
 """Default parameters values."""
 
-VERSION = "4.0.0"
 SCAN_INTERVAL = timedelta(seconds=540)
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
@@ -220,6 +219,7 @@ AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 
 CYCLE_LENGTH_VALUES: dict[str, int] = {
     "off": 0,
+    "1 sec": 1,
     "15 sec": 15,
     "5 min": 300,
     "10 min": 600,
