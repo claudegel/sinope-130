@@ -729,12 +729,10 @@ class Neviweb130Valve(ValveEntity):
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
     @property
-    @override
     def unit_class(self) -> str | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[3]
 
     @property
-    @override
     def statistic_mean_type(self) -> StatisticMeanType | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[4]
 
