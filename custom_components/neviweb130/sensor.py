@@ -760,13 +760,11 @@ class Neviweb130Sensor(Entity):
         return device_info[0]
 
     @property
-    @override
     def unit_class(self) -> str | None:
         device_info = SENSOR_TYPES.get(self._device_type)
         return device_info[3] if device_info else None
 
     @property
-    @override
     def statistic_mean_type(self) -> StatisticMeanType | None:
         device_info = SENSOR_TYPES.get(self._device_type)
         return device_info[4] if device_info else None
