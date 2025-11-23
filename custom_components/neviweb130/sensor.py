@@ -24,6 +24,7 @@ from typing import Any, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.core import ServiceCall
@@ -73,6 +74,7 @@ from .const import (
     SERVICE_SET_TANK_HEIGHT,
     SERVICE_SET_TANK_TYPE,
     STATE_WATER_LEAK,
+    VERSION,
 )
 from .schema import (
     SET_ACTIVATION_SCHEMA,
@@ -86,7 +88,6 @@ from .schema import (
     SET_SENSOR_ALERT_SCHEMA,
     SET_TANK_HEIGHT_SCHEMA,
     SET_TANK_TYPE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -116,10 +117,12 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
 
-SENSOR_TYPES: dict[str, tuple[str | None, None, BinarySensorDeviceClass | SensorStateClass]] = {
-    "leak": (None, None, BinarySensorDeviceClass.MOISTURE),
-    "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT),
-    "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY),
+SENSOR_TYPES: dict[
+    str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
+] = {
+    "leak": (None, None, BinarySensorDeviceClass.MOISTURE, None, None),
+    "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT, "percentage", StatisticMeanType.ARITHMETIC),
+    "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY, None, None),
 }
 
 
@@ -755,6 +758,16 @@ class Neviweb130Sensor(Entity):
             return None
 
         return device_info[0]
+
+    @property
+    def unit_class(self) -> str | None:
+        device_info = SENSOR_TYPES.get(self._device_type)
+        return device_info[3] if device_info else None
+
+    @property
+    def statistic_mean_type(self) -> StatisticMeanType | None:
+        device_info = SENSOR_TYPES.get(self._device_type)
+        return device_info[4] if device_info else None
 
     @property
     @override

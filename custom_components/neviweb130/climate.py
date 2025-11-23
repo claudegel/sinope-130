@@ -29,7 +29,7 @@ model 742 = thermostat TH1500WF double pole thermostat (Wi-Fi)
 model 6727 = thermostat TH6500WF heat/cool (Wi-Fi)
 model 6727 = thermostat TH6510WF heat/cool (Wi-Fi)
 model 6730 = thermostat TH6250WF heat/cool (Wi-Fi)
-model 6730 = thermostat TH6250WF-PRO heat/cool (Wi-Fi)
+model 6731 = thermostat TH6250WF-PRO heat/cool (Wi-Fi)
 
 Support for Flextherm Wi-Fi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
@@ -57,7 +57,7 @@ from datetime import date, datetime, timezone
 from threading import Lock
 from typing import Any, Mapping, override
 
-from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature, HVACAction, HVACMode
+from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
     ATTR_TARGET_TEMP_LOW,
@@ -65,14 +65,18 @@ from homeassistant.components.climate.const import (
     PRESET_BOOST,
     PRESET_HOME,
     PRESET_NONE,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.event import call_later
 
-from . import NOTIFY
+from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
 from . import STAT_INTERVAL
 from .const import (
@@ -124,7 +128,6 @@ from .const import (
     ATTR_DUAL_STATUS,
     ATTR_EARLY_START,
     ATTR_FAN_CAP,
-    ATTR_FAN_FILTER_LIFE,
     ATTR_FAN_FILTER_REMAIN,
     ATTR_FAN_SPEED,
     ATTR_FAN_SPEED_OPTIM,
@@ -160,6 +163,7 @@ from .const import (
     ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
     ATTR_HUMIDITY_SETPOINT_OFFSET,
+    ATTR_INTERLOCK_HC_MODE,
     ATTR_INTERLOCK_ID,
     ATTR_INTERLOCK_PARTNER,
     ATTR_KEYPAD,
@@ -254,6 +258,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_TEMPERATURE_OFFSET,
     SERVICE_SET_TIME_FORMAT,
+    VERSION,
 )
 from .schema import (
     AUX_HEATING,
@@ -311,7 +316,6 @@ from .schema import (
     SET_TEMPERATURE_FORMAT_SCHEMA,
     SET_TEMPERATURE_OFFSET_SCHEMA,
     SET_TIME_FORMAT_SCHEMA,
-    VERSION,
     WIFI_FAN_SPEED,
 )
 
@@ -495,7 +499,7 @@ DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1512]
 DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
 DEVICE_MODEL_WIFI_HEAT_PUMP = [6813, 6814]
-DEVICE_MODEL_HEAT_COOL = [6727, 6730]
+DEVICE_MODEL_HEAT_COOL = [6727, 6730, 6731]
 IMPLEMENTED_DEVICE_MODEL = (
     DEVICE_MODEL_HEAT
     + DEVICE_MODEL_FLOOR
@@ -1998,6 +2002,10 @@ class Neviweb130Thermostat(ClimateEntity):
     def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._name = name
         self._location = str(location)
         self._sku = sku
@@ -2442,7 +2450,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     @override
-    def hvac_action(self) -> HVACAction:
+    def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -2452,6 +2460,11 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
             return HVACAction.DRYING
+        elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
+            if self._heat_level == 0:
+                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
+            else:
+                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
@@ -2730,7 +2743,7 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
 
         self._operation_mode = hvac_mode
-        self.update()
+        self._delayed_refresh()
 
     @override
     def set_preset_mode(self, preset_mode: str) -> None:
@@ -2895,6 +2908,13 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set Neviweb global occupancy mode, away or home"""
         self._client.post_neviweb_status(self._location, value["mode"])
         self._occupancy_mode = value["mode"]
+
+    def _delayed_refresh(self, delay: float = 2.0) -> None:
+        """Push immediate state and schedule a delayed refresh."""
+        self.schedule_update_ha_state()
+
+        # Set a delayed refresh to wait from Neviweb to finish his setting
+        call_later(self.hass, delay, lambda _: self.update())
 
     def do_stat(self, start):
         """Get device energy statistic."""
@@ -3980,6 +4000,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
         self._temp_display_status = None
         self._interlock_id = None
         self._interlock_partner = None
+        self._interlock_hc_mode = None
 
     @override
     def update(self) -> None:
@@ -3997,6 +4018,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 ATTR_ROOM_SETPOINT_AWAY,
                 ATTR_INTERLOCK_PARTNER,
                 ATTR_INTERLOCK_ID,
+                ATTR_INTERLOCK_HC_MODE,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -4058,6 +4080,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     if ATTR_INTERLOCK_ID in device_data:
                         self._interlock_id = device_data[ATTR_INTERLOCK_ID]
                         self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
+                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -4130,6 +4153,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "interlock_id": self._interlock_id,
                 "interlock_partner": self._interlock_partner,
+                "interlock_hc_mode": self._interlock_hc_mode,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -5359,7 +5383,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._dr_aux_config = None
         self._dr_fan_speed_conf = None
         self._dual_status = None
-        self._fan_filter_life = None
         self._fan_filter_remain = None
         self._heat_cool = None
         self._heat_installation_type = None
@@ -5381,7 +5404,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._humidity_setpoint = None
         self._humidity_setpoint_mode = None
         self._humidity_setpoint_offset = 0
+        self._interlock_hc_mode = None
         self._interlock_id = None
+        self._interlock_partner = None
         self._output_connect_state = {
             "Y1": False,
             "Y2": False,
@@ -5425,7 +5450,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_ROOM_SETPOINT_AWAY,
                 ATTR_COOL_SETPOINT_AWAY,
                 ATTR_FAN_FILTER_REMAIN,
-                ATTR_FAN_FILTER_LIFE,
                 ATTR_AUX_HEAT_MIN_TIME_ON,
                 ATTR_AUX_HEAT_START_DELAY,
                 ATTR_OUTPUT_CONNECT_STATE,
@@ -5448,7 +5472,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ]
             else:
                 HC_EXTRA = []
-            if self._firmware == "4.2.1" or self._firmware == "4.3.0":
+            if self._firmware == "4.2.0" or self._firmware == "4.2.1" or self._firmware == "4.3.0":
                 HC_SPECIAL_FIRMWARE = [
                     ATTR_HEAT_MIN_TIME_ON,
                     ATTR_HEAT_MIN_TIME_OFF,
@@ -5469,7 +5493,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_AUX_HEAT_MIN_TIME_OFF,
                 ]
                 if self._firmware == "4.3.0":
-                    HC_43 = [ATTR_INTERLOCK_ID]
+                    HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
                 else:
                     HC_43 = []
             else:
@@ -5533,8 +5557,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._rssi = device_data[ATTR_RSSI]
                     self._fan_speed = device_data[ATTR_FAN_SPEED]
                     self._fan_filter_remain = device_data[ATTR_FAN_FILTER_REMAIN]
-                    if ATTR_FAN_FILTER_LIFE in device_data:
-                        self._fan_filter_life = device_data[ATTR_FAN_FILTER_LIFE]
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
                         self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                         self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
@@ -5572,7 +5594,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     if ATTR_HEAT_INSTALLATION_TYPE in device_data:
                         self._heat_installation_type = device_data[ATTR_HEAT_INSTALLATION_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
-                    if self._firmware == "4.2.1" or self._firmware == "4.3.0":
+                    if self._firmware == "4.2.0" or self._firmware == "4.2.1" or self._firmware == "4.3.0":
                         accessory_type = [
                             str(accessory_type).removesuffix("Standalone")
                             for accessory_type, value in device_data[ATTR_ACCESSORY_TYPE].items()
@@ -5599,6 +5621,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
                         if self._firmware == "4.3.0":
                             self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                            self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
+                            self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5651,7 +5675,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def hvac_action(self) -> HVACAction:
+    def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
         if self.hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -5819,8 +5843,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         # Reset the preset to the occupancy
         self.set_preset_mode(self._occupancy)
-
-        self.update()
+        self._delayed_refresh()
 
     @override
     def set_preset_mode(self, preset_mode: str) -> None:
@@ -6110,7 +6133,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "heat_level_source_type": self._heat_level_source_type,
                 "aux_heat_source_type": self._aux_heat_source_type,
                 "fan_filter_remain": self._fan_filter_remain,
-                "fan_filter_life": self._fan_filter_life,
                 "sensor_temp_offset": self._temp_offset_heat,
                 "aux_cycle_length": self._aux_cycle_length,
                 "cool_cycle_length": neviweb_to_ha(self._cool_cycle_length),
@@ -6188,6 +6210,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             data.update(
                 {
                     "interlock_id": self._interlock_id,
+                    "interlock_hc_mode": self._interlock_hc_mode,
+                    "interlock_partner": self._interlock_partner,
                 }
             )
         return data
