@@ -2450,7 +2450,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     @override
-    def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
+    def hvac_action(self) -> str | HVACAction | None:
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -2462,9 +2462,9 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"  # type: ignore
+                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
             else:
-                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"  # type: ignore
+                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
