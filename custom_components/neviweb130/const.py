@@ -2,19 +2,6 @@
 
 import json
 import pathlib
-from enum import StrEnum
-
-
-class ExtendedHVACAction(StrEnum):
-    OFF = "off"
-    COOLING = "cooling"
-    FAN = "fan"
-    DRYING = "drying"
-    IDLE = "idle"
-    HEATING = "heating"
-    AUTO_BYPASS_IDLE = "idle (auto_bypass)"
-    AUTO_BYPASS_HEATING = "heating (auto_bypass)"
-
 
 # Base component constants, some loaded directly from the manifest
 _LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore[name-defined]
