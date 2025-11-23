@@ -57,10 +57,12 @@ from datetime import date, datetime, timezone
 from threading import Lock
 from typing import Any, Mapping, override
 
-from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature, HVACAction, HVACMode
+from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
     ATTR_TARGET_TEMP_LOW,
+    HVACAction,
+    HVACMode,
     PRESET_AWAY,
     PRESET_BOOST,
     PRESET_HOME,
@@ -72,6 +74,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.event import call_later
 
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -256,7 +259,6 @@ from .const import (
     SERVICE_SET_TEMPERATURE_OFFSET,
     SERVICE_SET_TIME_FORMAT,
     VERSION,
-    ExtendedHVACAction,
 )
 from .schema import (
     AUX_HEATING,
@@ -2448,25 +2450,25 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     @override
-    def hvac_action(self) -> ExtendedHVACAction:
+    def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
-            return ExtendedHVACAction.OFF
+            return HVACAction.OFF
         elif self._operation_mode == HVACMode.COOL:
-            return ExtendedHVACAction.COOLING
+            return HVACAction.COOLING
         elif self._operation_mode == HVACMode.FAN_ONLY:
-            return ExtendedHVACAction.FAN
+            return HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
-            return ExtendedHVACAction.DRYING
+            return HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return ExtendedHVACAction.AUTO_BYPASS_IDLE
+                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"  # type: ignore
             else:
-                return ExtendedHVACAction.AUTO_BYPASS_HEATING
+                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"  # type: ignore
         elif self._heat_level == 0:
-            return ExtendedHVACAction.IDLE
+            return HVACAction.IDLE
         else:
-            return ExtendedHVACAction.HEATING
+            return HVACAction.HEATING
 
     @property
     def is_on(self) -> bool:
@@ -2741,7 +2743,7 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
 
         self._operation_mode = hvac_mode
-        self.update()
+        self._delayed_refresh()
 
     @override
     def set_preset_mode(self, preset_mode: str) -> None:
@@ -2906,6 +2908,13 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set Neviweb global occupancy mode, away or home"""
         self._client.post_neviweb_status(self._location, value["mode"])
         self._occupancy_mode = value["mode"]
+
+    def _delayed_refresh(self, delay: float = 2.0) -> None:
+        """Push immediate state and schedule a delayed refresh."""
+        self.schedule_update_ha_state()
+
+        # Set a delayed refresh to wait from Neviweb to finish his setting
+        call_later(self.hass, delay, lambda _: self.update())
 
     def do_stat(self, start):
         """Get device energy statistic."""
@@ -5666,7 +5675,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def hvac_action(self) -> HVACAction:
+    def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
         if self.hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -5834,8 +5843,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         # Reset the preset to the occupancy
         self.set_preset_mode(self._occupancy)
-
-        self.update()
+        self._delayed_refresh()
 
     @override
     def set_preset_mode(self, preset_mode: str) -> None:
