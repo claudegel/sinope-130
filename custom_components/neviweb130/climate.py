@@ -2450,7 +2450,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
     @property
     @override
-    def hvac_action(self) -> str | HVACAction | None:
+    def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
