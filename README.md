@@ -111,7 +111,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - GT130
   - GT4220WF-M, mesh gateway
 - Power supply:
-  - Sinopé ACUPS-01, battery backup for Sedna valve
+  - Sinopé ACUPS-01, battery backup for Sedna valve, GT130 or GT125
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to 
