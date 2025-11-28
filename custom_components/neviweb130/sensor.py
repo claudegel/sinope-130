@@ -119,23 +119,10 @@ IMPLEMENTED_DEVICE_MODEL = (
 )
 
 SENSOR_TYPES: dict[
-    str,
-    tuple[
-        str | None,
-        str | None,
-        BinarySensorDeviceClass | SensorStateClass,
-        str | None,
-        StatisticMeanType | None
-    ]
+    str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
 ] = {
     "leak": (None, None, BinarySensorDeviceClass.MOISTURE, None, None),
-    "level": (
-        PERCENTAGE,
-        None,
-        SensorStateClass.MEASUREMENT,
-        "percentage",
-        StatisticMeanType.ARITHMETIC
-    ),
+    "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT, "percentage", StatisticMeanType.ARITHMETIC),
     "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY, None, None),
 }
 
