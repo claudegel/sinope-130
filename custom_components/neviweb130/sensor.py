@@ -30,7 +30,6 @@ from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.recorder.models import StatisticMeanType
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
