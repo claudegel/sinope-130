@@ -138,12 +138,15 @@ from .const import (
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
+    CONF_ACCOUNTS,
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
+    CONF_LOCATION,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NETWORK3,
     CONF_NOTIFY,
+    CONF_PREFIX,
     CONF_STAT_INTERVAL,
     DOMAIN,
     MODE_MANUAL,
@@ -257,16 +260,49 @@ class Neviweb130Data:
 
     def __init__(self, hass, config):
         """Init the neviweb130 data object."""
-        # from pyneviweb130 import Neviweb130Client
-        username = config.get(CONF_USERNAME)
-        password = config.get(CONF_PASSWORD)
-        network = config.get(CONF_NETWORK)
-        network2 = config.get(CONF_NETWORK2)
-        network3 = config.get(CONF_NETWORK3)
-        ignore_miwi = config.get(CONF_IGNORE_MIWI)
-        self.neviweb130_client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi)
-
+        self.hass = hass
+        self.neviweb130_clients: list[Neviweb130Client] = []
         self.migration_done = asyncio.Event()
+
+        # Check if using new multi-account format
+        if CONF_ACCOUNTS in config:
+            _LOGGER.debug("Using multi-account configuration")
+            accounts = config.get(CONF_ACCOUNTS, [])
+            ignore_miwi = config.get(CONF_IGNORE_MIWI)
+
+            for account in accounts:
+                username = account.get(CONF_USERNAME)
+                password = account.get(CONF_PASSWORD)
+                # Support both 'location' (preferred) and 'network' (alias) for flexibility
+                location = account.get(CONF_LOCATION) or account.get(CONF_NETWORK)
+                prefix = account.get(CONF_PREFIX, DOMAIN)  # Default prefix
+
+                _LOGGER.debug(
+                    "Creating client for account %s with location %s and prefix %s",
+                    username,
+                    location,
+                    prefix,
+                )
+
+                client = Neviweb130Client(hass, username, password, location, None, None, ignore_miwi, prefix)
+                self.neviweb130_clients.append(client)
+
+        # Legacy single-account format (backward compatibility)
+        elif CONF_USERNAME in config:
+            _LOGGER.debug("Using legacy single-account configuration")
+            username = config.get(CONF_USERNAME)
+            password = config.get(CONF_PASSWORD)
+            network = config.get(CONF_NETWORK)
+            network2 = config.get(CONF_NETWORK2)
+            network3 = config.get(CONF_NETWORK3)
+            ignore_miwi = config.get(CONF_IGNORE_MIWI)
+            prefix = config.get(CONF_PREFIX, DOMAIN)  # Allow prefix even in legacy mode
+
+            client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi, prefix)
+            self.neviweb130_clients.append(client)
+
+        else:
+            _LOGGER.error("Invalid configuration: must specify either 'accounts' or 'username/password'")
 
 
 # According to HA:
@@ -290,10 +326,12 @@ class Neviweb130Client:
         network2,
         network3,
         ignore_miwi,
+        prefix: str,
         timeout=REQUESTS_TIMEOUT,
     ):
         """Initialize the client object."""
         self.hass = hass
+        self.prefix = prefix
         self._email = username
         self._password = password
         self._network_name = network
@@ -304,11 +342,10 @@ class Neviweb130Client:
         self._gateway_id = None
         self._gateway_id2 = None
         self._gateway_id3 = None
-        self.gateway_data = {}
-        self.gateway_data2 = {}
-        self.gateway_data3 = {}
-        self._headers = None
-        self._account = None
+        self.gateway_data: list[dict[str, Any]] = []
+        self.gateway_data2: list[dict[str, Any]] = []
+        self.gateway_data3: list[dict[str, Any]] = []
+        self._account: str | None = None
         self._cookies: RequestsCookieJar | None = None
         self._timeout = timeout
         self._occupancyMode = None
@@ -638,7 +675,7 @@ class Neviweb130Client:
                             "add parameter: ignore_miwi: True, in your neviweb130 configuration"
                         )
 
-    def get_device_attributes(self, device_id: str, attributes: list[str]) -> Any:
+    def get_device_attributes(self, device_id: str, attributes: list[str]) -> dict[str, Any]:
         """Get device attributes."""
         # Http requests
         try:
