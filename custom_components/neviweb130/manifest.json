@@ -1,7 +1,10 @@
 {
   "domain": "neviweb130",
   "name": "Sinope Neviweb130",
-  "codeowners": ["@claudegel"],
+  "after_dependencies": ["recorder"],
+  "codeowners": [
+    "@claudegel"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/claudegel/sinope-130",
   "integration_type": "hub",
