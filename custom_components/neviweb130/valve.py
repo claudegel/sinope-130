@@ -95,6 +95,7 @@ from .const import (
     SERVICE_SET_VALVE_ALERT,
     SERVICE_SET_VALVE_TEMP_ALERT,
     STATE_VALVE_STATUS,
+    VERSION,
 )
 from .devices import save_devices
 from .schema import (
@@ -108,7 +109,6 @@ from .schema import (
     SET_POWER_SUPPLY_SCHEMA,
     SET_VALVE_ALERT_SCHEMA,
     SET_VALVE_TEMP_ALERT_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -692,12 +692,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
     @property
-    @override
     def unit_class(self) -> str | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[3]
 
     @property
-    @override
     def statistic_mean_type(self) -> StatisticMeanType | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[4]
 
