@@ -52,14 +52,24 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import date, datetime, timezone
 from threading import Lock
 from typing import Any, Mapping, override
 
-from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature, HVACAction, HVACMode
-from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, PRESET_NONE
+from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
+from homeassistant.components.climate.const import (
+    ATTR_TARGET_TEMP_HIGH,
+    ATTR_TARGET_TEMP_LOW,
+    PRESET_AWAY,
+    PRESET_BOOST,
+    PRESET_HOME,
+    PRESET_NONE,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
@@ -250,6 +260,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_OFFSET,
     SERVICE_SET_TIME_FORMAT,
     SERVICE_SET_WIFI_CLIMATE_KEYPAD_LOCK,
+    VERSION,
 )
 from .devices import save_devices
 from .schema import (
@@ -307,7 +318,6 @@ from .schema import (
     SET_TEMPERATURE_OFFSET_SCHEMA,
     SET_TIME_FORMAT_SCHEMA,
     SET_WIFI_CLIMATE_KEYPAD_LOCK_SCHEMA,
-    VERSION,
     WIFI_FAN_SPEED,
 )
 
@@ -2372,7 +2382,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     @override
-    def hvac_action(self):
+    def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -2384,9 +2394,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             return HVACAction.DRYING
         elif not self._homekit_mode and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return HVACAction.IDLE + "(" + MODE_AUTO_BYPASS + ")"
+                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
             else:
-                return HVACAction.HEATING + "(" + MODE_AUTO_BYPASS + ")"
+                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
         elif self._heat_level == 0:
             return HVACAction.IDLE
         else:
@@ -2641,7 +2651,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             _LOGGER.error("Unable to set hvac mode: %s.", hvac_mode)
 
         self._operation_mode = hvac_mode
-        await self.async_update()
+        # Wait before update to avoid getting old data from Neviweb
+        await self._delayed_refresh()
 
     @override
     async def async_set_preset_mode(self, preset_mode):
@@ -2801,6 +2812,17 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Set Neviweb global occupancy mode, away or home"""
         await self._client.async_post_neviweb_status(self._location, value["mode"])
         self._occupancy_mode = value["mode"]
+
+    async def _delayed_refresh(self, delay: float = 2.0) -> None:
+        """Push immediate state and schedule a delayed refresh via coordinator."""
+        # Push l’état local immédiatement vers l’UI
+        self.async_write_ha_state()
+
+        # Attendre un peu pour laisser Neviweb appliquer le changement
+        await asyncio.sleep(delay)
+
+        # Rafraîchir via le coordinator
+        await self.coordinator.async_request_refresh()
 
     async def async_do_stat(self, start):
         """Get device energy statistic."""
@@ -5644,7 +5666,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def hvac_action(self) -> HVACAction:
+    def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
         if self.hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -5813,7 +5835,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         # Reset the preset to the occupancy
         self.async_set_preset_mode(self._occupancy)
 
-        self.update()
+        # Wait before update to avoid getting old data from Neviweb
+        await self._delayed_refresh()
 
     @override
     async def async_set_preset_mode(self, preset_mode: str) -> None:
