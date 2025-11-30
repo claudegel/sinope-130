@@ -63,6 +63,7 @@ from .const import (
     SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
+    VERSION,
 )
 from .devices import save_devices
 from .schema import (
@@ -77,7 +78,6 @@ from .schema import (
     SET_LIGHT_TIMER_SCHEMA,
     SET_PHASE_CONTROL_SCHEMA,
     SET_WATTAGE_SCHEMA,
-    VERSION,
     color_to_rgb,
     rgb_to_color,
 )
