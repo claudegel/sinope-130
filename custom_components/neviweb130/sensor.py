@@ -66,6 +66,7 @@ from .const import (
     ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
     ATTR_SAMPLING,
+    ATTR_SENSOR_TYPE,
     ATTR_STATUS,
     ATTR_TANK_HEIGHT,
     ATTR_TANK_PERCENT,
@@ -90,6 +91,7 @@ from .const import (
     SERVICE_SET_TANK_TYPE,
     SIGNAL_EVENTS_CHANGED,
     STATE_WATER_LEAK,
+    VERSION,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .schema import (
@@ -109,7 +111,6 @@ from .schema import (
     SET_SENSOR_TEMP_ALERT_SCHEMA,
     SET_TANK_HEIGHT_SCHEMA,
     SET_TANK_TYPE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -139,23 +140,10 @@ IMPLEMENTED_DEVICE_MODEL = (
 )
 
 SENSOR_TYPES: dict[
-    str,
-    tuple[
-        str | None,
-        str | None,
-        BinarySensorDeviceClass | SensorStateClass,
-        str | None,
-        StatisticMeanType | None
-    ]
+    str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
 ] = {
     "leak": (None, None, BinarySensorDeviceClass.MOISTURE, None, None),
-    "level": (
-        PERCENTAGE,
-        None,
-        SensorStateClass.MEASUREMENT,
-        "percentage",
-        StatisticMeanType.ARITHMETIC
-    ),
+    "level": (PERCENTAGE, None, SensorStateClass.MEASUREMENT, "percentage", StatisticMeanType.ARITHMETIC),
     "gateway": (None, None, BinarySensorDeviceClass.CONNECTIVITY, None, None),
 }
 
@@ -809,7 +797,7 @@ def convert_to_percent(angle, low, high):
 
 
 class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
-    """Implementation of a Neviweb sensor."""
+    """Implementation of a Neviweb sensor connected to GT130."""
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator):
         """Initialize."""
@@ -833,7 +821,10 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         )
         self._is_connected = device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
         self._is_new_connected = device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
-        self._is_new_leak = device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+        self._is_new_leak = (
+            device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+            or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+        )
         self._is_lte_monitor = device_info["signature"]["model"] in IMPLEMENTED_LTE_TANK_MONITOR
         self._is_monitor = device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
         self._is_gateway = device_info["signature"]["model"] in IMPLEMENTED_GATEWAY
@@ -855,6 +846,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._leak_status: str = ""
         self._rssi = None
         self._sampling = None
+        self._sensor_type = None
         self._snooze: float = 0.0
         self._tank_height: str | None = None
         self._tank_percent: str = ""
@@ -891,7 +883,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             else:
                 LEAK_ATTRIBUTE = []
             if self._is_new_leak:
-                NEW_LEAK_ATTRIBUTE = [ATTR_ERROR_CODE_SET1]
+                NEW_LEAK_ATTRIBUTE = [ATTR_ERROR_CODE_SET1, ATTR_SENSOR_TYPE]
             else:
                 NEW_LEAK_ATTRIBUTE = []
 
@@ -909,9 +901,21 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
-                        self._leak_status = (
-                            STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                        )
+                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                            self.notify_ha(
+                                "Warning: Neviweb Device error detected: "
+                                + device_data[ATTR_WATER_LEAK_STATUS]
+                                + " for device: "
+                                + self._name
+                                + ", Sku: "
+                                + self._sku
+                                + ", Leak sensor disconnected"
+                            )
+                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                        else:
+                            self._leak_status = (
+                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
+                            )
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -935,19 +939,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                                         + ", Sku: "
                                         + self._sku
                                     )
-                    self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
-                    if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                        await self.async_notify_ha(
-                            "Warning: Neviweb Device error code detected: "
-                            + device_data[ATTR_WATER_LEAK_STATUS]
-                            + " for device: "
-                            + self._name
-                            + ", Sku: "
-                            + self._sku
-                            + ", Leak sensor disconnected"
-                        )
+                            if ATTR_SENSOR_TYPE in device_data:
+                                self._sensor_type = device_data[ATTR_SENSOR_TYPE]
+                        self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                        if ATTR_RSSI in device_data:
+                            self._rssi = device_data[ATTR_RSSI]
                     self.async_write_ha_state()
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1001,13 +997,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         return device_info[0]
 
     @property
-    @override
     def unit_class(self) -> str | None:
         device_info = SENSOR_TYPES.get(self._device_type)
         return device_info[3] if device_info else None
 
     @property
-    @override
     def statistic_mean_type(self) -> StatisticMeanType | None:
         device_info = SENSOR_TYPES.get(self._device_type)
         return device_info[4] if device_info else None
@@ -1075,6 +1069,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         return self._gauge_type
 
     @property
+    def sensor_type(self) -> str | None:
+        """Define which sensor is attached to device."""
+        return self._sensor_type
+
+    @property
     @override
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the state attributes."""
@@ -1097,7 +1096,10 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             }
         )
         if self._is_new_leak:
-            data.update({"error_code": self._error_code})
+            data.update({
+                "error_code": self._error_code,
+                "sensor_type": self._sensor_type,
+            })
         data.update(
             {
                 "sku": self._sku,
@@ -1297,6 +1299,10 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 ]
             else:
                 LEAK_ATTRIBUTE = []
+            if self._is_new_leak:
+                NEW_LEAK_ATTRIBUTE = [ATTR_SENSOR_TYPE]
+            else:
+                NEW_LEAK_ATTRIBUTE = []
             if self._is_connected:
                 CONNECTED_ATTRIBUTE = [ATTR_RSSI]
             else:
@@ -1304,9 +1310,14 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
+            _LOGGER.debug(
+                "Updated attributes for %s: %s",
+                self._name,
+                UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE + CONNECTED_ATTRIBUTE,
+            )
             device_data = await self._client.async_get_device_attributes(
                 self._id,
-                UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + CONNECTED_ATTRIBUTE,
+                UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE + CONNECTED_ATTRIBUTE,
             )
             #            device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
             end = time.time()
@@ -1315,10 +1326,25 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
-                    if self._is_leak or self._is_connected:
-                        self._leak_status = (
-                            STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                        )
+                    if self._is_connected or self._is_new_connected:
+                        if ATTR_WATER_LEAK_STATUS in device_data:
+                            if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                                self.notify_ha(
+                                    "Warning: Neviweb Device error detected: "
+                                    + device_data[ATTR_WATER_LEAK_STATUS]
+                                    + " for device: "
+                                    + self._name
+                                    + ", id: "
+                                    + str(self._id)
+                                    + ", Sku: "
+                                    + self._sku
+                                    + ", Leak sensor disconnected"
+                                )
+                                self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            else:
+                                self._leak_status = (
+                                    STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
+                                )
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -1331,21 +1357,12 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         self._closure_action = device_data[ATTR_CONF_CLOSURE]
-                    self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
-                    if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                        await self.async_notify_ha(
-                            "Warning: Neviweb Device error code detected: "
-                            + device_data[ATTR_WATER_LEAK_STATUS]
-                            + " for device: "
-                            + self._name
-                            + ", id: "
-                            + self._id
-                            + ", Sku: "
-                            + self._sku
-                            + ", Leak sensor disconnected"
-                        )
+                        self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                        if ATTR_RSSI in device_data:
+                            self._rssi = device_data[ATTR_RSSI]
+                        if self._is_new_connected:
+                           if ATTR_SENSOR_TYPE in device_data:
+                                self._sensor_type = device_data[ATTR_SENSOR_TYPE]
                     self.async_write_ha_state()
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1382,6 +1399,8 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "closure_action": self._closure_action,
             }
         )
+        if self._is_new_connected:
+            data.update({"sensor_type": self._sensor_type,})
         if self._is_connected:
             data.update({"rssi": self._rssi})
         data.update(
