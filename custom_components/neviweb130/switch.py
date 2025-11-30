@@ -124,6 +124,7 @@ from .const import (
     SERVICE_SET_TANK_SIZE,
     SIGNAL_EVENTS_CHANGED,
     STATE_KEYPAD_STATUS,
+    VERSION,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import save_devices
@@ -146,7 +147,6 @@ from .schema import (
     SET_SWITCH_TIMER_2_SCHEMA,
     SET_SWITCH_TIMER_SCHEMA,
     SET_TANK_SIZE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
