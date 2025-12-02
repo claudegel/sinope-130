@@ -2200,7 +2200,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3006,26 +3006,26 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
 
-    def get_sensor_error_code(self, start):
+    def get_sensor_error_code(self):
         """Get device sensor error code."""
         device_error_code = self._client.get_device_sensor_error(self._id)
-        if device_error_code is not None and device_error_code != {}:
-            if device_error_code["raw"] != 0:
-                self._error_code = device_error_code["raw"]
-                self.notify_ha(
-                    "Warning: Neviweb Device error code detected: "
-                    + str(device_error_code["raw"])
-                    + " for device: "
-                    + self._name
-                    + ", ID: "
-                    + str(self._id)
-                    + ", Sku: "
-                    + self._sku
-                )
-                _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
-                self._energy_stat_time = time.time()
-            if self._energy_stat_time == 0:
-                self._energy_stat_time = start
+        if device_error_code and device_error_code.get("raw", 0) != 0:
+            self._error_code = device_error_code["raw"]
+            # Message list
+            error_messages = {
+                1048576: "External sensor disconnected (not implemented),",
+            }
+
+            # Default message if code is unknown
+            error_message = error_messages.get(self._error_code, "Unknown error")
+
+            # Send notification
+            self.notify_ha(
+                f"Warning: Neviweb Device error code detected: {self._error_code} "
+                f"({error_message}) for device: {self._name}, "
+                f"ID: {self._id}, Sku: {self._sku}"
+            )
+            _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
 
     def log_error(self, error_data):
         """Send error message to LOG."""
