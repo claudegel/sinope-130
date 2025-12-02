@@ -3246,7 +3246,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3419,7 +3419,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3605,7 +3605,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3757,7 +3757,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3917,7 +3917,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4100,7 +4100,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 and self._sku != "TH1134CR"
             ):
                 self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4267,7 +4267,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4460,7 +4460,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4663,7 +4663,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             if self._sku != "FLP55" and self._sku != "PS120_240WF":
                 self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4868,7 +4868,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             self.do_stat(start)
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -5077,7 +5077,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -5283,7 +5283,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -5634,7 +5634,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            self.get_sensor_error_code(start)
+            self.get_sensor_error_code()
             self.get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
