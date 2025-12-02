@@ -1948,7 +1948,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -2914,29 +2914,25 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
 
-    async def async_get_sensor_error_code(self, start):
+    async def async_get_sensor_error_code(self):
         """Get device sensor error code."""
         device_error_code = await self._client.async_get_device_sensor_error(self._id)
-        if device_error_code is not None and device_error_code != {}:
-            if device_error_code["raw"] != 0:
-                self._error_code = device_error_code["raw"]
-                await self.async_notify_ha(
-                    "Warning: Neviweb Device error code detected: "
-                    + str(device_error_code["raw"])
-                    + " for device: "
-                    + self._name
-                    + ", ID: "
-                    + self._id
-                    + ", Sku: "
-                    + self._sku
-                )
-                _LOGGER.warning(
-                    "Error code set1 updated: %s",
-                    str(device_error_code["raw"]),
-                )
-                self._energy_stat_time = time.time()
-            if self._energy_stat_time == 0:
-                self._energy_stat_time = start
+        if device_error_code and device_error_code.get("raw", 0) != 0:
+            self._error_code = device_error_code["raw"]
+            # Message list
+            error_messages = {
+                1048576: "External sensor disconnected (not implemented),",
+            }
+
+            # Default message if code is unknown
+            error_message = error_messages.get(self._error_code, "Unknown error")
+
+            await self.async_notify_ha(
+                f"Warning: Neviweb Device error code detected: {self._error_code} "
+                f"({error_message}) for device: {self._name}, "
+                f"ID: {self._id}, Sku: {self._sku}"
+            )
+            _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
 
     async def async_log_error(self, error_data):
         """Send error message to LOG."""
@@ -3171,7 +3167,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3351,7 +3347,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3545,7 +3541,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3705,7 +3701,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -3870,7 +3866,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4055,7 +4051,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 and self._sku != "TH1134CR"
             ):
                 await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4221,7 +4217,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4421,7 +4417,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4632,7 +4628,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             if self._sku != "FLP55" and self._sku != "PS120_240WF":
                 await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -4839,7 +4835,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
             await self.async_do_stat(start)
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -5060,7 +5056,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             else:
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -5266,7 +5262,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             else:
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
@@ -5623,7 +5619,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             else:
                 await self.async_log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            await self.async_get_sensor_error_code(start)
+            await self.async_get_sensor_error_code()
             await self.async_get_weather()
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
