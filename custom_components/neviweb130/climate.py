@@ -2036,6 +2036,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._is_WHP = device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP
         self._is_color_wifi = device_info["signature"]["model"] in DEVICE_MODEL_COLOR_WIFI
         self._active = True
+        self._active_errors = set()
         self._aux_cycle_length = 0
         self._avail_mode = None
         self._backlight = None
@@ -2064,7 +2065,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._early_start = None
         self._em_heat = "off"
         self._energy_stat_time = time.time() - 1500
-        self._error_code = None
+        self._error_code = 0
         self._fan_speed = None
         self._fan_swing_cap = None
         self._fan_swing_cap_horiz = None
@@ -3009,23 +3010,39 @@ class Neviweb130Thermostat(ClimateEntity):
     def get_sensor_error_code(self):
         """Get device sensor error code."""
         device_error_code = self._client.get_device_sensor_error(self._id)
-        if device_error_code and device_error_code.get("raw", 0) != 0:
-            self._error_code = device_error_code["raw"]
-            # Message list
-            error_messages = {
-                1048576: "External sensor disconnected (not implemented),",
-            }
+        raw_code = device_error_code.get("raw", 0) if device_error_code else 0
 
+        # Message list
+        error_messages = {
+            1048576: "External sensor disconnected (not implemented)",
+        }
+
+        if raw_code == 0:
+            if self._active_errors:
+                self.notify_ha(
+                    f"All errors resolved for device {self._name}, "
+                    f"ID: {self._id}, Sku: {self._sku}"
+                )
+                _LOGGER.info("All errors resolved: %s", self._active_errors)
+                self._active_errors.clear()
+            return
+
+        # If we receive a new error code
+        if raw_code not in self._active_errors:
             # Default message if code is unknown
-            error_message = error_messages.get(self._error_code, "Unknown error")
+            error_message = error_messages.get(raw_code, "Unknown error")
 
             # Send notification
-#            self.notify_ha(
-#                f"Warning: Neviweb Device error code detected: {self._error_code} "
-#                f"({error_message}) for device: {self._name}, "
-#                f"ID: {self._id}, Sku: {self._sku}"
-#            )
-            _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
+            self.notify_ha(
+                f"Warning: Neviweb Device error code detected: {raw_code} "
+                f"({error_message}) for device: {self._name}, "
+                f"ID: {self._id}, Sku: {self._sku}"
+            )
+            _LOGGER.warning("New error code %s (%s)", raw_code, error_message)
+            self._active_errors.add(raw_code)
+
+        # Save last error code
+        self._error_code = raw_code
 
     def log_error(self, error_data):
         """Send error message to LOG."""
