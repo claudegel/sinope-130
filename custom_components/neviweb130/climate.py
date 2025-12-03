@@ -3020,11 +3020,11 @@ class Neviweb130Thermostat(ClimateEntity):
             error_message = error_messages.get(self._error_code, "Unknown error")
 
             # Send notification
-            self.notify_ha(
-                f"Warning: Neviweb Device error code detected: {self._error_code} "
-                f"({error_message}) for device: {self._name}, "
-                f"ID: {self._id}, Sku: {self._sku}"
-            )
+#            self.notify_ha(
+#                f"Warning: Neviweb Device error code detected: {self._error_code} "
+#                f"({error_message}) for device: {self._name}, "
+#                f"ID: {self._id}, Sku: {self._sku}"
+#            )
             _LOGGER.warning("Error code set1 updated: %s", str(device_error_code["raw"]))
 
     def log_error(self, error_data):
