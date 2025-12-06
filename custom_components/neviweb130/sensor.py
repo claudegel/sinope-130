@@ -991,7 +991,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 
     def update(self):
         if self._active:
-            if self._is_connected:
+            if self._is_connected or self._is_new_connected:
                 LEAK_ATTRIBUTE = [
                     ATTR_WATER_LEAK_STATUS,
                     ATTR_ROOM_TEMPERATURE,
