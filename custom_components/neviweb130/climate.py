@@ -6042,8 +6042,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_speed = value["speed"]
 
     @override
-    def set_humidity(self, humidity: int) -> None:
+    def set_humidity(self, **kwargs) -> None:
         """Set new target humidity %."""
+        humidity = kwargs.get("humidity")
+        if humidity is None:
+            return
+
         if self._humidity_setpoint_mode == "defog":
             self._client.set_humidity_offset(self._id, humidity, self._is_HC)
             self._humidity_setpoint_offset = humidity
