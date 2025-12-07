@@ -1318,6 +1318,26 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
+    42102: {  # WL4210, WL4210S connected to sedna valve
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "action_close",
+            "batt_alert",
+            "leak_alert",
+            "temp_alert",
+        ],
+    },
     5050: {  # WL4200, WL4210 and WL4200S,
         "sensor": [
             ATTR_RSSI,
@@ -1435,26 +1455,6 @@ MODEL_ATTRIBUTES = {
             "batt_alert",
             "fuel_alert",
             "refuel_alert",
-        ],
-    },
-    42102: {  # WL4210, WL4210S connected to sedna valve
-        "sensor": [
-            ATTR_RSSI,
-            "current_temperature",
-        ],
-        "number": [],
-        "select": ["batt_type"],
-        "binary_sensor": [
-            "activation",
-            "battery_status",
-            "leak_status",
-        ],
-        "button": [],
-        "switch": [
-            "action_close",
-            "batt_alert",
-            "leak_alert",
-            "temp_alert",
         ],
     },
 }
