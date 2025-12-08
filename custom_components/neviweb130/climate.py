@@ -6039,9 +6039,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_speed = value["speed"]
 
     @override
-    def set_humidity(self, **kwargs) -> None:
+    def set_humidity(self, humidity: int | None = None, **kwargs: Any) -> None:
         """Set new target humidity %."""
-        humidity = kwargs.get("humidity")
+        if humidity is None:
+            humidity = kwargs.get("humidity")
         if humidity is None:
             return
 
