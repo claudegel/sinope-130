@@ -3019,10 +3019,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
         if raw_code == 0:
             if self._active_errors:
-                self.notify_ha(
-                    f"All errors resolved for device {self._name}, "
-                    f"ID: {self._id}, Sku: {self._sku}"
-                )
+                self.notify_ha(f"All errors resolved for device {self._name}, ID: {self._id}, Sku: {self._sku}")
                 _LOGGER.info("All errors resolved: %s", self._active_errors)
                 self._active_errors.clear()
             return

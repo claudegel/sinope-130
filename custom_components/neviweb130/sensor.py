@@ -820,10 +820,12 @@ class Neviweb130Sensor(Entity):
             }
         )
         if self._is_new_leak:
-            data.update({
-                "error_code": self._error_code,
-                "sensor_type": self._sensor_type,
-            })
+            data.update(
+                {
+                    "error_code": self._error_code,
+                    "sensor_type": self._sensor_type,
+                }
+            )
         data.update(
             {
                 "sku": self._sku,
@@ -1086,7 +1088,11 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             }
         )
         if self._is_new_connected:
-            data.update({"sensor_type": self._sensor_type,})
+            data.update(
+                {
+                    "sensor_type": self._sensor_type,
+                }
+            )
         data.update(
             {
                 "sku": self._sku,
