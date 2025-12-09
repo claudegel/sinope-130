@@ -545,7 +545,8 @@ code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
 copy the six icons there. You can find them under local/www
-feel free to improve my icons and let me know. (See icon_view2.png)
+feel free to improve my icons and let me know. 
+![icons](icon_view2.png)
 
 For each thermostat add this code in `customize.yaml`
 ```yaml
