@@ -499,7 +499,7 @@ You can also post in one of those threads to get help:
 - https://community.home-assistant.io/t/sinope-line-voltage-thermostats/17157
 - https://community.home-assistant.io/t/adding-support-for-sinope-light-switch-and-dimmer/38835
 
-### Turning on Neviweb130 debug messages in `home-assistant.log` file
+### Turning on Neviweb130 debug messages in `neviweb130_log.txt` file
 
 To have a maximum of information to help you, please provide a snippet of your `home-assistant.log` file. I've added 
 some debug log messages that could help diagnose the problem.
