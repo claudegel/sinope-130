@@ -493,7 +493,7 @@ climate.py, light.py, switch.py or sensor.py near line 132 to 136 (climate.py) d
 and your device will be listed in entity list.
 
 If you get a stack trace related to a Neviweb130 component in your home assistant log, you can file an issue in 
-this repository. ![issue](https://github.com/claudegel/sinope-130/issues)
+this ![repository](https://github.com/claudegel/sinope-130/issues)
 
 You can also post in one of those threads to get help:
 - https://community.home-assistant.io/t/sinope-line-voltage-thermostats/17157
@@ -591,7 +591,7 @@ sensor.neviweb130_sensor_spa:
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';
       return ''/local/leak.png'';'
 ```
-Icons are available from www directory. Copy them in config/www
+Icons are available from ![www](./www) directory. Copy them in config/www
 
 # Device hard reset:
 - Thermostats:
