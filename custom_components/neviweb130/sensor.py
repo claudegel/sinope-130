@@ -684,13 +684,8 @@ class Neviweb130Sensor(Entity):
                     if self._is_leak or self._is_new_leak:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
                             self.notify_ha(
-                                "Warning: Neviweb Device error detected: "
-                                + device_data[ATTR_WATER_LEAK_STATUS]
-                                + " for device: "
-                                + self._name
-                                + ", Sku: "
-                                + self._sku
-                                + ", Leak sensor disconnected"
+                                f"Warning: Neviweb Device error detected: {device_data[ATTR_WATER_LEAK_STATUS]} "
+                                f"for device: {self._name}, id: {self._id}, Sku: {self._sku}, Leak sensor disconnected"
                             )
                             self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         else:
