@@ -544,9 +544,11 @@ Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component 
 code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
-copy the six icons there. You can find them under local/www
-feel free to improve my icons and let me know. 
+copy the six icons there. You can find them under local/www.
+
 ![icons](icon_view2.png)
+
+Feel free to improve my icons and let me know. 
 
 For each thermostat add this code in `customize.yaml`
 ```yaml
