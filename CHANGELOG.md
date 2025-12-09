@@ -9,6 +9,11 @@ All modification for this custom_component will be added in this file.
 - Add support for TH6250WF-PRO thermostat.
 - Add support for Wi-Fi lite thermostat, TH1143WF, TH1144WF.
 - Add support for HP6000WF-xx thermostat.
+- Add service set_air_ex_min_time_on for TH6500WF.
+- Set default name.
+- Add missing support for mode with TH1143WF and TH1144WF
+- Add Neviweb global occupancy status management.
+- Add New services for Wi-Fi and TH6xxxWF devices.
 
 ### Fix
 - Fix HA warning about device numeric unique_id.
@@ -18,6 +23,11 @@ All modification for this custom_component will be added in this file.
 - Fix slow update when changing hvac mode on card.
 - Code cleanup in devices services.
 - Fix HA recorder warning.
+- Fix accessory/humidity services by @bassdr.
+- Fix temperature unit display by @bassdr
+- Review and fix services by @bassdr.
+- Fix valve support.
+- Fix ATTR_FLOW_ALARM1_LENGHT name, ATTR_FLOW_ALARM1_LENGTH.
 
 ### Doc
 - Add documentation for the TH6xxxWF services
