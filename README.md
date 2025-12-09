@@ -591,7 +591,7 @@ sensor.neviweb130_sensor_spa:
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';
       return ''/local/leak.png'';'
 ```
-Icons are available from ![www](./www) directory. Copy them in config/www
+Icons are available from ![www](https://github.com/claudegel/sinope-130/tree/master/www) sub-directory. Copy them in config/www
 
 # Device hard reset:
 - Thermostats:
