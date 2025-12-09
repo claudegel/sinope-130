@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.0.0] - 2025-12-08
+## [v4.0.0] - 2025-12-09
 ### Added
 - Add log file neviweb130_log.txt to replace the home-assistant.log that was removed.
   The log is limited to 2 meg with a log rotation up to 3 files.
