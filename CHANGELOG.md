@@ -7,6 +7,7 @@ All modification for this custom_component will be added in this file.
 - Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.
 - Add CycleLength attribute to TH6xxxWF.
 - Add BackLight attribute to TH6xxxWF.
+- Add temperature error detection for TH6xxxWF.
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
