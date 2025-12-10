@@ -2098,7 +2098,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._operation_mode = None
         self._pump_protec_duration = None
         self._pump_protec_period = None
-        self._pump_protec_status = None
+        self._pump_protec_status = "off"
         self._rssi = None
         self._snooze = 0.0
         self._sound_conf = None
@@ -3508,12 +3508,13 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
     def __init__(self, data, device_info, name, sku, firmware, location):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, location)
-        self._floor_air_limit_status = None
+        self._floor_air_limit_status = "off"
         self._floor_max_status = "off"
         self._floor_min_status = "off"
         self._load1 = 0
+        self._load1_status = "off"
         self._load2 = 0
-        self._pump_protec_period_status = None
+        self._pump_protec_period_status = "off"
 
     @override
     def update(self) -> None:
@@ -3590,19 +3591,24 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
                     self._cycle_length_output2_status = device_data[ATTR_CYCLE_OUTPUT2]["status"]
-                    self._cycle_length_output2_value = int(device_data[ATTR_CYCLE_OUTPUT2]["value"])
+                    self._cycle_length_output2_value = (
+                        int(device_data[ATTR_CYCLE_OUTPUT2]["value"])
+                        if device_data[ATTR_CYCLE_OUTPUT2]["value"] is not None
+                        else 0
+                    )
                     self._floor_max = device_data[ATTR_FLOOR_MAX]["value"]
                     self._floor_max_status = device_data[ATTR_FLOOR_MAX]["status"]
                     self._floor_min = device_data[ATTR_FLOOR_MIN]["value"]
                     self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     self._pump_protec_status = device_data[ATTR_PUMP_PROTEC_DURATION]["status"]
-                    if device_data[ATTR_PUMP_PROTEC_DURATION]["status"] == "on":
-                        self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
-                        self._pump_protec_period = device_data[ATTR_PUMP_PROTEC_PERIOD]["value"]
-                        self._pump_protec_period_status = device_data[ATTR_PUMP_PROTEC_PERIOD]["status"]
+                    self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC_DURATION]["value"]
+                    self._pump_protec_period = device_data[ATTR_PUMP_PROTEC_PERIOD]["value"]
+                    self._pump_protec_period_status = device_data[ATTR_PUMP_PROTEC_PERIOD]["status"]
                     self._floor_sensor_type = device_data[ATTR_FLOOR_SENSOR]
                     if ATTR_FLOOR_OUTPUT1 in device_data:
-                        self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
+                        self._load1_status = device_data[ATTR_FLOOR_OUTPUT1]["status"]
+                        if device_data[ATTR_FLOOR_OUTPUT1]["status"] == "on":
+                            self._load1 = device_data[ATTR_FLOOR_OUTPUT1]["value"]
                     if ATTR_FLOOR_OUTPUT2 in device_data:
                         self._load2_status = device_data[ATTR_FLOOR_OUTPUT2]["status"]
                         if device_data[ATTR_FLOOR_OUTPUT2]["status"] == "on":
@@ -3663,6 +3669,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "setpoint_min": self._min_temp,
                 "cycle_length_output": self._load1,
                 "cycle_length_output_2": self._load2,
+                "cycle_length_output_status": self._load1_status,
                 "cycle_length_output_2_status": self._load2_status,
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
