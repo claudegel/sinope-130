@@ -5443,6 +5443,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             "LC": False,
         }
         self._temp_display_status = None
+        self._temp_error = None
         self._temp_offset_heat = None
 
     @override
@@ -5547,6 +5548,16 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
+                    self._temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
+                    if self._temp_error is not None:
+                        self.notify_ha(
+                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
+                        )
+                        _LOGGER.warning(
+                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
+                        )
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
