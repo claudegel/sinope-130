@@ -20,6 +20,7 @@ model 336 = thermostat TH1133WF 3000W (Wi-Fi lite) Three wires connection
 model 336 = thermostat TH1133CR Sinopé Evo 3000W (Wi-Fi lite)
 model 336 = thermostat TH1134WF 4000W (Wi-Fi lite) three wires connection
 model 336 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
+model 336 = thermostat THEWF01 (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (sku: PS120_240WF)
@@ -395,6 +396,8 @@ UPDATE_HP_ATTRIBUTES = [
 ]
 
 UPDATE_HEAT_COOL_ATTRIBUTES = [
+    ATTR_DRSETPOINT,
+    ATTR_DRSTATUS,
     ATTR_OUTPUT_PERCENT_DISPLAY,
     ATTR_ROOM_SETPOINT,
     ATTR_COOL_SETPOINT,
@@ -689,7 +692,7 @@ async def async_setup_platform(
                     )
                 )
             else:
-                entities.append(
+                entities.append(  # DEVICE_MODEL_HEAT_COOL
                     Neviweb130HeatCoolThermostat(
                         data,
                         device_info,
@@ -857,7 +860,7 @@ async def async_setup_platform(
                     )
                 )
             else:
-                entities.append(
+                entities.append(  # DEVICE_MODEL_HEAT_COOL
                     Neviweb130HeatCoolThermostat(
                         data,
                         device_info,
@@ -1025,7 +1028,7 @@ async def async_setup_platform(
                     )
                 )
             else:
-                entities.append(
+                entities.append(  # DEVICE_MODEL_HEAT_COOL
                     Neviweb130HeatCoolThermostat(
                         data,
                         device_info,
@@ -4005,7 +4008,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1133WF, TH1133CR, TH1134WF and TH1134CR thermostats."""
+    """Implementation of Neviweb TH1133WF, TH1133CR, TH1134WF, TH1134CR and THEWF01 thermostats."""
 
     _attr_precision = 1.0
     _attr_target_temperature_step = 1.0
@@ -5446,38 +5449,38 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     def update(self) -> None:
         if self._active:
             HC_ATTRIBUTES = [
-                ATTR_WIFI_KEYPAD,
-                ATTR_HEAT_COOL,
-                ATTR_SETPOINT_MODE,
-                ATTR_LANGUAGE,
+                ATTR_AUX_CYCLE_LENGTH,
+                ATTR_AUX_HEAT_MIN_TIME_ON,
+                ATTR_AUX_HEAT_SOURCE_TYPE,
+                ATTR_AUX_HEAT_START_DELAY,
                 ATTR_BACK_LIGHT,
                 ATTR_BACKLIGHT_AUTO_DIM,
-                ATTR_HEAT_SOURCE_TYPE,
-                ATTR_AUX_HEAT_SOURCE_TYPE,
-                ATTR_FAN_SPEED,
                 ATTR_BALANCE_PT,
-                ATTR_HEAT_LOCK_TEMP,
-                ATTR_COOL_LOCK_TEMP,
-                ATTR_REVERSING_VALVE_POLARITY,
-                ATTR_HUMIDITY_SETPOINT,
-                ATTR_COOL_CYCLE_LENGTH,
                 ATTR_CYCLE_LENGTH,
-                ATTR_AUX_CYCLE_LENGTH,
-                ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-                ATTR_TEMP_OFFSET_HEAT,
-                ATTR_HUMIDITY_DISPLAY,
+                ATTR_COOL_CYCLE_LENGTH,
+                ATTR_COOL_LOCK_TEMP,
+                ATTR_COOL_MIN_TIME_OFF,
+                ATTR_COOL_MIN_TIME_ON,
+                ATTR_COOL_SETPOINT_AWAY,
                 ATTR_DUAL_STATUS,
                 ATTR_EARLY_START,
-                ATTR_ROOM_SETPOINT_AWAY,
-                ATTR_COOL_SETPOINT_AWAY,
                 ATTR_FAN_FILTER_REMAIN,
-                ATTR_AUX_HEAT_MIN_TIME_ON,
-                ATTR_AUX_HEAT_START_DELAY,
-                ATTR_OUTPUT_CONNECT_STATE,
-                ATTR_COOL_MIN_TIME_ON,
-                ATTR_COOL_MIN_TIME_OFF,
+                ATTR_FAN_SPEED,
+                ATTR_HEAT_COOL,
+                ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
                 ATTR_HEAT_INSTALLATION_TYPE,
+                ATTR_HEAT_LOCK_TEMP,
+                ATTR_HEAT_SOURCE_TYPE,
+                ATTR_HUMIDITY_DISPLAY,
+                ATTR_HUMIDITY_SETPOINT,
+                ATTR_LANGUAGE,
                 ATTR_OCCUPANCY,
+                ATTR_OUTPUT_CONNECT_STATE,
+                ATTR_REVERSING_VALVE_POLARITY,
+                ATTR_ROOM_SETPOINT_AWAY,
+                ATTR_SETPOINT_MODE,
+                ATTR_TEMP_OFFSET_HEAT,
+                ATTR_WIFI_KEYPAD,
             ]
             """Get specific attributes"""
             if self._device_model == 6727:
@@ -5488,8 +5491,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_AUX_INTERSTAGE_DELAY,
                     ATTR_COOL_INTERSTAGE_MIN_DELAY,
                     ATTR_COOL_INTERSTAGE_DELAY,
-                    ATTR_DRSETPOINT,
-                    ATTR_DRSTATUS,
                 ]
             else:
                 HC_EXTRA = []
@@ -5574,8 +5575,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
                     self._fan_speed = device_data[ATTR_FAN_SPEED]
                     self._fan_filter_remain = device_data[ATTR_FAN_FILTER_REMAIN]
                     if ATTR_ROOM_TEMP_DISPLAY in device_data:
@@ -5597,6 +5596,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
                     self._humidity_display = device_data[ATTR_HUMIDITY_DISPLAY]
                     self._humidity_setpoint = device_data[ATTR_HUMIDITY_SETPOINT]
+                    if ATTR_CYCLE_LENGTH in device_data:
+                        self._cycle_length = device_data[ATTR_CYCLE_LENGTH]
                     self._aux_cycle_length = device_data[ATTR_AUX_CYCLE_LENGTH]
                     self._cool_cycle_length = device_data[ATTR_COOL_CYCLE_LENGTH]
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
@@ -6134,6 +6135,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "eco_status": self._drstatus_active,
+                "eco_optout": self._drstatus_optout,
+                "eco_setpoint": self._drstatus_setpoint,
+                "eco_power_relative": self._drstatus_rel,
+                "eco_power_absolute": self._drstatus_abs,
+                "eco_setpoint_status": self._drsetpoint_status,
+                "eco_setpoint_delta": self._drsetpoint_value,
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "error_code": self._error_code,
                 "operation_modes": self._operation_mode,
@@ -6160,6 +6168,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "aux_heat_source_type": self._aux_heat_source_type,
                 "fan_filter_remain": self._fan_filter_remain,
                 "sensor_temp_offset": self._temp_offset_heat,
+                "cycle_length": self._cycle_length,
                 "aux_cycle_length": self._aux_cycle_length,
                 "cool_cycle_length": neviweb_to_ha(self._cool_cycle_length),
                 "humidity_display": self._humidity_display,
@@ -6182,7 +6191,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "output_connect_state": self._output_connect_state,
                 "outdoor_temp": self._temperature,
                 "weather_icon": self._weather_icon,
-                "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -6200,13 +6208,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "aux_interstage_delay": self._aux_interstage_delay,
                     "cool_interstage_min_delay": self._cool_interstage_min_delay,
                     "cool_interstage_delay": self._cool_interstage_delay,
-                    "eco_status": self._drstatus_active,
-                    "eco_optout": self._drstatus_optout,
-                    "eco_setpoint": self._drstatus_setpoint,
-                    "eco_power_relative": self._drstatus_rel,
-                    "eco_power_absolute": self._drstatus_abs,
-                    "eco_setpoint_status": self._drsetpoint_status,
-                    "eco_setpoint_delta": self._drsetpoint_value,
                 }
             )
         if self._firmware == "4.2.1" or self._firmware == "4.3.0":
