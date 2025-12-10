@@ -2,6 +2,19 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.1] - 2025-12-__
+### Added
+- Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.
+- Add CycleLength attribute to TH6xxxWF.
+- Add BackLight attribute to TH6xxxWF.
+
+### Fix
+- Fix TH1400ZB PumpProtectDuration value when status is off.
+- Remove Rssi for TH6xxxWF.
+
+### Doc
+- Review documentation in readme.md
+
 ## [v4.0.0] - 2025-12-09
 ### Added
 - Add log file neviweb130_log.txt to replace the home-assistant.log that was removed.
