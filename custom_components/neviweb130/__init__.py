@@ -209,7 +209,7 @@ def migrate_entity_unique_id(hass: HomeAssistant):
 
 def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     """Set up neviweb130."""
-    _LOGGER.info(STARTUP_MESSAGE)
+    _LOGGER.warning(STARTUP_MESSAGE)
 
     try:
         data = Neviweb130Data(hass, hass_config[DOMAIN])
