@@ -116,6 +116,7 @@ from .const import (
     SERVICE_SET_SWITCH_TIMER_2,
     SERVICE_SET_TANK_SIZE,
     STATE_KEYPAD_STATUS,
+    STATE_WATER_LEAK,
     VERSION,
 )
 from .schema import (
