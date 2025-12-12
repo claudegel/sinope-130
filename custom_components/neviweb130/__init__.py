@@ -266,7 +266,7 @@ class Neviweb130Data:
                 prefix = (account.get(CONF_PREFIX) or "").strip()
                 is_primary_account = idx == 0
                 if not is_primary_account and prefix == "":
-                    prefix = f"account{idx+1}"
+                    prefix = f"account{idx + 1}"
                     _LOGGER.warning(
                         "No 'prefix' specified for account #%s; using '%s'. Set 'prefix' to customize entity names.",
                         idx + 1,
