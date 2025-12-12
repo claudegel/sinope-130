@@ -8,13 +8,16 @@ All modification for this custom_component will be added in this file.
 - Add CycleLength attribute to TH6xxxWF.
 - Add BackLight attribute to TH6xxxWF.
 - Add temperature error detection for TH6xxxWF.
+- Add roomTemperature attribute error for HP6000WF.
+- Add DrStatus onOff attribute for HP6000WF.
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
 - Remove Rssi for TH6xxxWF.
 - Fix message when sensor probe is disconnected for RM3500xx.
-- Fix roomTemperature atttribute value for HP6000ZB-xx.
 - Change log level to warning for STARTUP_MESSAGE.
+- Fix roomTemperatureDisplay value and status for HP6000WF-xx.
+- Fix roomTemperature attribute value for HP6000WF-xx.
 
 ### Doc
 - Review documentation in readme.md
