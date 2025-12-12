@@ -116,9 +116,9 @@ async def async_setup_platform(
 
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        default_name = f"{client.prefix} light"
-        default_name_2 = f"{client.prefix} light 2"
-        default_name_3 = f"{client.prefix} light 3"
+        default_name = client.default_group_name("light")
+        default_name_2 = client.default_group_name("light", 2)
+        default_name_3 = client.default_group_name("light", 3)
 
         # Process gateway_data for this client
         for device_info in client.gateway_data:
@@ -518,7 +518,7 @@ class Neviweb130Light(LightEntity):
     @override
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return self._client.scoped_unique_id(self._id)
 
     @property
     @override

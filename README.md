@@ -214,18 +214,19 @@ neviweb130:
     # Account with multiple locations (home + chalet)
     - username: 'your_email@example.com'
       password: 'your_password'
-      location: '1234'  # Optional: specify specific location like address
-      # location was called network in previous versions
-      # location: not specified = auto-discover all locations (home, chalet, etc.)
-      # This will create entities like:
-      #   climate.neviweb130_climate_bedroom (from first location - home)
-      #   climate.neviweb130_climate_2_bedroom (from second location - chalet)
+      # location was called network in previous versions.
+      #
+      # Optional: you can target up to 3 locations for this account:
+      #   location / location2 / location3 (or network / network2 / network3)
+      #
+      # If you omit all locations, the integration will automatically use the first 1–3 locations
+      # returned by Neviweb for this account.
     
     # Separate account for parents (using 'network' - works the same as 'location')
     - username: 'parents_email@example.com'
       password: 'parents_password'
-      network: '5678'  # Optional: 'network' is an alias for 'location'
-      prefix: 'neviweb_parents'  # Optional: customize entity prefix
+      location: '5678'           # Optional: location id/name (or use 'network')
+      prefix: 'parents'          # Optional: account alias (used in entity naming)
   
   # Global settings (apply to all accounts)
   scan_interval: 360
@@ -237,25 +238,25 @@ neviweb130:
 
 > **⚠️ Important: Entity Name Conflicts in Multi-Account Setup**
 > 
-> When using multiple accounts, **the `location` parameter is NOT included in entity names**. Only the `prefix` determines the entity name prefix.
+> Entity names are built from the integration domain (`neviweb130`), plus optional `prefix` and/or `location` values.
 > 
-> **Problem:** If you don't specify different prefixes for each account, and both accounts have devices with similar names (e.g., both have a thermostat called "LivingRoom"), Home Assistant will create conflicting entity names:
-> - First account: `climate.neviweb130_climate_livingroom`
-> - Second account: `climate.neviweb130_climate_livingroom_2` ← Conflict!
+> **Problem:** If you omit both `prefix` and `location` for multiple accounts, and both accounts have devices with similar names (e.g., both have a thermostat called "LivingRoom"), Home Assistant may auto-suffix entity_ids:
+> - `climate.neviweb130_livingroom`
+> - `climate.neviweb130_livingroom_2`  ← Collision handled by HA
 > 
-> **Solution:** Always use unique `prefix` values for each account:
+> **Solution:** Provide either a unique `prefix` (account alias), or explicit `location` names/ids, to keep entity_ids stable and readable:
 > ```yaml
 > accounts:
 >   - username: 'user1@example.com'
 >     password: 'pass1'
->     location: '1234'
->     prefix: 'neviweb_home'     # ← Unique prefix
+>     location: 'Home'
+>     prefix: 'me'          # ← account alias
 >   - username: 'user2@example.com'
 >     password: 'pass2'
->     location: '5678'
->     prefix: 'neviweb_parents'  # ← Different prefix
+>     location: 'Chalet'
+>     prefix: 'parents'     # ← different account alias
 > ```
-> This ensures all entities have unique names: `climate.neviweb_home_climate_livingroom` and `climate.neviweb_parents_climate_livingroom`.
+> Example: `climate.neviweb130_parents_chalet_climate_livingroom`.
 
 **Multi-account configuration options:**
 
@@ -264,25 +265,30 @@ neviweb130:
 | **accounts** | yes (for multi-account) | | List of accounts to connect to
 | **username** | yes | | Your email address for this Neviweb account
 | **password** | yes | | The password for this Neviweb account
-| **location** (or **network**) | no | first location found | The location ID/name (e.g., '1234' or 'Home') for this account. Both `location` and `network` work (they are aliases).
-| **prefix** | no | neviweb130 | Custom prefix for entity names (e.g., 'neviweb1234' creates entities like `climate.neviweb1234_climate_bedroom`)
+| **location** (or **network**) | no | first location found | Location id/name for this account (network #1).
+| **location2** (or **network2**) | no | second location found | Location id/name for this account (network #2).
+| **location3** (or **network3**) | no | third location found | Location id/name for this account (network #3).
+| **prefix** | no | (empty) | Optional account alias used in entity naming to distinguish accounts.
 
 **Notes:**
-- The `prefix` parameter allows you to customize entity names to distinguish between accounts. If not specified, defaults to `neviweb130`.
+- `prefix` is optional. If omitted, it is not included in the entity name (Home Assistant may auto-suffix entity_ids if collisions occur).
+- If your `location` names/ids are already unique across your accounts (e.g., you use an address, site code, or other unique label), you can omit `prefix` entirely and rely on `location` to distinguish entities.
 - Each account maintains its own independent connection to Neviweb.
-- **Multiple locations per account**: If you omit the `location` (or `network`) parameter, the component will automatically discover all locations associated with that account (e.g., home, chalet, cottage). Devices from all locations will use the same prefix but will be distinguished by their device names.
-- **Single location per account**: If you specify a `location` (or `network`), only devices from that specific location will be loaded.
-- Both `location` and `network` are accepted as aliases in the new format for consistency with the legacy format.
+- **Multiple locations per account**:
+  - If you omit all locations, the integration will automatically use the first 1–3 locations returned by Neviweb.
+  - Or you can explicitly set `location2` and `location3`.
+- Both `location*` and `network*` are accepted as aliases in the new format for consistency with the legacy format.
 - Global settings (`scan_interval`, `homekit_mode`, etc.) apply to all accounts.
 - The legacy single-account configuration format (shown above) remains fully supported for backward compatibility.
 
-**Example entity names with multi-account:**
-- **Single location account** with default prefix → `climate.neviweb130_climate_bedroom`
-- **Multiple locations** under one account (home + chalet):
-  - First location → `climate.neviweb130_climate_bedroom` 
-  - Second location → `climate.neviweb130_climate_2_chalet_bedroom`
-  - Third location → `climate.neviweb130_climate_3_cottage_bedroom`
-- **Separate account** with custom prefix `'neviweb_parents'` → `climate.neviweb_parents_climate_living_room`
+**Example entity names:**
+- **Legacy single-account config (backward compatible naming)**:
+  - 1st location → `climate.neviweb130_climate_bedroom`
+  - 2nd location → `climate.neviweb130_climate_2_bedroom`
+  - 3rd location → `climate.neviweb130_climate_3_bedroom`
+- **Multi-account config (`accounts:`)**:
+  - With prefix + location → `climate.neviweb130_parents_chalet_climate_living_room`
+  - With location only (no prefix) → `climate.neviweb130_chalet_climate_living_room`
 
 ## Sedna valve
 For Sedna valves there are two ways to connect it to Neviweb:

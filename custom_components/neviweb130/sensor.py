@@ -136,9 +136,9 @@ async def async_setup_platform(
 
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        default_name = f"{client.prefix} sensor"
-        default_name_2 = f"{client.prefix} sensor 2"
-        default_name_3 = f"{client.prefix} sensor 3"
+        default_name = client.default_group_name("sensor")
+        default_name_2 = client.default_group_name("sensor", 2)
+        default_name_3 = client.default_group_name("sensor", 3)
 
         # Process gateway_data for this client
         for device_info in client.gateway_data:
@@ -658,7 +658,7 @@ class Neviweb130Sensor(Entity):
     @override
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return self._client.scoped_unique_id(self._id)
 
     @property
     @override
@@ -1212,18 +1212,32 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_status)
-            if "error" not in device_status or device_status is not None:
-                if "errorCode" not in device_status:
-                    self._gateway_status = device_status[ATTR_STATUS]
-                else:
-                    _LOGGER.warning(
-                        "Error in reading device status for %s: (%s)",
-                        self._name,
-                        device_status,
-                    )
-            elif device_status is not None:
+            if not device_status:
+                return
+
+            if "error" in device_status:
                 self.log_error(device_status["error"]["code"])
-            self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
+                return
+
+            if "errorCode" in device_status:
+                _LOGGER.warning(
+                    "Error in reading device status for %s: (%s)",
+                    self._name,
+                    device_status,
+                )
+                return
+
+            if ATTR_STATUS not in device_status:
+                _LOGGER.warning(
+                    "Gateway status missing for %s: (%s)",
+                    self._name,
+                    device_status,
+                )
+                return
+
+            self._gateway_status = device_status[ATTR_STATUS]
+            if neviweb_status and ATTR_OCCUPANCY in neviweb_status:
+                self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
             return
 
     @property

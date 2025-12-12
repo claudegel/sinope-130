@@ -141,6 +141,8 @@ from .const import (
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
     CONF_LOCATION,
+    CONF_LOCATION2,
+    CONF_LOCATION3,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NETWORK3,
@@ -249,21 +251,42 @@ class Neviweb130Data:
             accounts = config.get(CONF_ACCOUNTS, [])
             ignore_miwi = config.get(CONF_IGNORE_MIWI)
 
-            for account in accounts:
+            for idx, account in enumerate(accounts):
                 username = account.get(CONF_USERNAME)
                 password = account.get(CONF_PASSWORD)
-                # Support both 'location' (preferred) and 'network' (alias) for flexibility
+                # Support both 'location' (preferred) and 'network' (alias) for flexibility.
+                # Also support location2/location3 in accounts list so one client session can manage multiple networks.
                 location = account.get(CONF_LOCATION) or account.get(CONF_NETWORK)
-                prefix = account.get(CONF_PREFIX, DOMAIN)  # Default prefix
+                location2 = account.get(CONF_LOCATION2) or account.get(CONF_NETWORK2)
+                location3 = account.get(CONF_LOCATION3) or account.get(CONF_NETWORK3)
+
+                # Account alias used for entity naming.
+                # In multi-account mode (`accounts:`), all accounts use the same naming rules (no special-casing
+                # of the first account). Prefix is optional; if omitted, HA may auto-suffix entity_ids (_2, _3)
+                # when names collide, but unique_id is still scoped per account to avoid breaking the integration.
+                prefix = (account.get(CONF_PREFIX) or "").strip()
+                # No "primary" concept inside accounts-list mode (see legacy single-account mode below).
 
                 _LOGGER.debug(
-                    "Creating client for account %s with location %s and prefix %s",
+                    "Creating client for account %s with location(s) %s/%s/%s and prefix %s",
                     username,
                     location,
+                    location2,
+                    location3,
                     prefix,
                 )
 
-                client = Neviweb130Client(hass, username, password, location, None, None, ignore_miwi, prefix)
+                client = Neviweb130Client(
+                    hass,
+                    username,
+                    password,
+                    location,
+                    location2,
+                    location3,
+                    ignore_miwi,
+                    prefix,
+                    is_primary=False,
+                )
                 self.neviweb130_clients.append(client)
 
         # Legacy single-account format (backward compatibility)
@@ -275,7 +298,13 @@ class Neviweb130Data:
             network2 = config.get(CONF_NETWORK2)
             network3 = config.get(CONF_NETWORK3)
             ignore_miwi = config.get(CONF_IGNORE_MIWI)
-            prefix = config.get(CONF_PREFIX, DOMAIN)  # Allow prefix even in legacy mode
+            # Legacy mode keeps old entity naming by default. Setting a prefix opts into the new naming
+            # and may rename existing entities (breaking automations).
+            prefix = (config.get(CONF_PREFIX) or "").strip()
+            if prefix != "":
+                _LOGGER.warning(
+                    "A non-empty 'prefix' in legacy single-account configuration will rename entities and may break existing automations."
+                )
 
             client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi, prefix)
             self.neviweb130_clients.append(client)
@@ -306,11 +335,14 @@ class Neviweb130Client:
         network3,
         ignore_miwi,
         prefix: str,
+        *,
+        is_primary: bool = True,
         timeout=REQUESTS_TIMEOUT,
     ):
         """Initialize the client object."""
         self.hass = hass
-        self.prefix = prefix
+        self._account_prefix = prefix
+        self._is_primary = is_primary
         self._email = username
         self._password = password
         self._network_name = network
@@ -333,6 +365,53 @@ class Neviweb130Client:
         self.__post_login_page()
         self.__get_network()
         self.__get_gateway_data()
+
+    def default_group_name(self, platform: str, network_index: int = 1) -> str:
+        """Return the base group name used when building entity names.
+
+        Backward compatible behavior:
+        - For the primary account with empty prefix, keep: "neviweb130 climate", "neviweb130 climate 2", ...
+        New multi-account behavior:
+        - For non-primary accounts (or primary with a non-empty prefix), use: "neviweb130 <prefix> <location> <platform>"
+          to make migration from legacy naming less surprising, e.g.:
+          climate.neviweb130_parents_chalet_climate_bathroom
+        """
+        if network_index not in (1, 2, 3):
+            raise ValueError("network_index must be 1, 2, or 3")
+
+        prefix = (self._account_prefix or "").strip()
+        if self._is_primary and prefix == "":
+            if network_index == 1:
+                return f"{DOMAIN} {platform}"
+            return f"{DOMAIN} {platform} {network_index}"
+
+        parts: list[str] = [DOMAIN]
+        if prefix != "":
+            parts.append(prefix)
+
+        location = {
+            1: self._network_name,
+            2: self._network_name2,
+            3: self._network_name3,
+        }.get(network_index)
+        if location:
+            parts.append(str(location))
+        parts.append(platform)
+        return " ".join(parts)
+
+    def scoped_unique_id(self, device_id: str) -> str:
+        """Return a unique_id scoped to this client/account when needed.
+
+        We keep the primary account stable (no prefix) for backward compatibility,
+        and scope all other accounts to the Neviweb account id to prevent collisions.
+        """
+        device_id = str(device_id)
+        if self._is_primary and (self._account_prefix or "").strip() == "":
+            return device_id
+        # self._account is set by __post_login_page() during init
+        if self._account is None:
+            return device_id
+        return f"{self._account}_{device_id}"
 
     def update(self):
         self.__get_gateway_data()
