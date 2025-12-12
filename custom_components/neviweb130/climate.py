@@ -434,7 +434,7 @@ SUPPORTED_HVAC_H_C_MODES: list[HVACMode] = [
     HVACMode.OFF,
 ]
 
-SUPPORTED_HVAC_HC_MODES = [
+SUPPORTED_HVAC_HC_MODES: list[HVACMode] = [
     HVACMode.HEAT_COOL,
     HVACMode.HEAT,
     HVACMode.COOL,
@@ -5190,6 +5190,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         self._system_mode_avail = None
         self._model = None
         self._sound_cap = None
+        self._temp_error = None
 
     @override
     def update(self) -> None:
@@ -5238,10 +5239,20 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 if "errorCode" not in device_data:
                     self._cur_temp_before = self._cur_temp
                     self._cur_temp = (
-                        float(device_data[ATTR_ROOM_TEMPERATURE])
-                        if device_data[ATTR_ROOM_TEMPERATURE] is not None
+                        float(device_data[ATTR_ROOM_TEMPERATURE]["value"])
+                        if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
+                    self._temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
+                    if self._temp_error is not None:
+                        self.notify_ha(
+                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
+                        )
+                        _LOGGER.warning(
+                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
+                        )
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
@@ -5249,7 +5260,8 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         else float(device_data[ATTR_ROOM_SETPOINT])
                     )
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
-                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
+                    self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
+                    self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -5275,6 +5287,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
+                        self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     if ATTR_WIFI in device_data:
                         self._rssi = device_data[ATTR_WIFI]
@@ -5331,6 +5344,8 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "setpoint_max": self._max_temp,
                 "setpoint_min": self._min_temp,
                 "temperature_format": self._temperature_format,
+                "temp_display_status": self._temp_display_status,
+                "temp_display_value": self._temp_display_value,
                 "keypad": lock_to_ha(self._keypad),
                 "fan_speed": self._fan_speed,
                 "fan_swing_vertical": self._fan_swing_vert,
@@ -5354,6 +5369,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "eco_setpoint": self._drstatus_setpoint,
                 "eco_power_relative": self._drstatus_rel,
                 "eco_power_absolute": self._drstatus_abs,
+                "eco_onOff": self._drstatus_onoff,
                 "eco_setpoint_status": self._drsetpoint_status,
                 "eco_setpoint_delta": self._drsetpoint_value,
                 "outdoor_temp": self._temperature,
