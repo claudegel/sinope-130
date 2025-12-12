@@ -10,6 +10,7 @@ All modification for this custom_component will be added in this file.
 - Add temperature error detection for TH6xxxWF.
 - Add roomTemperature attribute error for HP6000WF.
 - Add DrStatus onOff attribute for HP6000WF.
+- Add missing STATE_WATER_LEAK attribute for RM3500xx.
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
