@@ -138,12 +138,17 @@ from .const import (
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
+    CONF_ACCOUNTS,
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
+    CONF_LOCATION,
+    CONF_LOCATION2,
+    CONF_LOCATION3,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NETWORK3,
     CONF_NOTIFY,
+    CONF_PREFIX,
     CONF_STAT_INTERVAL,
     DOMAIN,
     MODE_MANUAL,
@@ -257,16 +262,81 @@ class Neviweb130Data:
 
     def __init__(self, hass, config):
         """Init the neviweb130 data object."""
-        # from pyneviweb130 import Neviweb130Client
-        username = config.get(CONF_USERNAME)
-        password = config.get(CONF_PASSWORD)
-        network = config.get(CONF_NETWORK)
-        network2 = config.get(CONF_NETWORK2)
-        network3 = config.get(CONF_NETWORK3)
-        ignore_miwi = config.get(CONF_IGNORE_MIWI)
-        self.neviweb130_client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi)
-
+        self.hass = hass
+        self.neviweb130_clients: list[Neviweb130Client] = []
         self.migration_done = asyncio.Event()
+
+        # Check if using new multi-account format
+        if CONF_ACCOUNTS in config:
+            _LOGGER.debug("Using multi-account configuration")
+            accounts = config.get(CONF_ACCOUNTS, [])
+            ignore_miwi = config.get(CONF_IGNORE_MIWI)
+
+            for idx, account in enumerate(accounts):
+                username = account.get(CONF_USERNAME)
+                password = account.get(CONF_PASSWORD)
+                # Support both 'location' (preferred) and 'network' (alias) for flexibility.
+                # Also support location2/location3 in accounts list so one client session can manage multiple networks.
+                location = account.get(CONF_LOCATION) or account.get(CONF_NETWORK)
+                location2 = account.get(CONF_LOCATION2) or account.get(CONF_NETWORK2)
+                location3 = account.get(CONF_LOCATION3) or account.get(CONF_NETWORK3)
+
+                # Account alias used for entity naming.
+                # - First account stays backward compatible when prefix is empty.
+                # - If prefix is omitted for non-primary accounts, use a stable default to avoid collisions/confusion.
+                prefix = (account.get(CONF_PREFIX) or "").strip()
+                is_primary_account = idx == 0
+                if not is_primary_account and prefix == "":
+                    prefix = f"account{idx + 1}"
+                    _LOGGER.warning(
+                        "No 'prefix' specified for account #%s; using '%s'. Set 'prefix' to customize entity names.",
+                        idx + 1,
+                        prefix,
+                    )
+
+                if is_primary_account and prefix != "":
+                    _LOGGER.warning(
+                        "A non-empty 'prefix' for the first account will rename entities and may break existing automations."
+                    )
+
+                _LOGGER.debug(
+                    "Creating client for account %s with location(s) %s/%s/%s and prefix %s",
+                    username,
+                    location,
+                    location2,
+                    location3,
+                    prefix,
+                )
+
+                client = Neviweb130Client(
+                    hass,
+                    username,
+                    password,
+                    location,
+                    location2,
+                    location3,
+                    ignore_miwi,
+                    prefix,
+                    is_primary=is_primary_account,
+                )
+                self.neviweb130_clients.append(client)
+
+        # Legacy single-account format (backward compatibility)
+        elif CONF_USERNAME in config:
+            _LOGGER.debug("Using legacy single-account configuration")
+            username = config.get(CONF_USERNAME)
+            password = config.get(CONF_PASSWORD)
+            network = config.get(CONF_NETWORK)
+            network2 = config.get(CONF_NETWORK2)
+            network3 = config.get(CONF_NETWORK3)
+            ignore_miwi = config.get(CONF_IGNORE_MIWI)
+            prefix = config.get(CONF_PREFIX, DOMAIN)  # Allow prefix even in legacy mode
+
+            client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi, prefix)
+            self.neviweb130_clients.append(client)
+
+        else:
+            _LOGGER.error("Invalid configuration: must specify either 'accounts' or 'username/password'")
 
 
 # According to HA:
@@ -290,10 +360,15 @@ class Neviweb130Client:
         network2,
         network3,
         ignore_miwi,
+        prefix: str,
+        *,
+        is_primary: bool = True,
         timeout=REQUESTS_TIMEOUT,
     ):
         """Initialize the client object."""
         self.hass = hass
+        self._account_prefix = prefix
+        self._is_primary = is_primary
         self._email = username
         self._password = password
         self._network_name = network
@@ -304,11 +379,10 @@ class Neviweb130Client:
         self._gateway_id = None
         self._gateway_id2 = None
         self._gateway_id3 = None
-        self.gateway_data = {}
-        self.gateway_data2 = {}
-        self.gateway_data3 = {}
-        self._headers = None
-        self._account = None
+        self.gateway_data: list[dict[str, Any]] = []
+        self.gateway_data2: list[dict[str, Any]] = []
+        self.gateway_data3: list[dict[str, Any]] = []
+        self._account: str | None = None
         self._cookies: RequestsCookieJar | None = None
         self._timeout = timeout
         self._occupancyMode = None
@@ -317,6 +391,52 @@ class Neviweb130Client:
         self.__post_login_page()
         self.__get_network()
         self.__get_gateway_data()
+
+    def default_group_name(self, platform: str, network_index: int) -> str:
+        """Return the base group name used when building entity names.
+
+        Backward compatible behavior:
+        - For the primary account with empty prefix, keep: "neviweb130 climate", "neviweb130 climate 2", ...
+        New multi-account behavior:
+        - For non-primary accounts (or primary with a non-empty prefix), use: "neviweb130 <prefix> <location>"
+          and omit the platform name to keep entity_ids shorter, e.g.:
+          climate.neviweb130_parents_chalet_bathroom
+        """
+        if network_index not in (1, 2, 3):
+            raise ValueError("network_index must be 1, 2, or 3")
+
+        prefix = (self._account_prefix or "").strip()
+        if self._is_primary and prefix == "":
+            if network_index == 1:
+                return f"{DOMAIN} {platform}"
+            return f"{DOMAIN} {platform} {network_index}"
+
+        parts: list[str] = [DOMAIN]
+        if prefix != "":
+            parts.append(prefix)
+
+        location = {
+            1: self._network_name,
+            2: self._network_name2,
+            3: self._network_name3,
+        }.get(network_index)
+        if location:
+            parts.append(str(location))
+        return " ".join(parts)
+
+    def scoped_unique_id(self, device_id: str) -> str:
+        """Return a unique_id scoped to this client/account when needed.
+
+        We keep the primary account stable (no prefix) for backward compatibility,
+        and scope all other accounts to the Neviweb account id to prevent collisions.
+        """
+        device_id = str(device_id)
+        if self._is_primary and (self._account_prefix or "").strip() == "":
+            return device_id
+        # self._account is set by __post_login_page() during init
+        if self._account is None:
+            return device_id
+        return f"{self._account}_{device_id}"
 
     def update(self):
         self.__get_gateway_data()
@@ -638,7 +758,7 @@ class Neviweb130Client:
                             "add parameter: ignore_miwi: True, in your neviweb130 configuration"
                         )
 
-    def get_device_attributes(self, device_id: str, attributes: list[str]) -> Any:
+    def get_device_attributes(self, device_id: str, attributes: list[str]) -> dict[str, Any]:
         """Get device attributes."""
         # Http requests
         try:

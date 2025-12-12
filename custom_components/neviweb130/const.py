@@ -27,12 +27,17 @@ Documentation: {DOC_URL}
 -------------------------------------------------------------------
 """
 
+CONF_ACCOUNTS = "accounts"
 CONF_HOMEKIT_MODE = "homekit_mode"
 CONF_IGNORE_MIWI = "ignore_miwi"
+CONF_LOCATION = "location"
+CONF_LOCATION2 = "location2"
+CONF_LOCATION3 = "location3"
 CONF_NETWORK = "network"
 CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
 CONF_NOTIFY = "notify"
+CONF_PREFIX = "prefix"
 CONF_STAT_INTERVAL = "stat_interval"
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
