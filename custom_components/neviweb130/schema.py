@@ -100,6 +100,8 @@ from .const import (
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
     CONF_LOCATION,
+    CONF_LOCATION2,
+    CONF_LOCATION3,
     CONF_NETWORK,
     CONF_NETWORK2,
     CONF_NETWORK3,
@@ -239,8 +241,14 @@ ACCOUNT_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_LOCATION): cv.string,  # Preferred name
-        vol.Optional(CONF_NETWORK): cv.string,  # Alias for backward compatibility
+        vol.Optional(CONF_LOCATION): cv.string,  # Preferred name (network 1)
+        vol.Optional(CONF_LOCATION2): cv.string,  # Preferred name (network 2)
+        vol.Optional(CONF_LOCATION3): cv.string,  # Preferred name (network 3)
+        # Aliases for backward compatibility
+        vol.Optional(CONF_NETWORK): cv.string,
+        vol.Optional(CONF_NETWORK2): cv.string,
+        vol.Optional(CONF_NETWORK3): cv.string,
+        # Account alias used for entity naming (see Neviweb130Client.default_group_name)
         vol.Optional(CONF_PREFIX): cv.string,
     }
 )

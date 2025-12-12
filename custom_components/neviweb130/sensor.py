@@ -136,9 +136,9 @@ async def async_setup_platform(
 
     # Loop through all clients (supports multi-account)
     for client in data.neviweb130_clients:
-        default_name = f"{client.prefix} sensor"
-        default_name_2 = f"{client.prefix} sensor 2"
-        default_name_3 = f"{client.prefix} sensor 3"
+        default_name = client.default_group_name("sensor", 1)
+        default_name_2 = client.default_group_name("sensor", 2)
+        default_name_3 = client.default_group_name("sensor", 3)
 
         # Process gateway_data for this client
         for device_info in client.gateway_data:
@@ -532,7 +532,7 @@ class Neviweb130Sensor(Entity):
         self._sku = sku
         self._firmware = firmware
         self._client = client
-        self._id = str(device_info["id"])
+        self._id = client.scoped_unique_id(str(device_info["id"]))
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
