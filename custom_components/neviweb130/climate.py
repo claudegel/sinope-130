@@ -265,6 +265,7 @@ from .schema import (
     AUX_HEATING,
     CYCLE_LENGTH_VALUES,
     FAN_SPEED,
+    FAN_SPEED_VALUES,
     FULL_SWING,
     FULL_SWING_OFF,
     HP_FAN_SPEED,
@@ -1993,6 +1994,15 @@ def lock_to_ha(lock: str) -> str:
     return "Unlocked"
 
 
+def neviweb_to_ha_fan(value: int) -> str:
+    last = ""
+    for k, v in sorted(FAN_SPEED_VALUES.items(), key=lambda x: x[1]):
+        last = k
+        if value <= v:
+            return k
+    return last
+
+
 def extract_capability_full(cap):
     """Extract swing capability which are True for each HP device and add general capability."""
     value = {i for i in cap if cap[i] is True}
@@ -2464,7 +2474,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return PRESET_h_c_MODES
         elif self._is_wifi:
             return PRESET_WIFI_MODES
-        elif self._is_HP:
+        elif self._is_HP or self._is_WHP:
             return PRESET_HP_MODES
         else:
             return PRESET_MODES
@@ -2578,6 +2588,11 @@ class Neviweb130Thermostat(ClimateEntity):
         """Set new fan mode."""
         if speed is None:
             return
+
+        if self._is_WHP:
+            speed: int = FAN_SPEED_VALUES[value[speed]]
+            if speed == 0:
+                raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
         self._client.set_fan_mode(self._id, speed)
         self._fan_speed = speed
 
@@ -5276,12 +5291,12 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
                         )
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
+                    self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
-                        if self._operation_mode == "cool"
+                        if self._heat_cool == "cool"
                         else float(device_data[ATTR_ROOM_SETPOINT])
                     )
-                    self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                     self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
@@ -5313,7 +5328,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     if ATTR_WIFI in device_data:
                         self._rssi = device_data[ATTR_WIFI]
-                    self._fan_speed = device_data[ATTR_FAN_SPEED]
+                    self._fan_speed = neviweb_to_ha_fan(device_data[ATTR_FAN_SPEED])
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
                     self._fan_cap = device_data[ATTR_FAN_CAP]
                     self._system_mode_avail = device_data[ATTR_SYSTEM_MODE_AVAIL]
@@ -5352,6 +5367,18 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
     @property
     @override
+    def is_on(self) -> bool:
+        """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
+        return (
+            self._heat_cool == HVACMode.HEAT
+            or self._heat_cool == HVACMode.COOL
+            or self._heat_cool == HVACMode.AUTO
+            or self._heat_cool == HVACMode.DRY
+            or self._heat_cool == HVACMode.FAN_ONLY
+        )
+
+    @property
+    @override
     def hvac_mode(self) -> HVACMode:
         """Return current operation."""
         if self._heat_cool == HVACMode.OFF:
@@ -5366,6 +5393,67 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             return HVACMode.FAN_ONLY
         else:
             return HVACMode.HEAT
+
+    @property
+    @override
+    def hvac_action(self) -> HVACAction | None:
+        """Return current HVAC action."""
+        if self.hvac_mode == HVACMode.OFF:
+            return HVACAction.OFF
+        if self._heat_level == 0:
+            return HVACAction.IDLE
+        if self.hvac_mode == HVACMode.COOL:
+            return HVACAction.COOLING
+        if self.hvac_mode == HVACMode.HEAT:
+            return HVACAction.HEATING
+        if self.hvac_mode == HVACMode.DRY:
+            return HVACAction.DRYING
+        if self.hvac_mode == HVACMode.FAN_ONLY:
+            return HVACAction.FAN
+        return HVACAction.HEATING
+
+    @property
+    @override
+    def target_temperature(self) -> float | None:
+        """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        if self._target_temp is not None and self.hvac_mode == HVACMode.HEAT:
+            temp = self.target_temperature_low
+            if temp < self._min_temp:
+                return self._min_temp
+            if temp > self._max_temp:
+                return self._max_temp
+        elif self.hvac_mode == HVACMode.COOL:
+            temp = self.target_temperature_high
+            if temp < self._cool_min:
+                return self._cool_min
+            if temp > self._cool_max:
+                return self._cool_max
+
+        return temp
+
+    @property
+    @override
+    def target_temperature_low(self) -> float:
+        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        return self._target_temp + self._drsetpoint_value
+
+    @property
+    @override
+    def target_temperature_high(self) -> float:
+        """Return the cooling temperature we try to reach."""
+        return self._target_cool
+
+    @override
+    def turn_on(self) -> None:
+        """Turn the thermostat to HVACMode.HEAT."""
+        self._heat_cool = HVACMode.HEAT
+        self._client.set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_WHP)
+
+    @override
+    def turn_off(self) -> None:
+        """Turn the thermostat to HVACMode.OFF."""
+        self._heat_cool = HVACMode.OFF
+        self._client.set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_WHP)
 
     @property
     @override
