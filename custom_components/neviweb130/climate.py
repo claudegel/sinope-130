@@ -2568,6 +2568,11 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             return None
 
+    @property
+    def _is_HC_like(self) -> bool:
+        """Return True if device must be managed as HC."""
+        return self._is_HC or self._is_WHP
+
     @override
     def set_fan_mode(self, speed: str) -> None:
         """Set new fan mode."""
@@ -2748,17 +2753,17 @@ class Neviweb130Thermostat(ClimateEntity):
         ]
 
         if hvac_mode in simple_modes:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC_like)
 
         elif hvac_mode == HVACMode.AUTO:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC_like)
 
         elif hvac_mode == HVACMode.HEAT_COOL:
             self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
 
         elif hvac_mode == MODE_AUTO_BYPASS:
             if self._operation_mode == HVACMode.AUTO:
-                self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC)
+                self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC_like)
 
         else:
             _LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
