@@ -230,6 +230,14 @@ CYCLE_LENGTH_VALUES: dict[str, int] = {
     "30 min": 1800,
 }
 
+FAN_SPEED_VALUES: dict[str, int] = {
+    "off": 0,
+    "Low": 40,
+    "Medium": 60,
+    "High": 80,
+    "Auto": 128,
+}
+
 """Config schema."""
 
 CONFIG_SCHEMA = vol.Schema(
