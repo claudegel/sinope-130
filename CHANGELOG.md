@@ -22,6 +22,7 @@ All modification for this custom_component will be added in this file.
 - Fix roomTemperature attribute value for HP6000WF-xx.
 - Fix fan_modes for HP6000WF-xx devices
 - Fix Hvac_modes for HP6000WF-xx devices.
+- Fix method set_hvac_mode for HP6000WF.
 
 ### Doc
 - Review documentation in readme.md
