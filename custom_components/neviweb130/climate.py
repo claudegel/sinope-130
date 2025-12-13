@@ -443,6 +443,14 @@ SUPPORTED_HVAC_HC_MODES: list[HVACMode] = [
 ]
 
 SUPPORTED_HVAC_HP_MODES: list[HVACMode] = [
+    HVACMode.COOL,
+    HVACMode.DRY,
+    HVACMode.FAN_ONLY,
+    HVACMode.HEAT,
+    HVACMode.OFF,
+]
+
+SUPPORTED_HVAC_WHP_MODES: list[HVACMode] = [
     HVACMode.AUTO,
     HVACMode.COOL,
     HVACMode.DRY,
@@ -2386,14 +2394,21 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._is_wifi:
             return SUPPORTED_HVAC_WIFI_MODES
         elif self._is_h_c:
-            return SUPPORTED_HVAC_H_C_MODES
-        elif self._is_HP or self._is_WHP:
+            if self._avail_mode == "heatingOnly":
+                return SUPPORTED_HVAC_HEAT_MODES
+            elif self._avail_mode == "coolingOnly":
+                return SUPPORTED_HVAC_COOL_MODES
+            else:
+                return SUPPORTED_HVAC_H_C_MODES
+        elif self._is_HP:
             if self._avail_mode == "heatingOnly":
                 return SUPPORTED_HVAC_HEAT_MODES
             elif self._avail_mode == "coolingOnly":
                 return SUPPORTED_HVAC_COOL_MODES
             else:
                 return SUPPORTED_HVAC_HP_MODES
+        elif self._is_WHP:
+            return SUPPORTED_HVAC_WHP_MODES
         else:
             return SUPPORTED_HVAC_MODES
 
@@ -5329,6 +5344,23 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+
+    @property
+    @override
+    def hvac_mode(self) -> HVACMode:
+        """Return current operation."""
+        if self._heat_cool == HVACMode.OFF:
+            return HVACMode.OFF
+        elif self._heat_cool == HVACMode.AUTO:
+            return HVACMode.AUTO
+        elif self._heat_cool == HVACMode.COOL:
+            return HVACMode.COOL
+        elif self._heat_cool == HVACMode.DRY:
+            return HVACMode.DRY
+        elif self._heat_cool == HVACMode.FAN_ONLY:
+            return HVACMode.FAN_ONLY
+        else:
+            return HVACMode.HEAT
 
     @property
     @override
