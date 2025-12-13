@@ -11,6 +11,7 @@ All modification for this custom_component will be added in this file.
 - Add roomTemperature attribute error for HP6000WF.
 - Add DrStatus onOff attribute for HP6000WF.
 - Add missing STATE_WATER_LEAK attribute for RM3500xx.
+- Add HP_FAN_SPEED list for HP6000WF-xx devices
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
@@ -19,6 +20,8 @@ All modification for this custom_component will be added in this file.
 - Change log level to warning for STARTUP_MESSAGE.
 - Fix roomTemperatureDisplay value and status for HP6000WF-xx.
 - Fix roomTemperature attribute value for HP6000WF-xx.
+- Fix fan_modes for HP6000WF-xx devices
+- Fix Hvac_modes for HP6000WF-xx devices.
 
 ### Doc
 - Review documentation in readme.md
