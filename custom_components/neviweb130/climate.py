@@ -267,6 +267,7 @@ from .schema import (
     FAN_SPEED,
     FULL_SWING,
     FULL_SWING_OFF,
+    HP_FAN_SPEED,
     SET_ACCESSORY_TYPE_SCHEMA,
     SET_ACTIVATION_SCHEMA,
     SET_AIR_FLOOR_MODE_SCHEMA,
@@ -442,6 +443,7 @@ SUPPORTED_HVAC_HC_MODES: list[HVACMode] = [
 ]
 
 SUPPORTED_HVAC_HP_MODES: list[HVACMode] = [
+    HVACMode.AUTO,
     HVACMode.COOL,
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
@@ -2499,7 +2501,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_HP or self._is_h_c:
             return FAN_SPEED
         elif self._is_WHP:
-            return WIFI_FAN_SPEED
+            return HP_FAN_SPEED
         else:
             return None
 
