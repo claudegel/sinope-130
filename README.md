@@ -2,12 +2,12 @@
 
 Custom components to support [Neviweb](https://neviweb.com/) devices in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
-switches/dimmers , load controllers, plug and water leak detector etc. 
+switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
-Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices. It is 
-presently almost up to date with Neviweb but some information are still missing from Sinopé. As new devices are launched 
-by Sinopé, they are added to this custom-component. If you have a device that is not supported yet, please open an issue 
-and I'll add it quickly.
+Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
+directly to Neviweb. It is presently almost up to date with Neviweb but some information are still missing from Sinopé. 
+As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
+yet, please open an issue and I'll add it quickly.
 
 ## Big changes for valve devices
 
@@ -51,6 +51,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH6510WF Wi-Fi heat/cool
   - Sinopé TH6250WF Wi-Fi heat/cool
   - Sinopé TH6250WF_PRO Wi-Fi heat/cool
+  - Sinopé THEWF01 Wi-Fi lite thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
