@@ -2669,13 +2669,22 @@ class Neviweb130Thermostat(ClimateEntity):
         self._backlight = level_name
 
     def set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked."""
-        if value["lock"] == "partiallyLocked" and self._is_wifi:
-            lock = "partialLock"
-        elif value["lock"] == "locked":
-            lock = "lock"
-        else:
-            lock = "unlock"
+        """Lock or unlock device's keypad, Zigbee: locked, unlocked, partiallyLocked."""
+        """ Wi-Fi: lock, unlock, partialLock."""
+        lock = value["lock"]
+        if lock == "partiallyLocked" and self._is_HP:
+            raise ValueError("Mode 'partiallyLocked' is not available for model HP.")
+        if self._is_wifi:
+            match lock:
+                case "locked":
+                    lock = "lock"
+                case "unlocked":
+                    lock = "unlock"
+                case "partiallyLocked":
+                    lock = "partialLock"
+                case _:
+                    raise ValueError(f"Invalid lock value: {lock}")
+
         self._client.set_keypad_lock(value["id"], lock, self._is_wifi)
         self._keypad = lock
 
