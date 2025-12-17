@@ -20,6 +20,7 @@ All modification for this custom_component will be added in this file.
   - target_temperature
 - define a dict for fan mode convertion for HP6000WF-xx.
 - Add thermostat model number for Wi-Fi lite
+- Add fan_speed_values_5 list for fanSpeed
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
