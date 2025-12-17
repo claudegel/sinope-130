@@ -964,7 +964,7 @@ set_fan_speed:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     fanSpeed:
-      description: Possibles values, "On", "Auto".
+      description: Possibles values for TH6xxxWF, "On", "Auto". For HP6000WF-xx, 0=off, 20=low, 40=medium-low, 60=medium, 80=medium-high, 100=high, 128=auto.
       example: "On"
 
 set_humidity_mode:
