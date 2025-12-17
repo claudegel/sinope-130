@@ -10,7 +10,7 @@ model 2506 = load controller device, RM3250ZB, 50A, Zigbee
 model 346 = load controller device, RM3250WF, 50A, Wi-Fi
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A, Zigbee
 model 2152 = Calypso load controller for water heater, RM3500WF 20,8A, Wi-Fi
-model 2152 = Calypso load controller for water heater, RM3510WF 20,8A, Wi-Fi
+model 339 = Calypso load controller for water heater, RM3510WF 20,8A, Wi-Fi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
@@ -179,7 +179,7 @@ SWITCH_TYPES = {
     "control": ("mdi:alarm", SwitchDeviceClass.SWITCH),
 }
 
-IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152]
+IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152, 339]
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
