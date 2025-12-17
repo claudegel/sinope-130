@@ -238,6 +238,16 @@ FAN_SPEED_VALUES: dict[str, int] = {
     "Auto": 128,
 }
 
+FAN_SPEED_VALUES_5: dict[str, int] = {
+    "off": 0,
+    "Low": 20,
+    "Low-medium": 40,
+    "Medium": 60,
+    "Medium-high": 80,
+    "High": 100,
+    "Auto": 128,
+}
+
 """Config schema."""
 
 CONFIG_SCHEMA = vol.Schema(
