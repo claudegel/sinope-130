@@ -22,6 +22,7 @@ All modification for this custom_component will be added in this file.
 - Add thermostat model number for Wi-Fi lite
 - Add fan_speed_values_5 list for fanSpeed
 - Add model number for gateway GT4220WF
+- Add model number for RM3510WF
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
