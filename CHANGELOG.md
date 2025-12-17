@@ -19,6 +19,7 @@ All modification for this custom_component will be added in this file.
   - hvac_action
   - target_temperature
 - define a dict for fan mode convertion for HP6000WF-xx.
+- Add thermostat model number for Wi-Fi lite
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
@@ -32,6 +33,7 @@ All modification for this custom_component will be added in this file.
 - Fix method set_hvac_mode for HP6000WF.
 - Fix set_fan_mode for HP6000WF-xx.
 - Fix set_keypad_lock service for thermostats
+- Fix room_temp_error
 
 ### Doc
 - Review documentation in readme.md
