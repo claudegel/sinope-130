@@ -17,10 +17,10 @@ Support for Neviweb Wi-Fi thermostats
 model 1510 = thermostat TH1123WF 3000W (Wi-Fi)
 model 1510 = thermostat TH1124WF 4000W (Wi-Fi)
 model 336 = thermostat TH1133WF 3000W (Wi-Fi lite) Three wires connection
-model 336 = thermostat TH1133CR Sinopé Evo 3000W (Wi-Fi lite)
+model 348 = thermostat TH1133CR Sinopé Evo 3000W (Wi-Fi lite)
 model 336 = thermostat TH1134WF 4000W (Wi-Fi lite) three wires connection
-model 336 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
-model 336 = thermostat THEWF01 (Wi-Fi lite)
+model 348 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
+model 343 = thermostat THEWF01 (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (sku: PS120_240WF)
@@ -266,6 +266,7 @@ from .schema import (
     CYCLE_LENGTH_VALUES,
     FAN_SPEED,
     FAN_SPEED_VALUES,
+    FAN_SPEED_VALUES_5,
     FULL_SWING,
     FULL_SWING_OFF,
     HP_FAN_SPEED,
@@ -505,7 +506,7 @@ DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
 DEVICE_MODEL_WIFI = [1510, 742]
-DEVICE_MODEL_WIFI_LITE = [336]
+DEVICE_MODEL_WIFI_LITE = [336, 343, 348]
 DEVICE_MODEL_COLOR_WIFI = [350]
 DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
@@ -1994,9 +1995,17 @@ def lock_to_ha(lock: str) -> str:
     return "Unlocked"
 
 
-def neviweb_to_ha_fan(value: int) -> str:
+def neviweb_to_ha_fan(value: int, model: int) -> str:
+    """Return fanSpeed value for model 6813 or 6814."""
+    if model == 6813:
+        mapping = FAN_SPEED_VALUES
+    elif model == 6814:
+        mapping = FAN_SPEED_VALUES_5
+    else:
+        raise ValueError(f"model not supported: {model}")
+
     last = ""
-    for k, v in sorted(FAN_SPEED_VALUES.items(), key=lambda x: x[1]):
+    for k, v in sorted(mapping.items(), key=lambda x: x[1]):
         last = k
         if value <= v:
             return k
@@ -4415,6 +4424,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
         self._load1 = 0
         self._load2 = 0
         self._pump_duration_value = None
+        self._room_temp_error = None
         self._target_temp_away = None
         self._temp_display_status = None
 
@@ -4466,6 +4476,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
+                    self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -4548,6 +4559,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "sensor_mode": self._floor_mode,
                 "floor_sensor_type": self._floor_sensor_type,
+                "temp_display_error": self._room_temp_error,
                 "load_watt": self._wattage,
                 "auxiliary_cycle_length": neviweb_to_ha(self._aux_cycle_length),
                 "cycle_length": neviweb_to_ha(self._cycle_length),
@@ -4625,6 +4637,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._heat_source_type = None
         self._load1 = 0
         self._load2 = 0
+        self._room_temp_error = None
         self._target_temp_away = None
 
     @override
@@ -4675,6 +4688,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
+                    self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -4751,6 +4765,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "load_watt": self._wattage,
                 "gfci_status": self._gfci_status,
+                "temp_display_error": self._room_temp_error,
                 "sensor_mode": self._floor_mode,
                 "operation_mode": self._operation_mode,
                 "auxiliary_heat": self._em_heat,
@@ -5235,8 +5250,8 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         self._interlock_id = None
         self._system_mode_avail = None
         self._model = None
+        self._room_temp_error = None
         self._sound_cap = None
-        self._temp_error = None
 
     @override
     def update(self) -> None:
@@ -5289,14 +5304,14 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    if self._temp_error is not None:
+                    self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
+                    if self._room_temp_error is not None:
                         self.notify_ha(
-                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"Warning: Neviweb Device temperature error code detected: {self._room_temp_error} "
                             f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
                         )
                         _LOGGER.warning(
-                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"Warning: Neviweb Device temperature error code detected: {self._room_temp_error} "
                             f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
                         )
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
@@ -5337,7 +5352,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     if ATTR_WIFI in device_data:
                         self._rssi = device_data[ATTR_WIFI]
-                    self._fan_speed = neviweb_to_ha_fan(device_data[ATTR_FAN_SPEED])
+                    self._fan_speed = neviweb_to_ha_fan(device_data[ATTR_FAN_SPEED], self._device_model)
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
                     self._fan_cap = device_data[ATTR_FAN_CAP]
                     self._system_mode_avail = device_data[ATTR_SYSTEM_MODE_AVAIL]
@@ -5482,6 +5497,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "temperature_format": self._temperature_format,
                 "temp_display_status": self._temp_display_status,
                 "temp_display_value": self._temp_display_value,
+                "temp_display_error": self._room_temp_error,
                 "keypad": lock_to_ha(self._keypad),
                 "fan_speed": self._fan_speed,
                 "fan_swing_vertical": self._fan_swing_vert,
@@ -5594,8 +5610,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             "Acc": False,
             "LC": False,
         }
+        self._room_temp_error = None
         self._temp_display_status = None
-        self._temp_error = None
         self._temp_offset_heat = None
 
     @override
@@ -5700,14 +5716,14 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    if self._temp_error is not None:
+                    self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
+                    if self._room_temp_error is not None:
                         self.notify_ha(
-                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"Warning: Neviweb Device temperature error code detected: {self._room_temp_error} "
                             f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
                         )
                         _LOGGER.warning(
-                            f"Warning: Neviweb Device temperature error code detected: {self._temp_error} "
+                            f"Warning: Neviweb Device temperature error code detected: {self._room_temp_error} "
                             f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
                         )
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
@@ -6347,6 +6363,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "reversing_valve_polarity": self._reversing_valve_polarity,
                 "temp_display_status": self._temp_display_status,
                 "temp_display_value": self._temp_display_value,
+                "temp_display_error": self._room_temp_error,
                 "dual_status": self._dual_status,
                 "balance_point": self._balance_pt,
                 "heat_lock_temp": self._heat_lock_temp,
