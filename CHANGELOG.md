@@ -41,6 +41,7 @@ All modification for this custom_component will be added in this file.
 
 ### Doc
 - Review documentation in readme.md
+- Update ACCDAYREQMAX error message description.
 
 ## [v4.0.0] - 2025-12-09
 ### Added
