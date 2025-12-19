@@ -37,6 +37,7 @@ All modification for this custom_component will be added in this file.
 - Fix set_fan_mode for HP6000WF-xx.
 - Fix set_keypad_lock service for thermostats
 - Fix room_temp_error
+- Change divisor for 1000 in do_stat to match Neviweb valve flow statistic.
 
 ### Doc
 - Review documentation in readme.md
