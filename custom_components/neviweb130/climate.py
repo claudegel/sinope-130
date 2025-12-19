@@ -2595,6 +2595,7 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def set_fan_mode(self, speed: str) -> None:
         """Set new fan mode."""
+        _LOGGER.warning("Fan speed value before = %s", speed)
         if speed is None:
             return
 
@@ -2602,6 +2603,7 @@ class Neviweb130Thermostat(ClimateEntity):
             speed: int = FAN_SPEED_VALUES[value[speed]]
             if speed == 0:
                 raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
+        _LOGGER.warning("Fan speed value after = %s", speed)
         self._client.set_fan_mode(self._id, speed)
         self._fan_speed = speed
 
