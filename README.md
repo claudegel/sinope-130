@@ -519,7 +519,7 @@ messages.
 
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
-- ACCDAYREQMAX: Maximum daily request reached... Reduce polling frequency.
+- ACCDAYREQMAX: Maximum daily request reached ('daily': 30000)... Reduce polling frequency.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
   also have an open session on Neviweb.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
