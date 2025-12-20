@@ -2024,6 +2024,22 @@ def extract_capability(cap):
     return sorted(value)
 
 
+def resolve_fan_speed(speed: str, model: int) -> int:
+    normalized = speed.strip().lower()
+    source = FAN_SPEED_VALUES if model == 6813 else FAN_SPEED_VALUES_5
+    mapping = {k.lower(): v for k, v in source.items()}
+
+    if normalized not in mapping:
+        raise ServiceValidationError(f"Invalid fan mode '{speed}'")
+
+    value = mapping[normalized]
+
+    if model == 6813 and value == 0:
+        raise ServiceValidationError("Model 6813 does not support 'off'")
+
+    return value
+
+
 class Neviweb130Thermostat(ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
@@ -2599,12 +2615,12 @@ class Neviweb130Thermostat(ClimateEntity):
         if speed is None:
             return
 
+        speed_val = speed
         if self._is_WHP:
-            speed: int = FAN_SPEED_VALUES[value[speed]]
-            if speed == 0:
-                raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
-        _LOGGER.warning("Fan speed value after = %s", speed)
-        self._client.set_fan_mode(self._id, speed)
+            speed_val = resolve_fan_speed(speed, self._device_model)
+
+        _LOGGER.warning("Fan speed value after = %s", speed_val)
+        self._client.set_fan_mode(self._id, speed_val)
         self._fan_speed = speed
 
     @override
