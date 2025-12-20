@@ -2426,6 +2426,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of available operation modes."""
         if self._is_wifi_lite:
             return SUPPORTED_HVAC_WIFI_LITE_MODES
+        elif self._is_WHP:
+            return SUPPORTED_HVAC_WHP_MODES
         elif self._is_wifi:
             return SUPPORTED_HVAC_WIFI_MODES
         elif self._is_h_c:
@@ -2442,8 +2444,6 @@ class Neviweb130Thermostat(ClimateEntity):
                 return SUPPORTED_HVAC_COOL_MODES
             else:
                 return SUPPORTED_HVAC_HP_MODES
-        elif self._is_WHP:
-            return SUPPORTED_HVAC_WHP_MODES
         else:
             return SUPPORTED_HVAC_MODES
 
@@ -2611,7 +2611,6 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def set_fan_mode(self, speed: str) -> None:
         """Set new fan mode."""
-        _LOGGER.warning("Fan speed value before = %s", speed)
         if speed is None:
             return
 
@@ -2619,7 +2618,6 @@ class Neviweb130Thermostat(ClimateEntity):
         if self._is_WHP:
             speed_val = resolve_fan_speed(speed, self._device_model)
 
-        _LOGGER.warning("Fan speed value after = %s", speed_val)
         self._client.set_fan_mode(self._id, speed_val)
         self._fan_speed = speed
 
