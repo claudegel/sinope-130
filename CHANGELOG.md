@@ -40,7 +40,8 @@ All modification for this custom_component will be added in this file.
 - Change divisor for 1000 in do_stat to match Neviweb valve flow statistic.
 - Fix mapping value for FAN_SPEED_VALUES for HP6000WF.
 - Fix value error in set_fan_mode for HP6000WF
-- Change fan speed values names to lower() 
+- Change fan speed values names to lower()
+- Remove extra logging for debug
 
 ### Doc
 - Review documentation in readme.md
