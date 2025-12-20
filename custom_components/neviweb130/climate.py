@@ -5424,7 +5424,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if self._heat_cool == HVACMode.OFF:
             return HVACMode.OFF
         elif self._heat_cool == HVACMode.AUTO:
-            return HVACMode.AUTO
+            return HVACMode.HEAT_COOL
         elif self._heat_cool == HVACMode.COOL:
             return HVACMode.COOL
         elif self._heat_cool == HVACMode.DRY:
@@ -5451,6 +5451,28 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if self.hvac_mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
         return HVACAction.HEATING
+
+    @property
+    @override
+    def min_temp(self) -> float:
+        """Return the minimum temperature."""
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            return min(self._min_temp, self._cool_min)
+        elif self.hvac_mode == HVACMode.COOL:
+            return self._cool_min
+        else:
+            return self._min_temp
+
+    @property
+    @override
+    def max_temp(self) -> float:
+        """Return the maximum temperature."""
+        if self.hvac_mode == HVACMode.HEAT_COOL:
+            return max(self._max_temp, self._cool_max)
+        elif self.hvac_mode == HVACMode.COOL:
+            return self._cool_max
+        else:
+            return self._max_temp
 
     @property
     @override
@@ -5494,6 +5516,17 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Turn the thermostat to HVACMode.OFF."""
         self._heat_cool = HVACMode.OFF
         self._client.set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_WHP)
+
+    @override
+    def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+        """Set new hvac mode."""
+        self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_WHP)
+
+        self._heat_cool = hvac_mode if hvac_mode != HVACMode.HEAT_COOL else HVACMode.AUTO
+
+        # Reset the preset to the occupancy
+        self.set_preset_mode(self._occupancy)
+        self._delayed_refresh()
 
     @property
     @override
