@@ -231,21 +231,21 @@ CYCLE_LENGTH_VALUES: dict[str, int] = {
 }
 
 FAN_SPEED_VALUES: dict[str, int] = {
-    "Off": 0,
-    "Low": 40,
-    "Medium": 60,
-    "High": 80,
-    "Auto": 128,
+    "off": 0,
+    "low": 40,
+    "medium": 60,
+    "high": 80,
+    "auto": 128,
 }
 
 FAN_SPEED_VALUES_5: dict[str, int] = {
-    "Off": 0,
-    "Low": 20,
-    "Low-medium": 40,
-    "Medium": 60,
-    "Medium-high": 80,
-    "High": 100,
-    "Auto": 128,
+    "off": 0,
+    "low": 20,
+    "low-medium": 40,
+    "medium": 60,
+    "medium-high": 80,
+    "high": 100,
+    "auto": 128,
 }
 
 """Config schema."""
