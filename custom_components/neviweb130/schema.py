@@ -231,7 +231,7 @@ CYCLE_LENGTH_VALUES: dict[str, int] = {
 }
 
 FAN_SPEED_VALUES: dict[str, int] = {
-    "off": 0,
+    "Off": 0,
     "Low": 40,
     "Medium": 60,
     "High": 80,
@@ -239,7 +239,7 @@ FAN_SPEED_VALUES: dict[str, int] = {
 }
 
 FAN_SPEED_VALUES_5: dict[str, int] = {
-    "off": 0,
+    "Off": 0,
     "Low": 20,
     "Low-medium": 40,
     "Medium": 60,
