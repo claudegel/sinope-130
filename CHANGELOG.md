@@ -18,11 +18,14 @@ All modification for this custom_component will be added in this file.
   - turn_off
   - hvac_action
   - target_temperature
+  - min_temp
+  - max_temp
 - define a dict for fan mode convertion for HP6000WF-xx.
 - Add thermostat model number for Wi-Fi lite
 - Add fan_speed_values_5 list for fanSpeed
 - Add model number for gateway GT4220WF
 - Add model number for RM3510WF
+- Add specific set_hvac_mode for HP6000WF
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
