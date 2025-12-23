@@ -60,8 +60,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - Wi-Fi Heatpump controller:
-  - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
-  - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
+  - Sinopé HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
+  - Sinopé HP6000WF-GE for Ouellet heat pump with Gree connector
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -328,6 +328,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_sound_config to set on/off sound on heatpump.
 - neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
+  Work differently for TH1123ZB-G2, TH1124ZB-G2 and heat/cool devices (TH6xxxWF). Each use different attribute.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
 - neviweb130.set_hc_second_display to set second display of TH1134ZB-HC thermostat.
 - neviweb130.set_language to set display language on TH1134ZB-HC thermostats.
