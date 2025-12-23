@@ -47,6 +47,7 @@ All modification for this custom_component will be added in this file.
 - Change fan speed values names to lower()
 - Remove extra logging for debug
 - Fix set_heat_lockout action for TH112xZB-G2 and other heat-cool devices.
+- Fix set_heat_lockout_temperature services schema.
 
 ### Doc
 - Review documentation in readme.md
