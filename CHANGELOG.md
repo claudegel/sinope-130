@@ -26,6 +26,7 @@ All modification for this custom_component will be added in this file.
 - Add model number for gateway GT4220WF
 - Add model number for RM3510WF
 - Add specific set_hvac_mode for HP6000WF
+- Add set_temperature for HP6000WF-xx
 
 ### Fix
 - Fix TH1400ZB PumpProtectDuration value when status is off.
