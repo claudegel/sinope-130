@@ -48,6 +48,7 @@ All modification for this custom_component will be added in this file.
 - Remove extra logging for debug
 - Fix set_heat_lockout action for TH112xZB-G2 and other heat-cool devices.
 - Fix set_heat_lockout_temperature services schema.
+- Change set_heat_lockout_temperature service description.
 
 ### Doc
 - Review documentation in readme.md
