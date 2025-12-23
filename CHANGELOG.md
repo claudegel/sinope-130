@@ -45,6 +45,7 @@ All modification for this custom_component will be added in this file.
 - Fix value error in set_fan_mode for HP6000WF
 - Change fan speed values names to lower()
 - Remove extra logging for debug
+- Fix set_heat_lockout action for TH112xZB-G2 and other heat-cool devices.
 
 ### Doc
 - Review documentation in readme.md
