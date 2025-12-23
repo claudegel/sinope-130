@@ -50,6 +50,7 @@ from .const import (
     ATTR_GAUGE_TYPE,
     ATTR_GREEN,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
@@ -245,6 +246,12 @@ FAN_SPEED_VALUES_5: dict[str, int] = {
     "medium": 60,
     "medium-high": 80,
     "high": 100,
+    "auto": 128,
+}
+
+FAN_SPEED_FLEX: dict[str, int] = {
+    "off": 0,
+    "manual": 40,
     "auto": 128,
 }
 
@@ -473,7 +480,7 @@ SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
-            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=0, max=30))
         ),
     }
 )
@@ -481,8 +488,9 @@ SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
 SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
-            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+        vol.Required(vol.Any(ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP)): vol.All(
+            lambda v: int(v) if v != "off" else None,
+            vol.Any(None, vol.Range(min=10, max=30))
         ),
     }
 )
