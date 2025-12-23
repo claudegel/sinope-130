@@ -53,6 +53,7 @@ All modification for this custom_component will be added in this file.
 ### Doc
 - Review documentation in readme.md
 - Update ACCDAYREQMAX error message description.
+- Update doc for set_heat_lockout_temperature service.
 
 ## [v4.0.0] - 2025-12-09
 ### Added
