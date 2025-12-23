@@ -80,6 +80,7 @@ from .const import (
     ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEAT_PURGE_TIME,
@@ -1555,9 +1556,12 @@ class Neviweb130Client:
         _LOGGER.debug("Heat pump limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_heat_lockout(self, device_id: str, temp):
+    def set_heat_lockout(self, device_id: str, temp, G2):
         """Set maximum outside temperature limit to allow heating device operation."""
-        data = {ATTR_HEAT_LOCK_TEMP: temp}
+        if G2:
+            data = {ATTR_HEAT_LOCKOUT_TEMP: temp}
+        else:
+            data = {ATTR_HEAT_LOCK_TEMP: temp}
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
