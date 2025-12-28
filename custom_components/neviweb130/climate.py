@@ -4619,6 +4619,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
+                    source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -4639,7 +4640,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
-                    self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
+                    self._heat_source_type = source_type if source_type != "auxHeating" else HVACAction.HEATING
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
