@@ -5478,18 +5478,35 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     @override
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        if self._target_temp is not None and self.hvac_mode == HVACMode.HEAT:
+
+        # Default temp
+        temp = self._target_temp
+
+        # If HVACMode.heat, apply target_temperature_low
+        if self.hvac_mode == HVACMode.HEAT and self._target_temp is not None:
             temp = self.target_temperature_low
-            if temp < self._min_temp:
-                return self._min_temp
-            if temp > self._max_temp:
-                return self._max_temp
+
+        # If HVACMode.cool, apply target_temperature_high
         elif self.hvac_mode == HVACMode.COOL:
             temp = self.target_temperature_high
-            if temp < self._cool_min:
-                return self._cool_min
-            if temp > self._cool_max:
-                return self._cool_max
+
+        # If HVACMode.heatCool, apply target_temperature_low
+        elif self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            temp = self.target_temperature_low
+
+        # Other modes
+        else:
+            temp = self._target_temp
+
+        # if temp is None → return None
+        if temp is None:
+            return None
+
+        # Apply limit
+        if temp < self._min_temp:
+            return self._min_temp
+        if temp > self._max_temp:
+            return self._max_temp
 
         return temp
 
