@@ -49,6 +49,7 @@ All modification for this custom_component will be added in this file.
 - Fix set_heat_lockout action for TH112xZB-G2 and other heat-cool devices.
 - Fix set_heat_lockout_temperature services schema.
 - Change set_heat_lockout_temperature service description.
+- Refactor target_temperature logic to handle all HVAC modes and apply temperature limits for HP6000WF-xx.
 
 ### Doc
 - Review documentation in readme.md
