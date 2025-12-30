@@ -158,6 +158,7 @@ from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
+from .schema import NEVIWEB_MODE_MAP
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -903,16 +904,15 @@ class Neviweb130Client:
         """Work differently for Wi-Fi and Zigbee devices and TH6250xx devices."""
         if wifi:
             if HC:
-                if mode == HVACMode.HEAT_COOL:
-                    data = {ATTR_HEAT_COOL: HVACMode.AUTO}
-                else:
-                    data = {ATTR_HEAT_COOL: mode}
+                neviweb_mode = NEVIWEB_MODE_MAP.get(mode, "off")
+                data = {ATTR_HEAT_COOL: neviweb_mode}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
                     mode = MODE_MANUAL
                 data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
+        _LOGGER.debug("Setpoint mode data: %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_occupancy_mode(self, device_id: str, mode, wifi):
