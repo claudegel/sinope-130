@@ -255,6 +255,17 @@ FAN_SPEED_FLEX: dict[str, int] = {
     "auto": 128,
 }
 
+NEVIWEB_MODE_MAP = {
+    HVACMode.OFF: "off",
+    HVACMode.HEAT: "heat",
+    HVACMode.COOL: "cool",
+    HVACMode.AUTO: "auto",
+    HVACMode.DRY: "dry",
+    HVACMode.FAN_ONLY: "fanOnly",
+    HVACMode.HEAT_COOL: "auto",
+    HVACMode.AUTO: "auto",
+}
+
 """Config schema."""
 
 CONFIG_SCHEMA = vol.Schema(
