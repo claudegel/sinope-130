@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import voluptuous as vol
+from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 
