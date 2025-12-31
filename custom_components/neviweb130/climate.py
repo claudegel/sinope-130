@@ -5432,37 +5432,55 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     @property
     @override
     def hvac_mode(self) -> HVACMode:
-        """Return current operation."""
-        if self._heat_cool == HVACMode.OFF:
-            return HVACMode.OFF
-        elif self._heat_cool == HVACMode.HEAT_COOL:
-            return HVACMode.HEAT_COOL
-        elif self._heat_cool == HVACMode.COOL:
-            return HVACMode.COOL
-        elif self._heat_cool == HVACMode.DRY:
-            return HVACMode.DRY
-        elif self._heat_cool == HVACMode.FAN_ONLY:
-            return HVACMode.FAN_ONLY
-        else:
+        """Return current HVAC mode."""
+        mode = self._heat_cool
+
+        # If Neviweb return an unknown mode
+        if mode not in (
+            HVACMode.OFF,
+            HVACMode.HEAT_COOL,
+            HVACMode.COOL,
+            HVACMode.DRY,
+            HVACMode.FAN_ONLY,
+            HVACMode.HEAT,
+        ):
             return HVACMode.HEAT
+
+        return mode
+
 
     @property
     @override
     def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
-        if self.hvac_mode == HVACMode.OFF:
-            return HVACAction.OFF
-        if self._heat_level == 0:
+        mode = self.hvac_mode
+        temp = self.current_temperature
+
+        if temp is None:
             return HVACAction.IDLE
-        if self.hvac_mode == HVACMode.COOL:
-            return HVACAction.COOLING
-        if self.hvac_mode == HVACMode.HEAT:
-            return HVACAction.HEATING
-        if self.hvac_mode == HVACMode.DRY:
+
+        if mode == HVACMode.OFF:
+            return HVACAction.OFF
+        if mode == HVACMode.COOL:
+            if temp > self._target_temperature_high:
+                return HVACAction.COOLING
+            return HVACAction.IDLE
+        if mode == HVACMode.HEAT:
+            if temp < self._target_temperature_low:
+                return HVACAction.HEATING
+            return HVACAction.IDLE
+        if mode == HVACMode.DRY:
             return HVACAction.DRYING
-        if self.hvac_mode == HVACMode.FAN_ONLY:
+        if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
-        return HVACAction.HEATING
+        if mode == HVACMode.HEAT_COOL:
+            if temp < self._target_temperature_low:
+                return HVACAction.HEATING
+            if temp > self._target_temperature_high:
+                return HVACAction.COOLING
+            return HVACAction.IDLE
+
+        return HVACAction.IDLE
 
     @property
     @override
