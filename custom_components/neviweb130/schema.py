@@ -264,7 +264,6 @@ NEVIWEB_MODE_MAP = {
     HVACMode.DRY: "dry",
     HVACMode.FAN_ONLY: "fanOnly",
     HVACMode.HEAT_COOL: "auto",
-    HVACMode.AUTO: "auto",
 }
 
 """Config schema."""
