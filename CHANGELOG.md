@@ -51,6 +51,7 @@ All modification for this custom_component will be added in this file.
 - Change set_heat_lockout_temperature service description.
 - Refactor target_temperature logic to handle all HVAC modes and apply temperature limits for HP6000WF-xx.
 - Fix translation to HVAC Modes for HP6000WF-xx
+- Refactor hvac_mode and hvac_action properties for HP6000WF-xx
 
 ### Doc
 - Review documentation in readme.md
