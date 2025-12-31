@@ -2022,7 +2022,7 @@ def neviweb_to_ha_mode(mode: str) -> HVACMode:
     hvac = NEVIWEB_TO_HA_MODE.get(mode)
     if hvac is None:
         _LOGGER.warning("Unknown Neviweb HVAC mode received: %s", mode)
-        return HVACMode.OFF  # ou None selon ton design
+        return None
     return hvac
 
 
