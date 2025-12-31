@@ -5448,7 +5448,6 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         return mode
 
-
     @property
     @override
     def hvac_action(self) -> HVACAction | None:
