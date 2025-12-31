@@ -270,6 +270,7 @@ from .schema import (
     FULL_SWING,
     FULL_SWING_OFF,
     HP_FAN_SPEED,
+    NEVIWEB_MODE_MAP,
     SET_ACCESSORY_TYPE_SCHEMA,
     SET_ACTIVATION_SCHEMA,
     SET_AIR_FLOOR_MODE_SCHEMA,
@@ -324,6 +325,8 @@ from .schema import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+NEVIWEB_TO_HA_MODE = {v: k for k, v in NEVIWEB_MODE_MAP.items()}
 
 SUPPORT_FLAGS = (
     ClimateEntityFeature.TARGET_TEMPERATURE
@@ -453,7 +456,7 @@ SUPPORTED_HVAC_HP_MODES: list[HVACMode] = [
 ]
 
 SUPPORTED_HVAC_WHP_MODES: list[HVACMode] = [
-    HVACMode.AUTO,
+    HVACMode.HEAT_COOL,
     HVACMode.COOL,
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
@@ -2012,6 +2015,15 @@ def neviweb_to_ha_fan(value: int, model: int) -> str:
         if value <= v:
             return k
     return last
+
+
+def neviweb_to_ha_mode(mode: str) -> HVACMode:
+    """Convert Neviweb mode string to HVACMode for HP6000WF-xx thermostats."""
+    hvac = NEVIWEB_TO_HA_MODE.get(mode)
+    if hvac is None:
+        _LOGGER.warning("Unknown Neviweb HVAC mode received: %s", mode)
+        return HVACMode.OFF  # ou None selon ton design
+    return hvac
 
 
 def extract_capability_full(cap):
@@ -5331,7 +5343,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}"
                         )
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
-                    self._heat_cool = device_data[ATTR_HEAT_COOL]
+                    self._heat_cool = neviweb_to_ha_mode(device_data[ATTR_HEAT_COOL])
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
                         if self._heat_cool == "cool"
@@ -5412,7 +5424,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         return (
             self._heat_cool == HVACMode.HEAT
             or self._heat_cool == HVACMode.COOL
-            or self._heat_cool == HVACMode.AUTO
+            or self._heat_cool == HVACMode.HEAT_COOL
             or self._heat_cool == HVACMode.DRY
             or self._heat_cool == HVACMode.FAN_ONLY
         )
@@ -5423,7 +5435,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Return current operation."""
         if self._heat_cool == HVACMode.OFF:
             return HVACMode.OFF
-        elif self._heat_cool == HVACMode.AUTO:
+        elif self._heat_cool == HVACMode.HEAT_COOL:
             return HVACMode.HEAT_COOL
         elif self._heat_cool == HVACMode.COOL:
             return HVACMode.COOL
