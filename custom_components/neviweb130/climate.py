@@ -5461,11 +5461,11 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if mode == HVACMode.OFF:
             return HVACAction.OFF
         if mode == HVACMode.COOL:
-            if temp > self._target_temperature_high:
+            if temp > self.target_temperature_high:
                 return HVACAction.COOLING
             return HVACAction.IDLE
         if mode == HVACMode.HEAT:
-            if temp < self._target_temperature_low:
+            if temp < self.target_temperature_low:
                 return HVACAction.HEATING
             return HVACAction.IDLE
         if mode == HVACMode.DRY:
@@ -5473,9 +5473,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
         if mode == HVACMode.HEAT_COOL:
-            if temp < self._target_temperature_low:
+            if temp < self.target_temperature_low:
                 return HVACAction.HEATING
-            if temp > self._target_temperature_high:
+            if temp > self.target_temperature_high:
                 return HVACAction.COOLING
             return HVACAction.IDLE
 
