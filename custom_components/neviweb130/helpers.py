@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import re
 import shutil
 from logging.handlers import RotatingFileHandler
 
@@ -111,3 +112,44 @@ async def _delete_file_later(path: str, delay: int):
             _LOGGER.info("Log file deleted after %s seconds : %s", delay, path)
     except Exception as e:
         _LOGGER.warning("Error during log file delete process : %s", e)
+
+# ─────────────────────────────────────────────
+# Update section
+# ─────────────────────────────────────────────
+
+
+def extract_notes_for_version(changelog: str, version: str) -> str:
+    """Return version notes from CHANGELOG.md on github."""
+    lines = changelog.splitlines()
+    capture = False
+    notes = []
+    pattern = rf"\[{re.escape(version)}\]"
+    for line in lines:
+        stripped = line.strip()
+        if re.search(pattern, stripped):
+            capture = True
+            continue
+        if capture:
+            if stripped.startswith("[v"):
+                break
+            if stripped:
+                notes.append(stripped)
+    return "\n".join(notes).strip() or f"Notes not found for {version}"
+
+
+def build_update_summary(installed: str, latest: str, notes: str) -> str:
+    """Build a full update summary for Neviweb130 V1."""
+    base_url = "https://github.com/claudegel/sinope-130"
+
+    # Link to official update
+    release_link = f"{base_url}/releases/{latest}"
+
+    # Link to compare between new version and latest
+    compare_link = f"{base_url}/compare/{installed}...{latest}"
+
+    return (
+        f"[Read version announcements]({release_link})\n\n"
+        f"Available versions :\n"
+        f"- [{installed} -> {latest}]({compare_link})\n\n"
+        f"Version Notes :\n{notes}"
+    )
