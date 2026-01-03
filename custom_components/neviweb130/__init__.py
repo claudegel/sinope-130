@@ -146,12 +146,13 @@ from .const import (
     CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
+    DEFAULTS,
     DOMAIN,
     MODE_MANUAL,
     STARTUP_MESSAGE,
     VERSION,
 )
-from .helpers import setup_logger
+from .helpers import setup_logger, extract_notes_for_version
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -245,6 +246,25 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
+    changelog_url = "https://raw.githubusercontent.com/claudegel/sinope-130/master/CHANGELOG.md"
+    async def _load_changelog(hass, latest: str):
+        import aiohttp
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(changelog_url) as resp:
+                    if resp.status == 200:
+                        changelog = await resp.text()
+                        notes = extract_notes_for_version(changelog, latest)
+                        hass.data[DOMAIN].release_notes = notes
+                        _LOGGER.warning("Release notes for %s loaded from CHANGELOG.md", latest)
+        except Exception as err:
+            _LOGGER.warning("Cannot get the changelog: %s", err)
+
+    latest = hass.data[DOMAIN].available_version
+    hass.loop.call_soon_threadsafe(
+        hass.async_create_task, _load_changelog(hass, latest)
+    )
+
     discovery.load_platform(hass, Platform.CLIMATE, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.LIGHT, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.SWITCH, DOMAIN, {}, hass_config)
@@ -270,6 +290,10 @@ class Neviweb130Data:
 
         self.migration_done = asyncio.Event()
 
+        # Attributs for versioning and release notes
+        self.current_version = DEFAULTS["current_version"]
+        self.available_version = DEFAULTS["available_version"]
+        self.release_notes = DEFAULTS["release_notes"]
 
 # According to HA:
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html
@@ -749,12 +773,17 @@ class Neviweb130Client:
                 # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
-    def get_device_monthly_stats(self, device_id: str):
+    def get_device_monthly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 months."""
         # Http requests
+        if HC:
+            data = DEVICE_DATA_URL + device_id + "/energy/monthly"
+        else:
+            data = DEVICE_DATA_URL + device_id + "/consumption/monthly"
+        _LOGGER.debug("monthly data = %s", data)
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/consumption/monthly",
+                data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -775,12 +804,17 @@ class Neviweb130Client:
             _LOGGER.debug("Monthly stat error: %s", data)
             return None
 
-    def get_device_daily_stats(self, device_id: str):
+    def get_device_daily_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 30 days."""
         # Http requests
+        if HC:
+            data = DEVICE_DATA_URL + device_id + "/energy/daily"
+        else:
+            data = DEVICE_DATA_URL + device_id + "/consumption/daily"
+        _LOGGER.debug("daily data = %s", data)
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/consumption/daily",
+                data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -801,12 +835,17 @@ class Neviweb130Client:
             _LOGGER.debug("Daily stat error: %s", data)
             return None
 
-    def get_device_hourly_stats(self, device_id: str):
+    def get_device_hourly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 hours."""
         # Http requests
+        if HC:
+            data = DEVICE_DATA_URL + device_id + "/energy/hourly"
+        else:
+            data = DEVICE_DATA_URL + device_id + "/consumption/hourly"
+        _LOGGER.debug("hourly data = %s", data)
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/consumption/hourly",
+                data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
