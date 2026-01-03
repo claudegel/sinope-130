@@ -6011,13 +6011,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Return current HVAC action."""
         if self.hvac_mode == HVACMode.OFF:
             return HVACAction.OFF
-        if self._heat_level == 0:
-            return HVACAction.IDLE
         if self._heat_cool == HVACMode.COOL:
             return HVACAction.COOLING
         if self._heat_cool == HVACMode.HEAT:
+            if self._heat_level == 0:
+                return HVACAction.IDLE
             return HVACAction.HEATING
-        return HVACAction(self._heat_level_source_type)
+        if self._heat_cool in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            if self._heat_level_source_type in ("heating", "auxHeating"):
+                if self._heat_level == 0:
+                    return HVACAction.IDLE
+                return HVACAction.HEATING
+            if self._heat_level_source_type == "cooling":
+                return HVACAction.COOLING
+        return None
 
     @property
     @override
