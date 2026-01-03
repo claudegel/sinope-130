@@ -29,7 +29,7 @@ All modification for this custom_component will be added in this file.
 - Add set_temperature for HP6000WF-xx
 
 ### Fix
-- Fix Readme.md for configuraton by @pepsiflat
+- Fix Readme.md for configuration by @pepsiflat
 - Fix TH1400ZB PumpProtectDuration value when status is off.
 - Remove Rssi for TH6xxxWF.
 - Fix message when sensor probe is disconnected for RM3500xx.
