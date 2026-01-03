@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import voluptuous as vol
+from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.helpers import config_validation as cv
 
@@ -50,6 +51,7 @@ from .const import (
     ATTR_GAUGE_TYPE,
     ATTR_GREEN,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
@@ -154,6 +156,7 @@ LOW_FUEL_LEVEL = {0, 10, 20, 30}
 WATER_TEMP = {0, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}
 POWER_TIMER = {0, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800}
 FAN_SPEED = ["high", "medium", "low", "auto", "off"]
+HP_FAN_SPEED = ["high", "medium", "low", "auto"]
 WIFI_FAN_SPEED = ["auto", "on"]
 FAN_CAPABILITY = {"low", "med", "high", "auto"}
 FAN_SWING_CAPABILITY = {
@@ -227,6 +230,40 @@ CYCLE_LENGTH_VALUES: dict[str, int] = {
     "20 min": 1200,
     "25 min": 1500,
     "30 min": 1800,
+}
+
+FAN_SPEED_VALUES: dict[str, int] = {
+    "off": 0,
+    "low": 40,
+    "medium": 60,
+    "high": 80,
+    "auto": 128,
+}
+
+FAN_SPEED_VALUES_5: dict[str, int] = {
+    "off": 0,
+    "low": 20,
+    "low-medium": 40,
+    "medium": 60,
+    "medium-high": 80,
+    "high": 100,
+    "auto": 128,
+}
+
+FAN_SPEED_FLEX: dict[str, int] = {
+    "off": 0,
+    "manual": 40,
+    "auto": 128,
+}
+
+NEVIWEB_MODE_MAP = {
+    HVACMode.OFF: "off",
+    HVACMode.HEAT: "heat",
+    HVACMode.COOL: "cool",
+    HVACMode.AUTO: "auto",
+    HVACMode.DRY: "dry",
+    HVACMode.FAN_ONLY: "fanOnly",
+    HVACMode.HEAT_COOL: "auto",
 }
 
 """Config schema."""
@@ -454,7 +491,7 @@ SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
-            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=0, max=30))
         ),
     }
 )
@@ -462,7 +499,7 @@ SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
 SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
+        vol.Required(vol.Any(ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP)): vol.All(
             lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
         ),
     }

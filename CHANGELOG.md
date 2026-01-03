@@ -2,6 +2,63 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.1] - 2026-01-03
+### Added
+- Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.
+- Add CycleLength attribute to TH6xxxWF.
+- Add BackLight attribute to TH6xxxWF.
+- Add temperature error detection for TH6xxxWF.
+- Add roomTemperature attribute error for HP6000WF.
+- Add DrStatus onOff attribute for HP6000WF.
+- Add missing STATE_WATER_LEAK attribute for RM3500xx.
+- Add HP_FAN_SPEED list for HP6000WF-xx devices.
+- Add specific property for HP6000WF-xx.
+  - is_on
+  - turn_on
+  - turn_off
+  - hvac_action
+  - target_temperature
+  - min_temp
+  - max_temp
+- define a dict for fan mode conversion for HP6000WF-xx.
+- Add thermostat model number for Wi-Fi lite
+- Add fan_speed_values_5 list for fanSpeed
+- Add model number for gateway GT4220WF
+- Add model number for RM3510WF
+- Add specific set_hvac_mode for HP6000WF
+- Add set_temperature for HP6000WF-xx
+
+### Fix
+- Fix TH1400ZB PumpProtectDuration value when status is off.
+- Remove Rssi for TH6xxxWF.
+- Fix message when sensor probe is disconnected for RM3500xx.
+- Change log level to warning for STARTUP_MESSAGE.
+- Fix roomTemperatureDisplay value and status for HP6000WF-xx.
+- Fix roomTemperature attribute value for HP6000WF-xx.
+- Fix fan_modes for HP6000WF-xx devices
+- Fix Hvac_modes for HP6000WF-xx devices.
+- Fix method set_hvac_mode for HP6000WF.
+- Fix set_fan_mode for HP6000WF-xx.
+- Fix set_keypad_lock service for thermostats
+- Fix room_temp_error
+- Fix valve flow meter divisor.
+- Fix mapping value for FAN_SPEED_VALUES for HP6000WF.
+- Fix value error in set_fan_mode for HP6000WF
+- Change fan speed values names to lower()
+- Remove extra logging for debug
+- Fix set_heat_lockout action for TH112xZB-G2 and other heat-cool devices.
+- Fix set_heat_lockout_temperature services schema.
+- Change set_heat_lockout_temperature service description.
+- Refactor target_temperature logic to handle all HVAC modes and apply temperature limits for HP6000WF-xx.
+- Fix translation to HVAC Modes for HP6000WF-xx
+- Refactor hvac_mode and hvac_action properties for HP6000WF-xx
+- Fix hvac_action to manage source type auxHeating for TH6xxxWF
+
+### Doc
+- Review documentation in readme.md
+- Update ACCDAYREQMAX error message description.
+- Update doc for set_heat_lockout_temperature service.
+
 ## [v4.0.0] - 2025-12-09
 ### Added
 - Add log file neviweb130_log.txt to replace the home-assistant.log that was removed.

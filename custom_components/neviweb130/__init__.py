@@ -80,6 +80,7 @@ from .const import (
     ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEAT_PURGE_TIME,
@@ -154,6 +155,7 @@ from .helpers import setup_logger
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
+from .schema import NEVIWEB_MODE_MAP
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
@@ -209,7 +211,7 @@ def migrate_entity_unique_id(hass: HomeAssistant):
 
 def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     """Set up neviweb130."""
-    _LOGGER.info(STARTUP_MESSAGE)
+    _LOGGER.warning(STARTUP_MESSAGE)
 
     try:
         data = Neviweb130Data(hass, hass_config[DOMAIN])
@@ -902,16 +904,15 @@ class Neviweb130Client:
         """Work differently for Wi-Fi and Zigbee devices and TH6250xx devices."""
         if wifi:
             if HC:
-                if mode == HVACMode.HEAT_COOL:
-                    data = {ATTR_HEAT_COOL: HVACMode.AUTO}
-                else:
-                    data = {ATTR_HEAT_COOL: mode}
+                neviweb_mode = NEVIWEB_MODE_MAP.get(mode, "off")
+                data = {ATTR_HEAT_COOL: neviweb_mode}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
                     mode = MODE_MANUAL
                 data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
+        _LOGGER.debug("Setpoint mode data: %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_occupancy_mode(self, device_id: str, mode, wifi):
@@ -1555,9 +1556,12 @@ class Neviweb130Client:
         _LOGGER.debug("Heat pump limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_heat_lockout(self, device_id: str, temp):
+    def set_heat_lockout(self, device_id: str, temp, G2):
         """Set maximum outside temperature limit to allow heating device operation."""
-        data = {ATTR_HEAT_LOCK_TEMP: temp}
+        if G2:
+            data = {ATTR_HEAT_LOCKOUT_TEMP: temp}
+        else:
+            data = {ATTR_HEAT_LOCK_TEMP: temp}
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
 

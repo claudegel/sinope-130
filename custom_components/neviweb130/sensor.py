@@ -9,7 +9,7 @@ model 42102 = WL4210, WL4210S connected to sedna valve.
 model 5056 = LM4110-ZB, level monitor.
 model 5055 = LM4110-LTE, level monitor, multiples tanks.
 model 130 = gateway GT130.
-model xxx = gateway GT4220WF, GT4220WF-M for mesh valve network.
+model 3156 = gateway GT4220WF, GT4220WF-M for mesh valve network.
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
@@ -101,7 +101,7 @@ SCAN_INTERVAL = scan_interval
 
 UPDATE_ATTRIBUTES = [ATTR_BATTERY_VOLTAGE, ATTR_BATTERY_STATUS]
 
-IMPLEMENTED_GATEWAY = [130]
+IMPLEMENTED_GATEWAY = [130, 3156]
 IMPLEMENTED_TANK_MONITOR = [5056]
 IMPLEMENTED_LTE_TANK_MONITOR = [5055]
 IMPLEMENTED_SENSOR_MODEL = [5051, 5053]

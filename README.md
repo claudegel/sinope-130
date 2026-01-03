@@ -2,12 +2,12 @@
 
 Custom components to support [Neviweb](https://neviweb.com/) devices in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
-switches/dimmers , load controllers, plug and water leak detector etc. 
+switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
-Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices. It is 
-presently almost up to date with Neviweb but some information are still missing from Sinopé. As new devices are launched 
-by Sinopé, they are added to this custom-component. If you have a device that is not supported yet, please open an issue 
-and I'll add it quickly.
+Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
+directly to Neviweb. It is presently almost up to date with Neviweb but some information are still missing from Sinopé. 
+As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
+yet, please open an issue and I'll add it quickly.
 
 ## Big changes for valve devices
 
@@ -51,6 +51,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH6510WF Wi-Fi heat/cool
   - Sinopé TH6250WF Wi-Fi heat/cool
   - Sinopé TH6250WF_PRO Wi-Fi heat/cool
+  - Sinopé THEWF01 Wi-Fi lite thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
@@ -59,8 +60,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - Wi-Fi Heatpump controller:
-  - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
-  - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
+  - Sinopé HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
+  - Sinopé HP6000WF-GE for Ouellet heat pump with Gree connector
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -327,6 +328,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_sound_config to set on/off sound on heatpump.
 - neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
+  Work differently for TH1123ZB-G2, TH1124ZB-G2 and heat/cool devices (TH6xxxWF). Each use different attribute.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
 - neviweb130.set_hc_second_display to set second display of TH1134ZB-HC thermostat.
 - neviweb130.set_language to set display language on TH1134ZB-HC thermostats.
@@ -518,7 +520,7 @@ messages.
 
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
-- ACCDAYREQMAX: Maximum daily request reached... Reduce polling frequency.
+- ACCDAYREQMAX: Maximum daily request reached ('daily': 30000)... Reduce polling frequency.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
   also have an open session on Neviweb.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
