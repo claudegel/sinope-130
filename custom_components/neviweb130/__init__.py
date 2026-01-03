@@ -155,10 +155,10 @@ from .helpers import setup_logger
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
+from .schema import NEVIWEB_MODE_MAP
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
-from .schema import NEVIWEB_MODE_MAP
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"

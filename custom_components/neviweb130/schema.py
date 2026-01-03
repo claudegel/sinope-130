@@ -500,8 +500,7 @@ SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(vol.Any(ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP)): vol.All(
-            lambda v: int(v) if v != "off" else None,
-            vol.Any(None, vol.Range(min=10, max=30))
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
         ),
     }
 )
