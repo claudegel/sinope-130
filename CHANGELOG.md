@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.0.1] - 2026-01-03
+## [v4.0.1b0] - 2026-01-03
 ### Added
 - Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.
 - Add CycleLength attribute to TH6xxxWF.
