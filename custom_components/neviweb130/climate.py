@@ -2021,8 +2021,7 @@ def neviweb_to_ha_mode(mode: str) -> HVACMode:
     """Convert Neviweb mode string to HVACMode for HP6000WF-xx thermostats."""
     hvac = NEVIWEB_TO_HA_MODE.get(mode)
     if hvac is None:
-        _LOGGER.warning("Unknown Neviweb HVAC mode received: %s", mode)
-        return None
+        raise ValueError(f"Unknown Neviweb HVAC mode: {mode}")
     return hvac
 
 
@@ -2630,7 +2629,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
         speed_val = speed
         if self._is_WHP:
-            speed_val = resolve_fan_speed(speed, self._device_model)
+            speed_val = str(resolve_fan_speed(speed, self._device_model))
 
         self._client.set_fan_mode(self._id, speed_val)
         self._fan_speed = speed
