@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.0.1] - 2025-12-__
+## [v4.0.1] - 2026-01-03
 ### Added
 - Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.
 - Add CycleLength attribute to TH6xxxWF.
@@ -20,7 +20,7 @@ All modification for this custom_component will be added in this file.
   - target_temperature
   - min_temp
   - max_temp
-- define a dict for fan mode convertion for HP6000WF-xx.
+- define a dict for fan mode conversion for HP6000WF-xx.
 - Add thermostat model number for Wi-Fi lite
 - Add fan_speed_values_5 list for fanSpeed
 - Add model number for gateway GT4220WF
