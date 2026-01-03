@@ -35,6 +35,12 @@ CONF_NETWORK3 = "network3"
 CONF_NOTIFY = "notify"
 CONF_STAT_INTERVAL = "stat_interval"
 
+DEFAULTS = {
+    "current_version": "1.0.0",
+    "available_version": "1.1.0",
+    "release_notes": "No release notes available (default fallback).",
+}
+
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
 ATTR_AIR_ACTIVATION_TEMP = "airCurtainActivationTemperature"
