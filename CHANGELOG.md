@@ -2,6 +2,16 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.1b1] - 2026-01-__
+### Added
+-Add update platform
+
+### Fix
+-Updated device statistics methods to include an HC parameter for energy consumption.
+
+### Doc
+
+
 ## [v4.0.1b0] - 2026-01-03
 ### Added
 - Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.
