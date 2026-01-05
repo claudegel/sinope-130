@@ -226,6 +226,50 @@ Both modes are supported by this custom component.
 It is now possible to know if your GT130 is still online of offline with Neviweb via the gateway_status attribute. The 
 GT130 is detected as sensor.neviweb130_sensor_gt130
 
+## Automatic update system
+
+Neviweb130 now include a complete update system that include:
+- Automatic update check every 6 hours:
+  - New update available.
+  - Pre-release available.
+  - Breaking changes.
+  - Version notes.
+
+- SHA-256 validation:
+  - Get official SHA-256 from GitHub.
+  - Download update zip file.
+  - Validate SHA-256.
+  - If mismatch, cancel update and notify.
+
+- Auto Rollback if error detected during update:
+  - Restore old version automatically.
+  - Notify user of the problem.
+ 
+- Persistant notifications on:
+  - Succes: "Update successful".
+  - Fail: "Update fail, rollback performed".
+  - SHA-256 error: "Update aborted for sewcurity".
+ 
+- Breaking changes detection:
+  The updator scan version notes from GitHub. If breaking changes are detected:
+  - Add special icon in update card.
+  - Add (Breaking changes) in update title.
+ 
+- Pre-release detection if version contain, b0, -beta or rc1 etc:
+  The updator scan update version from GitHub. If pre-release version is detected:
+  - Add special icon in update card.
+  - Add (Pre-release) in update title.
+
+- Backup option:
+  Add a button to allow for system backup before update.
+
+- Version notes can be viewed via link provided on the update card that point to GitHub releases motes.
+
+You will need to deactivate HACS update or you will get two update notifications. This can be done in 
+parameters / devices & services / HACS. Pick Sinope Neviweb130 and deactivate the pre-release button if set. 
+Locate the Sinope Neviweb130 integration and click on the three vertical dots on the right end of the 
+line. Click on 'deactivate the device'. It will still be possible to do manual update or redownload in HACS.
+
 ## Running more than one instance of neviweb130 to manage different Neviweb connections.
 It is possible to run two instance of neviweb130, but you need to use two different username (email) and password to 
 connect to Neviweb.
