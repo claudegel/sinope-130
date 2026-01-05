@@ -13,6 +13,7 @@ All modification for this custom_component will be added in this file.
 - Refactor energy stat to add support for TH6xxxWF energy stat
 - Add functions to extract version notes and build update summary for update platform
 - Update each platform for TH6xxxWF energy stat retrieval
+- Updated default values for update platform in const.py.
 
 ### Doc
 - Add documentation for update platform
