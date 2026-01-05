@@ -265,6 +265,10 @@ Neviweb130 now include a complete update system that include:
 
 - Version notes can be viewed via link provided on the update card that point to GitHub releases motes.
 
+- Auto reload entity:
+  At the end of update, if everything is fine, the updator will reload Neviweb130 automatically.
+  No need to restart Home Assistant.
+
 You will need to deactivate HACS update or you will get two update notifications. This can be done in 
 parameters / devices & services / HACS. Pick Sinope Neviweb130 and deactivate the pre-release button if set. 
 Locate the Sinope Neviweb130 integration and click on the three vertical dots on the right end of the 
