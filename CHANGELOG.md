@@ -5,6 +5,8 @@ All modification for this custom_component will be added in this file.
 ## [v4.0.1b1] - 2026-01-__
 ### Added
 - Add update platform
+- Activate Update platform
+- Retrieve update version form GitHub
 
 ### Fix
 - Updated device statistics methods to include an HC parameter for energy consumption.
@@ -13,7 +15,7 @@ All modification for this custom_component will be added in this file.
 - Update each platform for TH6xxxWF energy stat retrieval
 
 ### Doc
-
+- Add documentation for update platform
 
 ## [v4.0.1b0] - 2026-01-03
 ### Added
