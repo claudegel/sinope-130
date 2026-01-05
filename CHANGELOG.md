@@ -15,6 +15,7 @@ All modification for this custom_component will be added in this file.
 - Update each platform for TH6xxxWF energy stat retrieval
 - Updated default values for update platform in const.py.
 - Refactor update method in helpers.py.
+- Refactor update.py method for update platform to add many options.
 
 ### Doc
 - Add documentation for update platform
