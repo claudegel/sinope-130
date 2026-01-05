@@ -36,9 +36,9 @@ CONF_NOTIFY = "notify"
 CONF_STAT_INTERVAL = "stat_interval"
 
 DEFAULTS = {
-    "current_version": "1.0.0",
-    "available_version": "1.1.0",
-    "release_notes": "No release notes available (default fallback).",
+    "current_version": None,
+    "available_version": None,
+    "release_notes": "",
 }
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
