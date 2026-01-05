@@ -1,6 +1,8 @@
 """Helpers for debugging and logger setup in neviweb130"""
 
+import aiohttp
 import asyncio
+import json
 import logging
 import os
 import re
@@ -118,38 +120,83 @@ async def _delete_file_later(path: str, delay: int):
 # ─────────────────────────────────────────────
 
 
-def extract_notes_for_version(changelog: str, version: str) -> str:
-    """Return version notes from CHANGELOG.md on github."""
-    lines = changelog.splitlines()
-    capture = False
-    notes = []
-    pattern = rf"\[{re.escape(version)}\]"
-    for line in lines:
-        stripped = line.strip()
-        if re.search(pattern, stripped):
-            capture = True
-            continue
-        if capture:
-            if stripped.startswith("[v"):
-                break
-            if stripped:
-                notes.append(stripped)
-    return "\n".join(notes).strip() or f"Notes not found for {version}"
+def has_breaking_changes(notes: str | None) -> bool:
+    """Detect breaking changes in release notes."""
+    if not notes:
+        return False
+
+    text = notes.lower()
+
+    keywords = [
+        "breaking change",
+        "breaking changes",
+        "## breaking",
+        "### breaking",
+        "⚠️ breaking",
+        ":warning:",
+        "not backward compatible",
+        "requires manual changes",
+        "requires configuration update",
+        "requires reconfiguration",
+        "this update requires",
+        "this change requires",
+    ]
+
+    return any(k in text for k in keywords)
+
+
+async def fetch_release_notes(version: str) -> str | None:
+    # We put back the "v" because GitHub still use vX.Y.Z
+    tag = f"v{version}" if not version.startswith("v") else version
+    url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                _LOGGER.warning("Failed to fetch release notes for %s: HTTP %s", tag, resp.status)
+                return None
+
+            data = await resp.json()
+            title = (data.get("name") or "").strip()
+            body = (data.get("body") or "").strip()
+            _LOGGER.debug("Raw release notes for %s (len=%d): %r", tag, len(body), body)
+            return title, body
 
 
 def build_update_summary(installed: str, latest: str, notes: str) -> str:
     """Build a full update summary for Neviweb130 V1."""
-    base_url = "https://github.com/claudegel/sinope-130"
+    if not installed or not latest:
+        return "You are running the latest available version."
 
-    # Link to official update
-    release_link = f"{base_url}/releases/{latest}"
+    base_url = "https://github.com/claudegel/sinope-130"
+    tag_installed = f"v{installed}" if not installed.startswith("v") else installed
+    tag_latest = f"v{latest}" if not latest.startswith("v") else latest
 
     # Link to compare between new version and latest
-    compare_link = f"{base_url}/compare/{installed}...{latest}"
+    compare_link = f"{base_url}/compare/{tag_installed}...{tag_latest}"
+
+    safe_notes = str(notes or "").strip()
+    section = ""
+
+    if "## What's Changed" in safe_notes:
+        after = safe_notes.split("## What's Changed", 1)[1]
+        if "##" in after:
+            after = after.split("##", 1)[0]
+        cleaned_lines = []
+        for line in after.splitlines():
+            if " in https" in line:
+                line = line.split(" in https", 1)[0].rstrip()
+                cleaned_lines.append(line)
+        section = "## What's Changed\n" + "\n".join(cleaned_lines).strip()
+    else:
+        section = "No 'What's Changed' section found."
+    _LOGGER.warning("Release notes = %s", section)
+
+    if not safe_notes:
+        safe_notes = f"## Version {latest}\n\nNo release notes available."
 
     return (
-        f"[Read version announcements]({release_link})\n\n"
         f"Available versions :\n"
-        f"- [{installed} -> {latest}]({compare_link})\n\n"
-        f"Version Notes :\n{notes}"
+        f"- [{tag_installed} -> {tag_latest}]({compare_link})\n\n"
+        f"{section}"
     )
