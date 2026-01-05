@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import aiohttp
 import asyncio
+import json
 import logging
 import os
 from typing import Any
@@ -152,7 +154,7 @@ from .const import (
     STARTUP_MESSAGE,
     VERSION,
 )
-from .helpers import setup_logger, extract_notes_for_version
+from .helpers import setup_logger, fetch_release_notes
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -247,22 +249,41 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
     changelog_url = "https://raw.githubusercontent.com/claudegel/sinope-130/master/CHANGELOG.md"
-    async def _load_changelog(hass, latest: str):
-        import aiohttp
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(changelog_url) as resp:
-                    if resp.status == 200:
-                        changelog = await resp.text()
-                        notes = extract_notes_for_version(changelog, latest)
-                        hass.data[DOMAIN].release_notes = notes
-                        _LOGGER.warning("Release notes for %s loaded from CHANGELOG.md", latest)
-        except Exception as err:
-            _LOGGER.warning("Cannot get the changelog: %s", err)
 
-    latest = hass.data[DOMAIN].available_version
+    async def fetch_latest_version():
+        url = "https://api.github.com/repos/claudegel/sinope-130/tags"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    text = await resp.text()
+                    try:
+                        tags = json.loads(text)
+                        if isinstance(tags, list) and len(tags) > 0:
+                            latest_tag = tags[0].get("name")
+                            if latest_tag and latest_tag.startswith("v"):
+                                latest_tag = latest_tag[1:]
+                            return latest_tag
+                    except Exception as err:
+                        _LOGGER.error("Failed to parse GitHub tags: %s", err)
+                        return None
+
+        return None
+
+    async def async_init_update():
+        latest = await fetch_latest_version()
+        if latest is None:
+            _LOGGER.warning("Could not fetch latest version from GitHub")
+            return
+
+        hass.data[DOMAIN].available_version = latest
+        title, notes = await fetch_release_notes(latest)
+        hass.data[DOMAIN].release_title = title or "No title available."
+        hass.data[DOMAIN].release_notes = notes or "No release notes available."
+
     hass.loop.call_soon_threadsafe(
-        hass.async_create_task, _load_changelog(hass, latest)
+        hass.async_create_task,
+        async_init_update()
     )
 
     discovery.load_platform(hass, Platform.CLIMATE, DOMAIN, {}, hass_config)
@@ -270,6 +291,7 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     discovery.load_platform(hass, Platform.SWITCH, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.SENSOR, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.VALVE, DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.UPDATE, DOMAIN, {}, hass_config)
 
     return True
 
@@ -291,7 +313,7 @@ class Neviweb130Data:
         self.migration_done = asyncio.Event()
 
         # Attributs for versioning and release notes
-        self.current_version = DEFAULTS["current_version"]
+        self.current_version = VERSION
         self.available_version = DEFAULTS["available_version"]
         self.release_notes = DEFAULTS["release_notes"]
 
