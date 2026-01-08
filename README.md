@@ -245,8 +245,8 @@ Neviweb130 now include a complete update system that include:
   - Restore old version automatically.
   - Notify user of the problem.
  
-- Persistant notifications on:
-  - Succes: "Update successful".
+- Persistent notifications on:
+  - Success: "Update successful".
   - Fail: "Update fail, rollback performed".
   - SHA-256 error: "Update aborted for security".
  
@@ -275,9 +275,9 @@ Locate the Sinope Neviweb130 integration and click on the three vertical dots on
 line. Click on 'deactivate the device'. It will still be possible to do manual update or redownload in HACS.
 
 ## Neviweb daily request counter
-As Sinopé is becomming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
+As Sinopé is becoming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
 disconnected until midnight. This is very bad if you have many devices or doing development on neviweb130.
-I've added a daily Neviweb request counter that is resetted to 0 at midnight and suvive HA restart. It create a 
+I've added a daily Neviweb request counter that is reset to 0 at midnight and suvive HA restart. It create a 
 sensor sensor.neviweb130_daily_requests that increase at each request: update, stat polling, error status, etc
 
 This way it is possible to improve your scan_interval to get the higher frequency without busting the limit.
