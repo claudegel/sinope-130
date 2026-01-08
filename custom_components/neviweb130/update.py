@@ -221,7 +221,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
         if self._release_title:
             base = f"{base} – {self._release_title}"
 
-        # Add icon pre-release
+        # Add icon if pre-release
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
             base = f"\U0001f6a7 PRE-RELEASE – {base}"
 
@@ -350,17 +350,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
         if version and self._installed_version:
             try:
                 if AwesomeVersion(version) < AwesomeVersion(self._installed_version):
-                    _LOGGER.error(
-                        "Refusing downgrade: %s < %s",
-                        version,
-                        self._installed_version,
-                    )
-
+                    _LOGGER.error("Refusing downgrade: %s < %s", version, self._installed_version)
                     self._in_progress = False
                     self._update_percentage = None
                     self.async_write_ha_state()
                     return
-
             except Exception as err:
                 _LOGGER.warning("Version comparison failed: %s", err)
                 self._in_progress = False
@@ -368,10 +362,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 self.async_write_ha_state()
                 return
 
+        # Determine tag
         if version:
             tag = f"v{version}" if not version.startswith("v") else version
         else:
-            # Fallback: use latest_version if version is None
             if not self._latest_version:
                 _LOGGER.error("No version specified and no latest_version available")
                 self._in_progress = False
@@ -380,51 +374,47 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 return
             tag = f"v{self._latest_version}" if not self._latest_version.startswith("v") else self._latest_version
 
-        url = f"https://github.com/claudegel/sinope-130/archive/refs/tags/{tag}.zip"
+        api_url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
+
         backup_dir: str | None = None
         target_dir: str | None = None
 
-        api_url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
-
         try:
+            # Fetch release info
             async with aiohttp.ClientSession() as session:
                 async with session.get(api_url) as resp:
                     resp.raise_for_status()
                     release_data = await resp.json()
 
-            expected_sha256: str | None = None
-            for asset in release_data.get("assets", []):
-                if asset.get("name", "").endswith(".zip") and "sha256" in asset:
-                    expected_sha256 = asset["sha256"]
-                    break
-
-            if not expected_sha256:
-                raise Exception("SHA256 not found in GitHub release assets")
-        except Exception as err:
-            _LOGGER.error("Unable to retrieve SHA256 from GitHub: %s", err)
-            await self.hass.services.async_call(
-                "persistent_notification",
-                "create",
-                {
-                    "title": "Neviweb130 – Update aborted",
-                    "message": (
-                        f"Unable to retrieve SHA256 for version {version}.\nUpdate aborted for security reasons."
-                    ),
-                    "notification_id": "neviweb130_update_status",
-                },
+            # Select correct ZIP (your HACS ZIP)
+            asset_zip = next(
+                (a for a in release_data.get("assets", [])
+                 if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")),
+                None
             )
-            self._in_progress = False
-            self._update_percentage = None
-            self.async_write_ha_state()
-            return
 
-        try:
+            # Select SHA256 file
+            asset_sha = next(
+                (a for a in release_data.get("assets", [])
+                 if a.get("name", "").endswith(".sha256")),
+                None
+            )
+
+            if not asset_zip or not asset_sha:
+                raise Exception("ZIP or SHA256 asset not found in GitHub release")
+
+            # Download SHA256
+            async with aiohttp.ClientSession() as session:
+                async with session.get(asset_sha["browser_download_url"]) as resp:
+                    resp.raise_for_status()
+                    expected_sha256 = (await resp.text()).strip()
+
             # 1- Download ZIP file
             self._update_percentage = 10
             self.async_write_ha_state()
 
             async with aiohttp.ClientSession() as session:
-                async with session.get(url) as resp:
+                async with session.get(asset_zip["browser_download_url"]) as resp:
                     resp.raise_for_status()
                     data = await resp.read()
 
@@ -440,18 +430,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
             local_sha256 = compute_sha256(tmp_zip.name)
 
             if local_sha256.lower() != expected_sha256.lower():
-                _LOGGER.error(
-                    "SHA256 mismatch! Expected %s but got %s",
-                    expected_sha256,
-                    local_sha256,
-                )
+                _LOGGER.error("SHA256 mismatch! Expected %s but got %s", expected_sha256, local_sha256)
 
                 await self.hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
                         "title": "Neviweb130 – Update aborted (security check failed)",
-                        "message": (f"SHA256 mismatch for version {version}.\nUpdate aborted to protect your system."),
+                        "message": f"SHA256 mismatch for version {version}.\nUpdate aborted to protect your system.",
                         "notification_id": "neviweb130_update_status",
                     },
                 )
@@ -471,16 +457,12 @@ class Neviweb130UpdateEntity(UpdateEntity):
             with zipfile.ZipFile(tmp_zip.name, "r") as zip_ref:
                 zip_ref.extractall(tmp_dir)
 
-            # 4- Copy file to neviweb130 custom_component directory
+            # 4- Copy files to custom_components/neviweb130
             self._update_percentage = 80
             self.async_write_ha_state()
 
             extracted_root = os.path.join(tmp_dir, os.listdir(tmp_dir)[0])
-            target_dir = os.path.join(
-                self.hass.config.path(),
-                "custom_components",
-                DOMAIN,
-            )
+            target_dir = os.path.join(self.hass.config.path(), "custom_components", DOMAIN)
 
             backup_dir = tempfile.mkdtemp(prefix="neviweb130_backup_")
             shutil.copytree(target_dir, backup_dir, dirs_exist_ok=True)
@@ -495,20 +477,20 @@ class Neviweb130UpdateEntity(UpdateEntity):
             os.remove(tmp_zip.name)
             shutil.rmtree(tmp_dir)
 
-            # 6- Finalise
+            # 6- Finalize
             self._update_percentage = 100
             self.async_write_ha_state()
 
             await asyncio.sleep(1)
             await self.hass.config_entries.async_reload(self.entry.entry_id)
+
             await self.hass.services.async_call(
                 "persistent_notification",
                 "create",
                 {
                     "title": "Neviweb130 – Update successful",
                     "message": (
-                        f"Update to version {version or self._latest_version} "
-                        "was installed successfully.\n"
+                        f"Update to version {version or self._latest_version} was installed successfully.\n"
                         f"[See update notes]({self.release_url})"
                     ),
                     "notification_id": "neviweb130_update_status",
@@ -519,6 +501,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         except Exception as err:
             _LOGGER.error("Update fail: %s", err)
+
             await self.hass.services.async_call(
                 "persistent_notification",
                 "create",
