@@ -1,4 +1,4 @@
-name: Release
+name: Build ZIP and SHA256
 
 on:
   push:
@@ -17,23 +17,16 @@ jobs:
         run: |
           zip -r sinope-130-${GITHUB_REF_NAME}.zip custom_components/neviweb130
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: "Neviweb130 ${{ github.ref_name }}"
-          draft: false
-          prerelease: false
+      - name: Generate SHA-256
+        run: | 
+          sha256sum sinope-130-${GITHUB_REF_NAME}.zip > sinope-130-${GITHUB_REF_NAME}.sha256
 
-      - name: Upload ZIP asset
-        uses: actions/upload-release-asset@v1
+      - name: Upload assets to existing release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }} 
+          files: | 
+            sinope-130-${GITHUB_REF_NAME}.zip 
+            sinope-130-${GITHUB_REF_NAME}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: sinope-130-${GITHUB_REF_NAME}.zip
-          asset_name: sinope-130-${GITHUB_REF_NAME}.zip
-          asset_content_type: application/zip
