@@ -6,6 +6,7 @@ import logging
 import os
 import shutil
 from logging.handlers import RotatingFileHandler
+from typing import Tuple
 
 import aiohttp
 from homeassistant.helpers.storage import Store
@@ -152,7 +153,7 @@ def has_breaking_changes(notes: str | None) -> bool:
     return any(k in text for k in keywords)
 
 
-async def fetch_release_notes(version: str) -> str | None:
+async def fetch_release_notes(version: str) -> tuple[str, str] | None:
     # We put back the "v" because GitHub still use vX.Y.Z
     tag = f"v{version}" if not version.startswith("v") else version
     url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
@@ -212,7 +213,7 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
 
 def init_request_counter(hass):
     """Initialise the persistent store for request counter data."""
-    store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
+    store: Store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
 
     # Load data
     future = asyncio.run_coroutine_threadsafe(store.async_load(), hass.loop)
