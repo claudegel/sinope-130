@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.0.1b1] - 2026-01-__
+## [v4.0.1b1] - 2026-01-08
 ### Added
 - Add update platform.
 - Activate Update platform.
