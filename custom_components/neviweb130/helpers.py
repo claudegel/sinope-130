@@ -211,7 +211,7 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
 
 
 def init_request_counter(hass):
-    """Initialise the persistant store for request counter data."""
+    """Initialise the persistent store for request counter data."""
     store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
 
     # Load data
@@ -242,7 +242,7 @@ def increment_request_counter(hass):
 
     data["count"] += 1
 
-    # Persistant saving
+    # Persistent saving
     future = asyncio.run_coroutine_threadsafe(hass.data[DOMAIN]["request_store"].async_save(data), hass.loop)
     future.result()
 
