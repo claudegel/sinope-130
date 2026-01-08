@@ -233,14 +233,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def update_percentage(self) -> int | None:
+        """Return data for progress bar in update."""
         return self._update_percentage
 
     @property
-    def in_progress(self) -> bool | int | None:
-        """Return data for progress bar in update."""
-        if not self._in_progress:
-            return None
-        return self._update_percentage if self._update_percentage is not None else True
+    def in_progress(self) -> bool | None:
+        """Return True if update in progress."""
+        return True if self._in_progress else None
 
     async def async_check_for_updates(self) -> None:
         """Check GitHub for new releases and update entity state."""
