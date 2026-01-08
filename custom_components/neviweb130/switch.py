@@ -204,7 +204,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the Neviweb130 switch."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
