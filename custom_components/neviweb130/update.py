@@ -49,7 +49,7 @@ def migrate_entry_data(entry: ConfigEntry) -> None:
             new_data[key] = default
             _LOGGER.info("Injected default for missing key '%s'", key)
 
-    entry.async_update_entry(data=new_data)
+    cast(Any, entry).async_update_entry(data=new_data)
 
 
 async def async_setup_platform(
@@ -197,7 +197,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 return f"Update available: {self._installed_version} → {self._latest_version}"
             return "Update available, but release notes could not be loaded."
 
-    @property
     def release_notes(self) -> str | None:
         return self._release_notes or ""
 
@@ -257,7 +256,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 # Update config entry (immutable mapping)
                 new_data: dict[str, Any] = dict(self.entry.data)
                 new_data["available_version"] = latest
-                self.entry.async_update_entry(data=new_data)
+                cast(Any, self.entry).async_update_entry(data=new_data)
 
                 self.hass.data[DOMAIN]["data"].release_notes = notes
                 self.hass.data[DOMAIN]["data"].release_title = title
