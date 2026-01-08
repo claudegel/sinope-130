@@ -9,6 +9,7 @@ All modification for this custom_component will be added in this file.
 - Retrieve update version form GitHub
 - Add Neviweb request daily counter
 - Add daily request counter helper
+- Add dummy class NeviwebDailyRequestSensor, to create sensor.neviweb_daily_request 
 
 ### Fix
 - Updated device statistics methods to include an HC parameter for energy consumption.
