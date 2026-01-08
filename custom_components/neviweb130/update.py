@@ -1,7 +1,6 @@
 """Update entity for Neviweb130 integration."""
 
 import asyncio
-import aiohttp
 import datetime
 import hashlib
 import logging
@@ -9,11 +8,11 @@ import os
 import shutil
 import tempfile
 import zipfile
+from datetime import timedelta
 from typing import Any, cast
 
+import aiohttp
 from awesomeversion import AwesomeVersion
-from datetime import timedelta
-
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -129,9 +128,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         # Declare supported functionality
         self._attr_supported_features = (
-            UpdateEntityFeature.INSTALL
-            | UpdateEntityFeature.BACKUP
-            | UpdateEntityFeature.RELEASE_NOTES
+            UpdateEntityFeature.INSTALL | UpdateEntityFeature.BACKUP | UpdateEntityFeature.RELEASE_NOTES
         )
 
         # Force restart advertising
@@ -167,10 +164,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
         prefix = ""
         if self.has_breaking_changes:
             # 🛑
-            prefix += "\U0001F6D1 BREAKING CHANGES\n"
+            prefix += "\U0001f6d1 BREAKING CHANGES\n"
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
             # 🚧
-            prefix += "\U0001F6A7 PRE-RELEASE VERSION\n"
+            prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
 
         self._release_summary = prefix + self._release_summary
 
@@ -183,7 +180,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
     @property
     def latest_version(self) -> str | None:
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            return f"\U0001F6A7 (pre-release) {self._latest_version}"
+            return f"\U0001f6a7 (pre-release) {self._latest_version}"
         return self._latest_version
 
     @property
@@ -224,11 +221,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         # Add icon pre-release
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            base = f"\U0001F6A7 PRE-RELEASE – {base}"
+            base = f"\U0001f6a7 PRE-RELEASE – {base}"
 
         # Add icon if breaking changes
         if self.has_breaking_changes:
-            base = f"\U0001F6D1 BREAKING – {base}"
+            base = f"\U0001f6d1 BREAKING – {base}"
 
         return base
 
@@ -246,9 +243,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    "https://api.github.com/repos/claudegel/sinope-130/releases/latest"
-                ) as resp:
+                async with session.get("https://api.github.com/repos/claudegel/sinope-130/releases/latest") as resp:
                     resp.raise_for_status()
                     data = await resp.json()
 
@@ -281,9 +276,9 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
                 prefix = ""
                 if self.has_breaking_changes:
-                    prefix += "\U0001F6D1 BREAKING CHANGES\n"
+                    prefix += "\U0001f6d1 BREAKING CHANGES\n"
                 if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-                    prefix += "\U0001F6A7 PRE-RELEASE VERSION\n"
+                    prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
 
                 self._release_summary = prefix + self._release_summary
 
@@ -301,10 +296,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     async def _do_backup(self) -> None:
         """Backup before update."""
-        snapshot_name = (
-            f"Neviweb130-{self.installed_version}-"
-            f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
-        )
+        snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
         try:
             await self.hass.services.async_call(
@@ -413,8 +405,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 {
                     "title": "Neviweb130 – Update aborted",
                     "message": (
-                        f"Unable to retrieve SHA256 for version {version}.\n"
-                        "Update aborted for security reasons."
+                        f"Unable to retrieve SHA256 for version {version}.\nUpdate aborted for security reasons."
                     ),
                     "notification_id": "neviweb130_update_status",
                 },
@@ -457,10 +448,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     "create",
                     {
                         "title": "Neviweb130 – Update aborted (security check failed)",
-                        "message": (
-                            f"SHA256 mismatch for version {version}.\n"
-                            "Update aborted to protect your system."
-                        ),
+                        "message": (f"SHA256 mismatch for version {version}.\nUpdate aborted to protect your system."),
                         "notification_id": "neviweb130_update_status",
                     },
                 )
