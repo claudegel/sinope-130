@@ -280,9 +280,15 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
             return
 
         hass.data[DOMAIN]["data"].available_version = latest
-        title, notes = await fetch_release_notes(latest)
-        hass.data[DOMAIN]["data"].release_title = title or "No title available."
-        hass.data[DOMAIN]["data"].release_notes = notes or "No release notes available."
+        result = await fetch_release_notes(latest)
+        if result is None:
+            title = "No title available."
+            notes = "No release notes available."
+        else:
+            title, notes = result
+
+        hass.data[DOMAIN]["data"].release_title = title
+        hass.data[DOMAIN]["data"].release_notes = notes
 
     hass.loop.call_soon_threadsafe(hass.async_create_task, async_init_update())
 
