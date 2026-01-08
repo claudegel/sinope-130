@@ -104,7 +104,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._update_percentage = None
         self._in_progress = False
 
-        # Declare supported fonctionality
+        # Declare supported functionality
         self._attr_supported_features = (
             UpdateEntityFeature.INSTALL | UpdateEntityFeature.BACKUP | UpdateEntityFeature.RELEASE_NOTES
         )
