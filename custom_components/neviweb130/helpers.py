@@ -2,14 +2,21 @@
 
 import aiohttp
 import asyncio
+import datetime
 import json
 import logging
 import os
 import re
 import shutil
+
+from homeassistant.helpers.storage import Store
 from logging.handlers import RotatingFileHandler
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
+REQUEST_STORE_VERSION = 1
+REQUEST_STORE_KEY = f"{DOMAIN}_request_count"
 
 # ─────────────────────────────────────────────
 # SECTION LOGGER SETUP
@@ -116,7 +123,7 @@ async def _delete_file_later(path: str, delay: int):
         _LOGGER.warning("Error during log file delete process : %s", e)
 
 # ─────────────────────────────────────────────
-# Update section
+# Updater section
 # ─────────────────────────────────────────────
 
 
@@ -200,3 +207,54 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
         f"- [{tag_installed} -> {tag_latest}]({compare_link})\n\n"
         f"{section}"
     )
+
+# ─────────────────────────────────────────────
+# SECTION DAILY REQUEST COUNTER
+# ─────────────────────────────────────────────
+
+
+def init_request_counter(hass):
+    """Initialise the persistant store for request counter data."""
+    store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
+
+    # Load data
+    future = asyncio.run_coroutine_threadsafe(store.async_load(), hass.loop)
+    data = future.result()
+
+    if not data:
+        data = {
+            "date": datetime.date.today().isoformat(),
+            "count": 0,
+        }
+        future = asyncio.run_coroutine_threadsafe(store.async_save(data), hass.loop)
+        future.result()
+
+    hass.data[DOMAIN]["request_store"] = store
+    hass.data[DOMAIN]["request_data"] = data
+
+
+def increment_request_counter(hass):
+    """Increase counter by one."""
+    data = hass.data[DOMAIN]["request_data"]
+    today = datetime.date.today().isoformat()
+
+    # Reset if day change
+    if data["date"] != today:
+        data["date"] = today
+        data["count"] = 0
+
+    data["count"] += 1
+
+    # Persistant saving
+    future = asyncio.run_coroutine_threadsafe(
+        hass.data[DOMAIN]["request_store"].async_save(data),
+        hass.loop
+    )
+    future.result()
+
+    return data["count"]
+
+
+def get_daily_request_count(hass):
+    """Return the daily request count."""
+    return hass.data[DOMAIN]["request_data"]["count"]
