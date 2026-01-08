@@ -17,6 +17,7 @@ All modification for this custom_component will be added in this file.
 - Updated default values for update platform in const.py.
 - Refactor update method in helpers.py.
 - Refactor update.py method for update platform to add many options.
+- Fix hass.data[DOMAIN] dictionary for request counter in all platforms
 
 ### Doc
 - Add documentation for update platform
