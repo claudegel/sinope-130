@@ -312,7 +312,7 @@ class Neviweb130Data:
 
         self.migration_done = asyncio.Event()
 
-        # Attributs for versioning and release notes
+        # Attributes for versioning and release notes
         self.current_version = VERSION
         self.available_version = DEFAULTS["available_version"]
         self.release_notes = DEFAULTS["release_notes"]
