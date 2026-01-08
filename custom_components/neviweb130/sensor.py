@@ -16,9 +16,10 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
-from datetime import datetime
+import datetime
 from threading import Lock
 from typing import Any, override
 
@@ -77,6 +78,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
+from .helpers import get_daily_request_count
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
@@ -134,12 +136,13 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the Neviweb sensor."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
 
     entities: list[Neviweb130Sensor] = []
+    entities.append(NeviwebDailyRequestSensor(hass))
     for device_info in data.neviweb130_client.gateway_data:
         if (
             "signature" in device_info
@@ -571,7 +574,7 @@ def voltage_to_percentage(voltage, type_val):
 
 def convert(sampling):
     sample = str(sampling)
-    date = datetime.fromtimestamp(int(sample[0:-3]))
+    date = datetime.datetime.fromtimestamp(int(sample[0:-3]))
     return date
 
 
@@ -1356,3 +1359,64 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
         """Set Neviweb global occupancy mode, away or home"""
         self._client.post_neviweb_status(self._location, value["mode"])
         self._occupancyMode = value["mode"]
+
+
+class NeviwebDailyRequestSensor(Entity):
+    """Sensor interne : nombre de requêtes Neviweb130 aujourd'hui."""
+
+    def __init__(self, hass):
+        self._hass = hass
+        self._attr_name = "Neviweb130 Daily Requests"
+        self._attr_unique_id = f"{DOMAIN}_daily_requests"
+        self._notified = False
+
+    @property
+    def name(self):
+        return self._attr_name
+
+    @property
+    def unique_id(self):
+        return self._attr_unique_id
+
+    @property
+    def state(self):
+        return get_daily_request_count(self._hass)
+
+    @property
+    def icon(self):
+        return "mdi:counter"
+
+    @property
+    def extra_state_attributes(self):
+        data = self._hass.data[DOMAIN]["request_data"]
+        return {
+            "date": data["date"],
+            "limit": 30000,
+        }
+
+    def update(self):
+        """Send notification if we reach limit for request."""
+        count = get_daily_request_count(self._hass)
+
+        # Secure limit for notification
+        if count > 25000 and not self._notified:
+            self._notified = True
+
+            asyncio.run_coroutine_threadsafe(
+                self._hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "title": "Neviweb130",
+                        "message": f"Warning : {count} today request. Limit : 30000.",
+                    },
+                ),
+                self._hass.loop
+            )
+
+        # Reset du flag si on change de jour
+        data = self._hass.data[DOMAIN]["request_data"]
+        today = datetime.date.today().isoformat()
+
+        if data["date"] != today:
+            self._notified = False
