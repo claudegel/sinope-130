@@ -128,7 +128,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         # Declare supported functionality
         self._attr_supported_features = (
-            UpdateEntityFeature.INSTALL | UpdateEntityFeature.BACKUP | UpdateEntityFeature.RELEASE_NOTES
+            UpdateEntityFeature.INSTALL
+            | UpdateEntityFeature.BACKUP
+            | UpdateEntityFeature.RELEASE_NOTES
+            | UpdateEntityFeature.PROGRESS
         )
 
         # Force restart advertising
@@ -233,9 +236,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
         return self._update_percentage
 
     @property
-    def in_progress(self) -> bool | None:
-        """Return whether an update is in progress."""
-        return self._in_progress if self._in_progress else None
+    def in_progress(self) -> bool | int | None:
+        """Return data for progress bar in update."""
+        if not self._in_progress:
+            return None
+        return self._update_percentage if self._update_percentage is not None else True
 
     async def async_check_for_updates(self) -> None:
         """Check GitHub for new releases and update entity state."""
