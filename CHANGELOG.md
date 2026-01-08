@@ -7,6 +7,7 @@ All modification for this custom_component will be added in this file.
 - Add update platform
 - Activate Update platform
 - Retrieve update version form GitHub
+- Add Neviweb request daily counter
 
 ### Fix
 - Updated device statistics methods to include an HC parameter for energy consumption.
