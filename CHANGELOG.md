@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.1b2] - 2026-01-08
+### Added
+
+### Fix
+- Fix update.py to download the wright zip file with sha-256 file.
+
+### Doc
+
 ## [v4.0.1b1] - 2026-01-08
 ### Added
 - Add update platform.
