@@ -163,7 +163,7 @@ There are two methods to install this custom component:
           switch.py 
           valve.py
     ```
-## Configuration
+## Legacy configuration
 
 To enable Neviweb130 management in your installation, add the following to your `configuration.yaml` file, then restart 
 Home Assistant.
@@ -248,17 +248,17 @@ Neviweb130 now include a complete update system that include:
 - Persistant notifications on:
   - Succes: "Update successful".
   - Fail: "Update fail, rollback performed".
-  - SHA-256 error: "Update aborted for sewcurity".
+  - SHA-256 error: "Update aborted for security".
  
 - Breaking changes detection:
   The updator scan version notes from GitHub. If breaking changes are detected:
-  - Add special icon in update card.
-  - Add (Breaking changes) in update title.
+  - Add special icon in updater card.
+  - Add (Breaking changes) in updater title.
  
 - Pre-release detection if version contain, b0, -beta or rc1 etc:
   The updator scan update version from GitHub. If pre-release version is detected:
-  - Add special icon in update card.
-  - Add (Pre-release) in update title.
+  - Add special icon in updater card.
+  - Add (Pre-release) in updater title.
 
 - Backup option:
   Add a button to allow for system backup before update.
@@ -273,6 +273,15 @@ You will need to deactivate HACS update or you will get two update notifications
 parameters / devices & services / HACS. Pick Sinope Neviweb130 and deactivate the pre-release button if set. 
 Locate the Sinope Neviweb130 integration and click on the three vertical dots on the right end of the 
 line. Click on 'deactivate the device'. It will still be possible to do manual update or redownload in HACS.
+
+## Neviweb daily request counter
+As Sinopé is becomming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
+disconnected until midnight. This is very bad if you have many devices or doing development on neviweb130.
+I've added a daily Neviweb request counter that is resetted to 0 at midnight and suvive HA restart. It create a 
+sensor sensor.neviweb130_daily_requests that increase at each request: update, stat polling, error status, etc
+
+This way it is possible to improve your scan_interval to get the higher frequency without busting the limit.
+When reaching 25000 requests, neviweb130 will send a notification. Eventually this warning limit will be configurable.
 
 ## Running more than one instance of neviweb130 to manage different Neviweb connections.
 It is possible to run two instance of neviweb130, but you need to use two different username (email) and password to 
