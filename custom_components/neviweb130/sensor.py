@@ -356,7 +356,7 @@ async def async_setup_platform(
 
     async_add_entities(entities, True)
 
-    entity_map: dict[str, Neviweb130Sensor] | None = None
+    entity_map: dict[str, Entity] | None = None
     _entity_map_lock = Lock()
 
     def get_sensor(service: ServiceCall) -> Neviweb130Sensor:
