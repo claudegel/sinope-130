@@ -543,7 +543,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the neviweb130 thermostats."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
@@ -1384,7 +1384,7 @@ async def async_setup_platform(
         """Set maximum outside temperature limit to allow heating device operation."""
         # Work differently for G2 thermostats
         thermostat = get_thermostat(service)
-        temp = ( service.data.get(ATTR_HEAT_LOCK_TEMP) or service.data.get(ATTR_HEAT_LOCKOUT_TEMP) )
+        temp = service.data.get(ATTR_HEAT_LOCK_TEMP) or service.data.get(ATTR_HEAT_LOCKOUT_TEMP)
         value = {
             "id": thermostat.unique_id,
             "temp": temp,
