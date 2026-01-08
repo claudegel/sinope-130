@@ -21,7 +21,7 @@ import datetime
 import logging
 import time
 from threading import Lock
-from typing import Any, override
+from typing import Any, cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -376,7 +376,11 @@ async def async_setup_platform(
         sensor = entity_map.get(entity_id)
         if sensor is None:
             raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} sensor")
-        return sensor
+
+        if not isinstance(sensor, Neviweb130Sensor):
+            raise ServiceValidationError(f"Entity {entity_id} must be a Neviweb130Sensor")
+
+        return cast(Neviweb130Sensor, sensor)
 
     def set_sensor_alert_service(service: ServiceCall) -> None:
         """Set different alert and action for water leak sensor."""
