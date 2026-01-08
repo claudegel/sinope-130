@@ -2,6 +2,31 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.1b1] - 2026-01-__
+### Added
+- Add update platform.
+- Activate Update platform.
+- Retrieve update version form GitHub.
+- Add Neviweb request daily counter.
+- Add daily request counter helper.
+- Add dummy class NeviwebDailyRequestSensor, to create sensor.neviweb_daily_request.
+- Add progress bar in update page.
+
+### Fix
+- Updated device statistics methods to include an HC parameter for energy consumption.
+- Refactor energy stat to add support for TH6xxxWF energy stat.
+- Add functions to extract version notes and build update summary for update platform.
+- Update each platform for TH6xxxWF energy stat retrieval.
+- Updated default values for update platform in const.py.
+- Refactor update method in helpers.py.
+- Refactor update.py method for update platform to add many options.
+- Fix hass.data[DOMAIN] dictionary for request counter in all platforms.
+- Improve updater format for better visibility.
+
+### Doc
+- Add documentation for update platform.
+- Add documentation for daily request counter.
+
 ## [v4.0.1b0] - 2026-01-03
 ### Added
 - Add support for DRStatus and DrSetpoint for TH6250WF and TH6250WF-PRO.

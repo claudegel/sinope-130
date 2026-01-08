@@ -543,7 +543,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the neviweb130 thermostats."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
@@ -3010,87 +3010,102 @@ class Neviweb130Thermostat(ClimateEntity):
             today = date.today()
             current_month = today.month
             current_day = today.day
-            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
-            _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
-            if device_monthly_stats is not None and len(device_monthly_stats) > 1:
-                n = len(device_monthly_stats)
-                monthly_kwh_count = 0
-                k = 0
-                while k < n:
-                    monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
-                    k += 1
-                self._monthly_kwh_count = round(monthly_kwh_count, 3)
-                self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
-                dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
-                    timezone.utc
+            if not self._is_HC:
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id, False)
+                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+                if device_monthly_stats is not None and len(device_monthly_stats) > 1:
+                    n = len(device_monthly_stats)
+                    monthly_kwh_count = 0
+                    k = 0
+                    while k < n:
+                        monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                        k += 1
+                    self._monthly_kwh_count = round(monthly_kwh_count, 3)
+                    self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
+                    dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
+                        timezone.utc
+                    )
+                    _LOGGER.debug("stat month = %s", dt_month.month)
+                else:
+                    self._month_kwh = 0
+                    _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
+                device_daily_stats = self._client.get_device_daily_stats(self._id, False)
+                _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
+                if device_daily_stats is not None and len(device_daily_stats) > 1:
+                    n = len(device_daily_stats)
+                    daily_kwh_count = 0
+                    k = 0
+                    while k < n:
+                        if (
+                            datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
+                            .astimezone(timezone.utc)
+                            .month
+                            == current_month
+                        ):
+                            daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                        k += 1
+                    self._daily_kwh_count = round(daily_kwh_count, 3)
+                    self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+                    dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
+                    _LOGGER.debug("stat day = %s", dt_day.day)
+                else:
+                    self._today_kwh = 0
+                    _LOGGER.warning("%s Got None for device_daily_stats", self._name)
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
+                _LOGGER.debug(
+                    "%s device hourly stat (SKU: %s): %s, size = %s",
+                    self._name,
+                    self._sku,
+                    device_hourly_stats,
+                    len(device_hourly_stats),
                 )
-                _LOGGER.debug("stat month = %s", dt_month.month)
-            else:
-                self._month_kwh = 0
-                _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
-            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
-            if device_daily_stats is not None and len(device_daily_stats) > 1:
-                n = len(device_daily_stats)
-                daily_kwh_count = 0
-                k = 0
-                while k < n:
-                    if (
-                        datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
-                        .astimezone(timezone.utc)
-                        .month
-                        == current_month
-                    ):
-                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
-                    k += 1
-                self._daily_kwh_count = round(daily_kwh_count, 3)
-                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
-                dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
-                _LOGGER.debug("stat day = %s", dt_day.day)
-            else:
-                self._today_kwh = 0
-                _LOGGER.warning("%s Got None for device_daily_stats", self._name)
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
-            _LOGGER.debug(
-                "%s device hourly stat (SKU: %s): %s, size = %s",
-                self._name,
-                self._sku,
-                device_hourly_stats,
-                len(device_hourly_stats),
-            )
-            if device_hourly_stats is not None and len(device_hourly_stats) > 1:
-                n = len(device_hourly_stats)
-                hourly_kwh_count = 0
-                k = 0
-                while k < n:
-                    if (
-                        datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
-                        == current_day
-                    ):
-                        hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
-                    k += 1
-                self._hourly_kwh_count = round(hourly_kwh_count, 3)
-                self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
-                self._marker = device_hourly_stats[n - 1]["date"]
-                dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
-                _LOGGER.debug("stat hour = %s", dt_hour.hour)
-            else:
-                self._hour_kwh = 0
-                _LOGGER.warning("%s Got None for device_hourly_stats", self._name)
-            if self._total_kwh_count == 0:
-                self._total_kwh_count = round(
-                    self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
-                    3,
-                )
-                # await async_add_data(self._id, self._total_kwh_count, self._marker)
-                # self.async_write_ha_state()
-                self._mark = self._marker
-            else:
-                if self._marker != self._mark:
-                    self._total_kwh_count += round(self._hour_kwh, 3)
-                    # save_data(self._id, self._total_kwh_count, self._marker)
+                if device_hourly_stats is not None and len(device_hourly_stats) > 1:
+                    n = len(device_hourly_stats)
+                    hourly_kwh_count = 0
+                    k = 0
+                    while k < n:
+                        if (
+                            datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
+                            == current_day
+                        ):
+                            hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                        k += 1
+                    self._hourly_kwh_count = round(hourly_kwh_count, 3)
+                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
+                    self._marker = device_hourly_stats[n - 1]["date"]
+                    dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    _LOGGER.debug("stat hour = %s", dt_hour.hour)
+                else:
+                    self._hour_kwh = 0
+                    _LOGGER.warning("%s Got None for device_hourly_stats", self._name)
+                if self._total_kwh_count == 0:
+                    self._total_kwh_count = round(
+                        self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
+                        3,
+                    )
+                    # await async_add_data(self._id, self._total_kwh_count, self._marker)
+                    # self.async_write_ha_state()
                     self._mark = self._marker
-            self._energy_stat_time = time.time()
+                else:
+                    if self._marker != self._mark:
+                        self._total_kwh_count += round(self._hour_kwh, 3)
+                        # save_data(self._id, self._total_kwh_count, self._marker)
+                        self._mark = self._marker
+                self._energy_stat_time = time.time()
+            else:
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id, True)
+                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+                device_daily_stats = self._client.get_device_daily_stats(self._id, True)
+                _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id, True)
+                _LOGGER.debug(
+                    "%s device hourly stat (SKU: %s): %s, size = %s",
+                    self._name,
+                    self._sku,
+                    device_hourly_stats,
+                    len(device_hourly_stats),
+                )
+
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
 
@@ -5965,6 +5980,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             else:
                 self.log_error(device_data["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
+            self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
         else:

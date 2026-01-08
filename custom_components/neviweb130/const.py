@@ -35,6 +35,12 @@ CONF_NETWORK3 = "network3"
 CONF_NOTIFY = "notify"
 CONF_STAT_INTERVAL = "stat_interval"
 
+DEFAULTS = {
+    "current_version": None,
+    "available_version": None,
+    "release_notes": "",
+}
+
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
 ATTR_AIR_ACTIVATION_TEMP = "airCurtainActivationTemperature"

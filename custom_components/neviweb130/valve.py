@@ -170,7 +170,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the Neviweb130 valve."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
@@ -894,7 +894,7 @@ class Neviweb130Valve(ValveEntity):
                 today = date.today()
                 current_month = today.month
                 current_day = today.day
-                device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id, False)
                 _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     n = len(device_monthly_stats)
@@ -912,7 +912,7 @@ class Neviweb130Valve(ValveEntity):
                 else:
                     self._month_kwh = 0
                     _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-                device_daily_stats = self._client.get_device_daily_stats(self._id)
+                device_daily_stats = self._client.get_device_daily_stats(self._id, False)
                 _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     n = len(device_daily_stats)
@@ -934,7 +934,7 @@ class Neviweb130Valve(ValveEntity):
                 else:
                     self._today_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
-                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
                 _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     n = len(device_hourly_stats)
