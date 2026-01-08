@@ -388,17 +388,16 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # Select correct ZIP (your HACS ZIP)
             asset_zip = next(
-                (a for a in release_data.get("assets", [])
-                 if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")),
-                None
+                (
+                    a
+                    for a in release_data.get("assets", [])
+                    if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")
+                ),
+                None,
             )
 
             # Select SHA256 file
-            asset_sha = next(
-                (a for a in release_data.get("assets", [])
-                 if a.get("name", "").endswith(".sha256")),
-                None
-            )
+            asset_sha = next((a for a in release_data.get("assets", []) if a.get("name", "").endswith(".sha256")), None)
 
             if not asset_zip or not asset_sha:
                 raise Exception("ZIP or SHA256 asset not found in GitHub release")
