@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import aiohttp
 import asyncio
 import json
 import logging
 import os
 from typing import Any
 
+import aiohttp
 import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -154,7 +154,7 @@ from .const import (
     STARTUP_MESSAGE,
     VERSION,
 )
-from .helpers import increment_request_counter, init_request_counter, fetch_release_notes, setup_logger
+from .helpers import fetch_release_notes, increment_request_counter, init_request_counter, setup_logger
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -286,10 +286,7 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
         hass.data[DOMAIN]["data"].release_title = title or "No title available."
         hass.data[DOMAIN]["data"].release_notes = notes or "No release notes available."
 
-    hass.loop.call_soon_threadsafe(
-        hass.async_create_task,
-        async_init_update()
-    )
+    hass.loop.call_soon_threadsafe(hass.async_create_task, async_init_update())
 
     discovery.load_platform(hass, Platform.CLIMATE, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.LIGHT, DOMAIN, {}, hass_config)
@@ -321,6 +318,7 @@ class Neviweb130Data:
         self.current_version = VERSION
         self.available_version = DEFAULTS["available_version"]
         self.release_notes = DEFAULTS["release_notes"]
+
 
 # According to HA:
 # https://developers.home-assistant.io/docs/en/creating_component_code_review.html

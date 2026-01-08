@@ -1,16 +1,15 @@
 """Helpers for debugging and logger setup in neviweb130"""
 
-import aiohttp
 import asyncio
 import datetime
-import json
 import logging
 import os
-import re
 import shutil
-
-from homeassistant.helpers.storage import Store
 from logging.handlers import RotatingFileHandler
+
+import aiohttp
+from homeassistant.helpers.storage import Store
+
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -122,6 +121,7 @@ async def _delete_file_later(path: str, delay: int):
     except Exception as e:
         _LOGGER.warning("Error during log file delete process : %s", e)
 
+
 # ─────────────────────────────────────────────
 # Updater section
 # ─────────────────────────────────────────────
@@ -202,11 +202,8 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
     if not safe_notes:
         safe_notes = f"## Version {latest}\n\nNo release notes available."
 
-    return (
-        f"Available versions :\n"
-        f"- [{tag_installed} -> {tag_latest}]({compare_link})\n\n"
-        f"{section}"
-    )
+    return f"Available versions :\n- [{tag_installed} -> {tag_latest}]({compare_link})\n\n{section}"
+
 
 # ─────────────────────────────────────────────
 # SECTION DAILY REQUEST COUNTER
@@ -246,10 +243,7 @@ def increment_request_counter(hass):
     data["count"] += 1
 
     # Persistant saving
-    future = asyncio.run_coroutine_threadsafe(
-        hass.data[DOMAIN]["request_store"].async_save(data),
-        hass.loop
-    )
+    future = asyncio.run_coroutine_threadsafe(hass.data[DOMAIN]["request_store"].async_save(data), hass.loop)
     future.result()
 
     return data["count"]

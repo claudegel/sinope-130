@@ -17,9 +17,9 @@ https://www.sinopetech.com/en/support/#api
 from __future__ import annotations
 
 import asyncio
+import datetime
 import logging
 import time
-import datetime
 from threading import Lock
 from typing import Any, override
 
@@ -1411,7 +1411,7 @@ class NeviwebDailyRequestSensor(Entity):
                         "message": f"Warning : {count} today request. Limit : 30000.",
                     },
                 ),
-                self._hass.loop
+                self._hass.loop,
             )
 
         # Reset du flag si on change de jour
