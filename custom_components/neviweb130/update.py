@@ -1,5 +1,6 @@
 """Update entity for Neviweb130 integration."""
 
+import asyncio
 import datetime
 import hashlib
 import logging
