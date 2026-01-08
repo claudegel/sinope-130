@@ -6,7 +6,6 @@ import logging
 import os
 import shutil
 from logging.handlers import RotatingFileHandler
-from typing import Tuple
 
 import aiohttp
 from homeassistant.helpers.storage import Store
