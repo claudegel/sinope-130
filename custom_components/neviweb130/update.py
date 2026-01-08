@@ -49,7 +49,8 @@ def migrate_entry_data(entry: ConfigEntry) -> None:
 async def async_setup_platform(hass, config, add_entities, discovery_info=None):
     """Setup update platform for V1 integration (non-config-entry)."""
 
-    data = hass.data.get(DOMAIN)
+    data = hass.data[DOMAIN]["data"]
+
     if data is None:
         _LOGGER.error("Neviweb130 data not initialized — update entity not created")
         return
@@ -118,8 +119,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._latest_version = entry.data.get("available_version")
 
         # Release notes
-        notes = getattr(hass.data[DOMAIN], "release_notes", DEFAULTS["release_notes"])
-        self._release_title = getattr(hass.data[DOMAIN], "release_title", "")
+        notes = getattr(hass.data[DOMAIN]["data"], "release_notes", DEFAULTS["release_notes"])
+        self._release_title = getattr(hass.data[DOMAIN]["data"], "release_title", "")
         self._release_notes = notes
         self._release_summary = build_update_summary(
             self._installed_version,
@@ -128,13 +129,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
         )
         prefix = ""
         if self.has_breaking_changes:
-            prefix += "⚠️ (Breaking changes)\n"
+            prefix += "\U0001F6D1️ (Breaking changes)\n"
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            prefix += "🧪 (Pre-release version)\n"
+            prefix += "\U0001F6A7 (Pre-release version)\n"
 
         self._release_summary = prefix + self._release_summary
 
-        _LOGGER.warning("Release summary recu dans update: %s", self._release_summary)
+        _LOGGER.warning("Release summary received in update: %s", self._release_summary)
 
     @property
     def installed_version(self) -> str:
@@ -143,7 +144,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
     @property
     def latest_version(self) -> str:
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            return f"(pre-release) {self._latest_version}"
+            return f"\U0001F6A7 (pre-release) {self._latest_version}"
         return self._latest_version
 
     @property
@@ -167,6 +168,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
         return self._release_notes or ""
 
     @property
+    async def async_release_notes(self) -> str | None:
+        return self._release_notes or ""
+
+    @property
     def release_url(self) -> str | None:
         if self._latest_version:
             return f"https://github.com/claudegel/sinope-130/releases/v{self._latest_version}"
@@ -182,11 +187,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         # Add icon pre-release
         if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            base = f"🧪 {base}"
+            base = f"\U0001F6A7 PRE-RELEASE – {base}"
 
         # Add icon if breaking changes
         if self.has_breaking_changes:
-            base = "⚠️ " + base
+            base = f"\U0001F6D1 BREAKING – {base}"
 
         return base
 
@@ -218,8 +223,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
                 # Update entry.data
                 self.entry.data["available_version"] = latest
-                self.hass.data[DOMAIN].release_notes = notes
-                self.hass.data[DOMAIN].release_title = title
+                self.hass.data[DOMAIN]["data"].release_notes = notes
+                self.hass.data[DOMAIN]["data"].release_title = title
                 self._latest_version = latest
                 self._release_notes = notes
                 self._release_title = title
