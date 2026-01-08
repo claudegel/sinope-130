@@ -253,8 +253,6 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
-    changelog_url = "https://raw.githubusercontent.com/claudegel/sinope-130/master/CHANGELOG.md"
-
     async def fetch_latest_version():
         url = "https://api.github.com/repos/claudegel/sinope-130/tags"
 
