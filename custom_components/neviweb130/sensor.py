@@ -141,7 +141,7 @@ async def async_setup_platform(
     # Wait for async migration to be done
     await data.migration_done.wait()
 
-    entities: list[Neviweb130Sensor] = []
+    entities: list[Entity] = []
     entities.append(NeviwebDailyRequestSensor(hass))
     for device_info in data.neviweb130_client.gateway_data:
         if (
