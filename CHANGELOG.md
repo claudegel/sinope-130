@@ -7,7 +7,8 @@ All modification for this custom_component will be added in this file.
 - Add async_reload_integration to reload neviweb130 after update.
 ### Fix
 - Fix update.py to download the wright zip file with sha-256 file.
-- Fix .gihub/workflows/release.yml to get the ZIP file and associated SHA-256
+- Fix .gihub/workflows/release.yml to get the ZIP file and associated SHA-256.
+- Remove default values for updater.
 
 ### Doc
 
