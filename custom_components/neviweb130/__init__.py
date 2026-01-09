@@ -276,7 +276,7 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
         """Reload Neviweb130 integration (V1)."""
         _LOGGER.warning("Reloading Neviweb130 integration via service call")
 
-       # List platforms
+        # List platforms
         platforms = [
             Platform.CLIMATE,
             Platform.LIGHT,
