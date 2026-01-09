@@ -7,6 +7,7 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Fix update.py to download the wright zip file with sha-256 file.
+- Fix .gihub/workflows/release.yml to get the ZIP file and associated SHA-256
 
 ### Doc
 
