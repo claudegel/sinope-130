@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.0.1b2] - 2026-01-08
+## [v4.0.1b2] - 2026-01-09
 ### Added
 - Add async_reload_integration to reload neviweb130 after update.
 ### Fix
