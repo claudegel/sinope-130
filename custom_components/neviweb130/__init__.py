@@ -148,7 +148,6 @@ from .const import (
     CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_STAT_INTERVAL,
-    DEFAULTS,
     DOMAIN,
     MODE_MANUAL,
     STARTUP_MESSAGE,
@@ -273,6 +272,32 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
 
         return None
 
+    async def async_reload_integration(call):
+        """Reload Neviweb130 integration (V1)."""
+        _LOGGER.warning("Reloading Neviweb130 integration via service call")
+
+        # List platforms
+        platforms = [
+            Platform.CLIMATE,
+            Platform.LIGHT,
+            Platform.SWITCH,
+            Platform.SENSOR,
+            Platform.VALVE,
+            Platform.UPDATE,
+        ]
+
+        # Reload each plateform
+        for platform in platforms:
+            try:
+                await hass.helpers.entity_platform.async_reload(platform, DOMAIN)  # type: ignore[attr-defined]
+                _LOGGER.debug("Reloaded platform: %s", platform)
+            except Exception as err:
+                _LOGGER.error("Failed to reload platform %s: %s", platform, err)
+
+        _LOGGER.warning("Neviweb130 integration reloaded successfully")
+
+    hass.services.register(DOMAIN, "reload", async_reload_integration)
+
     async def async_init_update():
         latest = await fetch_latest_version()
         if latest is None:
@@ -320,8 +345,8 @@ class Neviweb130Data:
 
         # Attributes for versioning and release notes
         self.current_version = VERSION
-        self.available_version = DEFAULTS["available_version"]
-        self.release_notes = DEFAULTS["release_notes"]
+        self.available_version = None
+        self.release_notes = ""
 
 
 # According to HA:
