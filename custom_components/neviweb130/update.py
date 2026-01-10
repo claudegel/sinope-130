@@ -85,10 +85,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._attr_unique_id = "neviweb130_update"
 
         # From data
-        self._installed_version = getattr(data, "current_version", "")
-        self._latest_version = getattr(data, "available_version", "")
-        self._release_notes = getattr(data, "release_notes", "")
-        self._release_title = getattr(data, "release_title", "")
+        self._installed_version: str = getattr(data, "current_version", "")
+        self._latest_version: str = getattr(data, "available_version", "")
+        self._release_notes: str = getattr(data, "release_notes", "")
+        self._release_title: str = getattr(data, "release_title", "")
 
         # Prepare values for summary
         installed = self._installed_version or ""
@@ -107,17 +107,17 @@ class Neviweb130UpdateEntity(UpdateEntity):
             # 🚧
             prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
 
-        self._release_summary = prefix + summary
+        self._release_summary: str = prefix + summary
 
         # Other internal attributes
-        self._update_percentage = None
-        self._in_progress = False
-        self._last_check = None
-        self._next_check = None
-        self._check_interval = "6h"
-        self._last_update_success = None
-        self._update_status = "idle"
-        self._rollback_status = "none"
+        self._update_percentage: int | None = None
+        self._in_progress: bool = False
+        self._last_check: str | None = None
+        self._next_check: str | None = None
+        self._check_interval: str = "6h"
+        self._last_update_success: str | None = None
+        self._update_status: str = "idle"
+        self._rollback_status: str = "none"
 
         # Supported features
         self._attr_supported_features = (
