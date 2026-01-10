@@ -72,7 +72,7 @@ async def async_setup_platform(
     async_track_time_interval(
         hass,
         scheduled_check,
-        timedelta(hours=6),  # seconds=30
+        timedelta(hours=6),
     )
 
 
