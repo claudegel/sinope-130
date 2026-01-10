@@ -1,6 +1,5 @@
 """Update entity for Neviweb130 integration."""
 
-import asyncio
 import datetime
 import hashlib
 import logging
@@ -9,12 +8,11 @@ import shutil
 import tempfile
 import zipfile
 from datetime import timedelta
-from typing import Any, cast
+from typing import Any
 
 import aiohttp
 from awesomeversion import AwesomeVersion
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
@@ -59,7 +57,6 @@ async def async_setup_platform(
     entity._update_status = "idle"
     entity.async_write_ha_state()
 
-
     async def scheduled_check(now: datetime.datetime) -> None:
         _LOGGER.warning("SCHEDULED CHECK TRIGGERED")
         await entity.async_check_for_updates()
@@ -75,7 +72,7 @@ async def async_setup_platform(
     async_track_time_interval(
         hass,
         scheduled_check,
-        timedelta(hours=6),  #seconds=30
+        timedelta(hours=6),  # seconds=30
     )
 
 
@@ -373,9 +370,12 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # Select correct ZIP (HACS ZIP)
             asset_zip = next(
-                (a for a in release_data.get("assets", [])
-                 if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")),
-                None
+                (
+                    a
+                    for a in release_data.get("assets", [])
+                    if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")
+                ),
+                None,
             )
 
             # Select SHA256 file
@@ -483,7 +483,12 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             _LOGGER.info("Neviweb130 updated to version %s", version or self._latest_version)
 
-            await self.hass.services.async_call( DOMAIN, "reload", {}, blocking=True, )
+            await self.hass.services.async_call(
+                DOMAIN,
+                "reload",
+                {},
+                blocking=True,
+            )
 
         except Exception as err:
             _LOGGER.error("Update fail: %s", err)
