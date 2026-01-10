@@ -269,10 +269,19 @@ Neviweb130 now include a complete update system that include:
   At the end of update, if everything is fine, the updator will reload Neviweb130 automatically.
   No need to restart Home Assistant.
 
+- Updater have many attributes to help user:
+  - check_interval: 6h, (will become an option in futur version)
+  - last_check: date/time of last available version check.
+  - next_check: date/time of next available version check.
+  - last_update_success: Last date/time an update was done.
+  - update_status: list all step performed during update.
+  - rollback_status: If an update fail, last active version will be rolled back.
+  - update_percentage: Show a slider for update process followup.
+
 You will need to deactivate HACS update or you will get two update notifications. This can be done in 
-parameters / devices & services / HACS. Pick Sinope Neviweb130 and deactivate the pre-release button if set. 
+parameters / devices & services / HACS. Pick 'Sinope Neviweb130' and deactivate the pre-release button if set. 
 Locate the Sinope Neviweb130 integration and click on the three vertical dots on the right end of the 
-line. Click on 'deactivate the device'. It will still be possible to do manual update or redownload in HACS.
+line. Click on 'deactivate the device'. It will still be possible to do manual update or redownload via HACS.
 
 ## Neviweb daily request counter
 As Sinopé is becoming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
