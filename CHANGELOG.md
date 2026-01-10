@@ -8,7 +8,7 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Fix release.yml in .github/workflows.
-- Code cleanning in update.py.
+- Code cleaning in update.py.
 
 ### Doc
 
