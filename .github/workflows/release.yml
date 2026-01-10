@@ -17,18 +17,20 @@ jobs:
 
       - name: Create ZIP archive
         run: |
-          zip -r sinope-130-${GITHUB_REF_NAME}.zip custom_components/neviweb130
+          VERSION=${{ github.event.release.tag_name }}
+          zip -r sinope-130-${VERSION}.zip custom_components/neviweb130
 
       - name: Generate SHA-256
-        run: | 
-          sha256sum sinope-130-${GITHUB_REF_NAME}.zip > sinope-130-${GITHUB_REF_NAME}.sha256
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          sha256sum sinope-130-${VERSION}.zip > sinope-130-${VERSION}.sha256
 
       - name: Upload assets to existing release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }} 
-          files: | 
-            sinope-130-${GITHUB_REF_NAME}.zip 
-            sinope-130-${GITHUB_REF_NAME}.sha256
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            sinope-130-${{ github.event.release.tag_name }}.zip
+            sinope-130-${{ github.event.release.tag_name }}.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
