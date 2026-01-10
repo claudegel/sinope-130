@@ -4,6 +4,7 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.0.1b3] - 2026-01-10
 ### Added
+- Test for workflows.
 
 ### Fix
 - Fix release.yml in .github/workflows.
