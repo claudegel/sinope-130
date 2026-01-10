@@ -19,7 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 
-from .const import DEFAULTS, DOMAIN
+from .const import DOMAIN
 from .helpers import build_update_summary, has_breaking_changes
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,31 +34,14 @@ def compute_sha256(file_path: str) -> str:
     return sha256.hexdigest()
 
 
-def get_entry_data(entry: ConfigEntry, key: str) -> str:
-    if key not in entry.data:
-        _LOGGER.info("Using default fallback for %s", key)
-    return entry.data.get(key, DEFAULTS[key])
-
-
-def migrate_entry_data(entry: ConfigEntry) -> None:
-    """Inject default values into config entry data if missing."""
-    new_data: dict[str, Any] = dict(entry.data)
-
-    for key, default in DEFAULTS.items():
-        if key not in new_data:
-            new_data[key] = default
-            _LOGGER.info("Injected default for missing key '%s'", key)
-
-    cast(Any, entry).async_update_entry(data=new_data)
-
-
 async def async_setup_platform(
     hass: HomeAssistant,
     config: dict[str, Any],
-    add_entities: AddEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
     discovery_info: dict[str, Any] | None = None,
 ) -> None:
     """Setup update platform."""
+    _LOGGER.debug("async_setup_platform CALLED for update platform")
 
     data = hass.data[DOMAIN]["data"]
 
@@ -66,67 +49,80 @@ async def async_setup_platform(
         _LOGGER.error("Neviweb130 data not initialized — update entity not created")
         return
 
-    class DummyEntry:
-        """Minimal ConfigEntry-like object for V1 path."""
+    entity = Neviweb130UpdateEntity(hass, data)
+    async_add_entities([entity], True)
 
-        entry_id: str
-        data: dict[str, Any]
-
-        def __init__(self, data_obj: Any) -> None:
-            self.entry_id = "neviweb130_v1"
-            self.data = {
-                "current_version": getattr(data_obj, "current_version", ""),
-                "available_version": getattr(data_obj, "available_version", ""),
-                "release_notes": getattr(data_obj, "release_notes", ""),
-            }
-
-        def async_update_entry(self, **_: Any) -> None:
-            """No-op for dummy entry."""
-            return
-
-    dummy = DummyEntry(data)
-    # mypy: cast to ConfigEntry to satisfy type checker
-    dummy_entry = cast(ConfigEntry, dummy)
-    add_entities([Neviweb130UpdateEntity(hass, dummy_entry)], True)
+    now = datetime.datetime.now()
+    entity._last_check = now.isoformat()
+    entity._next_check = (now + timedelta(hours=6)).isoformat()
+    entity._last_update_success = now.isoformat()
+    entity._update_status = "idle"
+    entity.async_write_ha_state()
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up Neviweb130 update entity."""
-
-    # Minimal migration : inject default values if absents
-    migrate_entry_data(entry)
-
-    entity = Neviweb130UpdateEntity(hass, entry)
-    async_add_entities([entity])
-
-    # Check for update every 6 hours
     async def scheduled_check(now: datetime.datetime) -> None:
+        _LOGGER.warning("SCHEDULED CHECK TRIGGERED")
         await entity.async_check_for_updates()
+        now = datetime.datetime.now()
+        entity._last_check = now.isoformat()
+        entity._next_check = (now + timedelta(hours=6)).isoformat()
+        entity._last_update_success = now.isoformat()
+        entity._update_status = "idle"
+        entity.async_write_ha_state()
+
+    _LOGGER.warning("Scheduler registered for Neviweb130 update")
 
     async_track_time_interval(
         hass,
         scheduled_check,
-        timedelta(hours=6),
+        timedelta(hours=6),  #seconds=30
     )
 
 
 class Neviweb130UpdateEntity(UpdateEntity):
     """Representation of a Neviweb130 update entity."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, data) -> None:
         self.hass = hass
-        self.entry = entry
         self._attr_name = "Neviweb130 Update"
-        self._attr_unique_id = f"{DOMAIN}_{entry.entry_id}_update"
+        self._attr_unique_id = "neviweb130_update"
 
-        self._update_percentage: int | None = None
-        self._in_progress: bool = False
+        # From data
+        self._installed_version = getattr(data, "current_version", "")
+        self._latest_version = getattr(data, "available_version", "")
+        self._release_notes = getattr(data, "release_notes", "")
+        self._release_title = getattr(data, "release_title", "")
 
-        # Declare supported functionality
+        # Prepare values for summary
+        installed = self._installed_version or ""
+        latest = self._latest_version or ""
+        safe_notes = self._release_notes or ""
+
+        # Build base summary
+        summary = build_update_summary(installed, latest, safe_notes)
+
+        # Prefix (breaking changes, pre-release)
+        prefix = ""
+        if has_breaking_changes(safe_notes):
+            # 🛑
+            prefix += "\U0001f6d1 BREAKING CHANGES\n"
+        if latest and any(x in latest for x in ("b", "beta", "rc")):
+            # 🚧
+            prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
+
+        self._release_summary = prefix + summary
+
+        # Other internal attributes
+        self._update_percentage = None
+        self._in_progress = False
+        self._last_check = None
+        self._next_check = None
+        self._check_interval = "6h"
+        self._last_update_success = None
+        self._update_status = "idle"
+        self._rollback_status = "none"
+
+        # Supported features
         self._attr_supported_features = (
             UpdateEntityFeature.INSTALL
             | UpdateEntityFeature.BACKUP
@@ -134,45 +130,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             | UpdateEntityFeature.PROGRESS
         )
 
-        # Force restart advertising
         self._attr_requires_restart = True
-
-        # Stock version info in config entry
-        self._installed_version: str | None = entry.data.get("current_version")
-        self._latest_version: str | None = entry.data.get("available_version")
-
-        # Release notes
-        notes: str | None = getattr(
-            hass.data[DOMAIN]["data"],
-            "release_notes",
-            DEFAULTS["release_notes"],
-        )
-        self._release_title: str = getattr(
-            hass.data[DOMAIN]["data"],
-            "release_title",
-            "",
-        )
-        self._release_notes: str | None = notes
-
-        installed = self._installed_version or ""
-        latest = self._latest_version or ""
-        safe_notes = self._release_notes or ""
-
-        self._release_summary: str = build_update_summary(
-            installed,
-            latest,
-            safe_notes,
-        )
-
-        prefix = ""
-        if self.has_breaking_changes:
-            # 🛑
-            prefix += "\U0001f6d1 BREAKING CHANGES\n"
-        if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            # 🚧
-            prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
-
-        self._release_summary = prefix + self._release_summary
 
         _LOGGER.debug("Release summary received in update: %s", self._release_summary)
 
@@ -241,52 +199,75 @@ class Neviweb130UpdateEntity(UpdateEntity):
         """Return True if update in progress."""
         return True if self._in_progress else None
 
+    @property
+    def extra_state_attributes(self):
+        attrs = {}
+
+        if self._last_check:
+            attrs["last_check"] = self._last_check
+        if self._next_check:
+            attrs["next_check"] = self._next_check
+        if self._check_interval:
+            attrs["check_interval"] = self._check_interval
+        if self._last_update_success:
+            attrs["last_update_success"] = self._last_update_success
+        if self._update_status:
+            attrs["update_status"] = self._update_status
+        if self._rollback_status:
+            attrs["rollback_status"] = self._rollback_status
+
+        return attrs
+
     async def async_check_for_updates(self) -> None:
         """Check GitHub for new releases and update entity state."""
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get("https://api.github.com/repos/claudegel/sinope-130/releases/latest") as resp:
+                async with session.get("https://api.github.com/repos/claudegel/sinope-130/releases") as resp:
                     resp.raise_for_status()
-                    data = await resp.json()
+                    releases = await resp.json()
 
-            latest = data.get("tag_name", "").lstrip("v")
-            notes = data.get("body", "")
-            title = data.get("name", "")
+            latest_release = releases[0]
+            latest = latest_release.get("tag_name", "").lstrip("v")
+            notes = latest_release.get("body", "")
+            title = latest_release.get("name", "")
 
-            if latest and latest != self._latest_version:
-                _LOGGER.info("New Neviweb130 version detected: %s", latest)
+            # Nothing new → exit
+            if not latest:
+                _LOGGER.warning("GitHub returned an empty tag_name")
+                return
 
-                # Update config entry (immutable mapping)
-                new_data: dict[str, Any] = dict(self.entry.data)
-                new_data["available_version"] = latest
-                cast(Any, self.entry).async_update_entry(data=new_data)
+            if latest == self._latest_version:
+                _LOGGER.debug("No new Neviweb130 update found (latest=%s)", latest)
+                return
 
-                self.hass.data[DOMAIN]["data"].release_notes = notes
-                self.hass.data[DOMAIN]["data"].release_title = title
-                self._latest_version = latest
-                self._release_notes = notes
-                self._release_title = title
+            _LOGGER.info("New Neviweb130 version detected: %s", latest)
 
-                installed = self._installed_version or ""
-                safe_notes = self._release_notes or ""
+            # Update internal attributes (V1)
+            self._latest_version = latest
+            self._release_notes = notes
+            self._release_title = title
 
-                self._release_summary = build_update_summary(
-                    installed,
-                    latest,
-                    safe_notes,
-                )
+            installed = self._installed_version or ""
+            safe_notes = notes or ""
 
-                prefix = ""
-                if self.has_breaking_changes:
-                    prefix += "\U0001f6d1 BREAKING CHANGES\n"
-                if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-                    prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
+            # Build summary
+            summary = build_update_summary(
+                installed,
+                latest,
+                safe_notes,
+            )
 
-                self._release_summary = prefix + self._release_summary
+            prefix = ""
+            if self.has_breaking_changes:
+                prefix += "\U0001f6d1 BREAKING CHANGES\n"
+            if any(x in latest for x in ("b", "beta", "rc")):
+                prefix += "\U0001f6a7 PRE-RELEASE VERSION\n"
 
-                # Reload update entity
-                await self.hass.config_entries.async_reload(self.entry.entry_id)
+            self._release_summary = prefix + summary
+
+            # Refresh entity in HA
+            self.async_write_ha_state()
 
         except Exception as err:
             _LOGGER.error("Failed to check for updates: %s", err)
@@ -342,6 +323,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     async def _do_update(self, version: str | None) -> None:
         """Do update."""
+        self._rollback_status = "none"
+        self._update_status = "updating"
         self._in_progress = True
         self._update_percentage = 0
         self.async_write_ha_state()
@@ -374,6 +357,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 return
             tag = f"v{self._latest_version}" if not self._latest_version.startswith("v") else self._latest_version
 
+        _LOGGER.debug("Installing tag: %s", tag)
+
         api_url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
 
         backup_dir: str | None = None
@@ -386,14 +371,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     resp.raise_for_status()
                     release_data = await resp.json()
 
-            # Select correct ZIP (your HACS ZIP)
+            # Select correct ZIP (HACS ZIP)
             asset_zip = next(
-                (
-                    a
-                    for a in release_data.get("assets", [])
-                    if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")
-                ),
-                None,
+                (a for a in release_data.get("assets", [])
+                 if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")),
+                None
             )
 
             # Select SHA256 file
@@ -477,11 +459,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
             shutil.rmtree(tmp_dir)
 
             # 6- Finalize
+            self._update_status = "success"
+            self._last_update_success = datetime.datetime.now().isoformat()
             self._update_percentage = 100
             self.async_write_ha_state()
 
-            await asyncio.sleep(1)
-            await self.hass.config_entries.async_reload(self.entry.entry_id)
+            self._installed_version = version or self._latest_version
+            if version:
+                self._latest_version = version
 
             await self.hass.services.async_call(
                 "persistent_notification",
@@ -498,8 +483,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             _LOGGER.info("Neviweb130 updated to version %s", version or self._latest_version)
 
+            await self.hass.services.async_call( DOMAIN, "reload", {}, blocking=True, )
+
         except Exception as err:
             _LOGGER.error("Update fail: %s", err)
+            self._update_status = "failed"
+            self._rollback_status = "attempting"
+            self.async_write_ha_state()
 
             await self.hass.services.async_call(
                 "persistent_notification",
@@ -515,20 +505,19 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 },
             )
 
-            self._in_progress = False
-            self._update_percentage = None
-            self.async_write_ha_state()
-
             try:
                 if backup_dir is not None and target_dir is not None:
                     if os.path.exists(target_dir):
                         shutil.rmtree(target_dir)
                     shutil.copytree(backup_dir, target_dir, dirs_exist_ok=True)
                     _LOGGER.warning("Rollback completed successfully")
+                    self._rollback_status = "success"
                 else:
                     _LOGGER.error("Rollback skipped: backup_dir or target_dir is None")
+                    self._rollback_status = "skipped"
             except Exception as rb_err:
                 _LOGGER.error("Rollback failed: %s", rb_err)
+                self._rollback_status = "failed"
 
         finally:
             self._in_progress = False
