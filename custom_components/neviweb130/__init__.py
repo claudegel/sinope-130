@@ -289,7 +289,7 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
         # Reload each plateform
         for platform in platforms:
             try:
-                await hass.helpers.entity_platform.async_reload(platform, DOMAIN)
+                await hass.helpers.entity_platform.async_reload(platform, DOMAIN)  # type: ignore[attr-defined]
                 _LOGGER.debug("Reloaded platform: %s", platform)
             except Exception as err:
                 _LOGGER.error("Failed to reload platform %s: %s", platform, err)
