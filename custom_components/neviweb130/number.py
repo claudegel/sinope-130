@@ -20,10 +20,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
-
-DEFAULT_NAME = f"{DOMAIN} number"
-DEFAULT_NAME_2 = f"{DOMAIN} number 2"
-DEFAULT_NAME_3 = f"{DOMAIN} number 3"
+from .helpers import NamingHelper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +34,28 @@ class Neviweb130NumberEntityDescription(NumberEntityDescription):
 
 NUMBER_TYPES: Final[tuple[Neviweb130NumberEntityDescription, ...]] = (
     #  Climate attributes
+    Neviweb130NumberEntityDescription(
+        key="cool_lockout_temp",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        mode=NumberMode.AUTO,
+        native_min_value=0,
+        native_max_value=30,
+        native_step=1,
+        translation_key="cool_lockout_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
+    Neviweb130NumberEntityDescription(
+        key="heat_lockout_temp",
+        icon="mdi:thermometer",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        mode=NumberMode.AUTO,
+        native_min_value=10,
+        native_max_value=30,
+        native_step=1,
+        translation_key="heat_lockout_temp",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    ),
     Neviweb130NumberEntityDescription(
         key="min_temp",
         icon="mdi:thermometer",
@@ -205,13 +224,19 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
+    config_prefix = data["prefix"]
+    platform = __name__.split(".")[-1] # "number"
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
-    for gateway_data, default_name in [
-        (client.gateway_data, DEFAULT_NAME),
-        (client.gateway_data2, DEFAULT_NAME_2),
-        (client.gateway_data3, DEFAULT_NAME_3),
-    ]:
+    for index, gateway_data in enumerate([
+        data["neviweb130_client"].gateway_data,
+        data["neviweb130_client"].gateway_data2,
+        data["neviweb130_client"].gateway_data3,
+    ], start=1):
+
+        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -224,7 +249,7 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
             if device_id not in coordinator.data:
                 _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
-            device_name = f"{default_name} {device_info['name']}"
+            device_name = naming.device_name(platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
@@ -292,7 +317,13 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
     _ATTRIBUTE_METHODS = {
         "brightness": lambda self, value: self._client.async_set_brightness(self._id, value),
         "intensity_min": lambda self, value: self._client.async_set_light_min_intensity(self._id, value),
+        "cool_lockout_temp": lambda self, value: self._client.async_set_cool_lockout_temp(
+            self._id, value, self.is_gen2
+        ),
         "cool_setpoint_away": lambda self, value: self._client.async_set_cool_setpoint_away(self._id, value),
+        "heat_lockout_temp": lambda self, value: self._client.async_set_heat_lockout_temp(
+            self._id, value, self.is_gen2
+        ),
         "led_on_intensity": lambda self, value: self._client.async_set_led_on_intensity(self._id, value),
         "led_off_intensity": lambda self, value: self._client.async_set_led_off_intensity(self._id, value),
         "fan_filter_remain": lambda self, value: self._client.async_set_fan_filter_reminder(
@@ -356,6 +387,12 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         """Return True if device is a HC device"""
         device_obj = self.coordinator.data.get(self._id)
         return device_obj.get("is_HC", False) if device_obj else False
+
+    @property
+    def is_gen2(self):
+        """Return True if device is a TH1124ZB-G2 or TH1123ZB-G2 device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_gen2", False) if device_obj else False
 
     @property
     def is_wifi(self):
