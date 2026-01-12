@@ -23,10 +23,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES, SIGNAL_EVENTS_CHANGED
 from .coordinator import Neviweb130Coordinator
-
-DEFAULT_NAME = f"{DOMAIN} binary_sensor"
-DEFAULT_NAME_2 = f"{DOMAIN} binary_sensor 2"
-DEFAULT_NAME_3 = f"{DOMAIN} binary_sensor 3"
+from .helpers import NamingHelper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -135,6 +132,14 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         is_on_fn=lambda data, attr: bool(data.get(attr)),
         icon_fn=static_icon("mdi:thermometer-lines", "mdi:thermometer"),
     ),
+    Neviweb130BinarySensorEntityDescription(
+        key="is_em_heat",
+        device_class=BinarySensorDeviceClass.HEAT,
+        translation_key="em_heating",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:thermometer-lines", "mdi:thermometer"),
+    ),
     #  All devices attributes
     Neviweb130BinarySensorEntityDescription(
         key="activation",
@@ -156,15 +161,19 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
     entities = []
     client = data["neviweb130_client"]
 
+    config_prefix = data["prefix"]
+    platform = __name__.split(".")[-1] # "binary_sensor"
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
-    gateway_datas = [
-        (client.gateway_data, DEFAULT_NAME),
-        (client.gateway_data2, DEFAULT_NAME_2),
-        (client.gateway_data3, DEFAULT_NAME_3),
-    ]
+    for index, gateway_data in enumerate([
+        data["neviweb130_client"].gateway_data,
+        data["neviweb130_client"].gateway_data2,
+        data["neviweb130_client"].gateway_data3,
+    ], start=1):
 
-    for gateway_data, default_name in gateway_datas:
+        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -177,7 +186,7 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
             if device_id not in coordinator.data:
                 _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
-            device_name = f"{default_name} {device_info['name']}"
+            device_name = naming.device_name(platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
