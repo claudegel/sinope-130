@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import voluptuous as vol
+from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
@@ -50,6 +51,7 @@ from .const import (
     ATTR_FUEL_PERCENT_ALERT,
     ATTR_GAUGE_TYPE,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
@@ -100,18 +102,19 @@ from .const import (
     CONF_NETWORK2,
     CONF_NETWORK3,
     CONF_NOTIFY,
+    CONF_PREFIX,
     CONF_STAT_INTERVAL,
     DOMAIN,
 )
 
 """Default parameters values."""
 
-VERSION = "4.0.0"
-SCAN_INTERVAL = timedelta(seconds=420)
+SCAN_INTERVAL = 420  # seconds
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 IGNORE_MIWI = False
 NOTIFY = "both"
+PREFIX = "default"
 
 PLATFORMS = [
     Platform.CLIMATE,
@@ -123,6 +126,7 @@ PLATFORMS = [
     Platform.BUTTON,
     Platform.NUMBER,
     Platform.SELECT,
+    Platform.UPDATE,
 ]
 
 HA_TO_NEVIWEB_CONTROLLED = {
@@ -168,6 +172,24 @@ HA_TO_NEVIWEB_DURATION = {
     "24 h": 86400,
 }
 
+HA_TO_NEVIWEB_FAN_SPEED: dict[str, int] = {
+    "off": 0,
+    "low": 40,
+    "medium": 60,
+    "high": 80,
+    "auto": 128,
+}
+
+HA_TO_NEVIWEB_FAN_SPEED_5: dict[str, int] = {
+    "off": 0,
+    "low": 20,
+    "low-medium": 40,
+    "medium": 60,
+    "medium-high": 80,
+    "high": 100,
+    "auto": 128,
+}
+
 HA_TO_NEVIWEB_FLOW = {
     "No flow": "No flow meter",
     "FS4220 3/4 inch": "FS4220",
@@ -188,6 +210,16 @@ HA_TO_NEVIWEB_HEIGHT = {
 }
 
 HA_TO_NEVIWEB_LEVEL = {"off": 0, "10%": 10, "20%": 20, "30%": 30}
+
+HA_TO_NEVIWEB_MODE = {
+    HVACMode.OFF: "off",
+    HVACMode.HEAT: "heat",
+    HVACMode.COOL: "cool",
+    HVACMode.AUTO: "auto",
+    HVACMode.DRY: "dry",
+    HVACMode.FAN_ONLY: "fanOnly",
+    HVACMode.HEAT_COOL: "auto",
+}
 
 HA_TO_NEVIWEB_OPTION: dict[str, tuple[bool, bool]] = {
     "fermer la valve et envoyer une alerte": (True, True),
@@ -275,6 +307,7 @@ FULL_SWING = ["swingFullRange"]
 FULL_SWING_OFF = ["off"]
 GAUGE_LIST = list(HA_TO_NEVIWEB_GAUGE.keys())
 HC_DISPLAY_LIST = ["exteriorTemperature", "setpoint", "none"]
+HP_FAN_SPEED = ["high", "medium", "low", "auto"]
 HUMIDIFIER_TYPE = ["none", "steam", "flowthrough"]
 INSTALL_TYPE = ["addOn", "Conventional"]
 LANGUAGE_LIST = ["fr", "en"]
@@ -347,7 +380,6 @@ TRUE_LIST = [True, False]
 WATER_TEMP = list(HA_TO_NEVIWEB_TEMPERATURE.keys())
 WIFI_CYCLE = ["10 min", "15 min", "20 min", "25 min"]
 WIFI_FAN_SPEED = ["auto", "on"]
-WIFI_LOCK_LIST = ["lock", "unlock", "partialLock"]
 
 
 def is_valid_remaining_time(value: int) -> int:
@@ -408,6 +440,7 @@ CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
+                vol.Optional(CONF_PREFIX, default=PREFIX): cv.string,
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
                 vol.Optional(CONF_NETWORK, default="_"): cv.string,
@@ -448,11 +481,6 @@ SET_BACKLIGHT_SCHEMA = vol.Schema({
 SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema({
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEYPAD): vol.In(LOCK_LIST),
-    })
-
-SET_WIFI_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema({
-        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_KEYPAD): vol.In(WIFI_LOCK_LIST),
     })
 
 SET_EM_HEAT_SCHEMA = vol.Schema({
@@ -579,14 +607,15 @@ SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema({
 SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema({
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
-            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=0, max=30))
         ),
     })
 
 SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema({
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_HEAT_LOCK_TEMP): vol.All(
-            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
+        vol.Required(vol.Any(ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP)): vol.All(
+            lambda v: int(v) if v != "off" else None,
+            vol.Any(None, vol.Range(min=10, max=30))
         ),
     })
 
