@@ -6,7 +6,7 @@ import pathlib
 # Base component constants, some loaded directly from the manifest
 _LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore
 _MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
-with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
+with _MANIFEST_PATH.open(encoding="utf-8") as json_file:
     data = json.load(json_file)
 NAME = f"{data['name']}"
 DOMAIN = f"{data['domain']}"
@@ -24,7 +24,7 @@ This is a custom integration!
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 Documentation: {DOC_URL}
-If not done yet you can delete or comment out config in configuration.yaml.
+If not done yet you can delete or comment out neviwev130 config in configuration.yaml.
 -------------------------------------------------------------------
 """
 
@@ -34,7 +34,13 @@ CONF_NETWORK = "network"
 CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
 CONF_NOTIFY = "notify"
+CONF_PREFIX = "prefix"
 CONF_STAT_INTERVAL = "stat_interval"
+
+CONF_REQUEST_LIMIT = "request_limit"
+CONF_UPDATE_INTERVAL = "update_check_interval"
+DEFAULT_REQUEST_LIMIT = 25000
+DEFAULT_UPDATE_INTERVAL = "6h"
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
@@ -371,11 +377,12 @@ SERVICE_SET_TIME_FORMAT = "set_time_format"
 SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
-SERVICE_SET_WIFI_CLIMATE_KEYPAD_LOCK = "set_wifi_climate_keypad_lock"
 
 CLIMATE_MODEL = [
     300,
     336,
+    343,
+    348,
     350,
     737,
     738,
@@ -391,6 +398,8 @@ CLIMATE_MODEL = [
     6810,
     6811,
     6812,
+    6813,
+    6814,
     7372,
     7373,
 ]
@@ -416,6 +425,8 @@ MODEL_ATTRIBUTES = {
             "wattage",
         ],
         "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
             "max_temp",
             "min_temp",
         ],
@@ -435,7 +446,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
-    336: {  # TH1133WF, TH1133CR, TH1134WF, TH1134CR
+    336: {  # TH1133WF, TH1134WF
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -450,9 +461,55 @@ MODEL_ATTRIBUTES = {
             "backlight",
             "cycle_length",
             "early_start",
+            "keypad_status",
             "occupancy_mode",
             "temp_format",
-            "wifi_keypad",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    343: {  # THEWF01
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "pi_heating_demand",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "temp_format",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    348: {  # TH1133CR, TH1134CR
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "pi_heating_demand",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "temp_format",
         ],
         "binary_sensor": ["activation"],
         "button": [],
@@ -477,11 +534,11 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "language",
             "occupancy_mode",
             "temp_format",
             "time_format",
-            "wifi_keypad",
         ],
         "binary_sensor": [
             "activation",
@@ -543,12 +600,12 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "occupancy_mode",
             "second_display",
             "sensor_mode",
             "temp_format",
             "time_format",
-            "wifi_keypad",
         ],
         "binary_sensor": [
             "activation",
@@ -578,6 +635,7 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "lv_cycle_length",
             "lv_cycle_length",
             "occupancy_mode",
@@ -585,7 +643,6 @@ MODEL_ATTRIBUTES = {
             "sensor_mode",
             "temp_format",
             "time_format",
-            "wifi_keypad",
         ],
         "binary_sensor": [
             "activation",
@@ -613,12 +670,12 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "occupancy_mode",
             "second_display",
             "temp_format",
             "time_format",
             "wifi_cycle_length",
-            "wifi_keypad",
         ],
         "binary_sensor": [
             "activation",
@@ -711,11 +768,11 @@ MODEL_ATTRIBUTES = {
             "backlight",
             "cycle_length",
             "early_start",
+            "keypad_status",
             "occupancy_mode",
             "second_display",
             "temp_format",
             "time_format",
-            "wifi_keypad",
         ],
         "binary_sensor": [
             "activation",
@@ -736,6 +793,8 @@ MODEL_ATTRIBUTES = {
             "wattage",
         ],
         "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
             "max_temp",
             "min_temp",
         ],
@@ -768,8 +827,10 @@ MODEL_ATTRIBUTES = {
             "total_kwh_count",
         ],
         "number": [
+            "cool_lockout_temp",
             "cool_setpoint_away",
             "fan_filter_remain",
+            "heat_lockout_temp",
             "max_cool_temp",
             "min_cool_temp",
             "max_temp",
@@ -779,13 +840,13 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "language",
             "occupancy_mode",
             "temp_format",
             "time_format",
             "pro_aux_cycle_length",
             "wifi_cycle",
-            "wifi_keypad",
         ],
         "binary_sensor": ["activation"],
         "button": [],
@@ -802,8 +863,10 @@ MODEL_ATTRIBUTES = {
             "total_kwh_count",
         ],
         "number": [
+            "cool_lockout_temp",
             "cool_setpoint_away",
             "fan_filter_remain",
+            "heat_lockout_temp",
             "max_cool_temp",
             "max_temp",
             "min_cool_temp",
@@ -812,13 +875,13 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "language",
             "occupancy_mode",
             "temp_format",
             "time_format",
             "wifi_aux_cycle_length",
             "wifi_cycle",
-            "wifi_keypad",
         ],
         "binary_sensor": ["activation"],
         "button": [],
@@ -835,8 +898,10 @@ MODEL_ATTRIBUTES = {
             "total_kwh_count",
         ],
         "number": [
+            "cool_lockout_temp",
             "cool_setpoint_away",
             "fan_filter_remain",
+            "heat_lockout_temp",
             "max_cool_temp",
             "max_temp",
             "min_cool_temp",
@@ -845,13 +910,13 @@ MODEL_ATTRIBUTES = {
         "select": [
             "backlight",
             "early_start",
+            "keypad_status",
             "language",
             "occupancy_mode",
             "temp_format",
             "time_format",
             "pro_aux_cycle_length",
             "wifi_cycle",
-            "wifi_keypad",
         ],
         "binary_sensor": ["activation"],
         "button": [],
@@ -863,6 +928,8 @@ MODEL_ATTRIBUTES = {
             "occupancy_mode",
         ],
         "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
             "max_temp",
             "min_temp",
         ],
@@ -877,6 +944,8 @@ MODEL_ATTRIBUTES = {
             "occupancy_mode",
         ],
         "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
             "max_temp",
             "min_temp",
         ],
@@ -891,6 +960,40 @@ MODEL_ATTRIBUTES = {
             "occupancy_mode",
         ],
         "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad_status"],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    6813: {  # HP6000WF-MA
+        "sensor": [
+            ATTR_RSSI,
+            "occupancy_mode",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad_status"],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    6814: {  # HP6000ZB-XX
+        "sensor": [
+            ATTR_RSSI,
+            "occupancy_mode",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
             "max_temp",
             "min_temp",
         ],
@@ -1472,6 +1575,7 @@ EXPOSED_ATTRIBUTES = [
     "battery_status",
     "battery_voltage",
     "brightness",
+    "cool_lockout_temp",
     "cool_setpoint_away",
     "current_temperature",
     "cycle_length",
@@ -1491,9 +1595,11 @@ EXPOSED_ATTRIBUTES = [
     "gauge_type",
     "hc_second_display",
     "heater_temp_min",
+    "heat_lockout_temp",
     "hourly_flow_count",
     "hourly_kwh_count",
     "intensity_min",
+    "is_em_heat",
     "is_heating",
     "keypad",
     "keypad_status",
@@ -1548,8 +1654,9 @@ EXPOSED_ATTRIBUTES = [
     "water_remaining_time",
     "wifi_aux_cycle_length",
     "wifi_cycle",
-    "wifi_keypad",
     # Constants
+    "is_gen2",
+    "is_HC_like",
     "is_HC",
     "is_HP",
     "is_WHP",
