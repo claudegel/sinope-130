@@ -73,6 +73,7 @@ from .const import (
     ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEAT_PURGE_TIME,
@@ -133,23 +134,31 @@ from .const import (
     ATTR_WIFI_KEYPAD,
     EXPOSED_ATTRIBUTES,
     MODE_MANUAL,
+    VERSION,
+)
+from .helpers import (
+    async_notify_once_or_update,
+    async_notify_throttled,
+    async_notify_critical,
+    DailyRequestCounter,
 )
 from .schema import (
     HA_TO_NEVIWEB_CONTROLLED,
     HA_TO_NEVIWEB_DELAY,
     HA_TO_NEVIWEB_DURATION,
+    HA_TO_NEVIWEB_FAN_SPEED,
+    HA_TO_NEVIWEB_FAN_SPEED_5,
     HA_TO_NEVIWEB_FLOW,
     HA_TO_NEVIWEB_GAUGE,
     HA_TO_NEVIWEB_HEIGHT,
     HA_TO_NEVIWEB_LEVEL,
+    HA_TO_NEVIWEB_MODE,
     HA_TO_NEVIWEB_PERIOD,
     HA_TO_NEVIWEB_SUPPLY,
     HA_TO_NEVIWEB_TEMPERATURE,
     HA_TO_NEVIWEB_TIMER,
-    VERSION,
     color_to_rgb,
 )
-from .session_manager import session_manager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -195,6 +204,24 @@ def ha_to_neviweb_duration(value: str | None) -> int:
     return result
 
 
+def ha_to_neviweb_fan_speed(value: str | None, model: int) -> int:
+    """Convert HA fan speed value to Neviweb integer code for HP6000WF-xx."""
+    if value is None:
+        _LOGGER.debug("Fan speed value is None, fallback to 0")
+        return 0
+
+    if model == 6813:
+        result = HA_TO_NEVIWEB_FAN_SPEED.get(value)
+    else:
+        result = HA_TO_NEVIWEB_FAN_SPEED_5.get(value)
+
+    if result is None:
+        _LOGGER.warning("Unknown HA value for fan speed: %s, fallback to 0", value)
+        return 0
+
+    return result
+
+
 def ha_to_neviweb_flow(value: str | None) -> str:
     result = HA_TO_NEVIWEB_FLOW.get(value or "Noflow", "No flow meter")
     if value not in HA_TO_NEVIWEB_FLOW and value is not None:
@@ -222,6 +249,11 @@ def ha_to_neviweb_level(value: str | None) -> int:
         _LOGGER.warning("Unknown HA value for gauge type: %s, fallback to %s", value, result)
     return result
 
+def ha_to_neviweb_mode(mode: HVACMode) -> str:
+    result = HA_TO_NEVIWEB_MODE.get(mode or "off", 0)
+    if mode not in HA_TO_NEVIWEB_MODE and value is not None:
+        _LOGGER.warning("Unknown HA value for heatCoolMode: %s, fallback to %s", mode, result)
+    return result
 
 def ha_to_neviweb_supply(value: str | None) -> str:
     result = HA_TO_NEVIWEB_SUPPLY.get(value or "unknown", "-")
@@ -258,6 +290,8 @@ class Neviweb130Client:
         network: str | None,
         network2: str | None = None,
         network3: str | None = None,
+        session_manager=None,
+        counter=None,
         timeout=REQUESTS_TIMEOUT,
     ):
         """Initialize the client object."""
@@ -270,13 +304,19 @@ class Neviweb130Client:
         self._network_name3 = network3
         self._code: str | None = None
         self._ignore_miwi = ignore_miwi
+
+        # Gateway info
         self._gateway_id = None
         self._gateway_id2 = None
         self._gateway_id3 = None
         self.gateway_data: dict[str, Any] = {}
         self.gateway_data2: dict[str, Any] = {}
         self.gateway_data3: dict[str, Any] = {}
-        self._session: ClientSession | None = None
+
+        # Session manager injection
+        self._session_manager = session_manager
+        self._counter = counter
+
         self._headers: Mapping[str, str] = {}
         self._account: str | None = None
         self._cookies: SimpleCookie | None = None
@@ -285,15 +325,15 @@ class Neviweb130Client:
         self.user = None
         self._response = None
 
-    async def create_session(self):
-        """Create a new session for Neviweb API."""
-        self._session = await session_manager.create_session()
-        return self._session
+    @property
+    async def session(self) -> ClientSession:
+        """Return a valid aiohttp session from the session manager."""
+        return await self._session_manager.create_session()
 
     async def async_initialize(self):
         """Asynchronously initialize the client."""
         _LOGGER.debug("Initializing Neviweb130Client...")
-        await self.create_session()
+
         if self._account is None:
             await self.async_post_login_page()
             await self.async_get_network()
@@ -314,27 +354,17 @@ class Neviweb130Client:
         await self.async_get_gateway_data()
 
     async def async_stop(self):
-        if self._session is None:
-            raise ValueError("self._session is None")
-        await self._session.close()
+        """Stop the client and close its session."""
+        await self._session_manager.close_session()
 
-    def notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
-        """Notify user via HA web frontend."""
-        self.hass.services.call(
-            PN_DOMAIN,
-            "create",
-            service_data={
-                "title": title,
-                "message": msg,
-            },
-            blocking=False,
-        )
-        return True
+    async def _increment(self):
+        if self._counter is not None:
+            await self._counter.async_increment()
 
     async def async_post_login_page(self):
         """Login to Neviweb."""
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
 
         data = {
             "username": self._email,
@@ -343,8 +373,10 @@ class Neviweb130Client:
             "stayConnected": 1,
         }
 
+        _LOGGER.debug("Sending login request to Neviweb for user %s", self._email)
+
         try:
-            async with self._session.post(
+            async with session.post(
                 LOGIN_URL,
                 json=data,
                 cookies=self._cookies,
@@ -362,605 +394,733 @@ class Neviweb130Client:
                         _LOGGER.debug("Fail login status: %s", response.status)
                     raise PyNeviweb130Error("Cannot log in")
 
+                raw_cookies = response.cookies
                 raw_res = await response.json()
         except aiohttp.ClientError as e:
             raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.") from e
 
-        # Update session
-        # _LOGGER.debug("cookies = %s", response)
-        self._cookies = response.cookies
+        # Update cookies
+        self._cookies = raw_cookies
         data = raw_res
         _LOGGER.debug("Login response: %s", data)
+
+        # Handle errors
         if "error" in data:
-            if data["error"]["code"] == "ACCSESSEXC":
-                _LOGGER.error(
-                    "Too many active sessions. Close all neviweb130 "
-                    + "sessions you have opened on other platform (mobile, browser"
-                    + ", ...), wait a few minutes, then restart Home Assistant."
+            code = data["error"]["code"]
+
+            if code == "ACCSESSEXC":
+                await async_notify_critical(
+                    self.hass,
+                    "Warning: Maximum Neviweb session number reached... Close other connections and try again",
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_session_error",
                 )
-                self.notify_ha(
-                    "Warning: Got ACCSESSEXC error, Too many active sessions."
-                    + "Close all neviweb130 sessions, wait few minutes and "
-                    + "restart HA."
-                )
-            elif data["error"]["code"] == "USRBADLOGIN":
-                _LOGGER.error("Invalid Neviweb username and/or password... Check your configuration parameters")
-                self.notify_ha(
+            elif code == "USRBADLOGIN":
+                await async_notify_critical(
+                    self.hass,
                     "Warning: Got USRBADLOGIN error, Invalid Neviweb username "
-                    + "and/or password... Check your configuration parameters"
+                    + "and/or password... Check your configuration parameters",
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_session_error",
                 )
             return False
-        else:
-            self.user = data["user"]
-            self._headers = {"Session-Id": data["session"]}
-            self._account = str(data["account"]["id"])
-            _LOGGER.debug("Successfully logged in to: %s", self._account)
-            return True
+
+        # Success
+        self.user = data["user"]
+        self._headers = {"Session-Id": data["session"]}
+        self._account = str(data["account"]["id"])
+        _LOGGER.info("Successfully logged for user %s on account: %s", self._email, self._account)
+
+        return True
 
     async def async_get_network(self):
         """Get gateway id associated to the desired network."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+
         if self._account is None:
             raise ValueError("self._account is None")
 
+        await self._increment()
+        session = await self.session
+
         try:
-            async with self._session.get(
+            async with session.get(
                 LOCATIONS_URL + self._account,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
+
                 raw_res = await response.json()
                 networks = raw_res
-                _LOGGER.warning("Number of networks found on Neviweb: %s", len(networks))
-                _LOGGER.warning("networks: %s", networks)
+
+                _LOGGER.info("Number of networks found on Neviweb: %s", len(networks))
+                _LOGGER.debug("networks: %s", networks)
+
+                # Auto selection mode
                 if self._network_name is None and self._network_name2 is None and self._network_name3 is None:
                     # Use 1st network found, second or third if found
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
                     self._occupancyMode = networks[0]["mode"]
                     self._code = networks[0]["postalCode"]
-                    _LOGGER.warning("Selecting %s as first network", self._network_name)
+                    _LOGGER.info("Selecting %s as first network", self._network_name)
                     if len(networks) > 1:
                         self._gateway_id2 = networks[1]["id"]
                         self._network_name2 = networks[1]["name"]
                         self._occupancyMode = networks[1]["mode"]
                         self._code = networks[1]["postalCode"]
-                        _LOGGER.warning("Selecting %s as second network", self._network_name2)
+                        _LOGGER.info("Selecting %s as second network", self._network_name2)
                         if len(networks) > 2:
                             self._gateway_id3 = networks[2]["id"]
                             self._network_name3 = networks[2]["name"]
                             self._occupancyMode = networks[2]["mode"]
                             self._code = networks[2]["postalCode"]
-                            _LOGGER.warning("Selecting %s as third network", self._network_name3)
+                            _LOGGER.info("Selecting %s as third network", self._network_name3)
+
+                # Manual selection mode
                 else:
                     for network in networks:
-                        if self._network_name is not None and self._network_name != "":
-                            if network["name"] == self._network_name:
+                        name = network["name"]
+
+                        # Network 1
+                        if self._network_name:
+                            if name == self._network_name:
+                                self._gateway_id = network["id"]
+                                self._occupancyMode = network["mode"]
+                                self._code = network["postalCode"]
+                                _LOGGER.info(
+                                    "Selecting %s network among: %s", name, networks)
+                                continue
+                            if name.lower() == self._network_name.lower():
                                 self._gateway_id = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
                                 _LOGGER.warning(
-                                    "Selecting %s network among: %s",
-                                    self._network_name,
-                                    networks,
+                                    "Case mismatch for network1 name. Using %s", name
                                 )
                                 continue
-                            elif (network["name"] == self._network_name.capitalize()) or (
-                                network["name"] == self._network_name[0].lower() + self._network_name[1:]
-                            ):
-                                self._gateway_id = network["id"]
+
+                        # Network 2
+                        if self._network_name2:
+                            if name == self._network_name2:
+                                self._gateway_id2 = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
-                                _LOGGER.warning(
-                                    "Please check first letter of your network name. "
-                                    "Is it a capital letter or not? "
-                                    f"Selecting {self._network_name} network among: {networks}"
-                                )
+                                _LOGGER.info("Selecting %s network among: %s", self._network_name2, networks)
                                 continue
-                            else:
-                                _LOGGER.warning(
-                                    f"Your network name {self._network_name} do not correspond to "
-                                    f"discovered network {network['name']}, skipping this one... "
-                                    f"Please check your config if nothing get discovered"
-                                )
-                        if self._network_name2 is not None and self._network_name2 != "":
-                            if network["name"] == self._network_name2:
+
+                            if name.lower() == self._network_name2.lower():
                                 self._gateway_id2 = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
                                 _LOGGER.warning(
-                                    "Selecting %s network among: %s",
-                                    self._network_name2,
-                                    networks,
+                                    "Case mismatch for network2 name. Using %s", name
                                 )
                                 continue
-                            elif (network["name"] == self._network_name2.capitalize()) or (
-                                network["name"] == self._network_name2[0].lower() + self._network_name2[1:]
-                            ):
-                                self._gateway_id = network["id"]
+
+                        # network 3
+                        if self._network_name3:
+                            if name == self._network_name3:
+                                self._gateway_id3 = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
-                                _LOGGER.warning(
-                                    "Please check first letter of your network2 name. "
-                                    "Is it a capital letter or not? "
-                                    f"Selecting {self._network_name2} network among: {networks}"
-                                )
+                                _LOGGER.info("Selecting %s network among: %s", self._network_name3, networks)
                                 continue
-                            else:
-                                _LOGGER.warning(
-                                    f"Your network2 name {self._network_name2} do not correspond to "
-                                    f"discovered network {network['name']}, skipping this one..."
-                                )
-                        if self._network_name3 is not None and self._network_name3 != "":
-                            if network["name"] == self._network_name3:
+
+                            if name.lower() == self._network_name3.lower():
                                 self._gateway_id3 = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
                                 _LOGGER.warning(
-                                    "Selecting %s network among: %s",
-                                    self._network_name3,
-                                    networks,
+                                    "Case mismatch for network3 name. Using %s", name
                                 )
                                 continue
-                            elif (network["name"] == self._network_name3.capitalize()) or (
-                                network["name"] == self._network_name3[0].lower() + self._network_name3[1:]
-                            ):
-                                self._gateway_id = network["id"]
-                                self._occupancyMode = network["mode"]
-                                self._code = network["postalCode"]
-                                _LOGGER.warning(
-                                    "Please check first letter of your network3 name. "
-                                    "Is it a capital letter or not? "
-                                    f"Selecting {self._network_name3} network among: {networks}"
-                                )
-                                continue
-                            else:
-                                _LOGGER.warning(
-                                    "Your network name %s do not correspond "
-                                    + "to discovered network %s, skipping "
-                                    + "this one...",
-                                    self._network_name3,
-                                    network["name"],
-                                )
+
+                    # If nothing matched
+                    if (
+                        self._gateway_id is None
+                        and self._gateway_id2 is None
+                        and self._gateway_id3 is None
+                    ):
+                        _LOGGER.error(
+                            "None of the configured network names match discovered networks. "
+                            "Please check your configuration."
+                        )
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
             raise PyNeviweb130Error("Cannot get Neviweb's networks") from e
-        # Update cookies
-        if self._cookies is None:
-            raise ValueError("self._cookies is None")
-        self._cookies.update(response.cookies)
+
         # Prepare data
         self.gateway_data = raw_res
 
     async def async_get_gateway_data(self):
         """Get gateway data."""
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
 
-        if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
-            _LOGGER.warning("No gateway defined, check your config for networks names...")
-            self.notify_ha(
+        if (
+            self._gateway_id is None
+            and self._gateway_id2 is None
+            and self._gateway_id3 is None
+        ):
+            await async_notify_critical(
+                self.hass,
                 "All Gateway ID are None. Network selection failed. "
                 + "Check that your configuration network names match one of the networks in your Neviweb account. "
-                + "Available networks were logged during network selection. Check your log"
+                + "Available networks were logged during network selection. Check your log",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_session_error",
             )
             return False
-        else:
-            #            session = await create_session()
+
+        # Fetching gateway
+        async def _fetch_gateway_data(gateway_id: str):
             try:
-                async with self._session.get(
-                    GATEWAY_DEVICE_URL + str(self._gateway_id),
+                async with session.get(
+                    GATEWAY_DEVICE_URL + str(gateway_id),
                     headers=self._headers,
                     cookies=self._cookies,
                     timeout=self._timeout,
                 ) as response:
-                    raw_res = await response.json()
-                    _LOGGER.debug("Received gateway data: %s", raw_res)
-                    if "error" in raw_res:
-                        if raw_res["error"]["code"] == "VALINVLD":
-                            _LOGGER.debug("No network found, check your configuration")
-                            raise PyNeviweb130Error("No network found, check your configuration")
+
+                    raw = await response.json()
+                    _LOGGER.debug("Received gateway data: %s", raw)
+
+                    if "error" in raw and raw["error"]["code"] == "VALINVLD":
+                        raise PyNeviweb130Error("No network found, check your configuration")
 
                     # Update cookies
-                    if self._cookies is None:
-                        raise ValueError("self._cookies is None")
                     self._cookies.update(response.cookies)
+
+                    return raw
+
             except aiohttp.ClientError as e:
                 raise PyNeviweb130Error("Cannot get gateway data") from e
-            # Prepare data
-            self.gateway_data = raw_res
-            _LOGGER.debug("Gateway_data : %s", self.gateway_data)
-            if self._gateway_id2 is not None:
-                try:
-                    async with self._session.get(
-                        GATEWAY_DEVICE_URL + str(self._gateway_id2),
-                        headers=self._headers,
-                        cookies=self._cookies,
-                        timeout=self._timeout,
-                    ) as response:
-                        raw_res2 = await response.json()
-                        _LOGGER.debug("Received gateway data 2: %s", raw_res2)
-                except aiohttp.ClientError as e:
-                    raise PyNeviweb130Error("Cannot get gateway data 2") from e
-                # Prepare data
-                self.gateway_data2 = raw_res2
-                _LOGGER.debug("Gateway_data2 : %s", self.gateway_data2)
-            if self._gateway_id3 is not None:
-                try:
-                    async with self._session.get(
-                        GATEWAY_DEVICE_URL + str(self._gateway_id3),
-                        headers=self._headers,
-                        cookies=self._cookies,
-                        timeout=self._timeout,
-                    ) as response:
-                        raw_res3 = await response.json()
-                        _LOGGER.debug("Received gateway data 3: %s", raw_res3)
-                except aiohttp.ClientError as e:
-                    raise PyNeviweb130Error("Cannot get gateway data 3") from e
-                # Prepare data
-                self.gateway_data3 = raw_res3
-                _LOGGER.debug("Gateway_data3 : %s", self.gateway_data3)
-            for device in self.gateway_data:
-                data = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
-                if ATTR_SIGNATURE in data:
-                    device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
-                _LOGGER.debug("Received signature data: %s", data)
-                if data[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    if not self._ignore_miwi:
-                        _LOGGER.debug(
-                            "The Neviweb location selected for parameter "
-                            + "«network» contain unsupported device with protocol"
-                            + " miwi. If this location contain only miwi devices "
-                            + "it should be added to custom_component "
-                            + "«sinope neviweb» custom_components instead. If the"
-                            + " location contain mixed miwi, Zigbee and/or Wi-Fi "
-                            + "devices, add parameter: ignore_miwi: True, in your "
-                            + "neviweb130 configuration."
-                        )
-            if self._gateway_id2 is not None:
-                for device in self.gateway_data2:
-                    data2 = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
-                    if ATTR_SIGNATURE in data2:
-                        device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
-                    _LOGGER.debug("Received signature data 2: %s", data2)
-                    if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
-                        if not self._ignore_miwi:
-                            _LOGGER.debug(
-                                "The Neviweb location selected for parameter "
-                                + "«network2» contain unsupported device with protocol"
-                                + " miwi. If this location contain only miwi devices "
-                                + "it should be added to custom_component "
-                                + "«sinope neviweb» custom_components instead. If the"
-                                + " location contain mixed miwi, Zigbee and/or Wi-Fi "
-                                + "devices, add parameter: ignore_miwi: True, in your "
-                                + "neviweb130 configuration."
-                            )
-            if self._gateway_id3 is not None:
-                for device in self.gateway_data3:
-                    data3 = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
-                    if ATTR_SIGNATURE in data3:
-                        device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
-                    _LOGGER.debug("Received signature data 3: %s", data3)
-                    if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
-                        if not self._ignore_miwi:
-                            _LOGGER.debug(
-                                "The Neviweb location selected for parameter "
-                                + "«network3» contain unsupported device with protocol"
-                                + " miwi. If this location contain only miwi devices "
-                                + "it should be added to custom_component "
-                                + "«sinope neviweb» custom_components instead. If the"
-                                + " location contain mixed miwi, Zigbee and/or Wi-Fi "
-                                + "devices, add parameter: ignore_miwi: True, in your "
-                                + "neviweb130 configuration."
-                            )
 
-    #            _LOGGER.debug("Updated gateway data: %s", self.gateway_data)
-    #            _LOGGER.debug("Updated gateway data2: %s", self.gateway_data2)
-    #            _LOGGER.debug("Updated gateway data3: %s", self.gateway_data3)
+        # Fetch gateway 1
+        raw_res = await _fetch_gateway_data(self._gateway_id)
+        self.gateway_data = raw_res
+        _LOGGER.debug("Gateway_data : %s", self.gateway_data)
+
+        # fetch gateway 2
+        if self._gateway_id2 is not None:
+            raw_res2 = await _fetch_gateway_data(self._gateway_id2)
+            self.gateway_data2 = raw_res2
+            _LOGGER.debug("Gateway_data2: %s", self.gateway_data2)
+
+        # fetch gateway 3
+        if self._gateway_id3 is not None:
+            raw_res3 = await _fetch_gateway_data(self._gateway_id3)
+            self.gateway_data3 = raw_res3
+            _LOGGER.debug("Gateway_data3: %s", self.gateway_data3)
+
+        # Fetch signature gateway 1
+        for device in self.gateway_data:
+            data = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
+            if ATTR_SIGNATURE in data:
+                device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
+
+            _LOGGER.debug("Received signature data: %s", data)
+
+            if data[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
+                _LOGGER.debug(
+                    "The Neviweb location selected for parameter «network» contains unsupported MiWi devices. "
+                    "If this location contains only MiWi devices, use the sinope neviweb integration instead. "
+                    "If mixed devices exist, set ignore_miwi: True in your neviweb130 configuration."
+                )
+
+        # Fetch signature gateway 2
+        if self._gateway_id2 is not None:
+            for device in self.gateway_data2:
+                data2 = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
+                if ATTR_SIGNATURE in data2:
+                    device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
+
+                _LOGGER.debug("Received signature data 2: %s", data2)
+
+                if data2[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
+                    _LOGGER.debug(
+                        "The Neviweb location selected for parameter «network2» contains unsupported MiWi devices. "
+                        "If this location contains only MiWi devices, use the sinope neviweb integration instead. "
+                        "If mixed devices exist, set ignore_miwi: True in your neviweb130 configuration."
+                    )
+
+        # Fetching signature gateway 3
+        if self._gateway_id3 is not None:
+            for device in self.gateway_data3:
+                data3 = await self.async_get_device_attributes(device["id"], [ATTR_SIGNATURE])
+                if ATTR_SIGNATURE in data3:
+                    device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
+
+                _LOGGER.debug("Received signature data 3: %s", data3)
+
+                if data3[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
+                    _LOGGER.debug(
+                        "The Neviweb location selected for parameter «network3» contains unsupported MiWi devices. "
+                        "If this location contains only MiWi devices, use the sinope neviweb integration instead. "
+                        "If mixed devices exist, set ignore_miwi: True in your neviweb130 configuration."
+                    )
+
+        _LOGGER.info("Loaded gateway %s with %s devices", self._gateway_id, len(self.gateway_data))
+        _LOGGER.info("Loaded gateway2 %s with %s devices", self._gateway_id2, len(self.gateway_data2))
+        _LOGGER.info("Loaded gateway3 %s with %s devices", self._gateway_id3, len(self.gateway_data3))
+
+        return True
 
     async def async_get_device_attributes(self, device_id: str, attributes):
         """Get device attributes."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+
+
+        url = (
+            DEVICE_DATA_URL
+            + str(device_id)
+            + "/attribute?attributes="
+            + ",".join(attributes)
+        )
+        _LOGGER.debug("Fetching attributes for device %s with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=" + ",".join(attributes),
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
+
+                raw = await response.json()
                 # _LOGGER.debug("Received devices data: %s", raw_res)
 
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
 
-                # Prepare data
-                data = raw_res
+                # Handle errors
+                if "error" in raw:
+                    code = raw["error"].get("code")
+                    _LOGGER.debug("Error response for device %s: %s", device_id, raw)
 
-                if "error" in data:
-                    if data["error"]["code"] == "USRSESSEXP":
+                    if code == "USRSESSEXP":
                         _LOGGER.error(
-                            "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                            "Session expired while fetching attributes for device %s. "
+                            "Set scan_interval < 10 minutes to avoid session expiration.",
+                            device_id,
                         )
-                        # raise PyNeviweb130Error("Session expired... reconnecting...")
-                return data
+
+                    return raw
+
+#                _LOGGER.debug("Attributes for device %s: %s", device_id, raw)
+                missing = [a for a in attributes if a not in raw]
+                if missing:
+                    _LOGGER.warning(
+                        "Device %s did not return all requested attributes (%s). Missing: %s",
+                        device_id,
+                        attributes,
+                        missing,
+                    )
+
+                return raw
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device attributes") from e
+            raise PyNeviweb130Error(
+                f"Cannot get device attributes for device {device_id}"
+            ) from e
 
     async def async_get_device_status(self, device_id: str):
         """Get device status for the GT130."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+
+        url = DEVICE_DATA_URL + str(device_id) + "/status"
+        _LOGGER.debug("Fetching status for device %s with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/status",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug("Received devices status: %s", raw_res)
+
+                raw = await response.json()
 
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
-        except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device status") from e
 
-        # Prepare data
-        data = raw_res
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
+        except aiohttp.ClientError as e:
+            raise PyNeviweb130Error(
+                f"Cannot get device status for device {device_id}"
+            ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for device %s: %s", device_id, raw)
+
+            if code == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired while fetching status for device %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    device_id,
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
-        return data
+
+        _LOGGER.debug("Received device %s status: %s", device_id, raw)
+
+        return raw
 
     async def async_get_neviweb_status(self, location):
         """Get neviweb occupancyMode status."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+
+        url = NEVIWEB_LOCATION + str(location) + "/notifications"
+        _LOGGER.debug("Fetching Neviweb status with URL: %s", url)
 
         try:
-            async with self._session.get(
-                NEVIWEB_LOCATION + str(location) + "/notifications",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug("Received neviweb status: %s", raw_res)
+
+                raw = await response.json()
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
+
         except aiohttp.ClientError as e:
             raise PyNeviweb130Error("Cannot get neviweb status") from e
-        # Prepare data
-        data = raw_res
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for Neviweb status: %s", raw)
+
+            if code == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired while fetching Neviweb status for location %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    location,
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
-        return data
+
+        _LOGGER.debug("Received Neviweb status for location %s: %s", str(location), raw)
+
+        return raw
 
     async def async_get_device_alert(self, device_id: str):
         """Get device alert for Sedna valve."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+
+        url = DEVICE_DATA_URL + str(device_id) + "/alert"
+        _LOGGER.debug("Fetching device %s alert with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/alert",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug(
-                    "Received devices alert (%s): %s",
-                    str(device_id),
-                    raw_res,
-                )
+
+                raw = await response.json()
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
+
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device alert") from e
-        # Prepare data
-        data = raw_res
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
+            raise PyNeviweb130Error(
+                f"Cannot get device alert for device {device_id}"
+             ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for device %s alert: %s", device_id, raw)
+
+            if code == "USRSESSEXP":
                 _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end."
+                    "Session expired while fetching device %s alert. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    device_id,
                 )
-                # raise PyNeviweb130Error("Session expired... reconnecting...")
-        return data
 
-    async def async_get_device_monthly_stats(self, device_id: str):
+        _LOGGER.debug("Received device %s alert: %s", device_id, raw)
+
+        return raw
+
+    async def async_get_device_monthly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 months."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+        if HC:
+            url = DEVICE_DATA_URL + str(device_id) + "/energy/monthly"
+        else:
+            url = DEVICE_DATA_URL + str(device_id) + "/consumption/monthly"
+        _LOGGER.debug("Fetching device %s monthly stats with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/consumption/monthly",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug(
-                    "Received devices monthly stat (%s): %s",
-                    str(device_id),
-                    raw_res,
-                )
+
+                raw = await response.json()
+                _LOGGER.debug("Raw monthly stats response for device %s: %s", device_id, raw)
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
+
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device monthly stats...") from e
-        # Prepare data
-        data = raw_res
-        # _LOGGER.debug("Monthly_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
-        else:
-            _LOGGER.debug("Monthly stat error: %s", data)
+            raise PyNeviweb130Error(
+                f"Cannot get monthly stats for device {device_id}"
+            ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for device %s monthly stats: %s", device_id, raw)
+
+            if code == "USRSESSEXP":
+                _LOGGER.error(
+                    "Session expired while fetching monthly stats for device %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    device_id,
+                )
+
             return None
 
-    async def async_get_device_daily_stats(self, device_id: str):
+        # Normal case
+        if "history" in raw:
+            _LOGGER.debug("Received monthly stats for device %s: %s", device_id, raw["history"])
+            return raw["history"]
+
+        # Unexpected structure
+        _LOGGER.debug(
+            "Unexpected response format for monthly stats of device %s: %s",
+            device_id,
+            raw,
+        )
+        return None
+
+    async def async_get_device_daily_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 30 days."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+        if HC:
+            url = DEVICE_DATA_URL + str(device_id) + "/energy/daily"
+        else:
+            url = DEVICE_DATA_URL + str(device_id) + "/consumption/daily"
+        _LOGGER.debug("Fetching device %s daily stats with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/consumption/daily",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug(
-                    "Received devices daily stat (%s): %s",
-                    str(device_id),
-                    raw_res,
-                )
+
+                raw = await response.json()
+                _LOGGER.debug("Raw daily stats response for device %s: %s", device_id, raw)
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
+
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device daily stats...") from e
-        # Prepare data
-        data = raw_res
-        # _LOGGER.debug("Daily_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
-        else:
-            _LOGGER.debug("Daily stat error: %s", data)
+            raise PyNeviweb130Error(
+                f"Cannot get daily stats for device {device_id}"
+            ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for device %s daily stats: %s", device_id, raw)
+
+            if code == "USRSESSEXP":
+                _LOGGER.error(
+                    "Session expired while fetching daily stats for device %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    device_id,
+                )
+
             return None
 
-    async def async_get_device_hourly_stats(self, device_id: str):
+        # Normal case
+        if "history" in raw:
+            _LOGGER.debug("Received daily stats for device %s: %s", device_id, raw["history"])
+            return raw["history"]
+
+        # Unexpected structure
+        _LOGGER.debug(
+            "Unexpected response format for daily stats of device %s: %s",
+            device_id,
+            raw,
+        )
+        return None
+
+    async def async_get_device_hourly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 hours."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+        if HC:
+            url = DEVICE_DATA_URL + str(device_id) + "/energy/hourly"
+        else:
+            url = DEVICE_DATA_URL + str(device_id) + "/consumption/hourly"
+        _LOGGER.debug("Fetching device %s hourly stats with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/consumption/hourly",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug(
-                    "Received devices hourly stat (%s): %s",
-                    str(device_id),
-                    raw_res,
-                )
+                raw = await response.json()
+                _LOGGER.debug("Raw hourly stats response for device %s: %s", device_id, raw)
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
+
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device hourly stats...") from e
-        # Prepare data
-        data = raw_res
-        # _LOGGER.debug("Hourly_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
-        else:
-            _LOGGER.debug("Hourly stat error: %s", data)
+            raise PyNeviweb130Error(
+                f"Cannot get hourly stats for device {device_id}"
+            ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for device %s hourly stats: %s", device_id, raw)
+
+            if code == "USRSESSEXP":
+                _LOGGER.error(
+                    "Session expired while fetching hourly stats for device %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    device_id,
+                )
+
             return None
+
+        # Normal case
+        if "history" in raw:
+            _LOGGER.debug("Received hourly stats for device %s: %s", device_id, raw["history"])
+            return raw["history"]
+
+        # Unexpected structure
+        _LOGGER.debug(
+            "Unexpected response format for hourly stats of device %s: %s",
+            device_id,
+            raw,
+        )
+        return None
 
     async def async_get_weather(self):
         """Get Neviweb weather for my location."""
-        if self._session is None:
-            raise ValueError("self._session is None")
-
+        await self._increment()
         if self._code is None:
             raise ValueError("self._code is None")
 
+        session = await self.session
+
+        url = NEVIWEB_WEATHER + self._code
+        _LOGGER.debug("Fetching Neviweb weather data with URL: %s", url)
+
         try:
-            async with self._session.get(
-                NEVIWEB_WEATHER + self._code,
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
+
+                raw = await response.json()
+                _LOGGER.debug("Raw weather data response from Neviweb for code %s: %s", self._code, raw)
+
                 # Update cookies
-                if self._cookies is None:
-                    self._cookies = response.cookies
-                else:
-                    self._cookies.update(response.cookies)
-        except OSError:
-            raise PyNeviweb130Error("Cannot get Neviweb weather and icon...")
-        # Prepare data
-        data = raw_res
-        # _LOGGER.debug("weather data: %s", data)
-        return data
+                self._cookies.update(response.cookies)
+
+        except aiohttp.ClientError as e:
+            raise PyNeviweb130Error(
+                f"Cannot get Neviweb weather and icon for code {self._code}"
+            ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for weather data from Neviweb: %s", raw)
+
+            if code == "USRSESSEXP":
+                _LOGGER.error(
+                    "Session expired while fetching weather data from Neviweb for code %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    self._code,
+                )
+
+            return None
+
+        # Normal case
+        _LOGGER.debug("Received Neviweb weather data for code %s: %s", self._code, raw)
+        return raw
 
     async def async_get_device_sensor_error(self, device_id: str):
         """Get device error code status."""
-        # session = await create_session()
-        if self._session is None:
-            raise ValueError("self._session is None")
+        await self._increment()
+        session = await self.session
+
+        url = DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=errorCodeSet1"
+        _LOGGER.debug("Fetching device %s sensor error with URL: %s", device_id, url)
 
         try:
-            async with self._session.get(
-                DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=errorCodeSet1",
+            async with session.get(
+                url,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-                raw_res = await response.json()
-                _LOGGER.debug(
-                    "Received device error code status (%s): %s",
-                    str(device_id),
-                    raw_res,
-                )
+
+                raw = await response.json()
+                _LOGGER.debug("Raw sensor error response for device %s: %s", device_id, raw)
+
                 # Update cookies
-                if self._cookies is None:
-                    raise ValueError("self._cookies is None")
                 self._cookies.update(response.cookies)
+
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get device error code status...") from e
-        # Prepare data
-        data = raw_res
-        if "errorCodeSet1" in data:
-            return data["errorCodeSet1"]
-        else:
-            _LOGGER.debug("Error code status data: %s", data)
+            raise PyNeviweb130Error(
+                f"Cannot get device error code status for device {device_id}"
+            ) from e
+
+        # Handle error
+        if "error" in raw:
+            code = raw["error"].get("code")
+            _LOGGER.debug("Error response for device %s for sensor error: %s", device_id, raw)
+
+            if code == "USRSESSEXP":
+                _LOGGER.error(
+                    "Session expired while fetching device %s error code. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    device_id,
+                )
+
             return None
+
+        # Normal case
+        if "errorCodeSet1" in raw:
+            _LOGGER.debug("Received sensor error code for device %s: %s", device_id, raw)
+            return raw
+
+        # Unexpected structure
+        _LOGGER.debug(
+            "Unexpected sensor error response format for device %s: %s",
+            device_id,
+            raw,
+        )
+        return None
 
     async def async_set_brightness(self, device_id: str, brightness) -> bool:
         """Set device brightness."""
@@ -997,10 +1157,7 @@ class Neviweb130Client:
         """Work differently for Wi-Fi and Zigbee devices."""
         if wifi:
             if HC:
-                if mode == HVACMode.HEAT_COOL:
-                    data = {ATTR_HEAT_COOL: HVACMode.AUTO}
-                else:
-                    data = {ATTR_HEAT_COOL: mode}
+                data = {ATTR_HEAT_COOL: ha_to_neviweb_mode(mode)}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
                     mode = MODE_MANUAL
@@ -1042,8 +1199,11 @@ class Neviweb130Client:
             data = {ATTR_COOL_SETPOINT_AWAY: temperature}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha(
-                "Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats."
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats.",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
             )
             return False
 
@@ -1071,7 +1231,12 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_heatcool_delta(self, device_id: str, level, HC) -> bool:
@@ -1080,7 +1245,12 @@ class Neviweb130Client:
             data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_fan_filter_reminder(self, device_id: str, month, HC) -> bool:
@@ -1090,7 +1260,12 @@ class Neviweb130Client:
             data = {ATTR_FAN_FILTER_REMAIN: month_val}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats.")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats.",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_temperature_offset(self, device_id: str, temp, HC) -> bool:
@@ -1099,7 +1274,12 @@ class Neviweb130Client:
             data = {ATTR_TEMP_OFFSET_HEAT: temp}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_humidity_offset(self, device_id: str, offset, HC) -> bool:
@@ -1108,7 +1288,12 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_humidity_mode(self, device_id: str, mode, HC) -> bool:
@@ -1117,7 +1302,12 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_air_ex_min_time_on(self, device_id: str, time, HC) -> bool:
@@ -1136,7 +1326,12 @@ class Neviweb130Client:
             data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_backlight(self, device_id: str, level: str, wifi: bool) -> bool:
@@ -1173,8 +1368,10 @@ class Neviweb130Client:
                     lock = "lock"
                 case "unlocked":
                     lock = "unlock"
-                case "tamper protection":
+                case "partiallyLocked":
                     lock = "partialLock"
+                case _:
+                    raise ValueError(f"Invalid lock value: {lock}")
             data = {ATTR_WIFI_KEYPAD: lock}
         else:
             match lock:
@@ -1737,9 +1934,12 @@ class Neviweb130Client:
         _LOGGER.debug("Heat pump limit value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_heat_lockout(self, device_id: str, temp: int) -> bool:
+    async def async_set_heat_lockout(self, device_id: str, temp: int, G2: bool) -> bool:
         """Set maximum outside temperature limit to allow heating device operation."""
-        data: dict[str, Any] = {ATTR_HEAT_LOCK_TEMP: temp}
+        if G2:
+            data = {ATTR_HEAT_LOCKOUT_TEMP: temp}
+        else:
+            data: dict[str, Any] = {ATTR_HEAT_LOCK_TEMP: temp}
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1773,9 +1973,16 @@ class Neviweb130Client:
         _LOGGER.debug("Fan vertical swing value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_fan_mode(self, device_id: str, speed: str) -> bool:
+    async def async_set_fan_mode(self, device_id: str, speed: str | None, model: int) -> bool:
         """Set fan speed (mode) for heat pump."""
-        data: dict[str, Any] = {ATTR_FAN_SPEED: speed}
+
+        if model == 6813 or model == 6814:
+            speed_val = ha_to_neviweb_fan_speed(speed, model)
+        else:
+            speed_val = speed
+
+        data: dict[str, Any] = {ATTR_FAN_SPEED: speed_val}
+
         _LOGGER.debug("Fan speed value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1798,7 +2005,12 @@ class Neviweb130Client:
             _LOGGER.debug("HC heat_dissipation_time.data = %s", data)
             return await self.async_set_device_attributes(device_id, data)
         else:
-            await self.notify_ha("Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_cool_dissipation_time(self, device_id: str, time: int, HC: bool) -> bool:
@@ -1808,7 +2020,12 @@ class Neviweb130Client:
             _LOGGER.debug("HC cool_dissipation_time.data = %s", data)
             return await self.async_set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
             return False
 
     async def async_set_reversing_valve_polarity(self, device_id: str, polarity: str) -> bool:
@@ -1904,91 +2121,124 @@ class Neviweb130Client:
 
     async def async_set_device_attributes(self, device_id: str, data: dict[str, Any]) -> bool:
         """Set devices attributes and return True if successful."""
-        if self._session is None:
-            return False
+        await self._increment()
+        session = await self.session
 
-        result = 1
-        success = False
-        resp = {}
+        url = DEVICE_DATA_URL + str(device_id) + "/attribute"
+        _LOGGER.debug("sending device %s attributes with URL: %s", device_id, url)
 
-        while result < 3:
-            #            session = await create_session()
+        attempts = 0
+        resp: dict[str, Any] = {}
+
+        while attempts < 3:
             try:
-                async with self._session.put(
-                    DEVICE_DATA_URL + str(device_id) + "/attribute",
+                async with session.put(
+                    url,
                     json=data,
                     headers=self._headers,
                     cookies=self._cookies,
                     timeout=self._timeout,
                 ) as response:
+
                     resp = await response.json()
-                    _LOGGER.debug(
-                        "http_request = %s%s%s %s",
-                        DEVICE_DATA_URL,
-                        str(device_id),
-                        "/attribute",
-                        data,
-                    )
                     _LOGGER.debug("Data = %s", data)
                     _LOGGER.debug("Request response = %s", response.status)
                     _LOGGER.debug("Json Data received= %s", resp)
 
+                    # Update cookies
+                    self._cookies.update(response.cookies)
+
+                    # Success case
                     if response.status == 200 and "error" not in resp:
-                        success = True
-                        break
+                        _LOGGER.debug("Device %s attributes successfully updated.", device_id)
+                        return True
 
             except aiohttp.ClientError as e:
-                raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data) from e
-            finally:
-                if "error" in resp:
-                    result += 1
-                    _LOGGER.debug(
-                        "Service error received: %s, resending request %s",
-                        resp,
-                        result,
-                    )
+                raise PyNeviweb130Error(
+                    f"Cannot set device {device_id} attributes: {data}"
+                ) from e
 
-        return success
+            # Handle API error
+            if "error" in resp:
+                code = resp["error"].get("code")
+                _LOGGER.debug("Error response for device %s attribute update: %s", device_id, resp)
+
+                if code == "USRSESSEXP":
+                    _LOGGER.error(
+                        "Session expired while setting attributes for device %s. "
+                        "Set scan_interval < 10 minutes to avoid session expiration.",
+                        device_id,
+                    )
+                    return False
+
+            attempts += 1
+            _LOGGER.debug("Retrying device %s attribute update (attempt %s/3)", device_id, attempts)
+
+        # All attempts failed
+        _LOGGER.debug("Failed to update attributes for device %s after 3 attempts.", device_id)
+        return False
 
     async def async_post_neviweb_status(self, location: int | str, mode: str) -> bool:
         """Send post requests to Neviweb for global occupancy mode"""
-        # session = await create_session()
-        location = str(location)
-        success = False
-        resp = {}
+        await self._increment()
+        session = await self.session
 
-        if self._session is None:
-            raise ValueError("self._session is None")
+        url = NEVIWEB_LOCATION + str(location) + "/mode"
+        _LOGGER.debug("Setting Neviweb status for location %s with URL: %s", location, url)
 
+        resp: dict[str, Any] = {}
         data = {ATTR_MODE: mode}
+
         try:
-            async with self._session.post(
-                NEVIWEB_LOCATION + location + "/mode",
+            async with session.post(
+                url,
                 json=data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
+
                 resp = await response.json()
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Requests response = %s", response.status)
                 _LOGGER.debug("Json Data received= %s", resp)
+
+                # Update cookies
+                self._cookies.update(response.cookies)
+
+                # Success case
                 if response.status == 200 and "error" not in resp:
-                    success = True
+                    _LOGGER.debug("Neviweb status successfully updated for location %s.", location)
+                    return True
+
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot post Neviweb: %s", data) from e
+            raise PyNeviweb130Error(
+                f"Cannot post Neviweb status for location {location} with data {data}"
+            ) from e
+
+        # Handle API error
         if "error" in resp:
-            _LOGGER.debug("Service error received: %s", resp)
+            code = resp["error"].get("code")
+            _LOGGER.debug("Error response for Neviweb location %s status update: %s", location, resp)
 
-        return success
+            if code == "USRSESSEXP":
+                _LOGGER.error(
+                    "Session expired while setting Neviweb status for location %s. "
+                    "Set scan_interval < 10 minutes to avoid session expiration.",
+                    location,
+                )
+                return False
 
+        # All failed
+        _LOGGER.debug("Failed to update Neviweb status for location %s.", location)
+        return False
 
-create_session = Neviweb130Client.create_session
+# create_session = Neviweb130Client.create_session
 
 
 class Neviweb130Coordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, client: Neviweb130Client, scan_interval):
-        """Initialize the Neviweb130Coordinator.timedelta(seconds=360)"""
+        """Initialize the Neviweb130Coordinator."""
 
         _LOGGER.debug("Coordinator scan interval = %s", scan_interval)
         super().__init__(
