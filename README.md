@@ -160,7 +160,8 @@ There are two methods to install this custom component:
           schema.py
           sensor.py
           services.yaml
-          switch.py 
+          switch.py
+          update.py
           valve.py
     ```
 ## Legacy configuration
@@ -474,7 +475,7 @@ Seven attributes are added to track energy usage for devices:
 - monthly_kwh: kwh used for last month.
 
 They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart. Neviweb have a two 
-hours delay to publish his data.
+hours delay to publish his data. Your data will be delayed by 2 hours.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant 
@@ -672,9 +673,9 @@ Icons are available from [www](https://github.com/claudegel/sinope-130/tree/mast
     - Wait until device restart.
 
 ## TO DO
-- when this component will be stable. Merge it with The Neviweb component to poll all devices from only one component.
 - This custom component will be updated to neviweb130-V2 soon. This imply config_flow, coordinator, attributes entities,
   English/French translation and many more features.
+- Improve energy stat polling from Neviweb.
 
 ## Buy me a coffee or a beer
 If you want to make donation as appreciation of my work, you can do so via PayPal. Thank you!
