@@ -66,6 +66,13 @@ from .const import (
     VERSION,
 )
 from .devices import save_devices
+from .helpers import (
+    async_notify_once_or_update,
+    async_notify_throttled,
+    async_notify_critical,
+    NeviwebEntityHelper,
+    NamingHelper,
+)
 from .schema import (
     HA_TO_NEVIWEB_TIMER,
     SET_ACTIVATION_SCHEMA,
@@ -84,9 +91,6 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = f"{DOMAIN} light"
-DEFAULT_NAME_2 = f"{DOMAIN} light 2"
-DEFAULT_NAME_3 = f"{DOMAIN} light 3"
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [
@@ -119,6 +123,7 @@ async def async_setup_entry(
 
     data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
     data["device_dict"] = hass.data[DOMAIN]["device_dict"]
+    config_prefix = data["prefix"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -128,18 +133,23 @@ async def async_setup_entry(
 
     device_registry = dr.async_get(hass)
 
+    platform = __name__.split(".")[-1] # "light"
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
     entities: list[Neviweb130Light] = []
-    for gateway_data, default_name in [
-        (data["neviweb130_client"].gateway_data, DEFAULT_NAME),
-        (data["neviweb130_client"].gateway_data2, DEFAULT_NAME_2),
-        (data["neviweb130_client"].gateway_data3, DEFAULT_NAME_3),
-    ]:
+    for index, gateway_data in enumerate([
+        data["neviweb130_client"].gateway_data,
+        data["neviweb130_client"].gateway_data2,
+        data["neviweb130_client"].gateway_data3,
+    ], start=1):
+
+        default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
                 if "signature" in device_info and "model" in device_info["signature"]:
                     model = device_info["signature"]["model"]
                     if model in IMPLEMENTED_DEVICE_MODEL:
-                        device_name = f"{default_name} {device_info['name']}"
+                        device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
                         device_firmware = "{major}.{middle}.{minor}".format(
                             **device_info["signature"]["softVersion"]
@@ -162,6 +172,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 coordinator,
+                                entry,
                             )
                         elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
                             device = Neviweb130Dimmer(
@@ -171,6 +182,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 coordinator,
+                                entry,
                             )
                         elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
                             device = Neviweb130NewDimmer(
@@ -180,6 +192,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 coordinator,
+                                entry,
                             )
 
                         _LOGGER.warning("Device registered = %s", device_info["id"])
@@ -468,7 +481,7 @@ async def async_add_data(conf_dir, device_dict, id, data, mark):
 class Neviweb130Light(CoordinatorEntity, LightEntity):
     """Implementation of a neviweb light, SW2500ZB, SW2500ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -485,6 +498,8 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._client = data["neviweb130_client"]
         self._stat_interval = data["stat_interval"]
         self._notify = data["notify"]
+        self._prefix = data["prefix"]
+        self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -526,7 +541,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
-            name=self._name,
+            name=f"{self._prefix} {self._name}" if self._prefix else self._name,
             manufacturer="claudegel",
             model=self._device_model,
             sw_version=self._firmware,
@@ -556,13 +571,16 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            await self.async_notify_ha(
+                            await self.async_notify_critical(
+                                self.hass,
                                 "Warning: Neviweb Device error code detected: "
                                 + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                                 + " for device: "
                                 + self._name
                                 + ", Sku: "
-                                + self._sku
+                                + self._sku,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
                             )
                     self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
@@ -597,8 +615,11 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
@@ -619,7 +640,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     @override
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return f"{self._entry.entry_id}_{self._id}"
 
     @property
     @override
@@ -631,6 +652,8 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     @override
     def name(self):
         """Return the name of the light."""
+        if self._prefix:
+            return f"{self._prefix} {self._name}"
         return self._name
 
     @property
@@ -845,7 +868,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             today = date.today()
             current_month = today.month
             current_day = today.day
-            device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id)
+            device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id, False)
             # _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
@@ -863,7 +886,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             else:
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-            device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
+            device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
             # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
@@ -885,7 +908,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             else:
                 self._today_kwh = 0
                 _LOGGER.warning("%s Got None for device_daily_stats", self._name)
-            device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id)
+            device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
             # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
@@ -935,10 +958,13 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... Reconnecting...")
             if self._notify == "notification" or self._notify == "both":
-                await self.async_notify_ha(
+                await async_notify_once_or_update(
+                    self.hass,
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
                     + "Set your scan_interval parameter to less than 10 "
-                    + "minutes to avoid this... Reconnecting..."
+                    + "minutes to avoid this... Reconnecting...",
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_reconnect",
                 )
             await self._client.async_reconnect()
         elif error_data == "ACCDAYREQMAX":
@@ -946,13 +972,20 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance... Retry later")
-            await self.async_notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
+            await async_notify_critical(
+                self.hass,
+                "Warning: Neviweb access temporary blocked for maintenance... Retry later",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_access_error",
+            )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
             _LOGGER.warning("Maximum session number reached... Close other connections and try again")
-            await self.async_notify_ha(
-                "Warning: Maximum Neviweb session number reached... Close other connections and try again"
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Maximum Neviweb session number reached... Close other connections and try again",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_session_error",
             )
             await self._client.async_reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -1015,15 +1048,18 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                     self._name,
                 )
             if self._notify == "notification" or self._notify == "both":
-                await self.async_notify_ha(
-                    "Warning: Received message from Neviweb, device disconnected..."
-                    + "Check your log... Neviweb update will be halted for 20 "
-                    + "minutes for "
+                await async_notify_once_or_update(
+                    self.hass,
+                    "Warning: Received message from Neviweb, device "
+                    + "disconnected... Check your log... Neviweb update will "
+                    + "be halted for 20 minutes for "
                     + self._name
                     + ", id: "
                     + self._id
                     + ", Sku: "
-                    + self._sku
+                    + self._sku,
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_device_error",
                 )
             self._active = False
             self._snooze = time.time()
@@ -1035,19 +1071,6 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 error_data,
                 self._sku,
             )
-
-    async def async_notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
-        """Notify user via HA web frontend."""
-        await self.hass.services.call(
-            PN_DOMAIN,
-            "create",
-            service_data={
-                "title": title,
-                "message": msg,
-            },
-            blocking=False,
-        )
-        return True
 
 
 class Neviweb130Dimmer(Neviweb130Light):
@@ -1077,13 +1100,16 @@ class Neviweb130Dimmer(Neviweb130Light):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            await self.async_notify_ha(
+                            await async_notify_critical(
+                                self.hass,
                                 "Warning: Neviweb Device error code detected: "
                                 + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                                 + " for device: "
                                 + self._name
                                 + ", Sku: "
-                                + self._sku
+                                + self._sku,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
                             )
                     self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                     self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
@@ -1118,8 +1144,11 @@ class Neviweb130Dimmer(Neviweb130Light):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
@@ -1196,13 +1225,16 @@ class Neviweb130NewDimmer(Neviweb130Light):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            await self.async_notify_ha(
+                            await self.async_notify_critical(
+                                self.hass,
                                 "Warning: Neviweb Device error code detected: "
                                 + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                                 + " for device: "
                                 + self._name
                                 + ", Sku: "
-                                + self._sku
+                                + self._sku,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
                             )
                     self._rssi = device_data[ATTR_RSSI]
                     self._led_on_color = (
@@ -1235,8 +1267,11 @@ class Neviweb130NewDimmer(Neviweb130Light):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
