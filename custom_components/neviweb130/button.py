@@ -19,10 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
-
-DEFAULT_NAME = f"{DOMAIN} button"
-DEFAULT_NAME_2 = f"{DOMAIN} button 2"
-DEFAULT_NAME_3 = f"{DOMAIN} button 3"
+from .helpers import NamingHelper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,13 +53,19 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
+    config_prefix = data["prefix"]
+    platform = __name__.split(".")[-1] # "button"
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
-    for gateway_data, default_name in [
-        (client.gateway_data, DEFAULT_NAME),
-        (client.gateway_data2, DEFAULT_NAME_2),
-        (client.gateway_data3, DEFAULT_NAME_3),
-    ]:
+    for index, gateway_data in enumerate([
+        data["neviweb130_client"].gateway_data,
+        data["neviweb130_client"].gateway_data2,
+        data["neviweb130_client"].gateway_data3,
+    ], start=1):
+
+        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -75,7 +78,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
             if device_id not in coordinator.data:
                 _LOGGER.warning("Device %s coordinator.data not yet initialized", device_id)
 
-            device_name = f"{default_name} {device_info['name']}"
+            device_name = naming.device_name(platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
