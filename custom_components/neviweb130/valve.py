@@ -98,6 +98,7 @@ from .const import (
     VERSION,
 )
 from .devices import save_devices
+from .helpers import async_notify_once_or_update, async_notify_throttled, async_notify_critical, NamingHelper
 from .schema import (
     HA_TO_NEVIWEB_DELAY,
     HA_TO_NEVIWEB_DURATION,
@@ -113,9 +114,6 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = f"{DOMAIN} valve"
-DEFAULT_NAME_2 = f"{DOMAIN} valve 2"
-DEFAULT_NAME_3 = f"{DOMAIN} valve 3"
 SNOOZE_TIME = 1200
 
 SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
@@ -157,6 +155,7 @@ async def async_setup_entry(
 
     data["conf_dir"] = hass.data[DOMAIN]["conf_dir"]
     data["device_dict"] = hass.data[DOMAIN]["device_dict"]
+    config_prefix = data["prefix"]
 
     if "neviweb130_client" not in data:
         _LOGGER.error("Neviweb130 client initialization failed.")
@@ -165,21 +164,36 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities: list[Neviweb130Valve] = []
-    dr.async_get(hass)
+    device_registry = dr.async_get(hass)
 
-    for gateway_data, default_name in [
-        (data["neviweb130_client"].gateway_data, DEFAULT_NAME),
-        (data["neviweb130_client"].gateway_data2, DEFAULT_NAME_2),
-        (data["neviweb130_client"].gateway_data3, DEFAULT_NAME_3),
-    ]:
+    platform = __name__.split(".")[-1] # "valve"
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
+    for index, gateway_data in enumerate([
+        data["neviweb130_client"].gateway_data,
+        data["neviweb130_client"].gateway_data2,
+        data["neviweb130_client"].gateway_data3,
+    ], start=1):
+
+        default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
                 if "signature" in device_info and "model" in device_info["signature"]:
                     model = device_info["signature"]["model"]
                     if model in IMPLEMENTED_DEVICE_MODEL:
-                        device_name = f"{default_name} {device_info['name']}"
+                        device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
                         device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
+                        # Ensure the device is registered in the device registry
+                        device_entry = device_registry.async_get_or_create(
+                            config_entry_id=entry.entry_id,
+                            identifiers={(DOMAIN, str(device_info["id"]))},
+                            name=device_name,
+                            manufacturer="claudegel",
+                            model=device_info["signature"]["model"],
+                            sw_version=device_firmware,
+                        )
+
                         if device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL:
                             device_type = "valve"
                             device = Neviweb130Valve(
@@ -190,6 +204,7 @@ async def async_setup_entry(
                                 device_firmware,
                                 device_type,
                                 coordinator,
+                                entry,
                             )
                         elif device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL:
                             device_type = "valve"
@@ -201,6 +216,7 @@ async def async_setup_entry(
                                 device_firmware,
                                 device_type,
                                 coordinator,
+                                entry,
                             )
                         elif device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL:
                             device_type = "flow"
@@ -212,6 +228,7 @@ async def async_setup_entry(
                                 device_firmware,
                                 device_type,
                                 coordinator,
+                                entry,
                             )
                         else:
                             device_type = "flow"
@@ -223,6 +240,7 @@ async def async_setup_entry(
                                 device_firmware,
                                 device_type,
                                 coordinator,
+                                entry,
                             )
 
                         _LOGGER.warning("Device registered = %s", device_info["id"])
@@ -517,7 +535,7 @@ async def async_add_data(conf_dir, device_dict, id, data, mark):
 class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     """Implementation of a Neviweb valve."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", self._name, device_info)
@@ -530,6 +548,8 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         self._client = data["neviweb130_client"]
         self._stat_interval = data["stat_interval"]
         self._notify = data["notify"]
+        self._prefix = data["prefix"]
+        self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -577,7 +597,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
-            name=self._name,
+            name=f"{self._prefix} {self._name}" if self._prefix else self._name,
             manufacturer="claudegel",
             model=self._device_model,
             sw_version=self._firmware,
@@ -644,15 +664,18 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
     @override
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return f"{self._entry.entry_id}_{self._id}"
 
     @property
     @override
@@ -664,6 +687,8 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     @override
     def name(self):
         """Return the name of the valve."""
+        if self._prefix:
+            return f"{self._prefix} {self._name}"
         return self._name
 
     @property
@@ -939,17 +964,17 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 today = date.today()
                 current_month = today.month
                 current_day = today.day
-                device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id)
+                device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id, False)
                 # _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     n = len(device_monthly_stats)
                     monthly_kwh_count = 0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += device_monthly_stats[k]["period"] / 100
+                        monthly_kwh_count += device_monthly_stats[k]["period"]  #/ 1000
                         k += 1
                     self._monthly_kwh_count = round(monthly_kwh_count, 2)
-                    self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 100, 2)
+                    self._month_kwh = round(device_monthly_stats[n - 1]["period"], 2)
                     dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
                         timezone.utc
                     )
@@ -957,7 +982,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 else:
                     self._month_kwh = 0
                     _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-                device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
+                device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
                 # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     n = len(device_daily_stats)
@@ -970,16 +995,16 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                             .month
                             == current_month
                         ):
-                            daily_kwh_count += device_daily_stats[k]["period"] / 100
+                            daily_kwh_count += device_daily_stats[k]["period"]  #/ 1000
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 2)
-                    self._today_kwh = round(device_daily_stats[n - 1]["period"] / 100, 2)
+                    self._today_kwh = round(device_daily_stats[n - 1]["period"], 2)
                     dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
                     self._today_kwh = 0
                     _LOGGER.warning("%s Got None for device_daily_stats", self._name)
-                device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id)
+                device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
                 # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     n = len(device_hourly_stats)
@@ -990,10 +1015,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                             datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
                             == current_day
                         ):
-                            hourly_kwh_count += device_hourly_stats[k]["period"] / 100
+                            hourly_kwh_count += device_hourly_stats[k]["period"]  #/ 1000
                         k += 1
                     self._hourly_kwh_count = round(hourly_kwh_count, 2)
-                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 100, 2)
+                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"], 2)
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = datetime.strptime(
                         device_hourly_stats[n - 1]["date"],
@@ -1036,10 +1061,13 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... Reconnecting...")
             if self._notify == "notification" or self._notify == "both":
-                await self.async_notify_ha(
+                await async_notify_once_or_update(
+                    self.hass,
                     "Warning: Got USRSESSEXP error, Neviweb session expired. "
                     + "Set your scan_interval parameter to less than 10 minutes "
-                    + "to avoid this... Reconnecting..."
+                    + "to avoid this... Reconnecting...",
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_reconnect",
                 )
             await self._client.async_reconnect()
         elif error_data == "ACCDAYREQMAX":
@@ -1048,12 +1076,19 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance... Retry later")
-            await self.async_notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
+            await async_notify_once_or_update(
+                self.hass,
+                "Warning: Neviweb access temporary blocked for maintenance... Retry later",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_access_error",
+            )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
-            await self.async_notify_ha(
-                "Warning: Maximum Neviweb session number reached... Close other connections and try again"
+            await async_notify_critical(
+                self.hass,
+                "Warning: Maximum Neviweb session number reached... Close other connections and try again",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_session_error",
             )
             await self._client.async_reconnect()
         elif error_data == "DVCATTRNSPTD":
@@ -1116,7 +1151,8 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     self._name,
                 )
             if self._notify == "notification" or self._notify == "both":
-                await self.async_notify_ha(
+                await async_notify_once_or_update(
+                    self.hass,
                     "Warning: Received message from Neviweb, device "
                     + "disconnected... Check your log... Neviweb update will "
                     + "be halted for 20 minutes for "
@@ -1124,7 +1160,9 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     + ", id: "
                     + self._id
                     + ", Sku: "
-                    + self._sku
+                    + self._sku,
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_device_error",
                 )
             self._active = False
             self._snooze = time.time()
@@ -1137,26 +1175,13 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 self._sku,
             )
 
-    async def async_notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
-        """Notify user via HA web frontend."""
-        await self.hass.services.call(
-            PN_DOMAIN,
-            "create",
-            service_data={
-                "title": title,
-                "message": msg,
-            },
-            blocking=False,
-        )
-        return True
-
 
 class Neviweb130WifiValve(Neviweb130Valve):
     """Implementation of a Neviweb Wi-Fi valve, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
+        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
         self._away_action = None
         self._batt_action_low = None
         self._flowmeter_divisor = 1
@@ -1233,13 +1258,16 @@ class Neviweb130WifiValve(Neviweb130Valve):
                             self._water_leak_status == "flowMeter"
                             and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0
                         ):
-                            await self.async_notify_ha(
+                            await async_notify_critical(
+                                self.hass,
                                 "Warning: Neviweb Device error detected: "
                                 + device_data[ATTR_WATER_LEAK_STATUS]
                                 + " for device: "
                                 + self._name
                                 + ", Sku: "
-                                + self._sku
+                                + self._sku,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_device_error",
                             )
                     if ATTR_MOTOR_TARGET in device_data:
                         self._motor_target = device_data[ATTR_MOTOR_TARGET]
@@ -1299,8 +1327,11 @@ class Neviweb130WifiValve(Neviweb130Valve):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
@@ -1366,9 +1397,9 @@ class Neviweb130WifiValve(Neviweb130Valve):
 class Neviweb130MeshValve(Neviweb130Valve):
     """Implementation of a Neviweb mesh valve VA4220ZB and ACT4220ZB-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
+        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
         self._error_code = None
         self._flowmeter_divisor = 1
         self._flowmeter_enabled = None
@@ -1438,13 +1469,16 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
-                        await self.async_notify_ha(
+                        await async_notify_critical(
+                            self.hass,
                             "Warning: Neviweb Device error detected: "
                             + device_data[ATTR_WATER_LEAK_STATUS]
                             + " for device: "
                             + self._name
                             + ", Sku: "
-                            + self._sku
+                            + self._sku,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id="neviweb130_error_code",
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
@@ -1465,13 +1499,16 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            await self.async_notify_ha(
+                            await async_notify_critical(
+                                self.hass,
                                 "Warning: Neviweb Device error code detected: "
                                 + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                                 + " for device: "
                                 + self._name
                                 + ", Sku: "
-                                + self._sku
+                                + self._sku,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
                             )
                             _LOGGER.warning(
                                 "Error code set1 updated: %s",
@@ -1493,8 +1530,11 @@ class Neviweb130MeshValve(Neviweb130Valve):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
@@ -1550,9 +1590,9 @@ class Neviweb130MeshValve(Neviweb130Valve):
 class Neviweb130WifiMeshValve(Neviweb130Valve):
     """Implementation of a Neviweb Wi-Fi mesh valve, ACT4220WF-M, ACT4221WF-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator)
+        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
         self._batt_action_low = None
         self._flow_alarm_1 = None
         self._flow_alarm_2 = None
@@ -1625,13 +1665,16 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
-                        await self.async_notify_ha(
+                        await async_notify_critical(
+                            self.hass,
                             "Warning: Neviweb Device error detected: "
                             + device_data[ATTR_WATER_LEAK_STATUS]
                             + " for device: "
                             + self._name
                             + ", Sku: "
-                            + self._sku
+                            + self._sku,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id="neviweb130_error_code",
                         )
                     if ATTR_FLOW_ALARM_TIMER in device_data:
                         self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
@@ -1662,8 +1705,11 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    await self.async_notify_ha(
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku
+                    await async_notify_once_or_update(
+                        self.hass,
+                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"neviweb130_update_restarted",
                     )
 
     @property
