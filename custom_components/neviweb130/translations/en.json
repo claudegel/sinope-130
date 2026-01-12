@@ -4,13 +4,14 @@
     "step": {
       "user": {
         "title": "Neviweb130: Sinope Zigbee and Wi-Fi devices control",
-        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields network, network2 and network3 if you have multiple locations, or leave all 3 empty to auto-detect), scan interval, Homekit support, stat interval and notifications.",
+        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
+          "prefix": "Neviweb account name, optional for first account.",
           "username": "Neviweb email",
           "password": "Neviweb password",
-          "network": "Optional, First Neviweb location name",
-          "network2": "Optional, Second Neviweb location name",
-          "network3": "Optional, Third Neviweb location name",
+          "network": "Optional, First Neviweb location name or '_' or nothing for auto detection.",
+          "network2": "Optional, Second Neviweb location name or '_' or nothing for auto detection.",
+          "network3": "Optional, Third Neviweb location name or '_' or nothing for auto detection.",
           "homekit_mode": "Optional, Homekit support True/False",
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
@@ -20,13 +21,14 @@
       },
       "reconfigure": {
         "title": "Neviweb130: reconfigure options",
-        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields network, network2 and network3 if you have multiple locations, or leave all 3 empty to auto-detect), scan_interval, homekit_support, stat_interval and notifications.",
+        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
+          "prefix": "Neviweb account name, required for all accounts, set to default for first one.",
           "username": "Neviweb email",
           "password": "Neviweb password",
-          "network": "Optional, First Neviweb location name",
-          "network2": "Optional, Second Neviweb location name",
-          "network3": "Optional, Third Neviweb location name",
+          "network": "Optional, First Neviweb location name or '_' or nothing for auto detection.",
+          "network2": "Optional, Second Neviweb location name or '_' or nothing for auto detection.",
+          "network3": "Optional, Third Neviweb location name or '_' or nothing for auto detection.",
           "homekit_mode": "Optional, Homekit support True/False",
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
@@ -36,7 +38,10 @@
       }
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
+      "already_configured_for_this_user": "A configuration already exist for this Neviweb user.",
+      "single_instance_allowed": "Only a single instance of this integration is allowed.",
+      "Max_Two_instances_allowed": "You cannot add more than two instances of this integration."
     },
     "error": {
       "cannot_connect": "Test connection to Neviweb failed, check user and password",
@@ -47,25 +52,32 @@
     }
   },
   "options": {
+    "label": "Options",
     "step": {
-      "init": {
+      "options": {
         "title": "Neviweb130 Management",
-        "description": "Configure additional options for Neviweb130.",
+        "description": "Configure each option of Neviweb130 according to your needs.\nClick on button ? for help and documentation.",
         "data": {
-          "scan_interval": "Scan Interval",
-          "stat_interval": "Stat Interval",
-          "notify": "Notify",
-          "homekit_mode": "HomeKit Mode",
-          "ignore_miwi": "Ignore miwi devices",
+          "prefix": "Neviweb account name",
           "log_level": "Log Level",
           "log_max_bytes": "Log Max Size",
           "log_backup_count": "Backucp Files Number",
           "log_reset_on_start": "Log Reset on Start",
           "download_log": "Download log",
           "reload": "Reload Integration",
-          "migrate": "Migrate numeric unique_id"
+          "migrate": "Migrate numeric unique_id",
+          "request_limit": "Neviweb request counter safety limit",
+          "update_check_interval": "Update check interval",
+          "backup_mode": "Backup mode, full or partial",
+          "backup_folders": "Backup root folder"
         }
       }
+    },
+    "error": {
+      "empty_prefix": "Prefix cannot be empty.",
+      "space_not_allowed": "Spaces are not allowed.",
+      "non_ascii_prefix": "Prefix must contain only ASCII characters.",
+      "duplicate_prefix": "This prefix is already used by another Neviweb account."
     }
   },
   "entity": {
@@ -75,6 +87,9 @@
       },
       "battery_status": {
         "name": "Battery Status"
+      },
+      "em_heating": {
+        "name": "Emergency heating"
       },
       "gateway_status": {
         "name": "Gateway status"
