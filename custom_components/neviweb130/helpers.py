@@ -197,7 +197,7 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
         section = "## What's Changed\n" + "\n".join(cleaned_lines).strip()
     else:
         section = "No 'What's Changed' section found."
-    _LOGGER.warning("Release notes = %s", section)
+    _LOGGER.debug("Release notes = %s", section)
 
     if not safe_notes:
         safe_notes = f"## Version {latest}\n\nNo release notes available."
