@@ -1405,18 +1405,7 @@ class NeviwebDailyRequestSensor(Entity):
         # Secure limit for notification
         if count > 25000 and not self._notified:
             self._notified = True
-
-            asyncio.run_coroutine_threadsafe(
-                self._hass.services.async_call(
-                    "persistent_notification",
-                    "create",
-                    {
-                        "title": "Neviweb130",
-                        "message": f"Warning : {count} today request. Limit : 30000.",
-                    },
-                ),
-                self._hass.loop,
-            )
+            self.notify_ha(f"Warning : {count} today request. Limit : 30000.")
 
         # Reset du flag si on change de jour
         data = self._hass.data[DOMAIN]["request_data"]
