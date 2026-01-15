@@ -223,10 +223,11 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     try:
         data = Neviweb130Data(hass, hass_config[DOMAIN])
         hass.data[DOMAIN]["data"] = data
+        data.current_version = VERSION
     except IntegrationError as e:
         # Temporary workaround for sync setup: Avoid verbose traceback in logs. Once async_setup_entry is used,
         # we can remove the try-except as HomeAssistant will correctly handle the raised exception
-        _LOGGER.error("Neviweb initialization failed: %s", e)
+        _LOGGER.error("Neviweb130 initialization failed: %s", e)
         return False
 
     # Migrate entity unique_ids from int -> str.
@@ -272,32 +273,6 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
 
         return None
 
-    async def async_reload_integration(call):
-        """Reload Neviweb130 integration (V1)."""
-        _LOGGER.warning("Reloading Neviweb130 integration via service call")
-
-        # List platforms
-        platforms = [
-            Platform.CLIMATE,
-            Platform.LIGHT,
-            Platform.SWITCH,
-            Platform.SENSOR,
-            Platform.VALVE,
-            Platform.UPDATE,
-        ]
-
-        # Reload each plateform
-        for platform in platforms:
-            try:
-                await hass.helpers.entity_platform.async_reload(platform, DOMAIN)  # type: ignore[attr-defined]
-                _LOGGER.debug("Reloaded platform: %s", platform)
-            except Exception as err:
-                _LOGGER.error("Failed to reload platform %s: %s", platform, err)
-
-        _LOGGER.warning("Neviweb130 integration reloaded successfully")
-
-    hass.services.register(DOMAIN, "reload", async_reload_integration)
-
     async def async_init_update():
         latest = await fetch_latest_version()
         if latest is None:
@@ -305,6 +280,7 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
             return
 
         hass.data[DOMAIN]["data"].available_version = latest
+
         result = await fetch_release_notes(latest)
         if result is None:
             title = "No title available."
@@ -314,6 +290,14 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
 
         hass.data[DOMAIN]["data"].release_title = title
         hass.data[DOMAIN]["data"].release_notes = notes
+        entity = hass.data[DOMAIN].get("update_entity")
+        if entity:
+            entity._latest_version = latest
+            entity._attr_latest_version = latest
+            entity._release_notes = notes
+            entity._release_title = title
+            entity._release_summary = entity.release_summary
+            entity.async_write_ha_state()
 
     hass.loop.call_soon_threadsafe(hass.async_create_task, async_init_update())
 
