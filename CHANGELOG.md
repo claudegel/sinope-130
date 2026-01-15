@@ -4,10 +4,13 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.0.1] - 2026-01-15
 ### Added
-
+- Add Neviweb requests counter.
+- Add neviweb130 updater. Please read the documentation.
+- 
 ### Fix
-- Fix update version check
-- remove auto reload of neviweb130
+- Fix update version check.
+- remove auto reload of neviweb130.
+- Fix notification when Neviweb requests counter reach the limit.
 
 ### Doc
 
