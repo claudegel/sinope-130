@@ -2,11 +2,11 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.0.1] - 2026-01-15
+## [v4.0.1] - 2026-01-17
 ### Added
-- Add Neviweb requests counter.
+- Add Neviweb requests counter, sensor.neviweb130_daily_requests
 - Add neviweb130 updater. Please read the documentation.
-- 
+
 ### Fix
 - Fix update version check.
 - remove auto reload of neviweb130.
