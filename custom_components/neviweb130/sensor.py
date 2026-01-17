@@ -16,6 +16,7 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
+import asyncio
 import datetime
 import logging
 import time
@@ -77,7 +78,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
-from .helpers import get_daily_request_count
+from .helpers import get_daily_request_count, notify_ha
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
@@ -1368,7 +1369,7 @@ class NeviwebDailyRequestSensor(Entity):
     """Sensor interne : nombre de requêtes Neviweb130 aujourd'hui."""
 
     def __init__(self, hass):
-        self._hass = hass
+        self.hass = hass
         self._attr_name = "Neviweb130 Daily Requests"
         self._attr_unique_id = f"{DOMAIN}_daily_requests"
         self._notified = False
@@ -1383,7 +1384,7 @@ class NeviwebDailyRequestSensor(Entity):
 
     @property
     def state(self):
-        return get_daily_request_count(self._hass)
+        return get_daily_request_count(self.hass)
 
     @property
     def icon(self):
@@ -1391,7 +1392,7 @@ class NeviwebDailyRequestSensor(Entity):
 
     @property
     def extra_state_attributes(self):
-        data = self._hass.data[DOMAIN]["request_data"]
+        data = self.hass.data[DOMAIN]["request_data"]
         return {
             "date": data["date"],
             "limit": 30000,
@@ -1399,16 +1400,18 @@ class NeviwebDailyRequestSensor(Entity):
 
     def update(self):
         """Send notification if we reach limit for request."""
-        count = get_daily_request_count(self._hass)
+        count = get_daily_request_count(self.hass)
 
         # Secure limit for notification
         if count > 25000 and not self._notified:
             self._notified = True
-            self.notify_ha(f"Warning : {count} today request. Limit : 30000.")
+            notify_ha(self.hass, f"Warning : {count} today request. Limit : 30000.")
 
         # Reset du flag si on change de jour
-        data = self._hass.data[DOMAIN]["request_data"]
+        data = self.hass.data[DOMAIN]["request_data"]
         today = datetime.date.today().isoformat()
 
         if data["date"] != today:
             self._notified = False
+
+        return None
