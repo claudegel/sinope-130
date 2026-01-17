@@ -260,11 +260,7 @@ def get_daily_request_count(hass):
 # ─────────────────────────────────────────────
 
 
-async def async_notify_ha(
-    hass: HomeAssistant,
-    msg: str,
-    title: str = "Neviweb130 integration"
-) -> None:
+async def async_notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integration") -> None:
     await hass.services.async_call(
         "persistent_notification",
         "create",
@@ -274,11 +270,8 @@ async def async_notify_ha(
         },
     )
 
-def notify_ha(
-    hass: HomeAssistant,
-    msg: str,
-    title: str = "Neviweb130 integration"
-) -> None:
+
+def notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integration") -> None:
     asyncio.run_coroutine_threadsafe(
         async_notify_ha(hass, msg, title),
         hass.loop,
