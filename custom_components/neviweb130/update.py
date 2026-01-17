@@ -25,6 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 VALID_ASSET_PATTERN = re.compile(r"^sinope-130-(v[\w\.\-]+)\.(zip|sha256)$")
 
+
 def compute_sha256(file_path: str) -> str:
     """Compute SHA256 hash of a file."""
     sha256 = hashlib.sha256()
@@ -173,7 +174,9 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     async def async_release_notes(self) -> str | None:
         """Return release notes for the update dialog."""
-        alert = "\n\n<ha-alert alert-type='error'>You need to restart Home Assistant manually after updating.</ha-alert>"
+        alert = (
+            "\n\n<ha-alert alert-type='error'>You need to restart Home Assistant manually after updating.</ha-alert>"
+        )
         return self._release_notes + alert
 
     @property
