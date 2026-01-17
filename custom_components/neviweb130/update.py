@@ -160,8 +160,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def latest_version(self) -> str | None:
-        if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            return f"\U0001f6a7 (pre-release) {self._latest_version}"
         return self._latest_version
 
     @property
