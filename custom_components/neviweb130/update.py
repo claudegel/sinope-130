@@ -165,12 +165,15 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def has_breaking_changes(self) -> bool:
-        return has_breaking_changes(self._release_notes)
+        if self._release_notes is None:
+            return False
+        return bool(has_breaking_changes(self._release_notes))
 
     @property
     def release_summary(self) -> str | None:
         if self._attr_requires_restart and self._installed_version != self._latest_version:
             return self._release_summary
+        return None
 
     async def async_release_notes(self) -> str | None:
         """Return release notes for the update dialog."""
@@ -215,7 +218,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        attrs: dict[str, Any] = {}
 
         if self._last_check:
             attrs["last_check"] = self._last_check
@@ -350,7 +353,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
         api_url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
 
         backup_dir: str | None = None
-        target_dir: str | None = None
 
         try:
             # Fetch release info
