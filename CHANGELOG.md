@@ -6,6 +6,7 @@ All modification for this custom_component will be added in this file.
 ### Added
 - Add Neviweb requests counter, sensor.neviweb130_daily_requests
 - Add neviweb130 updater. Please read the documentation.
+- Add notification methods in helpers.py
 
 ### Fix
 - Fix update version check.
