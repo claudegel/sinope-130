@@ -160,7 +160,8 @@ There are two methods to install this custom component:
           schema.py
           sensor.py
           services.yaml
-          switch.py 
+          switch.py
+          update.py
           valve.py
     ```
 ## Legacy configuration
@@ -226,7 +227,7 @@ Both modes are supported by this custom component.
 It is now possible to know if your GT130 is still online of offline with Neviweb via the gateway_status attribute. The 
 GT130 is detected as sensor.neviweb130_sensor_gt130
 
-## Automatic update system
+## Updater
 
 Neviweb130 now include a complete update system that include:
 - Automatic update check every 6 hours:
@@ -265,10 +266,6 @@ Neviweb130 now include a complete update system that include:
 
 - Version notes can be viewed via link provided on the update card that point to GitHub releases motes.
 
-- Auto reload entity:
-  At the end of update, if everything is fine, the updator will reload Neviweb130 automatically.
-  No need to restart Home Assistant.
-
 - Updater have many attributes to help user:
   - check_interval: 6h, (will become an option in futur version)
   - last_check: date/time of last available version check.
@@ -278,10 +275,11 @@ Neviweb130 now include a complete update system that include:
   - rollback_status: If an update fail, last active version will be rolled back.
   - update_percentage: Show a slider for update process followup.
 
-You will need to deactivate HACS update or you will get two update notifications. This can be done in 
-parameters / devices & services / HACS. Pick 'Sinope Neviweb130' and deactivate the pre-release button if set. 
-Locate the Sinope Neviweb130 integration and click on the three vertical dots on the right end of the 
-line. Click on 'deactivate the device'. It will still be possible to do manual update or redownload via HACS.
+You will need to deactivate HACS update or you will get two update notifications with two update cards. 
+This can be done in parameters / devices & services / HACS. Pick 'Sinope Neviweb130' and deactivate 
+the pre-release button if set. Locate the Sinope Neviweb130 integration and click on the three vertical 
+dots on the right end of the line. Click on 'deactivate the device'. It will still be possible to do manual 
+update or redownload via HACS.
 
 ## Neviweb daily request counter
 As Sinopé is becoming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
@@ -417,7 +415,7 @@ parameters. Those custom services can be accessed via development tool/services 
 ## Logging for debugging
 As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviwen130 
 to a file neviweb130_log.txt in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
-each time it reach 2 meg in size.
+each time it reach 2 meg in size. Log rotation have a total of 4 files.
 
 To help debugging add snippet of this file to any issue you may have.
 
@@ -477,7 +475,7 @@ Seven attributes are added to track energy usage for devices:
 - monthly_kwh: kwh used for last month.
 
 They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart. Neviweb have a two 
-hours delay to publish his data.
+hours delay to publish his data. Your data will be delayed by 2 hours.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant 
@@ -675,9 +673,11 @@ Icons are available from [www](https://github.com/claudegel/sinope-130/tree/mast
     - Wait until device restart.
 
 ## TO DO
-- when this component will be stable. Merge it with The Neviweb component to poll all devices from only one component.
+- This custom component will be updated to neviweb130-V2 soon. This imply config_flow, coordinator, attributes entities,
+  English/French translation and many more features.
+- Improve energy stat polling from Neviweb.
 
-## Buy me a coffee
+## Buy me a coffee or a beer
 If you want to make donation as appreciation of my work, you can do so via PayPal. Thank you!
 [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
 

@@ -2,6 +2,22 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.1] - 2026-01-17
+### Added
+- Add Neviweb requests counter, sensor.neviweb130_daily_requests
+- Add neviweb130 updater. Please read the documentation.
+- Add notification methods in helpers.py
+
+### Fix
+- Fix update version check.
+- remove auto reload of neviweb130.
+- Fix notification when Neviweb requests counter reach the limit.
+- Refactor update.py to get proper available version from Github.
+
+### Doc
+- Documentation for updater.
+- Documentation for neviweb requests counter.
+
 ## [v4.0.1b3] - 2026-01-10
 ### Added
 - Test for workflows.

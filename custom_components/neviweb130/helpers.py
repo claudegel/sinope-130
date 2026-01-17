@@ -8,6 +8,7 @@ import shutil
 from logging.handlers import RotatingFileHandler
 
 import aiohttp
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
@@ -197,7 +198,7 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
         section = "## What's Changed\n" + "\n".join(cleaned_lines).strip()
     else:
         section = "No 'What's Changed' section found."
-    _LOGGER.warning("Release notes = %s", section)
+    _LOGGER.debug("Release notes = %s", section)
 
     if not safe_notes:
         safe_notes = f"## Version {latest}\n\nNo release notes available."
@@ -252,3 +253,26 @@ def increment_request_counter(hass):
 def get_daily_request_count(hass):
     """Return the daily request count."""
     return hass.data[DOMAIN]["request_data"]["count"]
+
+
+# ─────────────────────────────────────────────
+# SECTION NOTIFICATION
+# ─────────────────────────────────────────────
+
+
+async def async_notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integration") -> None:
+    await hass.services.async_call(
+        "persistent_notification",
+        "create",
+        {
+            "title": title,
+            "message": msg,
+        },
+    )
+
+
+def notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integration") -> None:
+    asyncio.run_coroutine_threadsafe(
+        async_notify_ha(hass, msg, title),
+        hass.loop,
+    )

@@ -4,6 +4,7 @@ import datetime
 import hashlib
 import logging
 import os
+import re
 import shutil
 import tempfile
 import zipfile
@@ -22,6 +23,8 @@ from .helpers import build_update_summary, has_breaking_changes
 
 _LOGGER = logging.getLogger(__name__)
 
+VALID_ASSET_PATTERN = re.compile(r"^sinope-130-(v[\w\.\-]+)\.(zip|sha256)$")
+
 
 def compute_sha256(file_path: str) -> str:
     """Compute SHA256 hash of a file."""
@@ -30,6 +33,23 @@ def compute_sha256(file_path: str) -> str:
         for chunk in iter(lambda: f.read(8192), b""):
             sha256.update(chunk)
     return sha256.hexdigest()
+
+
+def filter_valid_assets(assets, expected_version):
+    valid_assets = []
+    for asset in assets:
+        name = asset.get("name", "")
+        match = VALID_ASSET_PATTERN.match(name)
+        if not match:
+            continue
+
+        version = match.group(1)
+        if version != expected_version:
+            continue
+
+        valid_assets.append(asset)
+
+    return valid_assets
 
 
 async def async_setup_platform(
@@ -48,6 +68,7 @@ async def async_setup_platform(
         return
 
     entity = Neviweb130UpdateEntity(hass, data)
+    hass.data[DOMAIN]["update_entity"] = entity
     async_add_entities([entity], True)
 
     now = datetime.datetime.now()
@@ -58,7 +79,6 @@ async def async_setup_platform(
     entity.async_write_ha_state()
 
     async def scheduled_check(now: datetime.datetime) -> None:
-        _LOGGER.warning("SCHEDULED CHECK TRIGGERED")
         await entity.async_check_for_updates()
         now = datetime.datetime.now()
         entity._last_check = now.isoformat()
@@ -67,7 +87,7 @@ async def async_setup_platform(
         entity._update_status = "idle"
         entity.async_write_ha_state()
 
-    _LOGGER.warning("Scheduler registered for Neviweb130 update")
+    _LOGGER.debug("Scheduler registered for Neviweb130 update")
 
     async_track_time_interval(
         hass,
@@ -118,6 +138,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._last_update_success: str | None = None
         self._update_status: str = "idle"
         self._rollback_status: str = "none"
+        self._local_backup_dir: str | None = None
+        self._target_dir: str = self.hass.config.path("custom_components/neviweb130")
 
         # Supported features
         self._attr_supported_features = (
@@ -128,6 +150,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
         )
 
         self._attr_requires_restart = True
+        self._attr_installed_version = installed
+        self._attr_latest_version = latest
 
         _LOGGER.debug("Release summary received in update: %s", self._release_summary)
 
@@ -137,30 +161,26 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def latest_version(self) -> str | None:
-        if self._latest_version and any(x in self._latest_version for x in ("b", "beta", "rc")):
-            return f"\U0001f6a7 (pre-release) {self._latest_version}"
         return self._latest_version
 
     @property
     def has_breaking_changes(self) -> bool:
-        return has_breaking_changes(self._release_notes)
+        if self._release_notes is None:
+            return False
+        return bool(has_breaking_changes(self._release_notes))
 
     @property
     def release_summary(self) -> str | None:
-        try:
+        if self._attr_requires_restart and self._installed_version != self._latest_version:
             return self._release_summary
-        except Exception as err:  # pragma: no cover - defensive
-            _LOGGER.error("Error building release_summary: %s", err)
-            if self._latest_version and self._installed_version:
-                return f"Update available: {self._installed_version} → {self._latest_version}"
-            return "Update available, but release notes could not be loaded."
-
-    def release_notes(self) -> str | None:
-        return self._release_notes or ""
+        return None
 
     async def async_release_notes(self) -> str | None:
         """Return release notes for the update dialog."""
-        return self._release_notes or ""
+        alert = (
+            "\n\n<ha-alert alert-type='error'>You need to restart Home Assistant manually after updating.</ha-alert>"
+        )
+        return self._release_notes + alert
 
     @property
     def release_url(self) -> str | None:
@@ -194,11 +214,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
     @property
     def in_progress(self) -> bool | None:
         """Return True if update in progress."""
-        return True if self._in_progress else None
+        return self._in_progress
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        attrs: dict[str, Any] = {}
 
         if self._last_check:
             attrs["last_check"] = self._last_check
@@ -212,12 +232,16 @@ class Neviweb130UpdateEntity(UpdateEntity):
             attrs["update_status"] = self._update_status
         if self._rollback_status:
             attrs["rollback_status"] = self._rollback_status
+        attrs["update_available"] = self._installed_version != self._latest_version
 
         return attrs
 
+    @property
+    def requires_restart(self) -> bool:
+        return self._attr_requires_restart
+
     async def async_check_for_updates(self) -> None:
         """Check GitHub for new releases and update entity state."""
-
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get("https://api.github.com/repos/claudegel/sinope-130/releases") as resp:
@@ -229,7 +253,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
             notes = latest_release.get("body", "")
             title = latest_release.get("name", "")
 
-            # Nothing new → exit
             if not latest:
                 _LOGGER.warning("GitHub returned an empty tag_name")
                 return
@@ -240,20 +263,16 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             _LOGGER.info("New Neviweb130 version detected: %s", latest)
 
-            # Update internal attributes (V1)
+            # Update internal attributes
             self._latest_version = latest
+            self._attr_latest_version = latest
             self._release_notes = notes
             self._release_title = title
 
             installed = self._installed_version or ""
             safe_notes = notes or ""
 
-            # Build summary
-            summary = build_update_summary(
-                installed,
-                latest,
-                safe_notes,
-            )
+            summary = build_update_summary(installed, latest, safe_notes)
 
             prefix = ""
             if self.has_breaking_changes:
@@ -263,7 +282,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             self._release_summary = prefix + summary
 
-            # Refresh entity in HA
             self.async_write_ha_state()
 
         except Exception as err:
@@ -282,41 +300,17 @@ class Neviweb130UpdateEntity(UpdateEntity):
         try:
             await self.hass.services.async_call(
                 "hassio",
-                "snapshot_partial",
+                "backup_partial",
                 {
                     "name": snapshot_name,
                     "folders": ["config"],
                 },
                 blocking=True,
             )
-            _LOGGER.info("Partial snapshot '%s' triggered successfully", snapshot_name)
-
-            # Check snapshot is listed
-            backups = await self.hass.services.async_call(
-                "hassio",
-                "backups",
-                {},
-                blocking=True,
-                return_response=True,
-            )
-
-            if backups and "data" in backups and "backups" in backups["data"]:
-                found = any(b["name"] == snapshot_name for b in backups["data"]["backups"])
-                if found:
-                    _LOGGER.info(
-                        "Partial snapshot '%s' confirmed in Supervisor backups",
-                        snapshot_name,
-                    )
-                else:
-                    _LOGGER.warning(
-                        "Partial snapshot '%s' not found in Supervisor backups!",
-                        snapshot_name,
-                    )
-            else:
-                _LOGGER.error("Unable to verify snapshot listing in Supervisor")
+            _LOGGER.info("Partial backup '%s' triggered successfully", snapshot_name)
 
         except Exception as err:
-            _LOGGER.error("Partial snapshot '%s' failed: %s", snapshot_name, err)
+            _LOGGER.error("Backup failed: %s", err)
 
     async def _do_update(self, version: str | None) -> None:
         """Do update."""
@@ -359,7 +353,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
         api_url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
 
         backup_dir: str | None = None
-        target_dir: str | None = None
 
         try:
             # Fetch release info
@@ -368,18 +361,22 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     resp.raise_for_status()
                     release_data = await resp.json()
 
-            # Select correct ZIP (HACS ZIP)
+            # Select correct ZIP
+            assets = release_data.get("assets", [])
+            # Expected version
+            expected_version = release_data["tag_name"]
+            valid_assets = filter_valid_assets(assets, expected_version)
+
             asset_zip = next(
-                (
-                    a
-                    for a in release_data.get("assets", [])
-                    if a.get("name", "").startswith("sinope-130") and a.get("name", "").endswith(".zip")
-                ),
+                (a for a in valid_assets if a.get("name", "").endswith(".zip")),
                 None,
             )
 
             # Select SHA256 file
-            asset_sha = next((a for a in release_data.get("assets", []) if a.get("name", "").endswith(".sha256")), None)
+            asset_sha = next(
+                (a for a in valid_assets if a.get("name", "").endswith(".sha256")),
+                None,
+            )
 
             if not asset_zip or not asset_sha:
                 raise Exception("ZIP or SHA256 asset not found in GitHub release")
@@ -409,6 +406,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # Compute local SHA256
             local_sha256 = compute_sha256(tmp_zip.name)
+            expected_sha256 = expected_sha256.strip().split()[0]
 
             if local_sha256.lower() != expected_sha256.lower():
                 _LOGGER.error("SHA256 mismatch! Expected %s but got %s", expected_sha256, local_sha256)
@@ -438,18 +436,52 @@ class Neviweb130UpdateEntity(UpdateEntity):
             with zipfile.ZipFile(tmp_zip.name, "r") as zip_ref:
                 zip_ref.extractall(tmp_dir)
 
-            # 4- Copy files to custom_components/neviweb130
+            _LOGGER.debug("tmp_dir content: %s", os.listdir(tmp_dir))
+            _LOGGER.debug("root content: %s", os.listdir(os.path.join(tmp_dir, os.listdir(tmp_dir)[0])))
+
+            # 4- Copy files to custom_components/neviweb130/
             self._update_percentage = 80
             self.async_write_ha_state()
 
-            extracted_root = os.path.join(tmp_dir, os.listdir(tmp_dir)[0])
-            target_dir = os.path.join(self.hass.config.path(), "custom_components", DOMAIN)
-
+            # Always create a local backup for rollback
             backup_dir = tempfile.mkdtemp(prefix="neviweb130_backup_")
-            shutil.copytree(target_dir, backup_dir, dirs_exist_ok=True)
+            shutil.copytree(self._target_dir, backup_dir, dirs_exist_ok=True)
+            self._local_backup_dir = backup_dir
+            _LOGGER.info("Local backup created at %s", backup_dir)
 
-            shutil.rmtree(target_dir)
-            shutil.copytree(extracted_root, target_dir, dirs_exist_ok=True)
+            # Remove old version
+            shutil.rmtree(self._target_dir)
+            os.makedirs(self._target_dir, exist_ok=True)
+
+            # Detect root folder inside extracted ZIP
+            root = tmp_dir
+
+            while True:
+                entries = os.listdir(root)
+
+                # Si un seul dossier et pas de fichiers → descendre
+                if len(entries) == 1:
+                    candidate = os.path.join(root, entries[0])
+                    if os.path.isdir(candidate):
+                        root = candidate
+                        continue
+
+                break
+
+            extracted_root = root
+            _LOGGER.debug("Root = %s", extracted_root)
+
+            # Copy content of extracted_root into target_dir
+            for item in os.listdir(extracted_root):
+                src = os.path.join(extracted_root, item)
+                dst = os.path.join(self._target_dir, item)
+
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(src, dst)
+
+            _LOGGER.info("New version installed successfully into %s", self._target_dir)
 
             # 5- Cleanup
             self._update_percentage = 95
@@ -464,9 +496,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self._update_percentage = 100
             self.async_write_ha_state()
 
+            # Update installed version
             self._installed_version = version or self._latest_version
+            self._attr_installed_version = self._installed_version
+            self.hass.data[DOMAIN]["data"].current_version = self._installed_version
+
             if version:
                 self._latest_version = version
+                self._attr_latest_version = version
 
             await self.hass.services.async_call(
                 "persistent_notification",
@@ -482,13 +519,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
             )
 
             _LOGGER.info("Neviweb130 updated to version %s", version or self._latest_version)
-
-            await self.hass.services.async_call(
-                DOMAIN,
-                "reload",
-                {},
-                blocking=True,
-            )
 
         except Exception as err:
             _LOGGER.error("Update fail: %s", err)
@@ -511,14 +541,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
             )
 
             try:
-                if backup_dir is not None and target_dir is not None:
-                    if os.path.exists(target_dir):
-                        shutil.rmtree(target_dir)
-                    shutil.copytree(backup_dir, target_dir, dirs_exist_ok=True)
+                if self._local_backup_dir:
+                    if os.path.exists(self._target_dir):
+                        shutil.rmtree(self._target_dir)
+                    shutil.copytree(self._local_backup_dir, self._target_dir, dirs_exist_ok=True)
                     _LOGGER.warning("Rollback completed successfully")
                     self._rollback_status = "success"
                 else:
-                    _LOGGER.error("Rollback skipped: backup_dir or target_dir is None")
+                    _LOGGER.error("Rollback skipped: no local backup available")
                     self._rollback_status = "skipped"
             except Exception as rb_err:
                 _LOGGER.error("Rollback failed: %s", rb_err)
@@ -530,7 +560,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             try:
-                if backup_dir is not None and os.path.exists(backup_dir):
-                    shutil.rmtree(backup_dir)
-            except Exception:
-                pass
+                if self._local_backup_dir and os.path.exists(self._local_backup_dir):
+                    shutil.rmtree(self._local_backup_dir)
+                    _LOGGER.debug("Local backup directory removed: %s", self._local_backup_dir)
+            except Exception as cleanup_err:
+                _LOGGER.warning("Failed to remove local backup directory: %s", cleanup_err)
