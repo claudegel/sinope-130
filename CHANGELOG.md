@@ -14,6 +14,8 @@ All modification for this custom_component will be added in this file.
 - Refactor update.py to get proper available version from Github.
 
 ### Doc
+- Documentation for updater.
+- Documentation for neviweb requests counter.
 
 ## [v4.0.1b3] - 2026-01-10
 ### Added
