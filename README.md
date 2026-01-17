@@ -282,10 +282,11 @@ dots on the right end of the line. Click on 'deactivate the device'. It will sti
 update or redownload via HACS.
 
 ## Neviweb daily request counter
-As Sinopé is becoming more picky about request number per day, fixed to 30000. If you reah that limit you will be 
-disconnected until midnight. This is very bad if you have many devices or doing development on neviweb130.
+As Sinopé is becoming more picky about request number per day, limit fixed to 30000. If you reach that limit you 
+will be disconnected until midnight. This is very bad if you have many devices or doing development on neviweb130.
 I've added a daily Neviweb request counter that is reset to 0 at midnight and suvive HA restart. It create a 
-sensor sensor.neviweb130_daily_requests that increase at each request: update, stat polling, error status, etc
+sensor sensor.neviweb130_daily_requests that increase at each request: update, stats polling, error status, etc.
+The sensor survive HA restart and is set back to 0 at midnight every days.
 
 This way it is possible to improve your scan_interval to get the higher frequency without busting the limit.
 When reaching 25000 requests, neviweb130 will send a notification. Eventually this warning limit will be configurable.
