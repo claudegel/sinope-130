@@ -1,0 +1,85 @@
+name: Feature Request
+description: Proposer une amélioration ou une nouvelle fonctionnalité pour Neviweb130
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de contribuer à l’évolution de Neviweb130 !  
+        Les demandes de fonctionnalités nous aident à améliorer l’intégration pour tous.
+
+  - type: input
+    id: title
+    attributes:
+      label: Titre de la fonctionnalité
+      description: Résumez en une phrase ce que vous souhaitez ajouter.
+      placeholder: "Ex: Ajouter le support du mode Éco pour les thermostats"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description détaillée
+      description: Expliquez clairement ce que vous voulez et pourquoi.
+      placeholder: |
+        Décrivez le besoin, le contexte, et ce que la fonctionnalité devrait faire.
+        Exemple :
+        - Pourquoi cette fonctionnalité est utile
+        - Comment elle devrait fonctionner
+        - À quels appareils ou services elle s’applique
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Pourquoi est-ce important ?
+      description: Expliquez l’impact ou le bénéfice pour vous ou la communauté.
+      placeholder: "Ex: Cela permettrait d’automatiser…"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: Appareils concernés
+      description: Sélectionnez les appareils ou services liés à la demande.
+      options:
+        - Thermostats
+        - Switches
+        - Lights
+        - Load Controllers
+        - API / Compte Neviweb
+        - Update / Backup
+        - Autre
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+      description: Avez-vous pensé à d’autres solutions ou contournements ?
+      placeholder: "Ex: Utiliser une automatisation HA, un script, etc."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Contexte supplémentaire
+      description: Ajoutez tout ce qui pourrait aider (captures, logs, exemples).
+      placeholder: "Informations additionnelles…"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: J’ai vérifié qu’il n’existe pas déjà une demande similaire
+          required: true
+        - label: J’ai expliqué clairement le besoin
+          required: true
