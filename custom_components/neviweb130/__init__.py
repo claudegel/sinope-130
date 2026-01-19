@@ -322,21 +322,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "prefix": prefix,
     })
 
-    changelog_url = "https://raw.githubusercontent.com/claudegel/sinope-130/master/CHANGELOG.md"
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(changelog_url) as resp:
-                if resp.status == 200:
-                    changelog = await resp.text()
-                    version = entry.data.get("available_version")
-                    release_notes = extract_notes_for_version(changelog, version)
-
-                    new_data = {**entry.data, "release_notes": release_notes}
-                    hass.config_entries.async_update_entry(entry, data=new_data)
-                    _LOGGER.warning("Release notes for %s loaded from CHANGELOG.md", version)
-    except Exception as err:
-        _LOGGER.warning("Unable to get CHANGELOG: %s", err)
-
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
