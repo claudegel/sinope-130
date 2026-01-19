@@ -70,12 +70,11 @@ body:
       label: Home Assistant and/or neviweb130 logs
       description: |
         Enable debug log level if necessary in configuration.yaml:
-        ```
+
         logger:
           default: warning
           logs:
             custom_components.neviweb130: debug
-        ```
       render: shell
       placeholder: "Paste the relevant logs here."
     validations:
