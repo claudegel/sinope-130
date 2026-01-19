@@ -15,7 +15,7 @@ body:
     id: version
     attributes:
       label: Version de l’intégration
-      description: Version installée (ex: 4.0.1b3)
+      description: "Version installée (ex: 4.0.1b3)"
       placeholder: "vX.Y.Z"
     validations:
       required: true
@@ -70,12 +70,11 @@ body:
       label: Logs Home Assistant et/ou neviweb130
       description: |
         Activez le debug si nécessaire dans configuration.yaml :
-        ```
+
         logger:
           default: warning
           logs:
             custom_components.neviweb130: debug
-        ```
       render: shell
       placeholder: "Collez ici les logs pertinents."
     validations:
