@@ -16,10 +16,10 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
+import datetime
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from threading import Lock
 from typing import Any, Callable, Mapping, override
 
@@ -522,7 +522,7 @@ async def async_setup_entry(
 
     # Add daily request counter sensor
     counter = data["counter"]
-    entities.append(Neviweb130DailyRequestSensor(counter, entry))
+    entities.append(Neviweb130DailyRequestSensor(hass, counter, entry))
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
@@ -790,7 +790,7 @@ def neviweb_to_ha_height(value):
 
 def convert(sampling):
     sample = str(sampling)
-    date = datetime.fromtimestamp(int(sample[0:-3]))
+    date = datetime.datetime.fromtimestamp(int(sample[0:-3]))
     return date
 
 
@@ -1781,7 +1781,8 @@ class Neviweb130DailyRequestSensor(SensorEntity):
     _attr_icon = "mdi:counter"
     _attr_native_unit_of_measurement = "requests"
 
-    def __init__(self, counter, entry: ConfigEntry):
+    def __init__(self, hass, counter, entry: ConfigEntry):
+        self.hass = hass
         self._counter = counter
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_daily_requests"
@@ -1807,18 +1808,16 @@ class Neviweb130DailyRequestSensor(SensorEntity):
         """Send notification if we reach the limit."""
         count = self._counter.get_count()
         limit = self.hass.data[DOMAIN][self._entry.entry_id]["request_limit"]
-        
+
         # Notify when above threshold
         if count > limit and not self._notified:
             self._notified = True
 
-            await self.hass.services.async_call(
-                "persistent_notification",
-                "create",
-                {
-                    "title": "Neviweb130",
-                    "message": f"Warning: {count} requests today. Limit: 30000.",
-                },
+            await async_notify_once_or_update(
+                self.hass,
+                f"Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id=f"neviweb130_requests_limit",
             )
 
         # Reset notification flag if day changed
