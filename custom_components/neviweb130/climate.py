@@ -3010,10 +3010,15 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 _LOGGER.debug("Device dict updated: %s", self._device_dict)
                 self._energy_stat_time = time.time()
             else:
-                device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id, True)
-                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+#                device_monthly_stats = await self._client.async_get_device_monthly_stats(self._id, True)
+#                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 device_daily_stats = await self._client.async_get_device_daily_stats(self._id, True)
-                _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
+                _LOGGER.debug(
+                    "%s device_daily_stats (SKU: %s): %s, size = %s",
+                    self._name,
+                    device_daily_stats,
+                    len(device_daily_stats),
+                )
                 device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, True)
                 _LOGGER.debug(
                     "%s device hourly stat (SKU: %s): %s, size = %s",
