@@ -4,10 +4,12 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.0.2] - 2026-01-19
 ### Added
+- Add preliminary support for energy stat for TH6xxxWF devices.
 
 ### Fix
 - Fix blocking calls in update.py
 - Improve backup system
+- Fix monthly, daily and hourly stat for TH6xxxWF devices.
 
 ### Doc
 
