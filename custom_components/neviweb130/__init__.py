@@ -844,11 +844,13 @@ class Neviweb130Client:
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Monthly_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
+        if HC:
+            return data
         else:
-            _LOGGER.debug("Monthly stat error: %s", data)
-            return None
+            if "history" in data:
+                return data["history"]
+        _LOGGER.debug("Monthly stat error: %s", data)
+        return None
 
     def get_device_daily_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 30 days."""
@@ -876,11 +878,13 @@ class Neviweb130Client:
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Daily_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
+        if HC:
+            return data
         else:
-            _LOGGER.debug("Daily stat error: %s", data)
-            return None
+            if "history" in data:
+                return data["history"]
+        _LOGGER.debug("Daily stat error: %s", data)
+        return None
 
     def get_device_hourly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 hours."""
@@ -908,11 +912,13 @@ class Neviweb130Client:
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Hourly_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
+        if HC:
+            return data
         else:
-            _LOGGER.debug("Hourly stat error: %s", data)
-            return None
+            if "history" in data:
+                return data["history"]
+        _LOGGER.debug("Hourly stat error: %s", data)
+        return None
 
     def get_weather(self):
         """Get Neviweb weather for my location."""
