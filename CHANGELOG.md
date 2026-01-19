@@ -10,8 +10,10 @@ All modification for this custom_component will be added in this file.
 - Fix blocking calls in update.py
 - Improve backup system
 - Fix monthly, daily and hourly stat for TH6xxxWF devices.
+- Improve logging for TH6xxxWF stat devices
 
 ### Doc
+- Add issues templates for bug report and feature request in French and English.
 
 ## [v4.0.1] - 2026-01-17
 ### Added
