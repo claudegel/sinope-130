@@ -3093,13 +3093,19 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._mark = self._marker
                 self._energy_stat_time = time.time()
             else:
-                device_monthly_stats = self._client.get_device_monthly_stats(self._id, True)
-                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
+#                device_monthly_stats = self._client.get_device_monthly_stats(self._id, True)
+#                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 device_daily_stats = self._client.get_device_daily_stats(self._id, True)
-                _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
+                _LOGGER.debug(
+                    "%s device_daily_stats (SKU: %s) = %s",
+                    self._name,
+                    self._sku,
+                    device_daily_stats,
+                    len(device_daily_stats),
+                )
                 device_hourly_stats = self._client.get_device_hourly_stats(self._id, True)
                 _LOGGER.debug(
-                    "%s device hourly stat (SKU: %s): %s, size = %s",
+                    "%s device hourly stats (SKU: %s): %s, size = %s",
                     self._name,
                     self._sku,
                     device_hourly_stats,
