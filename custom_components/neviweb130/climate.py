@@ -3097,7 +3097,7 @@ class Neviweb130Thermostat(ClimateEntity):
 #                _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 device_daily_stats = self._client.get_device_daily_stats(self._id, True)
                 _LOGGER.debug(
-                    "%s device_daily_stats (SKU: %s) = %s",
+                    "%s device_daily_stats (SKU: %s): %s, size = %s",
                     self._name,
                     self._sku,
                     device_daily_stats,
