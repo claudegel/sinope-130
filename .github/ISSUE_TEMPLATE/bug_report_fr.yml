@@ -67,9 +67,9 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Logs Home Assistant
+      label: Logs Home Assistant et/ou neviweb130
       description: |
-        Activez le debug si nécessaire :
+        Activez le debug si nécessaire dans configuration.yaml :
         ```
         logger:
           default: warning
@@ -95,9 +95,9 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: J’ai vérifié qu’il n’existe pas déjà une issue similaire
+        - label: J’ai vérifié qu’il n’existe pas déjà une issue similaire.
           required: true
-        - label: J’ai testé avec la dernière version de l’intégration
+        - label: J’ai testé avec la dernière version de l’intégration.
           required: true
-        - label: J’ai fourni les logs pertinents
+        - label: J’ai fourni les logs pertinents.
           required: false
