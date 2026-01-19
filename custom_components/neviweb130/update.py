@@ -74,7 +74,6 @@ async def async_setup_platform(
     now = datetime.datetime.now()
     entity._last_check = now.isoformat()
     entity._next_check = (now + timedelta(hours=6)).isoformat()
-    entity._last_update_success = now.isoformat()
     entity._update_status = "idle"
     entity.async_write_ha_state()
 
@@ -297,14 +296,20 @@ class Neviweb130UpdateEntity(UpdateEntity):
         """Backup before update."""
         snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
+        folders = ["homeassistant"]
+
         try:
+            payload = {
+                "name": snapshot_name,
+                "folders": folders,
+                "addons": [],
+                "homeassistant_exclude_database": False,
+                "compressed": True,
+            }
             await self.hass.services.async_call(
                 "hassio",
                 "backup_partial",
-                {
-                    "name": snapshot_name,
-                    "folders": ["config"],
-                },
+                payload,
                 blocking=True,
             )
             _LOGGER.info("Partial backup '%s' triggered successfully", snapshot_name)
@@ -401,11 +406,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             tmp_zip = tempfile.NamedTemporaryFile(delete=False)
-            tmp_zip.write(data)
+            await self.hass.async_add_executor_job(tmp_zip.write, data)
             tmp_zip.close()
 
             # Compute local SHA256
-            local_sha256 = compute_sha256(tmp_zip.name)
+            local_sha256 = await self.hass.async_add_executor_job(compute_sha256, tmp_zip.name)
             expected_sha256 = expected_sha256.strip().split()[0]
 
             if local_sha256.lower() != expected_sha256.lower():
@@ -425,7 +430,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 self._update_percentage = None
                 self.async_write_ha_state()
 
-                os.remove(tmp_zip.name)
+                await self.hass.async_add_executor_job(os.remove, tmp_zip.name)
                 return
 
             # 3- Extract ZIP
@@ -434,10 +439,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             tmp_dir = tempfile.mkdtemp()
             with zipfile.ZipFile(tmp_zip.name, "r") as zip_ref:
-                zip_ref.extractall(tmp_dir)
+                await self.hass.async_add_executor_job(zip_ref.extractall, tmp_dir)
 
-            _LOGGER.debug("tmp_dir content: %s", os.listdir(tmp_dir))
-            _LOGGER.debug("root content: %s", os.listdir(os.path.join(tmp_dir, os.listdir(tmp_dir)[0])))
+            tmp_list = await self.hass.async_add_executor_job(os.listdir, tmp_dir)
+            _LOGGER.debug("tmp_dir content: %s", tmp_list)
+
+            first = tmp_list[0]
+            root_list = await self.hass.async_add_executor_job(os.listdir, os.path.join(tmp_dir, first))
+            _LOGGER.debug("root content: %s", root_list)
 
             # 4- Copy files to custom_components/neviweb130/
             self._update_percentage = 80
@@ -445,24 +454,33 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # Always create a local backup for rollback
             backup_dir = tempfile.mkdtemp(prefix="neviweb130_backup_")
-            shutil.copytree(self._target_dir, backup_dir, dirs_exist_ok=True)
+            await self.hass.async_add_executor_job(
+                shutil.copytree, self._target_dir, backup_dir, True
+            )
             self._local_backup_dir = backup_dir
             _LOGGER.info("Local backup created at %s", backup_dir)
 
             # Remove old version
-            shutil.rmtree(self._target_dir)
-            os.makedirs(self._target_dir, exist_ok=True)
+            await self.hass.async_add_executor_job(
+                shutil.rmtree, self._target_dir
+            )
+            await self.hass.async_add_executor_job(
+                os.makedirs, self._target_dir, exist_ok=True
+            )
 
             # Detect root folder inside extracted ZIP
             root = tmp_dir
 
             while True:
-                entries = os.listdir(root)
+                entries = await self.hass.async_add_executor_job(
+                    os.listdir, root
+                )
 
-                # Si un seul dossier et pas de fichiers → descendre
+                # If only a directory name → go down the tree
                 if len(entries) == 1:
                     candidate = os.path.join(root, entries[0])
-                    if os.path.isdir(candidate):
+                    is_dir = await self.hass.async_add_executor_job(os.path.isdir, candidate)
+                    if is_dir:
                         root = candidate
                         continue
 
@@ -472,14 +490,18 @@ class Neviweb130UpdateEntity(UpdateEntity):
             _LOGGER.debug("Root = %s", extracted_root)
 
             # Copy content of extracted_root into target_dir
-            for item in os.listdir(extracted_root):
+            items = await self.hass.async_add_executor_job(os.listdir, extracted_root)
+            for item in items:
                 src = os.path.join(extracted_root, item)
                 dst = os.path.join(self._target_dir, item)
 
-                if os.path.isdir(src):
-                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
+                if is_dir:
+                    await self.hass.async_add_executor_job(
+                        shutil.copytree, src, dst, True
+                    )
                 else:
-                    shutil.copy2(src, dst)
+                    await self.hass.async_add_executor_job(shutil.copy2, src, dst)
 
             _LOGGER.info("New version installed successfully into %s", self._target_dir)
 
@@ -487,8 +509,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self._update_percentage = 95
             self.async_write_ha_state()
 
-            os.remove(tmp_zip.name)
-            shutil.rmtree(tmp_dir)
+            await self.hass.async_add_executor_job(os.remove, tmp_zip.name)
+            await self.hass.async_add_executor_job(shutil.rmtree, tmp_dir)
 
             # 6- Finalize
             self._update_status = "success"
@@ -542,9 +564,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             try:
                 if self._local_backup_dir:
-                    if os.path.exists(self._target_dir):
-                        shutil.rmtree(self._target_dir)
-                    shutil.copytree(self._local_backup_dir, self._target_dir, dirs_exist_ok=True)
+                    exists = await self.hass.async_add_executor_job(os.path.exists, self._target_dir)
+                    if exists:
+                        await self.hass.async_add_executor_job(
+                            shutil.rmtree, self._target_dir
+                        )
+                    await self.hass.async_add_executor_job(
+                        shutil.copytree, self._local_backup_dir, self._target_dir, True
+                    )
                     _LOGGER.warning("Rollback completed successfully")
                     self._rollback_status = "success"
                 else:
@@ -560,8 +587,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             try:
-                if self._local_backup_dir and os.path.exists(self._local_backup_dir):
-                    shutil.rmtree(self._local_backup_dir)
+                exists = await self.hass.async_add_executor_job(os.path.exists, self._local_backup_dir)
+                if self._local_backup_dir and exists:
+                    await self.hass.async_add_executor_job(
+                        shutil.rmtree, self._local_backup_dir
+                    )
                     _LOGGER.debug("Local backup directory removed: %s", self._local_backup_dir)
             except Exception as cleanup_err:
                 _LOGGER.warning("Failed to remove local backup directory: %s", cleanup_err)
