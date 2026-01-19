@@ -173,8 +173,8 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         """Invoked when a user initiates a flow via the user interface."""
         # Only a single instance of the integration
         _LOGGER.debug("current_entry number = %s", len(self._async_current_entries()))
-        if len(self._async_current_entries()) > 2:
-            return cast(ConfigFlowResult, self.async_abort(reason="Max_Two_instances_allowed"))
+        if len(self._async_current_entries()) > 3:
+            return cast(ConfigFlowResult, self.async_abort(reason="Max_three_instances_allowed"))
 
         errors: dict[str, Any] = {}
 
