@@ -13,6 +13,7 @@ from datetime import timedelta
 from typing import Any
 
 import aiohttp
+from awesomeversion import AwesomeVersion
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -77,6 +78,12 @@ def get_entry_data(entry: ConfigEntry, key: str) -> str:
     return entry.data.get(key, DEFAULTS[key])
 
 
+def make_urls_clickable(text: str) -> str:
+    """Convert raw URLs into clickable Markdown links."""
+    url_pattern = r"(https?://[^\s)]+)"
+    return re.sub(url_pattern, r"[\1](\1)", text)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -91,8 +98,27 @@ async def async_setup_entry(
     hours = int(interval_str.replace("h", ""))
     interval = timedelta(hours=hours)
 
+    async def async_init_update():
+        await entity.async_check_for_updates()
+
+        now = datetime.datetime.now()
+        entity._last_check = now.isoformat()
+        entity._next_check = (now + interval).isoformat()
+        entity._update_status = "idle"
+
+        entity.async_write_ha_state()
+
+    hass.async_create_task(async_init_update())
+
     async def _scheduled_check(now):
         await entity.async_check_for_updates()
+
+        now = datetime.datetime.now()
+        entity._last_check = now.isoformat()
+        entity._next_check = (now + interval).isoformat()
+        entity._update_status = "idle"
+
+        entity.async_write_ha_state()
 
     async_track_time_interval(hass, _scheduled_check, interval)
 
@@ -111,6 +137,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._in_progress: bool = False
         self._last_check: str | None = None
         self._next_check: str | None = None
+        self._check_interval: str = entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
         self._last_update_success: str | None = None
         self._update_status: str = "idle"
         self._rollback_status: str = "none"
@@ -162,6 +189,9 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def has_breaking_changes(self) -> bool:
+        """Flag breaking changes."""
+        if self._release_notes is None:
+            return False
         return has_breaking_changes(self._release_notes)
 
     @property
@@ -183,7 +213,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
     @property
     def title(self) -> str:
         base = f"Neviweb130 {self._latest_version or ''}".strip()
-
         if self._release_title:
             base = f"{base} – {self._release_title}"
 
@@ -217,7 +246,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             attrs["update_status"] = self._update_status
         if self._rollback_status:
             attrs["rollback_status"] = self._rollback_status
-
+        attrs["update_available"] = self._installed_version != self._latest_version
         # Expose interval
         attrs["check_interval"] = self.entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
 
@@ -228,9 +257,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
     # -----------------------------
 
     async def async_release_notes(self) -> str | None:
+        """Return release notes for the update dialog."""
         if not self._release_notes:
             return "<p>No release notes available.</p>"
-        return markdown.markdown(self._release_notes)
+        notes = make_urls_clickable(self._release_notes)
+        return markdown.markdown(notes)
 
     # -----------------------------
     # Update check
@@ -304,8 +335,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     async def _do_backup(self) -> None:
         backup_mode = self.entry.options.get("backup_mode", "full")
-        folders = self.entry.options.get("backup_folders", [])
+        selected = self.entry.options.get("backup_folders", [])
+        folders = [
+            "homeassistant" if x == "config" else x
+            for x in selected
+        ]
 
+        _LOGGER.debug("Backup folder set to %s", folders)
         snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
         try:
@@ -318,16 +354,24 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 )
                 _LOGGER.info("Full backup '%s' triggered successfully", snapshot_name)
             else:
+                payload = {
+                    "name": snapshot_name,
+                    "folders": folders,
+                    "addons": [],
+                    "homeassistant_exclude_database": False,
+                    "compressed": True,
+                }
+
                 await self.hass.services.async_call(
                     "hassio",
                     "backup_partial",
-                    {"name": snapshot_name, "folders": folders},
+                    payload,
                     blocking=True,
                 )
                 _LOGGER.info("Partial backup '%s' triggered successfully", snapshot_name)
 
         except Exception as err:
-            _LOGGER.error("Snapshot failed: %s", err)
+            _LOGGER.error("Backup failed: %s", err)
 
     async def _do_update(self, version: str | None) -> None:
         self._rollback_status = "none"
@@ -336,26 +380,58 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._update_percentage = 0
         self.async_write_ha_state()
 
+        # Validate version is compatible to update
+        if version and self._installed_version:
+            try:
+                if AwesomeVersion(version) < AwesomeVersion(self._installed_version):
+                    _LOGGER.error("Refusing downgrade: %s < %s", version, self._installed_version)
+                    self._in_progress = False
+                    self._update_percentage = None
+                    self.async_write_ha_state()
+                    return
+            except Exception as err:
+                _LOGGER.warning("Version comparison failed: %s", err)
+                self._in_progress = False
+                self._update_percentage = None
+                self.async_write_ha_state()
+                return
+
         try:
             # Determine tag
             if version:
                 tag = f"v{version}" if not version.startswith("v") else version
             else:
+                if not self._latest_version:
+                    _LOGGER.error("No version specified and no latest_version available")
+                    self._in_progress = False
+                    self._update_percentage = None
+                    self.async_write_ha_state()
+                    return
                 tag = self._latest_version
 
+            _LOGGER.debug("Installing tag: %s", tag)
+
             api_url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
+
+            backup_dir: str | None = None
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(api_url) as resp:
                     resp.raise_for_status()
                     release_data = await resp.json()
 
+            # Select correct ZIP and SHA
+            assets = release_data.get("assets", [])
+            # Expected version
+            expected_version = release_data["tag_name"]
+            valid_assets = filter_valid_assets(assets, expected_version)
+
             asset_zip = next(
-                (a for a in release_data.get("assets", []) if a.get("name", "").endswith(".zip")),
+                (a for a in valid_assets if a.get("name", "").endswith(".zip")),
                 None,
             )
             asset_sha = next(
-                (a for a in release_data.get("assets", []) if a.get("name", "").endswith(".sha256")),
+                (a for a in valid_assets if a.get("name", "").endswith(".sha256")),
                 None,
             )
 
@@ -382,12 +458,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             tmp_zip = tempfile.NamedTemporaryFile(delete=False)
-            tmp_zip.write(data)
+            await self.hass.async_add_executor_job(tmp_zip.write, data)
             tmp_zip.close()
 
-            # Validate SHA256
-            local_sha256 = compute_sha256(tmp_zip.name)
+            # Compute local SHA256
+            local_sha256 = await self.hass.async_add_executor_job(compute_sha256, tmp_zip.name)
             expected_sha256 = expected_sha256.strip().split()[0]
+
             if local_sha256.lower() != expected_sha256.lower():
                 _LOGGER.error("SHA256 mismatch! Expected %s but got %s", expected_sha256, local_sha256)
 
@@ -404,7 +481,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 self._update_percentage = None
                 self.async_write_ha_state()
 
-                os.remove(tmp_zip.name)
+                await self.hass.async_add_executor_job(os.remove, tmp_zip.name)
                 raise Exception("SHA256 mismatch")
 
             # 3- Extract ZIP
@@ -413,38 +490,69 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             tmp_dir = tempfile.mkdtemp()
             with zipfile.ZipFile(tmp_zip.name, "r") as zip_ref:
-                zip_ref.extractall(tmp_dir)
+                await self.hass.async_add_executor_job(zip_ref.extractall, tmp_dir)
 
-            # 4- Copy files to custom_components/neviweb130
+            tmp_list = await self.hass.async_add_executor_job(os.listdir, tmp_dir)
+            _LOGGER.debug("tmp_dir content: %s", tmp_list)
+
+            first = tmp_list[0]
+            root_list = await self.hass.async_add_executor_job(os.listdir, os.path.join(tmp_dir, first))
+            _LOGGER.debug("root content: %s", root_list)
+
+            # 4- Copy files to custom_components/neviweb130/
             self._update_percentage = 80
             self.async_write_ha_state()
 
             # Always create a local backup for rollback
             backup_dir = tempfile.mkdtemp(prefix="neviweb130_backup_")
-            shutil.copytree(self._target_dir, backup_dir, dirs_exist_ok=True)
+            await self.hass.async_add_executor_job(
+                shutil.copytree, self._target_dir, backup_dir, True
+            )
             self._local_backup_dir = backup_dir
             _LOGGER.info("Local backup created at %s", backup_dir)
 
             # Remove old version
-            shutil.rmtree(self._target_dir)
-            os.makedirs(self._target_dir, exist_ok=True)
+            await self.hass.async_add_executor_job(
+                shutil.rmtree, self._target_dir
+            )
+            await self.hass.async_add_executor_job(
+                os.makedirs, self._target_dir, exist_ok=True
+            )
 
             # Detect root folder inside extracted ZIP
-            entries = os.listdir(tmp_dir)
-            if len(entries) == 1 and os.path.isdir(os.path.join(tmp_dir, entries[0])):
-                extracted_root = os.path.join(tmp_dir, entries[0])
-            else:
-                extracted_root = tmp_dir
+            root = tmp_dir
+
+            while True:
+                entries = await self.hass.async_add_executor_job(
+                    os.listdir, root
+                )
+
+                # If only a directory name → go down the tree
+                if len(entries) == 1:
+                    candidate = os.path.join(root, entries[0])
+                    is_dir = await self.hass.async_add_executor_job(os.path.isdir, candidate)
+                    if is_dir:
+                        root = candidate
+                        continue
+
+                break
+
+            extracted_root = root
+            _LOGGER.debug("Root = %s", extracted_root)
 
             # Copy content of extracted_root into target_dir
-            for item in os.listdir(extracted_root):
+            items = await self.hass.async_add_executor_job(os.listdir, extracted_root)
+            for item in items:
                 src = os.path.join(extracted_root, item)
                 dst = os.path.join(self._target_dir, item)
 
-                if os.path.isdir(src):
-                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
+                if is_dir:
+                    await self.hass.async_add_executor_job(
+                        shutil.copytree, src, dst, True
+                    )
                 else:
-                    shutil.copy2(src, dst)
+                    await self.hass.async_add_executor_job(shutil.copy2, src, dst)
 
             _LOGGER.info("New version installed successfully into %s", self._target_dir)
 
@@ -452,8 +560,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self._update_percentage = 95
             self.async_write_ha_state()
 
-            os.remove(tmp_zip.name)
-            shutil.rmtree(tmp_dir)
+            await self.hass.async_add_executor_job(os.remove, tmp_zip.name)
+            await self.hass.async_add_executor_job(shutil.rmtree, tmp_dir)
 
             # Finalize
             self._update_percentage = 100
@@ -468,7 +576,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 self.entry,
                 data={
                     **self.entry.data,
-                    "current_version": self._installed_version,
+                    "current_version": self._installed_version.lstrip("v"),
                 },
             )
 
@@ -482,6 +590,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 },
             )
 
+            # Reload neviweb130
             await self.hass.services.async_call(
                 DOMAIN,
                 "reload",
@@ -511,9 +620,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             try:
                 if self._local_backup_dir:
-                    if os.path.exists(self._target_dir):
-                        shutil.rmtree(self._target_dir)
-                    shutil.copytree(self._local_backup_dir, self._target_dir, dirs_exist_ok=True)
+                    exists = await self.hass.async_add_executor_job(os.path.exists, self._target_dir)
+                    if exists:
+                        await self.hass.async_add_executor_job(
+                            shutil.rmtree, self._target_dir
+                        )
+                    await self.hass.async_add_executor_job(
+                        shutil.copytree, self._local_backup_dir, self._target_dir, True
+                    )
                     _LOGGER.warning("Rollback completed successfully")
                     self._rollback_status = "success"
                 else:
@@ -529,8 +643,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             try:
-                if self._local_backup_dir and os.path.exists(self._local_backup_dir):
-                    shutil.rmtree(self._local_backup_dir)
+                exists = await self.hass.async_add_executor_job(os.path.exists, self._local_backup_dir)
+                if self._local_backup_dir and exists:
+                    await self.hass.async_add_executor_job(
+                        shutil.rmtree, self._local_backup_dir
+                    )
                     _LOGGER.debug("Local backup directory removed: %s", self._local_backup_dir)
             except Exception:
                 _LOGGER.warning("Failed to remove local backup directory: %s", cleanup_err)
