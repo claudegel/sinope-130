@@ -2,6 +2,15 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.2] - 2026-01-19
+### Added
+
+### Fix
+- Fix blocking calls in update.py
+- Improve backup system
+
+### Doc
+
 ## [v4.0.1] - 2026-01-17
 ### Added
 - Add Neviweb requests counter, sensor.neviweb130_daily_requests
