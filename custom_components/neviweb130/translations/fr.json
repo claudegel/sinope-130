@@ -41,7 +41,7 @@
       "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
       "already_configured_for_this_user": "Une configuration existe déjà pour ce compte Neviweb.",
       "single_instance_allowed": "Une seule instance de cette intégration est autorisée.",
-      "Max_Two_instances_allowed": "Vous ne pouvez pas ajouter plus de deux instances de cette intégration."
+      "Max_three_instances_allowed": "Vous ne pouvez pas ajouter plus de trois instances de cette intégration."
     },
     "error": {
       "bad_data_entry": "Vérifiez les informations entrées, il y a des erreurs.",
