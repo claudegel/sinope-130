@@ -220,6 +220,17 @@ ACCESSORY = [
 ]
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 
+TH6_MODES_VALUES: dict[str, str] = {
+    "heatStage1": "heatStage1RuntimeAndTimestamp",
+    "heatStage2": "heatStage2RuntimeAndTimestamp",
+    "coolStage1": "coolStage1RuntimeAndTimestamp",
+    "coolStage2": "coolStage2RuntimeAndTimestamp",
+    "auxHeatStage1": "auxHeatStage1RuntimeAndTimestamp",
+    "auxHeatStage2": "auxHeatStage2RuntimeAndTimestamp",
+    "fan": "fanRuntimeAndTimestamp",
+    "emergencyHeat": "emergencyHeatRuntimeAndTimestamp",
+}
+
 CYCLE_LENGTH_VALUES: dict[str, int] = {
     "off": 0,
     "1 sec": 1,
