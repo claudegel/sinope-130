@@ -897,9 +897,12 @@ class Neviweb130Client:
             return None
 
         # Normal case
-        if "history" in raw:
-            _LOGGER.debug("Received monthly stats for device %s: %s", device_id, raw["history"])
-            return raw["history"]
+        if HC:
+            return raw
+        else:
+            if "history" in raw:
+                _LOGGER.debug("Received monthly stats for device %s: %s", device_id, raw["history"])
+                return raw["history"]
 
         # Unexpected structure
         _LOGGER.debug(
@@ -953,9 +956,12 @@ class Neviweb130Client:
             return None
 
         # Normal case
-        if "history" in raw:
-            _LOGGER.debug("Received daily stats for device %s: %s", device_id, raw["history"])
-            return raw["history"]
+        if HC:
+            return raw
+        else:
+            if "history" in raw:
+                _LOGGER.debug("Received daily stats for device %s: %s", device_id, raw["history"])
+                return raw["history"]
 
         # Unexpected structure
         _LOGGER.debug(
@@ -1008,9 +1014,12 @@ class Neviweb130Client:
             return None
 
         # Normal case
-        if "history" in raw:
-            _LOGGER.debug("Received hourly stats for device %s: %s", device_id, raw["history"])
-            return raw["history"]
+        if HC:
+            return raw
+        else:
+            if "history" in raw:
+                _LOGGER.debug("Received hourly stats for device %s: %s", device_id, raw["history"])
+                return raw["history"]
 
         # Unexpected structure
         _LOGGER.debug(
