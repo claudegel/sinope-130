@@ -454,10 +454,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             # Always create a local backup for rollback
-            backup_dir = os.path.join(
-                tempfile.gettempdir(),
-                f"neviweb130_backup_{uuid.uuid4().hex}"
-            )
+            backup_dir = os.path.join(tempfile.gettempdir(), f"neviweb130_backup_{uuid.uuid4().hex}")
 
             await self.hass.async_add_executor_job(
                 lambda: shutil.copytree(self._target_dir, backup_dir, dirs_exist_ok=True)
