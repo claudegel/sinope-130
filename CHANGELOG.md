@@ -4,7 +4,7 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.0.2] - 2026-01-21
 ### Added
-- Add support for energy stat for TH6xxxWF devices.
+- Add support for runtime stat for TH6xxxWF devices.
 - Add Th6xxxwf runtimes modes for statistic.
 
 ### Fix
