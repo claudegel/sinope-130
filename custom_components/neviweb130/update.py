@@ -454,8 +454,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # Always create a local backup for rollback
             backup_dir = os.path.join(
-                tempfile.gettempdir(),
-                f"neviweb130_backup_{next(tempfile._get_candidate_names())}"
+                tempfile.gettempdir(), f"neviweb130_backup_{next(tempfile._get_candidate_names())}"
             )
 
             await self.hass.async_add_executor_job(
@@ -466,20 +465,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
             _LOGGER.info("Local backup created at %s", backup_dir)
 
             # Remove old version
-            await self.hass.async_add_executor_job(
-                shutil.rmtree, self._target_dir
-            )
-            await self.hass.async_add_executor_job(
-                lambda: os.makedirs(self._target_dir, exist_ok=True)
-            )
+            await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
+            await self.hass.async_add_executor_job(lambda: os.makedirs(self._target_dir, exist_ok=True))
 
             # Detect root folder inside extracted ZIP
             root = tmp_dir
 
             while True:
-                entries = await self.hass.async_add_executor_job(
-                    os.listdir, root
-                )
+                entries = await self.hass.async_add_executor_job(os.listdir, root)
 
                 # If only a directory name → go down the tree
                 if len(entries) == 1:
@@ -502,9 +495,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
                 is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
                 if is_dir:
-                    await self.hass.async_add_executor_job(
-                        lambda: shutil.copytree(src, dst, dirs_exist_ok=True)
-                    )
+                    await self.hass.async_add_executor_job(lambda: shutil.copytree(src, dst, dirs_exist_ok=True))
                 else:
                     await self.hass.async_add_executor_job(shutil.copy2, src, dst)
 
@@ -571,9 +562,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 if self._local_backup_dir:
                     exists = await self.hass.async_add_executor_job(os.path.exists, self._target_dir)
                     if exists:
-                        await self.hass.async_add_executor_job(
-                            shutil.rmtree, self._target_dir
-                        )
+                        await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
                     await self.hass.async_add_executor_job(
                         lambda: shutil.copytree(self._local_backup_dir, self._target_dir, dirs_exist_ok=True)
                     )
@@ -595,9 +584,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 if self._local_backup_dir:
                     exists = await self.hass.async_add_executor_job(os.path.exists, self._local_backup_dir)
                     if exists:
-                        await self.hass.async_add_executor_job(
-                            shutil.rmtree, self._local_backup_dir
-                        )
+                        await self.hass.async_add_executor_job(shutil.rmtree, self._local_backup_dir)
                         _LOGGER.debug("Local backup directory removed: %s", self._local_backup_dir)
             except Exception as cleanup_err:
                 _LOGGER.warning("Failed to remove local backup directory: %s", cleanup_err)

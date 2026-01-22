@@ -58,6 +58,7 @@ from datetime import date, datetime, timezone
 from threading import Lock
 from typing import Any, Mapping, override
 
+import homeassistant.util.dt as dt_util
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import (
     ATTR_TARGET_TEMP_HIGH,
@@ -76,7 +77,6 @@ from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperat
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import call_later
-import homeassistant.util.dt as dt_util
 
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -3121,7 +3121,9 @@ class Neviweb130Thermostat(ClimateEntity):
                         prev_value = prev_entry["value"]
 
                         # Timestamp Sinopé (UTC to local)
-                        ts_utc = datetime.strptime(last_entry["timestamp"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                        ts_utc = datetime.strptime(last_entry["timestamp"], "%Y-%m-%d %H:%M:%S").replace(
+                            tzinfo=timezone.utc
+                        )
                         ts_local = dt_util.as_local(ts_utc)
 
                         # Check if timestamp changed
