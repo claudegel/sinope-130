@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import tempfile
+import uuid
 import zipfile
 from datetime import timedelta
 from typing import Any
@@ -454,7 +455,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # Always create a local backup for rollback
             backup_dir = os.path.join(
-                tempfile.gettempdir(), f"neviweb130_backup_{next(tempfile._get_candidate_names())}"
+                tempfile.gettempdir(),
+                f"neviweb130_backup_{uuid.uuid4().hex}"
             )
 
             await self.hass.async_add_executor_job(
@@ -563,9 +565,17 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     exists = await self.hass.async_add_executor_job(os.path.exists, self._target_dir)
                     if exists:
                         await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
-                    await self.hass.async_add_executor_job(
-                        lambda: shutil.copytree(self._local_backup_dir, self._target_dir, dirs_exist_ok=True)
-                    )
+
+                    backup_src = self._local_backup_dir
+                    if backup_src is None:
+                        raise RuntimeError("Backup directory missing during rollback")
+
+                    # Local function for mypy
+                    def _restore_backup() -> None:
+                        shutil.copytree(backup_src, self._target_dir, dirs_exist_ok=True)
+
+                    await self.hass.async_add_executor_job(_restore_backup)
+
                     _LOGGER.warning("Rollback completed successfully")
                     self._rollback_status = "success"
                 else:
