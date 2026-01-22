@@ -464,8 +464,15 @@ class Neviweb130UpdateEntity(UpdateEntity):
             _LOGGER.info("Local backup created at %s", backup_dir)
 
             # Remove old version
-            await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
-            await self.hass.async_add_executor_job(lambda: os.makedirs(self._target_dir, exist_ok=True))
+            try:
+                await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
+            except Exception as err:
+                _LOGGER.warning("Failed to remove old version: %s", err)
+
+            def _make_target_dir() -> None:
+                os.makedirs(self._target_dir, exist_ok=True)
+
+            await self.hass.async_add_executor_job(_make_target_dir)
 
             # Detect root folder inside extracted ZIP
             root = tmp_dir
@@ -494,7 +501,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
                 is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
                 if is_dir:
-                    await self.hass.async_add_executor_job(lambda: shutil.copytree(src, dst, dirs_exist_ok=True))
+                    def _copytree_src_dst() -> None:
+                        shutil.copytree(src, dst, dirs_exist_ok=True)
+
+                    await self.hass.async_add_executor_job(_copytree_src_dst)
                 else:
                     await self.hass.async_add_executor_job(shutil.copy2, src, dst)
 
