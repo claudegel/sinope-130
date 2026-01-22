@@ -3108,10 +3108,10 @@ class Neviweb130Thermostat(ClimateEntity):
                     data = device_hourly_stats.get(key, [])
 
                     # Device Attributs
-                    total_attr = f"_{mode}_total_count"
+                    total_attr = f"_{mode}_hourly_total_count"
                     hourly_attr = f"_{mode}_hourly_count"
-                    ts_attr = f"_{mode}_last_timestamp"
-                    local_ts_attr = f"_{mode}_last_timestamp_local"
+                    ts_attr = f"_{mode}_hourly_last_timestamp"
+                    local_ts_attr = f"_{mode}_hourly_last_timestamp_local"
 
                     if data and len(data) >= 2:
                         last_entry = data[-1]
@@ -5794,10 +5794,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_display_status = None
         self._temp_offset_heat = None
         for mode in TH6_MODES_VALUES:
-            setattr(self, f"_{mode}_total_count", 0)
+            setattr(self, f"_{mode}_hourly_total_count", 0)
             setattr(self, f"_{mode}_hourly_count", 0)
-            setattr(self, f"_{mode}_last_timestamp", None)
-            setattr(self, f"_{mode}_last_timestamp_local", None)
+            setattr(self, f"_{mode}_hourly_last_timestamp", None)
+            setattr(self, f"_{mode}_hourly_last_timestamp_local", None)
 
     @override
     def update(self) -> None:
@@ -6615,9 +6615,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 }
             )
         for mode in TH6_MODES_VALUES:
-            data[f"{mode}_total_count"] = getattr(self, f"_{mode}_total_count")
+            data[f"{mode}_hourly_total_count"] = getattr(self, f"_{mode}_hourly_total_count")
             data[f"{mode}_hourly_count"] = getattr(self, f"_{mode}_hourly_count")
-            data[f"{mode}_last_timestamp"] = getattr(self, f"_{mode}_last_timestamp")
-            data[f"{mode}_last_timestamp_local"] = getattr(self, f"_{mode}_last_timestamp_local")
+            data[f"{mode}_hourly_last_timestamp"] = getattr(self, f"_{mode}_hourly_last_timestamp")
+            data[f"{mode}_hourly_last_timestamp_local"] = getattr(self, f"_{mode}_hourly_last_timestamp_local")
 
         return data
