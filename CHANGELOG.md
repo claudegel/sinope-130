@@ -12,6 +12,7 @@ All modification for this custom_component will be added in this file.
 - Improve backup system
 - Fix monthly, daily and hourly stat for TH6xxxWF devices.
 - Improve logging for TH6xxxWF stat devices
+- Fix attributes names for TH6xxxWF runtime data
 
 ### Doc
 - Add issues templates for bug report and feature request in French and English.
