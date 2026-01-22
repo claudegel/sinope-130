@@ -501,6 +501,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
                 is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
                 if is_dir:
+
                     def _copytree_src_dst() -> None:
                         shutil.copytree(src, dst, dirs_exist_ok=True)
 
