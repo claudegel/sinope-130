@@ -24,7 +24,7 @@ body:
       description: Expliquez clairement ce que vous voulez et pourquoi.
       placeholder: |
         Décrivez le besoin, le contexte, et ce que la fonctionnalité devrait faire.
-        Exemple :
+        Example :
         - Pourquoi cette fonctionnalité est utile
         - Comment elle devrait fonctionner
         - À quels appareils ou services elle s’applique
@@ -69,8 +69,8 @@ body:
     id: additional_context
     attributes:
       label: Contexte supplémentaire
-      description: Ajoutez tout ce qui pourrait aider (captures, logs, exemples).
-      placeholder: "Informations additionnelles…"
+      description: Ajoutez tout ce qui pourrait aider (captures, logs, examples).
+      placeholder: "Information additionnelles…"
     validations:
       required: false
 
