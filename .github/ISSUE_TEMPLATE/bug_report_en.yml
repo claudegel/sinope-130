@@ -1,0 +1,103 @@
+name: Bug Report
+description: Report a problem with the Neviweb130 integration
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for using Neviweb130!  
+        Before creating an issue, make sure you have:
+        - The latest version of the integration
+        - Checked Home Assistant logs
+        - Tested a restart of Home Assistant
+
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      description: "Installed version (ex: 4.0.1b3)"
+      placeholder: "vX.Y.Z"
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2024.12.x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the problem
+      description: Clearly explain what is not working.
+      placeholder: "Describe the expected behavior and the observed behavior."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Describe how to reproduce the issue.
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. Observe...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: Type of device affected
+      options:
+        - Thermostat
+        - Light
+        - Switch
+        - Load Controller
+        - API / Compte Neviweb
+        - Update / Backup
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Home Assistant and/or neviweb130 logs
+      description: |
+        Enable debug log level if necessary in configuration.yaml:
+        ```
+        logger:
+          default: warning
+          logs:
+            custom_components.neviweb130: debug
+        ```
+      render: shell
+      placeholder: "Paste the relevant logs here."
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: If relevant, add your YAML configuration or options.
+      render: yaml
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked that a similar issue does not already exist.
+          required: true
+        - label: I tested with the latest version of the integration.
+          required: true
+        - label: I have provided the relevant logs.
+          required: false

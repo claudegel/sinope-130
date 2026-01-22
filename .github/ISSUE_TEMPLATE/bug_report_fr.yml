@@ -1,0 +1,103 @@
+name: Bug Report
+description: Signaler un problème avec l’intégration Neviweb130
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci d’utiliser Neviweb130 !  
+        Avant de créer une issue, assurez-vous d’avoir :
+        - La dernière version de l’intégration
+        - Vérifié les logs Home Assistant
+        - Testé un redémarrage de Home Assistant
+
+  - type: input
+    id: version
+    attributes:
+      label: Version de l’intégration
+      description: "Version installée (ex: 4.0.1b3)"
+      placeholder: "vX.Y.Z"
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Version de Home Assistant
+      placeholder: "2024.12.x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description du problème
+      description: Expliquez clairement ce qui ne fonctionne pas.
+      placeholder: "Décrivez le comportement attendu et le comportement observé."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes pour reproduire
+      description: Décrivez comment reproduire le problème.
+      placeholder: |
+        1. Aller dans...
+        2. Cliquer sur...
+        3. Observer...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: Type d’appareil concerné
+      options:
+        - Thermostat
+        - Light
+        - Switch
+        - Load Controller
+        - API / Compte Neviweb
+        - Update / Backup
+        - Autre
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs Home Assistant et/ou neviweb130
+      description: |
+        Activez le debug si nécessaire dans configuration.yaml :
+        ```
+        logger:
+          default: warning
+          logs:
+            custom_components.neviweb130: debug
+        ```
+      render: shell
+      placeholder: "Collez ici les logs pertinents."
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Si pertinent, ajoutez votre configuration YAML ou options.
+      render: yaml
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: J’ai vérifié qu’il n’existe pas déjà une issue similaire.
+          required: true
+        - label: J’ai testé avec la dernière version de l’intégration.
+          required: true
+        - label: J’ai fourni les logs pertinents.
+          required: false

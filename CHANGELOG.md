@@ -2,6 +2,22 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.0.2] - 2026-01-21
+### Added
+- Add support for energy stat for TH6xxxWF devices.
+- Add Th6xxxwf runtimes modes for statistic.
+
+### Fix
+- Fix blocking calls in update.py
+- Improve backup system
+- Fix monthly, daily and hourly stat for TH6xxxWF devices.
+- Improve logging for TH6xxxWF stat devices
+- Fix attributes names for TH6xxxWF runtime data
+- Fix shutil.copytree parameters error
+
+### Doc
+- Add issues templates for bug report and feature request in French and English.
+
 ## [v4.0.1] - 2026-01-17
 ### Added
 - Add Neviweb requests counter, sensor.neviweb130_daily_requests

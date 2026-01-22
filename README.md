@@ -219,7 +219,7 @@ For Sedna valves there are two ways to connect it to Neviweb:
   is detected.
 - via GT130 in Zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is 
   passed to the valve. You'll need to set some automation rule in Neviweb or HA, to have the Sedna valve close if leak 
-- is detected by sensor.
+  is detected by sensor.
 
 Both modes are supported by this custom component. 
 
@@ -262,7 +262,7 @@ Neviweb130 now include a complete update system that include:
   - Add (Pre-release) in updater title.
 
 - Backup option:
-  Add a button to allow for system backup before update.
+  Add a button to allow for system backup before update. All the config directory and database are backuped.
 
 - Version notes can be viewed via link provided on the update card that point to GitHub releases motes.
 
@@ -318,8 +318,6 @@ neviweb131:
 - Restart Home Assistant.
 
 All devices on this second instance will have a name like climate.neviweb131_climate_office_thermostat.
-Don't be too aggressive on polling (scan_interval) or Neviweb will disconnect you as both instance polling
-come from your same IP.
 
 ## Custom services
 Automations require services to be able to send command. Ex. light.turn_on. For the Sinopé devices connected via 
