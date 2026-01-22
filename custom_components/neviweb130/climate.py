@@ -3107,7 +3107,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 for mode, key in TH6_MODES_VALUES.items():
                     data = device_hourly_stats.get(key, [])
 
-                    # Device Attributs
+                    # Device Attributes
                     total_attr = f"_{mode}_hourly_total_count"
                     hourly_attr = f"_{mode}_hourly_count"
                     ts_attr = f"_{mode}_hourly_last_timestamp"
@@ -3139,7 +3139,7 @@ class Neviweb130Thermostat(ClimateEntity):
                             pass
 
                     else:
-                        # Unsuported modes for this thermostat
+                        # Unsupported modes for this thermostat
                         setattr(self, total_attr, 0)
                         setattr(self, hourly_attr, 0)
 
