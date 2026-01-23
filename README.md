@@ -154,7 +154,7 @@ There are two methods to install this custom component:
 
 ## Configuration
 
-- Old way via configuration.yaml:
+- Legacy via configuration.yaml:
 
 To enable Neviweb130 management in your installation, add the following to your `configuration.yaml` file, then restart Home Assistant.
 
@@ -182,6 +182,8 @@ neviweb130:
  - change log level
  - extract and export all neviweb130 logging from home-assistant.log to a file neviweb130_log.txt.
  - migrate old numeric unique_id to new strings unique_id as required by HA.
+
+# Parameters description
 
 Networks names are the names found on top of first page after logging into Neviweb. If you have more then one network, just click on icon on top to find all networks names. Select the one used for GT130 or Wi-Fi devices. Both devices types must be on same network to work in neviweb130. If you have two networks for two GT130 or two Wi-Fi groups then you can add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and Zigbee/Wi-Fi devices on the same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) custom_component which can run along with this custom_component in HA.
 
