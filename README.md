@@ -128,16 +128,25 @@ There are two methods to install this custom component:
       custom_components/
         neviweb130/
           __init__.py
+          binary_sensor.py
+          button.py
           climate.py
           config_flow.py
           const.py
+          coordinator.py
+          devices.py
+          helpers.py
           light.py
           manifest.json
+          number.py
           schema.py
+          select.py
           sensor.py
-          strings.json
           services.yaml
+          session_manager.py
+          strings.json
           switch.py
+          update.py
           valve.py
           translations/en.json
           translations/fr.json
