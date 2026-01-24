@@ -24,7 +24,16 @@ This is a custom integration!
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 Documentation: {DOC_URL}
-If not done yet you can delete or comment out neviwev130 config in configuration.yaml.
+
+If not done yet, you can delete or comment out the neviweb130 config in configuration.yaml.
+
+To disable update tracking in HACS:
+HACS → Integrations → Sinope Neviweb130 → 3-dot menu → 2 entities →
+Select the Update entity → ⚙️ → disable “Visible”.
+
+Pour désactiver le suivi des mises à jour dans HACS :
+HACS → Intégrations → Sinope Neviweb130 → menu 3-points → 2 entités →
+Sélectionner l’entité Update → ⚙️ → désactiver “Visible”.
 -------------------------------------------------------------------
 """
 
@@ -409,6 +418,23 @@ VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
 SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
 FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
+
+TH6_MODES_VALUES: dict[str, str] = {
+    "heatStage1": "heatStage1RuntimeAndTimestamp",
+    "heatStage2": "heatStage2RuntimeAndTimestamp",
+    "coolStage1": "coolStage1RuntimeAndTimestamp",
+    "coolStage2": "coolStage2RuntimeAndTimestamp",
+    "auxHeatStage1": "auxHeatStage1RuntimeAndTimestamp",
+    "auxHeatStage2": "auxHeatStage2RuntimeAndTimestamp",
+    "fan": "fanRuntimeAndTimestamp",
+    "emergencyHeat": "emergencyHeatRuntimeAndTimestamp",
+}
+
+RUNTIME_COMPATIBLE_MODELS = {
+    "TH6": [6727, 6730, 6731],  # TH6500WF, TH6250WF
+}
+
+RUNTIME_PREFIXES = ["hourly"]
 
 # list attributes available for each device model
 MODEL_ATTRIBUTES = {
@@ -820,9 +846,6 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
-            "daily_kwh_count",
-            "hourly_kwh_count",
-            "monthly_kwh_count",
             "pi_heating_demand",
             "total_kwh_count",
         ],
@@ -856,9 +879,6 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
-            "daily_kwh_count",
-            "hourly_kwh_count",
-            "monthly_kwh_count",
             "pi_heating_demand",
             "total_kwh_count",
         ],
@@ -891,9 +911,6 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
-            "daily_kwh_count",
-            "hourly_kwh_count",
-            "monthly_kwh_count",
             "pi_heating_demand",
             "total_kwh_count",
         ],
