@@ -48,7 +48,12 @@
       "bad_network_name": "Le nom d'emplacement ne peut contenri de caractère accentués.",
       "Cannot_Connect": "Le test de connection à neviweb a échoué, vérifier le courriel et le mot de passe.",
       "Invalid_User_Email": "Le courriel fournit est invalide.",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "empty_folder": "Le dossier ne peut pas être vide.",
+      "invalid_characters": "Le dossier contient des caractères invalides.",
+      "folder_not_found": "Le dossier '{folder}' n'existe pas.",
+      "not_a_directory": "Le chemin '{folder}' n'est pas un dossier.",
+      "not_writable": "Home Assistant ne peut pas écrire dans '{folder}'."
     }
   },
   "options": {
@@ -291,14 +296,68 @@
       }
     },
     "sensor": {
+      "auxHeatStage1_hourly_count": {
+        "name": "Chauffage aux. étape 1 décompte horaire"
+      },
+      "auxHeatStage2_hourly_count": {
+        "name": "Chauffage aux. étape 2 décompte horaire"
+      },
+      "auxHeatStage1_hourly_total_count": {
+        "name": "Chauffage aux. étape 1 décompte horaire total"
+      },
+      "auxHeatStage2_hourly_total_count": {
+        "name": "Chauffage aux. étape 2 décompte horaire total"
+      },
+      "coolStage1_hourly_count": {
+        "name": "refroidissement étape 1 décompte horaire"
+      },
+      "coolStage2_hourly_count": {
+        "name": "refroidissement étape 2 décompte horaire"
+      },
+      "coolStage1_hourly_total_count": {
+        "name": "refroidissement étape 1 décompte horaire total"
+      },
+      "coolStage2_hourly_total_count": {
+        "name": "refroidissement étape 2 décompte horaire total"
+      },
       "daily_flow_count": {
-        "name": "Débit Quotidien"
+        "name": "Flux quotidien",
+        "state": {
+          "total": "Total"
+        }
       },
       "daily_kwh_count": {
-        "name": "Énergie Quotidienne"
+        "name": "Énergie quotidienne",
+        "state": {
+          "total": "Total"
+        }
+      },
+      "emergencyHeat_hourly_count": {
+        "name": "Chauffage d'urgence décompte horaire"
+      },
+      "emergencyHeat_hourly_total_count": {
+        "name": "Chauffage d'urgence décompte horaire total"
+      },
+      "fan_hourly_count": {
+        "name": "ventilateur décompte horaire"
+      },
+      "fan_hourly_total_count": {
+        "name": "ventilateur décompte horaire total"
       },
       "gauge_angle": {
-        "name": "Angle de Jauge"
+        "name": "Angle de jauge"
+      },
+      "heatStage1_hourly_count": {
+        "name": "Chaufage Étape 1 décompte horaire"
+      },
+      "heatStage2_hourly_count": {
+        "name": "Chaufage Étape 2 décompte horaire"
+      },
+      "heatStage1_hourly_total_count": {
+        "name": "Chaufage Étape 1 décompte horaire total"
+      },
+      "heatStage2_hourly_total_count": {
+        "name": "Chaufage Étape 2 décompte horaire total"
       },
       "hourly_flow_count": {
         "name": "Débit Horaire"
