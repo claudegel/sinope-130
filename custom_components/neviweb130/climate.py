@@ -210,9 +210,11 @@ from .const import (
     ATTR_WIFI_KEYPAD,
     ATTR_WIFI_WATTAGE,
     DOMAIN,
+    EXPOSED_ATTRIBUTES,
     MODE_AUTO_BYPASS,
     MODE_EM_HEAT,
     MODE_MANUAL,
+    RUNTIME_PREFIXES,
     SERVICE_SET_ACCESSORY_TYPE,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_AIR_FLOOR_MODE,
@@ -261,6 +263,7 @@ from .const import (
     SERVICE_SET_TEMPERATURE_FORMAT,
     SERVICE_SET_TEMPERATURE_OFFSET,
     SERVICE_SET_TIME_FORMAT,
+    TH6_MODES_VALUES,
     VERSION,
 )
 from .devices import save_devices
@@ -268,8 +271,12 @@ from .helpers import (
     async_notify_once_or_update,
     async_notify_throttled,
     async_notify_critical,
+    generate_runtime_count_attributes,
+    init_runtime_attributes,
     NeviwebEntityHelper,
     NamingHelper,
+    update_runtime_stats,
+    runtime_attributes_dict,
 )
 from .schema import (
     AUX_HEATING,
@@ -329,11 +336,18 @@ from .schema import (
     SET_TEMPERATURE_FORMAT_SCHEMA,
     SET_TEMPERATURE_OFFSET_SCHEMA,
     SET_TIME_FORMAT_SCHEMA,
-    TH6_MODES_VALUES,
     WIFI_FAN_SPEED,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Add runtime attribute
+for prefix in RUNTIME_PREFIXES:
+    runtime_attrs = generate_runtime_count_attributes(TH6_MODES_VALUES, prefix)
+    for attr in runtime_attrs:
+        if attr not in EXPOSED_ATTRIBUTES:
+            EXPOSED_ATTRIBUTES.append(attr)
+
 
 NEVIWEB_TO_HA_MODE = {v: k for k, v in HA_TO_NEVIWEB_MODE.items()}
 
@@ -3020,43 +3034,15 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     device_hourly_stats,
                     len(device_hourly_stats),
                 )
+                stats_map = {
+                    "hourly": device_hourly_stats,
+                    "daily": device_daily_stats,
+                    "monthly": device_monthly_stats,
+                }
                 # Get the hourly stats
-                for mode, key in TH6_MODES_VALUES.items():
-                    data = device_hourly_stats.get(key, [])
-
-                    # Device Attributs
-                    total_attr = f"_{mode}_total_count"
-                    hourly_attr = f"_{mode}_hourly_count"
-                    ts_attr = f"_{mode}_last_timestamp"
-                    local_ts_attr = f"_{mode}_last_timestamp_local"
-
-                    if data and len(data) >= 2:
-                        last_entry = data[-1]
-                        prev_entry = data[-2]
-
-                        last_value = last_entry["value"]
-                        prev_value = prev_entry["value"]
-
-                        # Timestamp Sinopé (UTC to local)
-                        ts_utc = datetime.strptime(last_entry["timestamp"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-                        ts_local = dt_util.as_local(ts_utc)
-
-                        # Check if timestamp changed
-                        if getattr(self, ts_attr, None) != last_entry["timestamp"]:
-                            # New data → we update
-                            setattr(self, total_attr, last_value)
-                            setattr(self, hourly_attr, max(0, last_value - prev_value))
-                            setattr(self, ts_attr, last_entry["timestamp"])
-                            setattr(self, local_ts_attr, ts_local.isoformat())
-
-                        else:
-                            # No timestamp change → do nothing
-                            pass
-
-                    else:
-                        # Unsuported modes for this thermostat
-                        setattr(self, total_attr, 0)
-                        setattr(self, hourly_attr, 0)
+                for prefix in RUNTIME_PREFIXES:
+                    if prefix in stats_map:
+                        update_runtime_stats(self, stats_map[prefix], TH6_MODES_VALUES, prefix)
 
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
@@ -5794,11 +5780,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._temp_offset_heat = None
         self._wifi_aux_cycle = None
         self._wifi_cycle = None
-        for mode in TH6_MODES_VALUES:
-            setattr(self, f"_{mode}_total_count", 0)
-            setattr(self, f"_{mode}_hourly_count", 0)
-            setattr(self, f"_{mode}_last_timestamp", None)
-            setattr(self, f"_{mode}_last_timestamp_local", None)
+        for prefix in RUNTIME_PREFIXES:
+            init_runtime_attributes(self, TH6_MODES_VALUES, prefix)
 
     @override
     async def async_update(self) -> None:
@@ -6611,10 +6594,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "interlock_partner": self._interlock_partner,
                 }
             )
-        for mode in TH6_MODES_VALUES:
-            data[f"{mode}_total_count"] = getattr(self, f"_{mode}_total_count")
-            data[f"{mode}_hourly_count"] = getattr(self, f"_{mode}_hourly_count")
-            data[f"{mode}_last_timestamp"] = getattr(self, f"_{mode}_last_timestamp")
-            data[f"{mode}_last_timestamp_local"] = getattr(self, f"_{mode}_last_timestamp_local")
+        for prefix in RUNTIME_PREFIXES:
+            data.update(runtime_attributes_dict(self, TH6_MODES_VALUES, prefix))
 
         return data
