@@ -80,9 +80,6 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = f"{DOMAIN} light"
-DEFAULT_NAME_2 = f"{DOMAIN} light 2"
-DEFAULT_NAME_3 = f"{DOMAIN} light 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
@@ -118,63 +115,71 @@ async def async_setup_platform(
     await data.migration_done.wait()
 
     entities: list[Neviweb130Light] = []
-    for device_info in data.neviweb130_client.gateway_data:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            device_sku = device_info["sku"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
-            if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
-                entities.append(Neviweb130Light(data, device_info, device_name, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
-                entities.append(Neviweb130Dimmer(data, device_info, device_name, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
-                entities.append(Neviweb130NewDimmer(data, device_info, device_name, device_sku, device_firmware))
-    for device_info in data.neviweb130_client.gateway_data2:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME_2, device_info["name"])
-            device_sku = device_info["sku"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
-            if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
-                entities.append(Neviweb130Light(data, device_info, device_name, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
-                entities.append(Neviweb130Dimmer(data, device_info, device_name, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
-                entities.append(Neviweb130NewDimmer(data, device_info, device_name, device_sku, device_firmware))
-    for device_info in data.neviweb130_client.gateway_data3:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME_3, device_info["name"])
-            device_sku = device_info["sku"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
-            if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
-                entities.append(Neviweb130Light(data, device_info, device_name, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
-                entities.append(Neviweb130Dimmer(data, device_info, device_name, device_sku, device_firmware))
-            elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
-                entities.append(Neviweb130NewDimmer(data, device_info, device_name, device_sku, device_firmware))
+
+    # Loop through all clients (supports multi-account)
+    for client in data.neviweb130_clients:
+        default_name = client.default_group_name("light")
+        default_name_2 = client.default_group_name("light", 2)
+        default_name_3 = client.default_group_name("light", 3)
+
+        # Process gateway_data for this client
+        for device_info in client.gateway_data:
+            if (
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
+            ):
+                device_name = "{} {}".format(default_name, device_info["name"])
+                device_sku = device_info["sku"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
+                )
+                if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
+                    entities.append(Neviweb130Light(device_info, device_name, device_sku, device_firmware, client))
+                elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
+                    entities.append(Neviweb130Dimmer(device_info, device_name, device_sku, device_firmware, client))
+                elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
+                    entities.append(Neviweb130NewDimmer(device_info, device_name, device_sku, device_firmware, client))
+        for device_info in client.gateway_data2:
+            if (
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
+            ):
+                device_name = "{} {}".format(default_name_2, device_info["name"])
+                device_sku = device_info["sku"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
+                )
+                if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
+                    entities.append(Neviweb130Light(device_info, device_name, device_sku, device_firmware, client))
+                elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
+                    entities.append(Neviweb130Dimmer(device_info, device_name, device_sku, device_firmware, client))
+                elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
+                    entities.append(Neviweb130NewDimmer(device_info, device_name, device_sku, device_firmware, client))
+        for device_info in client.gateway_data3:
+            if (
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
+            ):
+                device_name = "{} {}".format(default_name_3, device_info["name"])
+                device_sku = device_info["sku"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
+                )
+                if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
+                    entities.append(Neviweb130Light(device_info, device_name, device_sku, device_firmware, client))
+                elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
+                    entities.append(Neviweb130Dimmer(device_info, device_name, device_sku, device_firmware, client))
+                elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
+                    entities.append(Neviweb130NewDimmer(device_info, device_name, device_sku, device_firmware, client))
 
     async_add_entities(entities, True)
 
@@ -396,7 +401,7 @@ def lock_to_ha(lock):
 class Neviweb130Light(LightEntity):
     """Implementation of a neviweb light, SW2500ZB, SW2500ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware):
+    def __init__(self, device_info, name, sku, firmware, client):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._attr_state_class = SensorStateClass.TOTAL
@@ -406,7 +411,7 @@ class Neviweb130Light(LightEntity):
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -519,7 +524,7 @@ class Neviweb130Light(LightEntity):
     @override
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return self._client.scoped_unique_id(self._id)
 
     @property
     @override

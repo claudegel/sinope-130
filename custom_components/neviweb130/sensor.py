@@ -94,9 +94,6 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = f"{DOMAIN} sensor"
-DEFAULT_NAME_2 = f"{DOMAIN} sensor 2"
-DEFAULT_NAME_3 = f"{DOMAIN} sensor 3"
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
 
@@ -142,216 +139,149 @@ async def async_setup_platform(
 
     entities: list[Entity] = []
     entities.append(NeviwebDailyRequestSensor(hass))
-    for device_info in data.neviweb130_client.gateway_data:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME, device_info["name"])
-            device_sku = device_info["sku"]
-            location_id = device_info["location$id"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
+
+    # Loop through all clients (supports multi-account)
+    for client in data.neviweb130_clients:
+        default_name = client.default_group_name("sensor")
+        default_name_2 = client.default_group_name("sensor", 2)
+        default_name_3 = client.default_group_name("sensor", 3)
+
+        # Process gateway_data for this client
+        for device_info in client.gateway_data:
             if (
-                device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
-                or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
             ):
-                device_type = "leak"
-                entities.append(
-                    Neviweb130Sensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
-                    )
+                device_name = "{} {}".format(default_name, device_info["name"])
+                device_sku = device_info["sku"]
+                location_id = device_info["location$id"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
                 )
-            elif (
-                device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
-                or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
-            ):
-                device_type = "leak"
-                entities.append(
-                    Neviweb130ConnectedSensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
+                if (
+                    device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
+                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+                ):
+                    device_type = "leak"
+                    entities.append(
+                        Neviweb130Sensor(device_info, device_name, device_type, device_sku, device_firmware, client)
                     )
-                )
-            elif (
-                device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
-                or device_info["signature"]["model"] in IMPLEMENTED_LTE_TANK_MONITOR
-            ):
-                device_type = "level"
-                entities.append(
-                    Neviweb130TankSensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
+                elif (
+                    device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+                ):
+                    device_type = "leak"
+                    entities.append(
+                        Neviweb130ConnectedSensor(
+                            device_info, device_name, device_type, device_sku, device_firmware, client
+                        )
                     )
-                )
-            else:
-                device_type = "gateway"
-                entities.append(
-                    Neviweb130GatewaySensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
-                        location_id,
+                elif (
+                    device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR
+                    or device_info["signature"]["model"] in IMPLEMENTED_LTE_TANK_MONITOR
+                ):
+                    device_type = "level"
+                    entities.append(
+                        Neviweb130TankSensor(device_info, device_name, device_type, device_sku, device_firmware, client)
                     )
-                )
-    for device_info in data.neviweb130_client.gateway_data2:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME_2, device_info["name"])
-            device_sku = device_info["sku"]
-            location_id = device_info["location$id"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
+                else:
+                    device_type = "gateway"
+                    entities.append(
+                        Neviweb130GatewaySensor(
+                            device_info, device_name, device_type, device_sku, device_firmware, location_id, client
+                        )
+                    )
+        for device_info in client.gateway_data2:
             if (
-                device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
-                or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
             ):
-                device_type = "leak"
-                entities.append(
-                    Neviweb130Sensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
-                    )
+                device_name = "{} {}".format(default_name_2, device_info["name"])
+                device_sku = device_info["sku"]
+                location_id = device_info["location$id"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
                 )
-            elif (
-                device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
-                or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
-            ):
-                device_type = "leak"
-                entities.append(
-                    Neviweb130ConnectedSensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
+                if (
+                    device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
+                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+                ):
+                    device_type = "leak"
+                    entities.append(
+                        Neviweb130Sensor(device_info, device_name, device_type, device_sku, device_firmware, client)
                     )
-                )
-            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
-                device_type = "level"
-                entities.append(
-                    Neviweb130TankSensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
+                elif (
+                    device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+                ):
+                    device_type = "leak"
+                    entities.append(
+                        Neviweb130ConnectedSensor(
+                            device_info, device_name, device_type, device_sku, device_firmware, client
+                        )
                     )
-                )
-            else:
-                device_type = "gateway"
-                entities.append(
-                    Neviweb130GatewaySensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
-                        location_id,
+                elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+                    device_type = "level"
+                    entities.append(
+                        Neviweb130TankSensor(device_info, device_name, device_type, device_sku, device_firmware, client)
                     )
-                )
-    for device_info in data.neviweb130_client.gateway_data3:
-        if (
-            "signature" in device_info
-            and "model" in device_info["signature"]
-            and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
-        ):
-            device_name = "{} {}".format(DEFAULT_NAME_3, device_info["name"])
-            device_sku = device_info["sku"]
-            location_id = device_info["location$id"]
-            device_firmware = "{}.{}.{}".format(
-                device_info["signature"]["softVersion"]["major"],
-                device_info["signature"]["softVersion"]["middle"],
-                device_info["signature"]["softVersion"]["minor"],
-            )
+                else:
+                    device_type = "gateway"
+                    entities.append(
+                        Neviweb130GatewaySensor(
+                            device_info, device_name, device_type, device_sku, device_firmware, location_id, client
+                        )
+                    )
+        for device_info in client.gateway_data3:
             if (
-                device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
-                or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+                "signature" in device_info
+                and "model" in device_info["signature"]
+                and device_info["signature"]["model"] in IMPLEMENTED_DEVICE_MODEL
             ):
-                device_type = "leak"
-                entities.append(
-                    Neviweb130Sensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
-                    )
+                device_name = "{} {}".format(default_name_3, device_info["name"])
+                device_sku = device_info["sku"]
+                location_id = device_info["location$id"]
+                device_firmware = "{}.{}.{}".format(
+                    device_info["signature"]["softVersion"]["major"],
+                    device_info["signature"]["softVersion"]["middle"],
+                    device_info["signature"]["softVersion"]["minor"],
                 )
-            elif (
-                device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
-                or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
-            ):
-                device_type = "leak"
-                entities.append(
-                    Neviweb130ConnectedSensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
+                if (
+                    device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
+                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
+                ):
+                    device_type = "leak"
+                    entities.append(
+                        Neviweb130Sensor(device_info, device_name, device_type, device_sku, device_firmware, client)
                     )
-                )
-            elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
-                device_type = "level"
-                entities.append(
-                    Neviweb130TankSensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
+                elif (
+                    device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+                    or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+                ):
+                    device_type = "leak"
+                    entities.append(
+                        Neviweb130ConnectedSensor(
+                            device_info, device_name, device_type, device_sku, device_firmware, client
+                        )
                     )
-                )
-            else:
-                device_type = "gateway"
-                entities.append(
-                    Neviweb130GatewaySensor(
-                        data,
-                        device_info,
-                        device_name,
-                        device_type,
-                        device_sku,
-                        device_firmware,
-                        location_id,
+                elif device_info["signature"]["model"] in IMPLEMENTED_TANK_MONITOR:
+                    device_type = "level"
+                    entities.append(
+                        Neviweb130TankSensor(device_info, device_name, device_type, device_sku, device_firmware, client)
                     )
-                )
+                else:
+                    device_type = "gateway"
+                    entities.append(
+                        Neviweb130GatewaySensor(
+                            device_info, device_name, device_type, device_sku, device_firmware, location_id, client
+                        )
+                    )
 
     async_add_entities(entities, True)
 
@@ -605,13 +535,13 @@ def convert_to_percent(angle, low, high):
 class Neviweb130Sensor(Entity):
     """Implementation of a Neviweb sensor connected to GT130."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware):
+    def __init__(self, device_info, name, device_type, sku, firmware, client):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._name = name
         self._sku = sku
         self._firmware = firmware
-        self._client = data.neviweb130_client
+        self._client = client
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
         self._device_model_cfg = device_info["signature"]["modelCfg"]
@@ -741,7 +671,7 @@ class Neviweb130Sensor(Entity):
     @override
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
-        return self._id
+        return self._client.scoped_unique_id(self._id)
 
     @property
     @override
@@ -1111,9 +1041,9 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 class Neviweb130TankSensor(Neviweb130Sensor):
     """Implementation of a Neviweb tank level sensor LM4110ZB."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware):
+    def __init__(self, device_info, name, device_type, sku, firmware, client):
         """Initialize."""
-        super().__init__(data, device_info, name, device_type, sku, firmware)
+        super().__init__(device_info, name, device_type, sku, firmware, client)
         self._refuel = False
 
     def update(self):
@@ -1298,9 +1228,9 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 class Neviweb130GatewaySensor(Neviweb130Sensor):
     """Implementation of a Neviweb gateway sensor."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, location):
+    def __init__(self, device_info, name, device_type, sku, firmware, location, client):
         """Initialize."""
-        super().__init__(data, device_info, name, device_type, sku, firmware)
+        super().__init__(device_info, name, device_type, sku, firmware, client)
         self._location = str(location)
         self._gateway_status = None
         self._occupancyMode = "home"
@@ -1314,18 +1244,32 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_status)
-            if "error" not in device_status or device_status is not None:
-                if "errorCode" not in device_status:
-                    self._gateway_status = device_status[ATTR_STATUS]
-                else:
-                    _LOGGER.warning(
-                        "Error in reading device status for %s: (%s)",
-                        self._name,
-                        device_status,
-                    )
-            elif device_status is not None:
+            if not device_status:
+                return
+
+            if "error" in device_status:
                 self.log_error(device_status["error"]["code"])
-            self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
+                return
+
+            if "errorCode" in device_status:
+                _LOGGER.warning(
+                    "Error in reading device status for %s: (%s)",
+                    self._name,
+                    device_status,
+                )
+                return
+
+            if ATTR_STATUS not in device_status:
+                _LOGGER.warning(
+                    "Gateway status missing for %s: (%s)",
+                    self._name,
+                    device_status,
+                )
+                return
+
+            self._gateway_status = device_status[ATTR_STATUS]
+            if neviweb_status and ATTR_OCCUPANCY in neviweb_status:
+                self._occupancyMode = neviweb_status[ATTR_OCCUPANCY]
             return
 
     @property
