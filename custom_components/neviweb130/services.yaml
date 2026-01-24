@@ -690,17 +690,26 @@ set_cool_lockout_temperature:
       description: Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
     coolLockoutTemperature:
-      description: Possible values, from 10 to 30°C, or "off"
+      description: Possible values, from 0 to 30°C, or "off"
       example: 22
 
 set_heat_lockout_temperature:
-  description: Do not allow heating for registered thermostats, if outside temperature is above this temperature.
+  description: >
+    Do not allow heating for registered thermostats, if outside temperature is above this temperature.
+    Depending on the thermostat model, use either heatLockoutTemp or heatLockoutTemperature.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat HP6000 device.
       example: "climate.neviweb130_climate_HP6000ZB-GE"
+    heatLockoutTemp:
+      description: >
+        Possible values, from 10 to 30°C, or off. Used for thermostats models TH1123ZB-G2, TH1124ZB-G2.
+        Use this OR heatLockoutTemperature.
+      example: 22
     heatLockoutTemperature:
-      description: Possible values, from 10 to 30°C
+      description: >
+        Possible values, from 10 to 30°C, or off. Used for other heat cool thermostats.
+        Use this OR heatLockoutTemp.
       example: 22
 
 set_display_config:
@@ -964,7 +973,7 @@ set_fan_speed:
       description: Name(s) of neviweb130 TH6500WF or TH6250WF thermostats.
       example: "climate.neviweb130_climate_office"
     fanSpeed:
-      description: Possibles values, "On", "Auto".
+      description: Possibles values for TH6xxxWF, "On", "Auto". For HP6000WF-xx, 0=off, 20=low, 40=medium-low, 60=medium, 80=medium-high, 100=high, 128=auto.
       example: "On"
 
 set_humidity_mode:

@@ -2,12 +2,12 @@
 
 Custom components to support [Neviweb](https://neviweb.com/) devices in [Home Assistant](http://www.home-assistant.io). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
-switches/dimmers , load controllers, plug and water leak detector etc. 
+switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
-Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices. It is 
-presently almost up to date with Neviweb but some information are still missing from Sinopé. As new devices are launched 
-by Sinopé, they are added to this custom-component. If you have a device that is not supported yet, please open an issue 
-and I'll add it quickly.
+Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
+directly to Neviweb. It is presently almost up to date with Neviweb but some information are still missing from Sinopé. 
+As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
+yet, please open an issue and I'll add it quickly.
 
 ## Big changes for valve devices
 
@@ -40,13 +40,18 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1133CR Sinopé Evo 3000w Line voltage thermostat lite
   - Sinopé TH1134WF Wi-Fi 4000W Line voltage thermostat lite
   - Sinopé TH1134CR Sinopé Evo 4000w Line voltage thermostat lite
+  - Sinopé TH1143WF Wi-Fi 3000W two wires connection, color screen
+  - Sinopé TH1144WF WI-Fi 4000W two wires connection, color screen
   - Sinopé TH1300WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1310WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1325WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1400WF Wi-Fi low voltage thermostat
   - Sinopé TH1500WF Wi-Fi 3600W double pole thermostat
-  - Sinopé TH6500WF Wi-Fi heat/cool (preliminary, need voluntary to test)
-  - Sinopé TH6250WF Wi-Fi heat/cool (preliminary, need voluntary to test)
+  - Sinopé TH6500WF Wi-Fi heat/cool
+  - Sinopé TH6510WF Wi-Fi heat/cool
+  - Sinopé TH6250WF Wi-Fi heat/cool
+  - Sinopé TH6250WF_PRO Wi-Fi heat/cool
+  - Sinopé THEWF01 Wi-Fi lite thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
@@ -54,6 +59,9 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
   - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
+- Wi-Fi Heatpump controller:
+  - Sinopé HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
+  - Sinopé HP6000WF-GE for Ouellet heat pump with Gree connector
 - Zigbee lighting:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -61,7 +69,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé DM2500ZB-G2 Dimmer
   - Sinopé DM2550ZB Dimmer
   - Sinopé DM2550ZB-G2 Dimmer
-- Zigbee specialized Control:
+- Zigbee specialized control:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
   - Sinopé SP2610ZB in-wall outlet
@@ -104,12 +112,12 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - GT130
   - GT4220WF-M, mesh gateway
 - Power supply:
-  - Sinopé ACUPS-01, battery backup for Sedna valve
+  - Sinopé ACUPS-01, battery backup for Sedna valve, GT130 or GT125
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to 
 interact with them within Home Assistant. Please refer to the instructions manual of your device or visit 
-[Neviweb support](https://www.sinopetech.com/blog/support-cat/plateforme-nevi-web/).
+[Neviweb support](https://support.sinopetech.com/)
 
 For Wi-Fi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 Zigbee 
 devices.
@@ -144,17 +152,19 @@ There are two methods to install this custom component:
       custom_components/
         neviweb130/
           __init__.py
-          light.py
-          const.py
-          switch.py
           climate.py
-          sensor.py
-          valve.py
+          const.py
+          helpers.py
+          light.py
+          manifest.json
           schema.py
+          sensor.py
           services.yaml
-      ...
+          switch.py
+          update.py
+          valve.py
     ```
-## Configuration
+## Legacy configuration
 
 To enable Neviweb130 management in your installation, add the following to your `configuration.yaml` file, then restart 
 Home Assistant.
@@ -164,9 +174,9 @@ Home Assistant.
 neviweb130:
   username: '«your Neviweb username»'
   password: '«your Neviweb password»'
-  network: '«your gt130 location name in Neviweb»' (gt130 emplacement dans Neviweb)
-  network2: '«your second location name in Neviweb»' (2e emplacement)
-  network3: '«your third location name in Neviweb»' (3e emplacement)
+  network: '«your gt130 location name in Neviweb»'   # gt130 emplacement dans Neviweb
+  network2: '«your second location name in Neviweb»' # 2e emplacement
+  network3: '«your third location name in Neviweb»'  # 3e emplacement
   scan_interval: 360
   homekit_mode: False
   ignore_miwi: False
@@ -296,13 +306,77 @@ For Sedna valves there are two ways to connect it to Neviweb:
   is detected.
 - via GT130 in Zigbee mode. This  way leak sensor are also connected to the GT130 but on leak detection nothing is 
   passed to the valve. You'll need to set some automation rule in Neviweb or HA, to have the Sedna valve close if leak 
-- is detected by sensor.
+  is detected by sensor.
 
 Both modes are supported by this custom component. 
 
 ## Gateway GT130
 It is now possible to know if your GT130 is still online of offline with Neviweb via the gateway_status attribute. The 
 GT130 is detected as sensor.neviweb130_sensor_gt130
+
+## Updater
+
+Neviweb130 now include a complete update system that include:
+- Automatic update check every 6 hours:
+  - New update available.
+  - Pre-release available.
+  - Breaking changes.
+  - Version notes.
+
+- SHA-256 validation:
+  - Get official SHA-256 from GitHub.
+  - Download update zip file.
+  - Validate SHA-256.
+  - If mismatch, cancel update and notify.
+
+- Auto Rollback if error detected during update:
+  - Restore old version automatically.
+  - Notify user of the problem.
+ 
+- Persistent notifications on:
+  - Success: "Update successful".
+  - Fail: "Update fail, rollback performed".
+  - SHA-256 error: "Update aborted for security".
+ 
+- Breaking changes detection:
+  The updator scan version notes from GitHub. If breaking changes are detected:
+  - Add special icon in updater card.
+  - Add (Breaking changes) in updater title.
+ 
+- Pre-release detection if version contain, b0, -beta or rc1 etc:
+  The updator scan update version from GitHub. If pre-release version is detected:
+  - Add special icon in updater card.
+  - Add (Pre-release) in updater title.
+
+- Backup option:
+  Add a button to allow for system backup before update. All the config directory and database are backuped.
+
+- Version notes can be viewed via link provided on the update card that point to GitHub releases motes.
+
+- Updater have many attributes to help user:
+  - check_interval: 6h, (will become an option in futur version)
+  - last_check: date/time of last available version check.
+  - next_check: date/time of next available version check.
+  - last_update_success: Last date/time an update was done.
+  - update_status: list all step performed during update.
+  - rollback_status: If an update fail, last active version will be rolled back.
+  - update_percentage: Show a slider for update process followup.
+
+You will need to deactivate HACS update or you will get two update notifications with two update cards. 
+This can be done in parameters / devices & services / HACS. Pick 'Sinope Neviweb130' and deactivate 
+the pre-release button if set. Locate the Sinope Neviweb130 integration and click on the three vertical 
+dots on the right end of the line. Click on 'deactivate the device'. It will still be possible to do manual 
+update or redownload via HACS.
+
+## Neviweb daily request counter
+As Sinopé is becoming more picky about request number per day, limit fixed to 30000. If you reach that limit you 
+will be disconnected until midnight. This is very bad if you have many devices or doing development on neviweb130.
+I've added a daily Neviweb request counter that is reset to 0 at midnight and suvive HA restart. It create a 
+sensor sensor.neviweb130_daily_requests that increase at each request: update, stats polling, error status, etc.
+The sensor survive HA restart and is set back to 0 at midnight every days.
+
+This way it is possible to improve your scan_interval to get the higher frequency without busting the limit.
+When reaching 25000 requests, neviweb130 will send a notification. Eventually this warning limit will be configurable.
 
 ## Running more than one instance of neviweb130 to manage different Neviweb connections.
 It is possible to run two instance of neviweb130, but you need to use two different username (email) and password to 
@@ -331,8 +405,6 @@ neviweb131:
 - Restart Home Assistant.
 
 All devices on this second instance will have a name like climate.neviweb131_climate_office_thermostat.
-Don't be too aggressive on polling (scan_interval) or Neviweb will disconnect you as both instance polling
-come from your same IP.
 
 ## Custom services
 Automations require services to be able to send command. Ex. light.turn_on. For the Sinopé devices connected via 
@@ -406,6 +478,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_sound_config to set on/off sound on heatpump.
 - neviweb130.set_heat_pump_operation_limit to set minimum operation temperature for heatpump.
 - neviweb130.set_heat_lockout_temperature to set maximum outside temperature limit to allow heating device operation.
+  Work differently for TH1123ZB-G2, TH1124ZB-G2 and heat/cool devices (TH6xxxWF). Each use different attribute.
 - neviweb130.set_cool_lockout_temperature to set minimum outside temperature limit to allow cooling device operation.
 - neviweb130.set_hc_second_display to set second display of TH1134ZB-HC thermostat.
 - neviweb130.set_language to set display language on TH1134ZB-HC thermostats.
@@ -424,6 +497,13 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_temperature_offset, to adjust temperature sensor from -2 to 2°C with 0.5°C increment, for TH6xxxWF.
 - neviweb130.set_aux_heating_source, to select which type of auxiliary heating source is in use for TH6xxxWF.
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
+
+## Logging for debugging
+As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviwen130 
+to a file neviweb130_log.txt in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
+each time it reach 2 meg in size. Log rotation have a total of 4 files.
+
+To help debugging add snippet of this file to any issue you may have.
 
 ## Catch Éco Sinopé signal for peak period
 If you have at least on thermostat or one load controller registered with Éco-Sinopé program, it is now possible to 
@@ -481,7 +561,7 @@ Seven attributes are added to track energy usage for devices:
 - monthly_kwh: kwh used for last month.
 
 They are polled from Neviweb every 30 minutes. The first polling start 5 minutes after HA restart. Neviweb have a two 
-hours delay to publish his data.
+hours delay to publish his data. Your data will be delayed by 2 hours.
 
 ### Track energy consumption in HA Energy dashboard
 When energy attributes are available, it is possible to track energy consumption of individual devices in Home Assistant 
@@ -564,14 +644,14 @@ In the log look for lines:
 climate.py, light.py, switch.py or sensor.py near line 132 to 136 (climate.py) depending on device type. Then restart HA 
 and your device will be listed in entity list.
 
-If you get a stack trace related to a Neviweb130 component in your `home-assistant.log` file, you can file an issue in 
-this repository.
+If you get a stack trace related to a Neviweb130 component in your home assistant log, you can file an issue in 
+this ![repository](https://github.com/claudegel/sinope-130/issues)
 
 You can also post in one of those threads to get help:
 - https://community.home-assistant.io/t/sinope-line-voltage-thermostats/17157
 - https://community.home-assistant.io/t/adding-support-for-sinope-light-switch-and-dimmer/38835
 
-### Turning on Neviweb130 debug messages in `home-assistant.log` file
+### Turning on Neviweb130 debug messages in `neviweb130_log.txt` file
 
 To have a maximum of information to help you, please provide a snippet of your `home-assistant.log` file. I've added 
 some debug log messages that could help diagnose the problem.
@@ -590,7 +670,7 @@ messages.
 
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
-- ACCDAYREQMAX: Maximum daily request reached... Reduce polling frequency.
+- ACCDAYREQMAX: Maximum daily request reached ('daily': 30000)... Reduce polling frequency.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
   also have an open session on Neviweb.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
@@ -616,8 +696,11 @@ Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component 
 code:
 
 Icons for heat level: create folder www in the root folder .homeassistant/www
-copy the six icons there. You can find them under local/www
-feel free to improve my icons and let me know. (See icon_view2.png)
+copy the six icons there. You can find them under local/www.
+
+![icons](icon_view2.png)
+
+Feel free to improve my icons and let me know. 
 
 For each thermostat add this code in `customize.yaml`
 ```yaml
@@ -660,7 +743,7 @@ sensor.neviweb130_sensor_spa:
       if (attributes.Leak_status == "ok") return ''/local/drop.png'';
       return ''/local/leak.png'';'
 ```
-Icons are available from www directory. Copy them in config/www
+Icons are available from [www](https://github.com/claudegel/sinope-130/tree/master/www) sub-directory. Copy them in config/www
 
 # Device hard reset:
 - Thermostats:
@@ -676,9 +759,11 @@ Icons are available from www directory. Copy them in config/www
     - Wait until device restart.
 
 ## TO DO
-- when this component will be stable. Merge it with The Neviweb component to poll all devices from only one component.
+- This custom component will be updated to neviweb130-V2 soon. This imply config_flow, coordinator, attributes entities,
+  English/French translation and many more features.
+- Improve energy stat polling from Neviweb.
 
-## Buy me a coffee
+## Buy me a coffee or a beer
 If you want to make donation as appreciation of my work, you can do so via PayPal. Thank you!
 [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
 

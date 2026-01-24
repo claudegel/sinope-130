@@ -32,8 +32,9 @@ from enum import StrEnum
 from threading import Lock
 from typing import cast, override
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
@@ -91,6 +92,7 @@ from .const import (
     SERVICE_SET_VALVE_ALERT,
     SERVICE_SET_VALVE_TEMP_ALERT,
     STATE_VALVE_STATUS,
+    VERSION,
 )
 from .schema import (
     SET_ACTIVATION_SCHEMA,
@@ -101,7 +103,6 @@ from .schema import (
     SET_POWER_SUPPLY_SCHEMA,
     SET_VALVE_ALERT_SCHEMA,
     SET_VALVE_TEMP_ALERT_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -135,9 +136,9 @@ HA_TO_NEVIWEB_DELAY = {
     "1 week": 604800,
 }
 
-VALVE_TYPES: dict[str, tuple[str, StrEnum]] = {
-    "flow": ("mdi:pipe-valve", BinarySensorDeviceClass.MOISTURE),
-    "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER),
+VALVE_TYPES: dict[str, tuple[str, StrEnum, str | None, str | None, StatisticMeanType | None]] = {
+    "flow": ("mdi:pipe-valve", SensorDeviceClass.WATER, None, "volume_flow_rate", StatisticMeanType.ARITHMETIC),
+    "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER, None, None, None),
 }
 
 SUPPORTED_WIFI_MODES = [
@@ -166,7 +167,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the Neviweb130 valve."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
@@ -650,6 +651,19 @@ class Neviweb130Valve(ValveEntity):
         return cast(ValveDeviceClass, device_type[1])
 
     @property
+    @override
+    def unit_of_measurement(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
+
+    @property
+    def unit_class(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[3]
+
+    @property
+    def statistic_mean_type(self) -> StatisticMeanType | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[4]
+
+    @property
     def is_open(self):
         """Return current operation i.e. OPEN, CLOSED."""
         return self._onoff != MODE_OFF
@@ -807,17 +821,17 @@ class Neviweb130Valve(ValveEntity):
                 today = date.today()
                 current_month = today.month
                 current_day = today.day
-                device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+                device_monthly_stats = self._client.get_device_monthly_stats(self._id, False)
                 _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     n = len(device_monthly_stats)
                     monthly_kwh_count = 0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += device_monthly_stats[k]["period"] / 100
+                        monthly_kwh_count += device_monthly_stats[k]["period"]  # / 1000
                         k += 1
                     self._monthly_kwh_count = round(monthly_kwh_count, 2)
-                    self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 100, 2)
+                    self._month_kwh = round(device_monthly_stats[n - 1]["period"], 2)
                     dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
                         timezone.utc
                     )
@@ -825,7 +839,7 @@ class Neviweb130Valve(ValveEntity):
                 else:
                     self._month_kwh = 0
                     _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-                device_daily_stats = self._client.get_device_daily_stats(self._id)
+                device_daily_stats = self._client.get_device_daily_stats(self._id, False)
                 _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     n = len(device_daily_stats)
@@ -838,16 +852,16 @@ class Neviweb130Valve(ValveEntity):
                             .month
                             == current_month
                         ):
-                            daily_kwh_count += device_daily_stats[k]["period"] / 100
+                            daily_kwh_count += device_daily_stats[k]["period"]  # / 1000
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 2)
-                    self._today_kwh = round(device_daily_stats[n - 1]["period"] / 100, 2)
+                    self._today_kwh = round(device_daily_stats[n - 1]["period"], 2)
                     dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
                     self._today_kwh = 0
                     _LOGGER.warning("Got None for device_daily_stats")
-                device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+                device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
                 _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     n = len(device_hourly_stats)
@@ -858,10 +872,10 @@ class Neviweb130Valve(ValveEntity):
                             datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
                             == current_day
                         ):
-                            hourly_kwh_count += device_hourly_stats[k]["period"] / 100
+                            hourly_kwh_count += device_hourly_stats[k]["period"]  # / 1000
                         k += 1
                     self._hourly_kwh_count = round(hourly_kwh_count, 2)
-                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 100, 2)
+                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"], 2)
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)

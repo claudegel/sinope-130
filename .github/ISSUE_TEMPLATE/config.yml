@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Sinope Line Voltage Thermostats
+    url: https://community.home-assistant.io/t/sinope-line-voltage-thermostats
+    about: For general question, use Home Assistant forum.
+
+  - name: Sinope Thermostat Support
+    url: https://community.home-assistant.io/t/sinope-thermostat-support
+    about: For general question
+
+  - name: Discussions GitHub
+    url: https://github.com/claudegel/sinope-130/discussions
+    about: Pour discuter des idées, questions ou aide non liée à un bug.

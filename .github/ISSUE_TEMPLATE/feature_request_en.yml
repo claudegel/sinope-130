@@ -1,0 +1,85 @@
+name: Feature Request
+description: Suggest an improvement or new functionality for Neviweb130
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for contributing to the evolution of Neviweb130! 
+        Feature requests help us improve integration for everyone.
+
+  - type: input
+    id: title
+    attributes:
+      label: Feature title
+      description: Summarize in one sentence what you want to add.
+      placeholder: "Ex: Add Eco mode support for thermostats"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Detailed description
+      description: Explain clearly what you want and why.
+      placeholder: |
+        Describe the need, context, and what the feature should do.
+        Example :
+        - Why this feature is useful
+        - How it should work
+        - Which devices or services it applies to
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why is this important?
+      description: Explain the impact or benefit to you or the community.
+      placeholder: "Ex: This would automate…"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: Affected devices
+      description: Select the devices or services linked to the request.
+      options:
+        - Thermostats
+        - Switches
+        - Lights
+        - Load Controllers
+        - API / Compte Neviweb
+        - Update / Backup
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you thought of any other solutions or workarounds?
+      placeholder: "Ex: Use HA automation, script, etc."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add anything that might help (captures, logs, examples).
+      placeholder: "Additional information…"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked that a similar request does not already exist.
+          required: true
+        - label: I clearly explained the need.
+          required: true

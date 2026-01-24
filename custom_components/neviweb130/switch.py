@@ -10,7 +10,7 @@ model 2506 = load controller device, RM3250ZB, 50A, Zigbee
 model 346 = load controller device, RM3250WF, 50A, Wi-Fi
 model 2151 = Calypso load controller for water heater, RM3500ZB 20,8A, Zigbee
 model 2152 = Calypso load controller for water heater, RM3500WF 20,8A, Wi-Fi
-model 2152 = Calypso load controller for water heater, RM3510WF 20,8A, Wi-Fi
+model 339 = Calypso load controller for water heater, RM3510WF 20,8A, Wi-Fi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
@@ -27,6 +27,8 @@ from threading import Lock
 from typing import override
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
@@ -114,6 +116,8 @@ from .const import (
     SERVICE_SET_SWITCH_TIMER_2,
     SERVICE_SET_TANK_SIZE,
     STATE_KEYPAD_STATUS,
+    STATE_WATER_LEAK,
+    VERSION,
 )
 from .schema import (
     SET_ACTIVATION_SCHEMA,
@@ -128,7 +132,6 @@ from .schema import (
     SET_SWITCH_TIMER_2_SCHEMA,
     SET_SWITCH_TIMER_SCHEMA,
     SET_TANK_SIZE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -173,7 +176,7 @@ SWITCH_TYPES: dict[str, tuple[str, SwitchDeviceClass]] = {
     "control": ("mdi:alarm", SwitchDeviceClass.SWITCH),
 }
 
-IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152]
+IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL = [2152, 339]
 IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
@@ -198,7 +201,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the Neviweb130 switch."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
@@ -682,6 +685,10 @@ class Neviweb130Switch(SwitchEntity):
     def __init__(self, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -966,7 +973,7 @@ class Neviweb130Switch(SwitchEntity):
             today = date.today()
             current_month = today.month
             current_day = today.day
-            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+            device_monthly_stats = self._client.get_device_monthly_stats(self._id, False)
             #            _LOGGER.warning("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
@@ -984,7 +991,7 @@ class Neviweb130Switch(SwitchEntity):
             else:
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            device_daily_stats = self._client.get_device_daily_stats(self._id, False)
             #            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
@@ -1006,7 +1013,7 @@ class Neviweb130Switch(SwitchEntity):
             else:
                 self._today_kwh = 0
                 _LOGGER.warning("%s Got None for device_daily_stats", self._name)
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
             #            _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
@@ -1416,7 +1423,16 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
                     if ATTR_WATER_LEAK_STATUS in device_data:
-                        self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                            self.notify_ha(
+                                f"Warning: Neviweb Device error code detected: {device_data[ATTR_WATER_LEAK_STATUS]} "
+                                f"for device: {self._name}, id: {self._id}, Sku: {self._sku}, Leak sensor disconnected"
+                            )
+                            self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                        else:
+                            self._water_leak_status = (
+                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
+                            )
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
@@ -1458,16 +1474,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                         self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
                         self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
                         self._consumption_time = device_data[ATTR_DR_PROTEC_STATUS]["consumptionOverTime"]
-                    if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                        self.notify_ha(
-                            "Warning: Neviweb Device error code detected: "
-                            + device_data[ATTR_WATER_LEAK_STATUS]
-                            + " for device: "
-                            + self._name
-                            + ", Sku: "
-                            + self._sku
-                            + ", Leak sensor disconnected"
-                        )
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1588,7 +1594,18 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
-                    self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
+                    if device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS] == "probe":
+                        self.notify_ha(
+                            "Warning: Neviweb Device error code detected: "
+                            + device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
+                            + " for device: "
+                            + self._name
+                            + ", Sku: "
+                            + self._sku
+                            + ", Leak sensor disconnected"
+                        )
+                    else:
+                        self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
@@ -1636,16 +1653,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
                     self._water_temp_protect = device_data[ATTR_WATER_TEMP_PROTECT]
                     self._water_leak_closure_conf = device_data[ATTR_LEAK_CLOSURE_CONFIG]
-                    if device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS] == "probe":
-                        self.notify_ha(
-                            "Warning: Neviweb Device error code detected: "
-                            + device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
-                            + " for device: "
-                            + self._name
-                            + ", Sku: "
-                            + self._sku
-                            + ", Leak sensor disconnected"
-                        )
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:

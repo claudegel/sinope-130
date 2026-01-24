@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import os
 from typing import Any
 
+import aiohttp
 import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -79,6 +82,7 @@ from .const import (
     ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
+    ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEAT_PURGE_TIME,
@@ -152,16 +156,16 @@ from .const import (
     DOMAIN,
     MODE_MANUAL,
     STARTUP_MESSAGE,
+    VERSION,
 )
+from .helpers import fetch_release_notes, increment_request_counter, init_request_counter, setup_logger
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
+from .schema import NEVIWEB_MODE_MAP
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
-from .schema import VERSION
-
-_LOGGER = logging.getLogger(__name__)
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -178,6 +182,27 @@ IGNORE_MIWI = DEFAULT_IGNORE_MIWI
 STAT_INTERVAL = DEFAULT_STAT_INTERVAL
 NOTIFY = DEFAULT_NOTIFY
 
+DEFAULT_LOG_MAX_BYTES = 2 * 1024 * 1024
+DEFAULT_LOG_BACKUP_COUNT = 3
+DEFAULT_LOG_RESET_ON_START = True
+LOGGER_NAME = "custom_components.neviweb130"
+
+LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviweb130_log.txt"))
+
+existing_logger = logging.getLogger(LOGGER_NAME)
+level_name = logging.getLevelName(existing_logger.level)
+
+setup_logger(
+    name=LOGGER_NAME,
+    log_path=LOG_PATH,
+    level=level_name,
+    max_bytes=DEFAULT_LOG_MAX_BYTES,
+    backup_count=DEFAULT_LOG_BACKUP_COUNT,
+    reset_on_start=DEFAULT_LOG_RESET_ON_START,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
 
 @callback
 def migrate_entity_unique_id(hass: HomeAssistant):
@@ -188,20 +213,26 @@ def migrate_entity_unique_id(hass: HomeAssistant):
             _LOGGER.debug(f"Migrated unique_id from int to str for {entity.entity_id}")
 
     # All platforms will wait for this asynchronously, before loading anything.
-    hass.data[DOMAIN].migration_done.set()
+    hass.data[DOMAIN]["data"].migration_done.set()
 
 
 def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     """Set up neviweb130."""
-    _LOGGER.info(STARTUP_MESSAGE)
+    _LOGGER.warning(STARTUP_MESSAGE)
+
+    hass.data.setdefault(DOMAIN, {})
+
+    # Initialise request counter
+    init_request_counter(hass)
 
     try:
         data = Neviweb130Data(hass, hass_config[DOMAIN])
-        hass.data[DOMAIN] = data
+        hass.data[DOMAIN]["data"] = data
+        data.current_version = VERSION
     except IntegrationError as e:
         # Temporary workaround for sync setup: Avoid verbose traceback in logs. Once async_setup_entry is used,
         # we can remove the try-except as HomeAssistant will correctly handle the raised exception
-        _LOGGER.error("Neviweb initialization failed: %s", e)
+        _LOGGER.error("Neviweb130 initialization failed: %s", e)
         return False
 
     # Migrate entity unique_ids from int -> str.
@@ -227,11 +258,60 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     NOTIFY = hass_config[DOMAIN].get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", NOTIFY)
 
+    async def fetch_latest_version():
+        url = "https://api.github.com/repos/claudegel/sinope-130/tags"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    text = await resp.text()
+                    try:
+                        tags = json.loads(text)
+                        if isinstance(tags, list) and len(tags) > 0:
+                            latest_tag = tags[0].get("name")
+                            if latest_tag and latest_tag.startswith("v"):
+                                latest_tag = latest_tag[1:]
+                            return latest_tag
+                    except Exception as err:
+                        _LOGGER.error("Failed to parse GitHub tags: %s", err)
+                        return None
+
+        return None
+
+    async def async_init_update():
+        latest = await fetch_latest_version()
+        if latest is None:
+            _LOGGER.warning("Could not fetch latest version from GitHub")
+            return
+
+        hass.data[DOMAIN]["data"].available_version = latest
+
+        result = await fetch_release_notes(latest)
+        if result is None:
+            title = "No title available."
+            notes = "No release notes available."
+        else:
+            title, notes = result
+
+        hass.data[DOMAIN]["data"].release_title = title
+        hass.data[DOMAIN]["data"].release_notes = notes
+        entity = hass.data[DOMAIN].get("update_entity")
+        if entity:
+            entity._latest_version = latest
+            entity._attr_latest_version = latest
+            entity._release_notes = notes
+            entity._release_title = title
+            entity._release_summary = entity.release_summary
+            entity.async_write_ha_state()
+
+    hass.loop.call_soon_threadsafe(hass.async_create_task, async_init_update())
+
     discovery.load_platform(hass, Platform.CLIMATE, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.LIGHT, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.SWITCH, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.SENSOR, DOMAIN, {}, hass_config)
     discovery.load_platform(hass, Platform.VALVE, DOMAIN, {}, hass_config)
+    discovery.load_platform(hass, Platform.UPDATE, DOMAIN, {}, hass_config)
 
     return True
 
@@ -244,6 +324,11 @@ class Neviweb130Data:
         self.hass = hass
         self.neviweb130_clients: list[Neviweb130Client] = []
         self.migration_done = asyncio.Event()
+
+        # Attributes for versioning and release notes
+        self.current_version = VERSION
+        self.available_version = None
+        self.release_notes = ""
 
         # Check if using new multi-account format
         if CONF_ACCOUNTS in config:
@@ -439,6 +524,7 @@ class Neviweb130Client:
 
     def __post_login_page(self) -> None:
         """Login to Neviweb."""
+        increment_request_counter(self.hass)
         data = {
             "username": self._email,
             "password": self._password,
@@ -472,7 +558,7 @@ class Neviweb130Client:
                 raise ConfigEntryNotReady(
                     "Too many active sessions. "
                     "Close all neviweb130 sessions you have opened on other platform (mobile, browser, ...). "
-                    f"If this error persists, deactivate this integration (or shutdown homeassistant), "
+                    "If this error persists, deactivate this integration (or shutdown homeassistant), "
                     f"wait a few minutes, then reactivate (or restart) it. Error code: {data['error']['code']}"
                 )
             elif data["error"]["code"] == "USRBADLOGIN":
@@ -490,6 +576,7 @@ class Neviweb130Client:
 
     def __get_network(self) -> None:
         """Get gateway id associated to the desired network."""
+        increment_request_counter(self.hass)
         # Http requests
         if self._account is None:
             raise ConfigEntryAuthFailed("Account ID is empty, check your username and password to log into Neviweb...")
@@ -626,6 +713,7 @@ class Neviweb130Client:
 
     def __get_gateway_data(self) -> None:
         """Get gateway data."""
+        increment_request_counter(self.hass)
         # Check if gateway_id was set
         if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
             _LOGGER.warning("No gateway defined, check your config for networks names...")
@@ -735,6 +823,7 @@ class Neviweb130Client:
 
     def get_device_attributes(self, device_id: str, attributes: list[str]) -> dict[str, Any]:
         """Get device attributes."""
+        increment_request_counter(self.hass)
         # Http requests
         try:
             raw_res = requests.get(
@@ -765,6 +854,7 @@ class Neviweb130Client:
 
     def get_device_status(self, device_id: str):
         """Get device status for the GT130."""
+        increment_request_counter(self.hass)
         # Http requests
         try:
             raw_res = requests.get(
@@ -790,6 +880,7 @@ class Neviweb130Client:
 
     def get_neviweb_status(self, location):
         """Get neviweb occupancyMode status."""
+        increment_request_counter(self.hass)
         # Http requests
         try:
             raw_res = requests.get(
@@ -814,6 +905,7 @@ class Neviweb130Client:
 
     def get_device_alert(self, device_id: str):
         """Get device alert for Sedna valve."""
+        increment_request_counter(self.hass)
         # Http requests
         try:
             raw_res = requests.get(
@@ -842,12 +934,18 @@ class Neviweb130Client:
                 # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
-    def get_device_monthly_stats(self, device_id: str):
+    def get_device_monthly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 months."""
+        increment_request_counter(self.hass)
         # Http requests
+        if HC:
+            data = DEVICE_DATA_URL + device_id + "/energy/monthly"
+        else:
+            data = DEVICE_DATA_URL + device_id + "/consumption/monthly"
+        _LOGGER.debug("monthly data = %s", data)
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/consumption/monthly",
+                data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -862,18 +960,26 @@ class Neviweb130Client:
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Monthly_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
+        if HC:
+            return data
         else:
-            _LOGGER.debug("Monthly stat error: %s", data)
-            return None
+            if "history" in data:
+                return data["history"]
+        _LOGGER.debug("Monthly stat error: %s", data)
+        return None
 
-    def get_device_daily_stats(self, device_id: str):
+    def get_device_daily_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 30 days."""
+        increment_request_counter(self.hass)
         # Http requests
+        if HC:
+            data = DEVICE_DATA_URL + device_id + "/energy/daily"
+        else:
+            data = DEVICE_DATA_URL + device_id + "/consumption/daily"
+        _LOGGER.debug("daily data = %s", data)
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/consumption/daily",
+                data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -888,18 +994,26 @@ class Neviweb130Client:
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Daily_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
+        if HC:
+            return data
         else:
-            _LOGGER.debug("Daily stat error: %s", data)
-            return None
+            if "history" in data:
+                return data["history"]
+        _LOGGER.debug("Daily stat error: %s", data)
+        return None
 
-    def get_device_hourly_stats(self, device_id: str):
+    def get_device_hourly_stats(self, device_id: str, HC: bool):
         """Get device power consumption (in Wh) for the last 24 hours."""
+        increment_request_counter(self.hass)
         # Http requests
+        if HC:
+            data = DEVICE_DATA_URL + device_id + "/energy/hourly"
+        else:
+            data = DEVICE_DATA_URL + device_id + "/consumption/hourly"
+        _LOGGER.debug("hourly data = %s", data)
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/consumption/hourly",
+                data,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -914,14 +1028,17 @@ class Neviweb130Client:
         # Prepare data
         data = raw_res.json()
         # _LOGGER.debug("Hourly_stats data: %s", data)
-        if "history" in data:
-            return data["history"]
+        if HC:
+            return data
         else:
-            _LOGGER.debug("Hourly stat error: %s", data)
-            return None
+            if "history" in data:
+                return data["history"]
+        _LOGGER.debug("Hourly stat error: %s", data)
+        return None
 
     def get_weather(self):
         """Get Neviweb weather for my location."""
+        increment_request_counter(self.hass)
         if self._code is None:
             raise ValueError("self._code is None")
         try:
@@ -945,6 +1062,7 @@ class Neviweb130Client:
 
     def get_device_sensor_error(self, device_id: str):
         """Get device error code status."""
+        increment_request_counter(self.hass)
         # Http requests
         try:
             raw_res = requests.get(
@@ -997,16 +1115,15 @@ class Neviweb130Client:
         """Work differently for Wi-Fi and Zigbee devices and TH6250xx devices."""
         if wifi:
             if HC:
-                if mode == HVACMode.HEAT_COOL:
-                    data = {ATTR_HEAT_COOL: HVACMode.AUTO}
-                else:
-                    data = {ATTR_HEAT_COOL: mode}
+                neviweb_mode = NEVIWEB_MODE_MAP.get(mode, "off")
+                data = {ATTR_HEAT_COOL: neviweb_mode}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
                     mode = MODE_MANUAL
                 data = {ATTR_SETPOINT_MODE: mode}
         else:
             data = {ATTR_SYSTEM_MODE: mode}
+        _LOGGER.debug("Setpoint mode data: %s", data)
         self.set_device_attributes(device_id, data)
 
     def set_occupancy_mode(self, device_id: str, mode, wifi):
@@ -1650,9 +1767,12 @@ class Neviweb130Client:
         _LOGGER.debug("Heat pump limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
-    def set_heat_lockout(self, device_id: str, temp):
+    def set_heat_lockout(self, device_id: str, temp, G2):
         """Set maximum outside temperature limit to allow heating device operation."""
-        data = {ATTR_HEAT_LOCK_TEMP: temp}
+        if G2:
+            data = {ATTR_HEAT_LOCKOUT_TEMP: temp}
+        else:
+            data = {ATTR_HEAT_LOCK_TEMP: temp}
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
         self.set_device_attributes(device_id, data)
 
@@ -1822,6 +1942,7 @@ class Neviweb130Client:
 
     def set_device_attributes(self, device_id: str, data: dict[str, Any]):
         """Set devices attributes."""
+        increment_request_counter(self.hass)
         result = 1
         while result < 4:
             try:
@@ -1859,6 +1980,7 @@ class Neviweb130Client:
 
     def post_neviweb_status(self, location: int | str, mode: str):
         """Send post requests to Neviweb for global occupancy mode"""
+        increment_request_counter(self.hass)
         location = str(location)
         data = {ATTR_MODE: mode}
         try:

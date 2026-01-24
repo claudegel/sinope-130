@@ -20,6 +20,8 @@ from typing import override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -61,6 +63,7 @@ from .const import (
     SERVICE_SET_LIGHT_TIMER,
     SERVICE_SET_PHASE_CONTROL,
     SERVICE_SET_WATTAGE,
+    VERSION,
 )
 from .schema import (
     SET_ACTIVATION_SCHEMA,
@@ -73,7 +76,6 @@ from .schema import (
     SET_LIGHT_TIMER_SCHEMA,
     SET_PHASE_CONTROL_SCHEMA,
     SET_WATTAGE_SCHEMA,
-    VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,7 +109,7 @@ async def async_setup_platform(
     discovery_info=None,
 ) -> None:
     """Set up the neviweb light."""
-    data = hass.data[DOMAIN]
+    data = hass.data[DOMAIN]["data"]
 
     # Wait for async migration to be done
     await data.migration_done.wait()
@@ -402,6 +404,10 @@ class Neviweb130Light(LightEntity):
     def __init__(self, device_info, name, sku, firmware, client):
         """Initialize."""
         _LOGGER.debug("Setting up %s: %s", name, device_info)
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_unit_class = "energy"
+        self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
+
         self._name = name
         self._sku = sku
         self._firmware = firmware
@@ -659,7 +665,7 @@ class Neviweb130Light(LightEntity):
             today = date.today()
             current_month = today.month
             current_day = today.day
-            device_monthly_stats = self._client.get_device_monthly_stats(self._id)
+            device_monthly_stats = self._client.get_device_monthly_stats(self._id, False)
             #            _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
@@ -677,7 +683,7 @@ class Neviweb130Light(LightEntity):
             else:
                 self._month_kwh = 0
                 _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
-            device_daily_stats = self._client.get_device_daily_stats(self._id)
+            device_daily_stats = self._client.get_device_daily_stats(self._id, False)
             #            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
@@ -699,7 +705,7 @@ class Neviweb130Light(LightEntity):
             else:
                 self._today_kwh = 0
                 _LOGGER.warning("%s Got None for device_daily_stats", self._name)
-            device_hourly_stats = self._client.get_device_hourly_stats(self._id)
+            device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
             #            _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
