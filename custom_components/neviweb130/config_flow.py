@@ -15,6 +15,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import selector
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.translation import async_get_translations
 
@@ -399,6 +400,27 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
             if user_input.get("migrate"):
                 await self._trigger_migration()
 
+            if "backup_folders" in user_input:
+                folders = user_input["backup_folders"].strip()
+
+                # Normalisation : string → liste
+                if isinstance(folders, str):
+                    folders = [folders]
+
+                error = self._validate_backup_folders(folders)
+                if error:
+                    key, placeholders = error
+                    return self.async_show_form(
+                        step_id="options",
+                        data_schema=self._get_options_schema(),
+                        errors={"backup_folders": key},
+                        description_placeholders={
+                            **placeholders,
+                            "help": "Enter a folder relative to /config"
+                        },
+
+                    )
+
             new_options = {
                 **self._config_entry.options,
                 **user_input,
@@ -441,7 +463,14 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
                 ): vol.In(["1h", "3h", "6h", "12h", "24h"]),
                 # New options for backup
                 vol.Optional("backup_mode", default=options.get("backup_mode", "full")): vol.In(["full", "partial"]),
-                vol.Optional("backup_folders", default="config"): str
+                vol.Optional(
+                    "backup_folders",
+                    default="config"
+                ): selector.TextSelector(
+                    selector.TextSelectorConfig(
+                        multiline=False
+                    )
+                )
             }
         )
 
@@ -554,6 +583,33 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
                 },
             )
         )
+
+    def _validate_backup_folders(self, folders: list[str]):
+        """Validate that each folder exists and is accessible."""
+        for folder in folders:
+            folder = folder.strip()
+
+            if folder == "config":
+                continue
+
+            if not folder:
+                return "empty_folder", {}
+
+            if any(c in folder for c in ['*', '?', '<', '>', '|']):
+                return "invalid_characters", {}
+
+            full_path = os.path.join(self.hass.config.path(), folder)
+
+            if not os.path.exists(full_path):
+                return "folder_not_found", {"folder": folder}
+
+            if not os.path.isdir(full_path):
+                return "not_a_directory", {"folder": folder}
+
+            if not os.access(full_path, os.W_OK):
+                return "not_writable", {"folder": folder}
+
+        return None
 
 
 class InvalidUserEmail(exceptions.HomeAssistantError):
