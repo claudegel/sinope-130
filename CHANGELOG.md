@@ -2,6 +2,16 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.1.0] - 2026-01-24
+### Added
+- Add multi-account support with custom entity prefixes by @llaforest
+- Add instructions too disable Hacs update tracking
+
+### Fix
+
+### Doc
+- Add documentation for multi account configuration
+
 ## [v4.0.2] - 2026-01-21
 ### Added
 - Add support for runtime stat for TH6xxxWF devices.
