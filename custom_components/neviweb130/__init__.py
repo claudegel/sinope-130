@@ -388,9 +388,11 @@ class Neviweb130Data:
             prefix = (config.get(CONF_PREFIX) or "").strip()
             if prefix != "":
                 _LOGGER.warning(
-                    "A non-empty 'prefix' in legacy single-account configuration will rename entities and may break existing automations."
+                    (
+                        "A non-empty 'prefix' in legacy single-account configuration "
+                        "will rename entities and may break existing automations."
+                    )
                 )
-
             client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi, prefix)
             self.neviweb130_clients.append(client)
 
@@ -455,9 +457,11 @@ class Neviweb130Client:
         """Return the base group name used when building entity names.
 
         Backward compatible behavior:
-        - For the primary account with empty prefix, keep: "neviweb130 climate", "neviweb130 climate 2", ...
+        - For the primary account with empty prefix, keep: "neviweb130 climate",
+          "neviweb130 climate 2", ...
         New multi-account behavior:
-        - For non-primary accounts (or primary with a non-empty prefix), use: "neviweb130 <prefix> <location> <platform>"
+        - For non-primary accounts (or primary with a non-empty prefix),
+          use: "neviweb130 <prefix> <location> <platform>"
           to make migration from legacy naming less surprising, e.g.:
           climate.neviweb130_parents_chalet_climate_bathroom
         """
