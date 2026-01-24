@@ -9,11 +9,17 @@ import os
 import re
 import shutil
 import time
+from dataclasses import dataclass
+from typing import Any, Callable
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
+from homeassistant.const import UnitOfTime
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 from logging.handlers import RotatingFileHandler
-from .const import VERSION
+from .const import SIGNAL_EVENTS_CHANGED, VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -674,6 +680,147 @@ class DailyRequestCounter:
     def get_count(self) -> int:
         return self.data["count"]
 
+
+# ─────────────────────────────────────────────
+# Runtime attributes
+# ─────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class Neviweb130SensorEntityDescription(SensorEntityDescription):
+    """Describes an attribute sensor entity."""
+
+    value_fn: Callable[[Any], Any] | None = None
+    signal: str = ""
+    icon: str | None = None
+    state_class: str | None = "measurement"
+    device_class: SensorDeviceClass | None = None
+    native_unit_of_measurement: str | None = None
+    unit_class: str | None = None
+    mean_type: StatisticMeanType | None = None
+
+
+def init_runtime_attributes(obj, modes: dict[str, str], prefix: str) -> None:
+    """Initialize runtime statistics attributes dynamically."""
+    for mode in modes:
+        setattr(obj, f"_{mode}_{prefix}_total_count", 0)
+        setattr(obj, f"_{mode}_{prefix}_count", 0)
+        setattr(obj, f"_{mode}_{prefix}_last_timestamp", None)
+        setattr(obj, f"_{mode}_{prefix}_last_timestamp_local", None)
+
+
+def runtime_attributes_dict(obj, modes: dict[str, str], prefix: str) -> dict[str, any]:
+    """Return a dict of runtime attributes for extra_state_attributes."""
+    data = {}
+    for mode in modes:
+        data[f"{mode}_{prefix}_total_count"] = getattr(obj, f"_{mode}_{prefix}_total_count")
+        data[f"{mode}_{prefix}_count"] = getattr(obj, f"_{mode}_{prefix}_count")
+        data[f"{mode}_{prefix}_last_timestamp"] = getattr(obj, f"_{mode}_{prefix}_last_timestamp")
+        data[f"{mode}_{prefix}_last_timestamp_local"] = getattr(obj, f"_{mode}_{prefix}_last_timestamp_local")
+    return data
+
+
+def generate_runtime_count_attributes(modes: dict[str, str], prefix: str) -> list[str]:
+    """Generate only the runtime count attributes for EXPOSED_ATTRIBUTES."""
+    attrs = []
+    for mode in modes:
+        attrs.append(f"{mode}_{prefix}_total_count")
+        attrs.append(f"{mode}_{prefix}_count")
+    return attrs
+
+
+def update_runtime_stats(obj, device_stats: dict, modes: dict[str, str], prefix: str) -> None:
+    """Update runtime statistics for a thermostat based on hourly stats."""
+    for mode, key in modes.items():
+        data = device_stats.get(key, [])
+
+        total_attr = f"_{mode}_{prefix}_total_count"
+        time_attr = f"_{mode}_{prefix}_count"
+        ts_attr = f"_{mode}_{prefix}_last_timestamp"
+        local_ts_attr = f"_{mode}_{prefix}_last_timestamp_local"
+
+        if data and len(data) >= 2:
+            last_entry = data[-1]
+            prev_entry = data[-2]
+
+            last_value = last_entry["value"]
+            prev_value = prev_entry["value"]
+
+            # Convert timestamp UTC → local
+            ts_utc = datetime.datetime.strptime(
+                last_entry["timestamp"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=datetime.timezone.utc)
+            ts_local = dt_util.as_local(ts_utc)
+
+            # Update only if timestamp changed
+            if getattr(obj, ts_attr, None) != last_entry["timestamp"]:
+                setattr(obj, total_attr, last_value)
+                setattr(obj, time_attr, max(0, last_value - prev_value))
+                setattr(obj, ts_attr, last_entry["timestamp"])
+                setattr(obj, local_ts_attr, ts_local.isoformat())
+
+        else:
+            # Unsupported mode → reset values
+            setattr(obj, total_attr, 0)
+            setattr(obj, time_attr, 0)
+
+
+def _runtime_icon_for_mode(mode: str) -> str:
+    """Return an appropriate icon based on the runtime mode."""
+    if "heat" in mode.lower():
+        return "mdi:fire"
+    if "cool" in mode.lower():
+        return "mdi:snowflake"
+    if "fan" in mode.lower():
+        return "mdi:fan"
+    if "aux" in mode.lower():
+        return "mdi:heat-wave"
+    if "emergency" in mode.lower():
+        return "mdi:alert"
+    return "mdi:counter"
+
+
+def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
+    descriptions = []
+
+    for mode in modes:
+        icon = _runtime_icon_for_mode(mode)
+
+        # total count
+        key_total = f"{mode}_{prefix}_total_count"
+        descriptions.append(
+            Neviweb130SensorEntityDescription(
+                key=key_total,
+                device_class=SensorDeviceClass.DURATION,
+                state_class=SensorStateClass.TOTAL_INCREASING,
+                translation_key=key_total,
+                value_fn=lambda data, k=key_total: data.get(k),
+                signal=SIGNAL_EVENTS_CHANGED,
+                native_unit_of_measurement=UnitOfTime.MINUTES,
+                unit_class="duration",
+                mean_type=StatisticMeanType.ARITHMETIC,
+                icon=icon,
+            )
+        )
+
+        # delta count
+        key_delta = f"{mode}_{prefix}_count"
+        descriptions.append(
+            Neviweb130SensorEntityDescription(
+                key=key_delta,
+                device_class=SensorDeviceClass.DURATION,
+                state_class=SensorStateClass.MEASUREMENT,
+                translation_key=key_delta,
+                value_fn=lambda data, k=key_delta: data.get(k),
+                signal=SIGNAL_EVENTS_CHANGED,
+                native_unit_of_measurement=UnitOfTime.MINUTES,
+                unit_class="duration",
+                mean_type=StatisticMeanType.ARITHMETIC,
+                icon=icon,
+            )
+        )
+
+    return descriptions
 
 
 #await async_notify_throttled(
