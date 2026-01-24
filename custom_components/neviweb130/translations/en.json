@@ -48,7 +48,12 @@
       "invalid_user_email": "Email provided is not valid",
       "bad_data_entry": "Check data entered for errors.",
       "bad_network_name": "Network name can't contain accented characters",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "empty_folder": "Folder cannot be empty.",
+      "invalid_characters": "Folder name contains invalid characters.",
+      "folder_not_found": "Folder '{folder}' doesn't exist.",
+      "not_a_directory": "This path '{folder}' is not a folder.",
+      "not_writable": "Home Assistant cannot write in '{folder}'."
     }
   },
   "options": {
@@ -291,14 +296,68 @@
       }
     },
     "sensor": {
+      "auxHeatStage1_hourly_count": {
+        "name": "auxHeatStage1_hourly_count"
+      },
+      "auxHeatStage2_hourly_count": {
+        "name": "auxHeatStage2_hourly_count"
+      },
+      "auxHeatStage1_hourly_total_count": {
+        "name": "auxHeatStage1_hourly_total_count"
+      },
+      "auxHeatStage2_hourly_total_count": {
+        "name": "auxHeatStage2_hourly_total_count"
+      },
+      "coolStage1_hourly_count": {
+        "name": "coolStage1_hourly_count"
+      },
+      "coolStage2_hourly_count": {
+        "name": "coolStage2_hourly_count"
+      },
+      "coolStage1_hourly_total_count": {
+        "name": "coolStage1_hourly_total_count"
+      },
+      "coolStage2_hourly_total_count": {
+        "name": "coolStage2_hourly_total_count"
+      },
       "daily_flow_count": {
-        "name": "Daily Flow"
+        "name": "Daily Flow",
+        "state": {
+          "total": "Total"
+        }
       },
       "daily_kwh_count": {
-        "name": "Daily Energy"
+        "name": "Daily Energy",
+        "state": {
+          "total": "Total"
+        }
+      },
+      "emergencyHeat_hourly_count": {
+        "name": "emergencyHeat_hourly_count"
+      },
+      "emergencyHeat_hourly_total_count": {
+        "name": "emergencyHeat_hourly_total_count"
+      },
+      "fan_hourly_count": {
+        "name": "fan_hourly_count"
+      },
+      "fan_hourly_total_count": {
+        "name": "fan_hourly_total_count"
       },
       "gauge_angle": {
         "name": "Gauge Angle"
+      },
+      "heatStage1_hourly_count": {
+        "name": "heatStage1_hourly_count"
+      },
+      "heatStage2_hourly_count": {
+        "name": "heatStage2_hourly_count"
+      },
+      "heatStage1_hourly_total_count": {
+        "name": "heatStage1_hourly_total_count"
+      },
+      "heatStage2_hourly_total_count": {
+        "name": "heatStage2_hourly_total_count"
       },
       "hourly_flow_count": {
         "name": "Hourly Flow"
