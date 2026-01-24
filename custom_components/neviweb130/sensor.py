@@ -18,18 +18,20 @@ from __future__ import annotations
 
 import datetime
 import logging
+import os
 import time
 from dataclasses import dataclass
 from threading import Lock
-from typing import Any, Callable, Mapping, override
+from typing import Any, Mapping, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription, SensorStateClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    CONF_NAME,
     EntityCategory,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
@@ -77,6 +79,8 @@ from .const import (
     DOMAIN,
     FULL_MODEL,
     MODEL_ATTRIBUTES,
+    RUNTIME_COMPATIBLE_MODELS,
+    RUNTIME_PREFIXES,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_BATTERY_ALERT,
     SERVICE_SET_BATTERY_TYPE,
@@ -92,10 +96,19 @@ from .const import (
     SERVICE_SET_TANK_TYPE,
     SIGNAL_EVENTS_CHANGED,
     STATE_WATER_LEAK,
+    TH6_MODES_VALUES,
     VERSION,
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
-from .helpers import async_notify_once_or_update, async_notify_throttled, async_notify_critical, NamingHelper
+from .helpers import (
+    async_notify_critical,
+    async_notify_once_or_update,
+    async_notify_throttled,
+    generate_runtime_count_attributes,
+    generate_runtime_sensor_descriptions,
+    NamingHelper,
+    Neviweb130SensorEntityDescription,
+)
 from .schema import (
     HA_TO_NEVIWEB_GAUGE,
     HA_TO_NEVIWEB_HEIGHT,
@@ -139,7 +152,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
 
-SENSOR_TYPES: dict[
+SENSOR_TYPE: dict[
     str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
 ] = {
     "leak": (None, None, BinarySensorDeviceClass.MOISTURE, None, None),
@@ -148,21 +161,6 @@ SENSOR_TYPES: dict[
 }
 
 # Define attributes to be monitored for each device type
-
-
-@dataclass(frozen=True)
-class Neviweb130SensorEntityDescription(SensorEntityDescription):
-    """Describes an attribute sensor entity."""
-
-    value_fn: Callable[[Any], Any] | None = None
-    signal: str = ""
-    icon: str | None = None
-    state_class: str | None = "measurement"
-    device_class: SensorDeviceClass | None = None
-    native_unit_of_measurement: str | None = None
-    unit_class: str | None = None
-    mean_type: StatisticMeanType | None = None
-
 
 SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     #  Common attributes
@@ -342,6 +340,11 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
     ),
 )
 
+# Add runtime-generated sensor descriptions
+for prefix in RUNTIME_PREFIXES:
+    runtime_desc = generate_runtime_sensor_descriptions(TH6_MODES_VALUES, prefix)
+    SENSOR_TYPES = (*SENSOR_TYPES, *runtime_desc)
+
 
 def get_attributes_for_model(model):
     return MODEL_ATTRIBUTES.get(model, {}).get("sensor", [])
@@ -367,6 +370,16 @@ def get_sensor_class(model):
     elif model in IMPLEMENTED_GATEWAY:
         return Neviweb130GatewaySensor
     return None
+
+
+# TH6xxxWF group
+for model in RUNTIME_COMPATIBLE_MODELS["TH6"]:
+    if model in MODEL_ATTRIBUTES:
+        for prefix in RUNTIME_PREFIXES:
+            attrs = generate_runtime_count_attributes(TH6_MODES_VALUES, prefix)
+            MODEL_ATTRIBUTES[model]["sensor"].extend(
+                a for a in attrs if a not in MODEL_ATTRIBUTES[model]["sensor"]
+            )
 
 
 def create_physical_sensors(data, coordinator):
@@ -1025,19 +1038,19 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
 
     @property
     def unit_class(self) -> str | None:
-        device_info = SENSOR_TYPES.get(self._device_type)
+        device_info = SENSOR_TYPE.get(self._device_type)
         return device_info[3] if device_info else None
 
     @property
     def statistic_mean_type(self) -> StatisticMeanType | None:
-        device_info = SENSOR_TYPES.get(self._device_type)
+        device_info = SENSOR_TYPE.get(self._device_type)
         return device_info[4] if device_info else None
 
     @property
     @override
     def device_class(self) -> BinarySensorDeviceClass | SensorStateClass | None:
         """Return the device class of this entity."""
-        device_info = SENSOR_TYPES.get(self._device_type)
+        device_info = SENSOR_TYPE.get(self._device_type)
         if device_info is None:
             return None
 
