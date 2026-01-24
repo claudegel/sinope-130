@@ -284,17 +284,6 @@ ACCESSORY = [
     "airExchanger",
 ]
 
-TH6_MODES_VALUES: dict[str, str] = {
-    "heatStage1": "heatStage1RuntimeAndTimestamp",
-    "heatStage2": "heatStage2RuntimeAndTimestamp",
-    "coolStage1": "coolStage1RuntimeAndTimestamp",
-    "coolStage2": "coolStage2RuntimeAndTimestamp",
-    "auxHeatStage1": "auxHeatStage1RuntimeAndTimestamp",
-    "auxHeatStage2": "auxHeatStage2RuntimeAndTimestamp",
-    "fan": "fanRuntimeAndTimestamp",
-    "emergencyHeat": "emergencyHeatRuntimeAndTimestamp",
-}
-
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
 AUX_HEATING = {"Electric": "hvacElectrique", "Fossil": "hvacGaz"}
 BACKLIGHT_LIST = ["auto", "on", "bedroom"]
