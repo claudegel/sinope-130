@@ -1,5 +1,7 @@
+---
 name: "Demande de fonctionnalité"
 description: Proposer une amélioration ou une nouvelle fonctionnalité pour Neviweb130
+title: "[FEATURE] "
 labels: ["enhancement"]
 body:
   - type: markdown
