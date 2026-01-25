@@ -143,7 +143,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
 - **Alimentation**:
   - Sinopé ACUPS-01, batterie de secours pour valve Sedna, GT130 ou GT125
  
-## Prérequis
+## Prerequis
 Vous devez connecter vos appareils à une passerelle Web GT130 et les ajouter dans votre portail Neviweb avant de pouvoir 
 interagir avec eux dans Home Assistant. Pour les appareils Wi-Fi vous devez les connecter directement à Neviweb. Veuillez
 vous référer au manuel d'instructions de votre appareil ou visiter [Assistance Neviweb](https://support.sinopetech.com/)
@@ -195,7 +195,7 @@ Il existe deux méthodes pour installer ce composant personnalisé :
           update.py
           valve.py
     ```
-## Configuration 1er génération
+## Configuration 1er generation
 
 Pour activer la gestion Neviweb130 dans votre installation, ajoutez ce qui suit à votre fichier `configuration.yaml`, puis redémarrez 
 Home Assistant.
@@ -352,7 +352,7 @@ Les deux modes sont pris en charge par ce composant personnalisé.
 Il est désormais possible de savoir si votre GT130 est toujours en ligne ou hors ligne avec Neviweb via l'attribut gateway_status. Le 
 GT130 est détecté comme sensor.neviweb130_sensor_gt130
 
-## Système de mise à jour
+## Système de mise a jour
 
 Neviweb130 inclut désormais un système de mise à jour complet qui comprend :
 - Vérification automatique des mises à jour toutes les 6 heures :
@@ -410,7 +410,7 @@ et désactiver l'option `Visible`. Il sera toujours possible de faire une mise �
 Vous pouvez aussi attendre une nouvelle mise à jour, ouvrir la carte de mise à jour de HACS et cliquer sur la molette de configuration.
 Désactiver l'option `Visible`.
 
-## Compteur de requêtes quotidiennes Neviweb
+## Compteur de requetes quotidiennes Neviweb
 Comme Sinopé est de plus en plus pointilleux sur le nombre de requêtes par jour, la limite est fixée à 30000. Si vous atteignez cette limite, vous 
 serez déconnecté jusqu'à minuit. C'est très mauvais si vous possédez de nombreux appareils ou si vous développez sur neviweb130.
 J'ai ajouté un compteur de requêtes Neviweb quotidien qui est réinitialisé à 0 à minuit et qui survit à un  redémarrage de HA. Cela crée un 
@@ -420,7 +420,7 @@ Le capteur survit au redémarrage de HA et est remis à 0 à minuit tous les soi
 De cette façon, il est possible d'améliorer votre `scan_interval` pour obtenir la fréquence la plus élevée sans dépasser la limite.
 Lorsqu'il atteint 25 000 requêtes, neviweb130 enverra une notification. A terme, cette limite d'avertissement sera configurable.
 
-## Exécution de plusieurs instances de neviweb130 pour gérer différents comptes Neviweb.
+## Execution de plusieurs instances de neviweb130 pour gerer differents comptes Neviweb.
 > Cette section fonctionne toujours mais comme Neviweb130 prend désormais directement en charge le multi-compte, elle devient obsolète.
 >
 >Il est possible d'exécuter deux instances de neviweb130, mais vous devez utiliser deux comptes Neviweb different avec un nom d'utilisateur 
@@ -450,7 +450,7 @@ Lorsqu'il atteint 25 000 requêtes, neviweb130 enverra une notification. A terme
 >
 >Tous les appareils de cette deuxième instance porteront un nom tel que `climat.neviweb131_climate_office_thermostat`.
 
-## Services personnalisés (Actions)
+## Services personnalises (Actions)
 
 Les automatisations nécessitent que les services (actions) puissent envoyer des commandes. Ex. `light.turn_on`. Pour les appareils Sinopé 
 connectés via neviweb130, il est possible d'utiliser des services personnalisés pour envoyer des informations spécifiques aux appareils 
@@ -549,7 +549,7 @@ ou pour changer certains paramètres des appareils. Ces services personnalisés 
 - neviweb130.set_aux_heating_source, pour sélectionner le type de source de chauffage d'appoint utilisé pour le TH6xxxWF.
 - neviweb130.set_fan_speed, pour régler la vitesse du ventilateur, activé ou automatique pour TH6xxxWF.
 
-## Journalisation pour le débogage
+## Journalisation pour le debogage
 
 Le fichier home-assistant.log n'étant plus disponible, nous avons ajouté un nouvel enregistreur qui écrit toutes les données de journalisation pour 
 neviwen130 vers un fichier `neviweb130_log.txt` dans votre fichier de configuration (config). Ce fichier est écrasé à chaque redémarrage de Ha. 
@@ -557,7 +557,7 @@ Le fichier est également renommé à chaque fois que sa taille atteint 2 Mo. La
 
 Pour faciliter le débogage, ajoutez un extrait de ce fichier à tout problème que vous pourriez rencontrer lorsque vous rapportez une issue.
 
-## Capter le signal Éco Sinopé de Neviweb pour les périodes de pointe
+## Capter le signal Eco Sinope de Neviweb pour les periodes de pointe
 
 Si vous possédez au moins un thermostat ou un contrôleur de charge inscrit au programme Éco-Sinopé, il est maintenant possible de 
 capter lorsque Neviweb envoie le signal pour le démarrage de la période du préchauffage pour les thermostats ou le signal d'arrêt pour les 
@@ -603,7 +603,7 @@ période de pointe est à venir et comment il est géré :
 Il est alors possible de réaliser une automatisation pour préparer tous les appareils HA pour la période de pointe en suivant le changement
 de l'attribut eco_status de «off» à «on».
 
-## Statistiques pour l'énergie
+## Statistiques pour l'energie
 Sept attributs sont ajoutés pour suivre la consommation d'énergie des appareils :
 - total_kwh_count : nombre total de consommation d'énergie à ce jour.
 - hourly_kwh_count : nombre total d'utilisation horaire pour la journée en cours.
@@ -644,7 +644,7 @@ template:
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
 ```
 
-## Statistique pour le capteur de débit Sedna
+## Statistique pour le capteur de debit Sedna
 Sept attributs sont ajoutés pour suivre la consommation d'eau de la valve Sedna. Ils sont affichés en m³ (mètre cube), ce qui correspond aux 
 data que le module énergie recherche :
 - total_flow_count : nombre total de litres d'eau utilisés à ce jour.
@@ -685,7 +685,7 @@ template:
           {{ state_attr("valve.neviweb130_valve_water_valve","hourly_flow") }}
 ```
 
-## Dépannage
+## Depannage
 si vous voyez votre appareil dans le journal, mais qu'il n'apparaît pas dans la liste des entités, vous devez ajouter le numéro de modèle de l'appareil dans le 
 code. Ou vous pouvez m'envoyer le numéro de modèle afin que je puisse l'ajouter dans le code.
 
@@ -799,7 +799,7 @@ sensor.neviweb130_sensor_spa:
 ```
 Les icônes sont disponibles dans le sous-répertoire [www](https://github.com/claudegel/sinope-130/tree/master/www). Copiez-les dans config/www
 
-## Réinitialisation matérielle de l'appareil
+## Reinitialisation materielle de l'appareil
 - Thermostats :
     - Augmentez la température jusqu'à ce que l'affichage change.
     - Appuyez sur les deux boutons jusqu'à ce que CLR apparaisse à l'écran.
