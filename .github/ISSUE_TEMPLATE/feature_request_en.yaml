@@ -1,5 +1,7 @@
-name: Feature Request (EN)
+---
+name: "Feature Request (EN)"
 description: Suggest an improvement or new functionality for Neviweb130
+title: "[FEATURE] "
 labels: ["enhancement"]
 body:
   - type: markdown
