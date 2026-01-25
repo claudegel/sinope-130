@@ -352,7 +352,7 @@ Les deux modes sont pris en charge par ce composant personnalisé.
 Il est désormais possible de savoir si votre GT130 est toujours en ligne ou hors ligne avec Neviweb via l'attribut gateway_status. Le 
 GT130 est détecté comme sensor.neviweb130_sensor_gt130
 
-## Système de mise a jour
+## Systeme de mise a jour
 
 Neviweb130 inclut désormais un système de mise à jour complet qui comprend :
 - Vérification automatique des mises à jour toutes les 6 heures :
