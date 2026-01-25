@@ -1,5 +1,7 @@
-name: Rapport de bug
+---
+name: "Rapport de bug"
 description: Signaler un problème avec l’intégration Neviweb130
+title: "[BUG] "
 labels: ["bug"]
 body:
   - type: markdown
