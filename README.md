@@ -1,6 +1,10 @@
 ## Home Assistant Neviweb130 Custom Components
+[🇫🇷 Version française](doc/readme_fr.md)
+> 💛 **Enjoying this integration?**  
+> If you'd like to support its ongoing development, you can contribute here:
+> [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
 
-Custom components to support [Neviweb](https://neviweb.com/) devices in [Home Assistant](http://www.home-assistant.io). 
+Custom components to support [Neviweb](https://neviweb.com/) devices in [Home Assistant](http://www.home-assistant.io) (HA). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
 switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
@@ -9,15 +13,17 @@ directly to Neviweb. It is presently almost up to date with Neviweb but some inf
 As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
 yet, please open an issue and I'll add it quickly.
 
-## Big changes for valve devices
+Report a problem or suggest an improvement: [Open an issue](https://github.com/claudegel/sinope-130/issues/new/choose)
+
+## Big changes for Sedna valve devices
 
 Since version 2.6.2, valves devices are supported as new HA valve entities. They are no longer supported as switch. This 
-will cause all your switch.neviweb130_switch_sedna_valve to be replaced by valve.neviweb130_valve_sedna_valve entities. 
-You will need to revise your automation and cards to retrieve your valve entities.
+will cause all your `switch.neviweb130_switch_sedna_valve` to be replaced by `valve.neviweb130_valve_sedna_valve` entities. 
+You will need to revise your automations and cards to retrieve your valve entities.
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
-- Zigbee thermostats:
+- **Zigbee thermostats**:
   - Sinopé TH1123ZB 3000W Line voltage thermostat
   - Sinopé TH1124ZB 4000W Line voltage thermostat
   - Sinopé TH1123ZB 3000W Thermostat for public areas
@@ -29,11 +35,10 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1320ZB-04 Floor heating thermostat
   - Sinopé TH1400ZB Low voltage thermostat
   - Sinopé TH1500ZB 3600W double pole thermostat
-  - Sinopé TH1134ZB-HC for heating/cooling interlocking
   - Nordik TH1420ZB-01 Nordik low voltage radiant hydroponic floor thermostat
   - Ouellet OTH3600-GA-ZB Ouellet Floor thermostat
   - Ouellet OTH4000-ZB Ouellet 4000W Line voltage thermostat
-- Wi-Fi thermostats (no need for GT130):
+- **Wi-Fi thermostats** (no need for GT130):
   - Sinopé TH1124WF Wi-Fi 4000W Line voltage thermostat
   - Sinopé TH1123WF Wi-Fi 3000W Line voltage thermostat
   - Sinopé TH1133WF Wi-Fi 3000W Line voltage thermostat lite
@@ -55,31 +60,31 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
-- Heatpump controller:
+- **Heatpump controller**:
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
   - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
-- Wi-Fi Heatpump controller:
+- **Wi-Fi Heatpump controller**:
   - Sinopé HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé HP6000WF-GE for Ouellet heat pump with Gree connector
-- Zigbee lighting:
+- **Zigbee lighting**:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
   - Sinopé DM2500ZB Dimmer
   - Sinopé DM2500ZB-G2 Dimmer
   - Sinopé DM2550ZB Dimmer
   - Sinopé DM2550ZB-G2 Dimmer
-- Zigbee specialized control:
+- **Zigbee specialized control**:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for alarm system
-- Wi-Fi specialized control:
+- **Wi-Fi specialized control**:
   - Sinopé RM3500WF Load controller for water heater
   - Sinopé RM3510WF Load controller for water heater
   - Sinopé RM3250WF load controller 50A, Wi-Fi
-- Water leak detector and valves:
+- **Water leak detector and valves**:
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch Wi-Fi
   - Sinopé VA4200ZB, sedna valve 3/4 inch Zigbee
@@ -102,45 +107,46 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé ACT4220ZB-M, VA4220ZB-M, sedna multi-residential slave valve 2e gen 3/4 inch, Zigbee
   - Sinopé ACT4221WF-M, VA4221WF-M, sedna multi-residential master valve 2e gen. 1 inch, Wi-Fi
   - Sinopé ACT4221ZB-M, VA4221ZB-M, sedna multi-residential slave valve 2e gen. 1 inch, Zigbee
-- Flow sensor: (supported as attribute for the 2e gen Sedna valves)
+- **Flow sensor**: (supported as attribute for the 2e gen Sedna valves)
   - Sinopé FS4220, 3/4 inch flow sensor
   - Sinopé FS4221, 1 inch flow sensor
-- Tank level monitor:
+- **Tank level monitor**:
   - Sinopé LM4110-ZB, Propane tank level monitor
   - Sinopé LM4110-LTE, Propane tank level monitor LTE
-- Gateway:
+- **Gateway**:
   - GT130
   - GT4220WF-M, mesh gateway
-- Power supply:
+- **Power supply**:
   - Sinopé ACUPS-01, battery backup for Sedna valve, GT130 or GT125
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to 
-interact with them within Home Assistant. Please refer to the instructions manual of your device or visit 
-[Neviweb support](https://support.sinopetech.com/)
+interact with them within Home Assistant. Wi-Fi devices must be connected directly to Neviweb. Please refer to 
+the instructions manual of your device or visit [Neviweb support](https://support.sinopetech.com/)
 
-For Wi-Fi thermostats you need to connect your devices to Neviweb and add them in the same network then the GT130 Zigbee 
-devices.
+Wi-Fi devices can be connected in the same network (location) then the GT130 Zigbee devices or in a separate network.
+**Neviweb130** support up to three networks in neviweb.
 
 There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via local 
-Zigbee gateway:
-- [Neviweb130](https://github.com/claudegel/sinope-130) custom component to manage your devices via neviweb portal
-- Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage directly your Zigbee device via ZHA component. 
-  I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks in 
-  [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new quirks before they are merged into 
-  zha-device-handlers.
+
+**Zigbee gateway**:
+- [Neviweb130](https://github.com/claudegel/sinope-130) this custom component, to manage your devices via neviweb portal.
+- [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
+  into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage your Zigbee device locally
+  via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks
+  in HA by coping the sinope-zha files directly in your HA setup. ZHA will load them in place of the standard sinopé quirks.
 
 You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via 
-ConBee II must be removed from Neviweb as they cannot be on two networks at the same time.
+ConBee II must be removed from Neviweb as they cannot be on two Zigbee networks at the same time.
 
-## Neviweb custom component to manage your device via Neviweb portal:
+## Neviweb130 custom component to manage your device via Neviweb portal:
 ## Installation
 There are two methods to install this custom component:
-- via HACS component:
+- **Via HACS component**:
   - This repository is compatible with the Home Assistant Community Store 
     ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
-  - After installing HACS, install 'sinope-130' from the store, and use the configuration.yaml example below.
-- Manually via direct download:
+  - After installing HACS, install 'Sinope neviweb-130' (neviweb130) from the store, and use the configuration.yaml example below.
+- **Manually via direct download**:
   - Download the zip file of this repository using the top right, green download button.
   - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant 
     `config` directory (where you can find your `configuration.yaml` file).
@@ -184,7 +190,7 @@ neviweb130:
   notify: "both"
 ```
 Networks names are the names found on top of first page after logging into Neviweb. If you have more then one network, 
-just click on icon on top to find all networks names. Select the one used for GT130 or Wi-Fi devices. Both devices types 
+just click on icon on top to find all networks names. Select the one used for Zigbee GT130 or Wi-Fi devices. Both devices types 
 must be on same network to work in neviweb130. If you have two networks for two GT130 or two Wi-Fi groups then you can 
 add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and Zigbee/Wi-Fi devices on the 
 same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) 
@@ -205,7 +211,7 @@ custom_component which can run along with this custom_component in HA.
 | **homekit_mode**  | no       | False                                                                                                              | Add support for Homekit specific values. Not needed if you don't use homekit.                                                                                                                                                |
 | **ignore_miwi**   | no       | False                                                                                                              | Ignore miwi devices if present in same location then Zigbee and/or Wi-Fi devices. Warm if we set wrong Neviweb location.                                                                                                     |
 | **stat_interval** | no       | 1800                                                                                                               | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.                                          |
-| **notify**        | no       | both                                                                                                               | The method to send notification in case of device error. value option are nothing, logging, notification, both.                                                                                                              |
+| **notify**        | no       | both                                                                                                               | The method to send notification in case of device error. value option are `nothing`, `logging`, `notification`, `both`.                                                                                                              
 
 If you have a GT125 also connected to Neviweb the network parameter is mandatory, or it is possible that during the 
 setup, the GT125 network will be picked up accidentally. If you have only two GT130/Wi-Fi network, you can omit there 
@@ -363,10 +369,12 @@ Neviweb130 now include a complete update system that include:
   - update_percentage: Show a slider for update process followup.
 
 You will need to deactivate HACS update or you will get two update notifications with two update cards. 
-This can be done in parameters / devices & services / HACS. Pick 'Sinope Neviweb130' and deactivate 
+This can be done in parameters / devices & services / HACS. Pick 'Sinope Neviweb130' line and deactivate 
 the pre-release button if set. Locate the Sinope Neviweb130 integration and click on the three vertical 
 dots on the right end of the line. Click on 'deactivate the device'. It will still be possible to do manual 
 update or redownload via HACS.
+You can also wait for a new update and select HACS update card. Then clic on the configuration button and deactivate the 
+`Visible` option.
 
 ## Neviweb daily request counter
 As Sinopé is becoming more picky about request number per day, limit fixed to 30000. If you reach that limit you 
@@ -379,6 +387,8 @@ This way it is possible to improve your scan_interval to get the higher frequenc
 When reaching 25000 requests, neviweb130 will send a notification. Eventually this warning limit will be configurable.
 
 ## Running more than one instance of neviweb130 to manage different Neviweb connections.
+> This section is still working but as Neviweb130 now support multi account directly, it become obsolete.
+
 It is possible to run two instance of neviweb130, but you need to use two different username (email) and password to 
 connect to Neviweb.
 Steps to achieve this:
@@ -762,8 +772,3 @@ Icons are available from [www](https://github.com/claudegel/sinope-130/tree/mast
 - This custom component will be updated to neviweb130-V2 soon. This imply config_flow, coordinator, attributes entities,
   English/French translation and many more features.
 - Improve energy stat polling from Neviweb.
-
-## Buy me a coffee or a beer
-If you want to make donation as appreciation of my work, you can do so via PayPal. Thank you!
-[![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/)
-
