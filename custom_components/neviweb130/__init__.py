@@ -388,10 +388,8 @@ class Neviweb130Data:
             prefix = (config.get(CONF_PREFIX) or "").strip()
             if prefix != "":
                 _LOGGER.warning(
-                    (
-                        "A non-empty 'prefix' in legacy single-account configuration "
-                        "will rename entities and may break existing automations."
-                    )
+                    "A non-empty 'prefix' in legacy single-account configuration "
+                    "will rename entities and may break existing automations."
                 )
             client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi, prefix)
             self.neviweb130_clients.append(client)
