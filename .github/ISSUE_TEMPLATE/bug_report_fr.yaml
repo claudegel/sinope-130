@@ -1,4 +1,4 @@
-name: Bug Report (FR)
+name: Rapport de bug
 description: Signaler un problème avec l’intégration Neviweb130
 labels: ["bug"]
 body:
