@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for using Neviweb130 and filling this issue!  
+        Thank you for using Neviweb130 and filling this issue!
         Before creating an issue, make sure you have:
         - The latest version of the integration
         - Checked Home Assistant and neviweb130 logs
@@ -28,7 +28,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: description of the problem
+    id: description
     attributes:
       label: Description of the problem
       description: Clearly explain what is not working.
