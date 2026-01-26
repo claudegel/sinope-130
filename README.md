@@ -17,7 +17,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 
 ## Table of contents
 
-- [Annonce](#announcement)
+- [Announcement](#announcement)
 - [Supported devices](#supported-devices)
 - [Prerequisite](#prerequisite)
 - [Installation](#installation)
