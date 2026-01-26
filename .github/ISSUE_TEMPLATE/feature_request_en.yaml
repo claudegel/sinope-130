@@ -1,15 +1,14 @@
----
 name: "Feature Request (EN)"
 description: Suggest an improvement or new functionality for Neviweb130
-title: "[FEATURE] "
+title: "[FEATURE]: "
 labels: ["enhancement"]
+projects: ["Sinope neviweb130"]
 body:
   - type: markdown
     attributes:
       value: |
         Thank you for contributing to the evolution of Neviweb130! 
         Feature requests help us improve integration for everyone.
-
   - type: input
     id: title
     attributes:
@@ -18,7 +17,6 @@ body:
       placeholder: "Ex: Add Eco mode support for thermostats"
     validations:
       required: true
-
   - type: textarea
     id: description
     attributes:
@@ -32,7 +30,6 @@ body:
         - Which devices or services it applies to
     validations:
       required: true
-
   - type: textarea
     id: motivation
     attributes:
@@ -41,23 +38,24 @@ body:
       placeholder: "Ex: This would automate…"
     validations:
       required: true
-
   - type: dropdown
     id: device_type
     attributes:
       label: Affected devices
       description: Select the devices or services linked to the request.
       options:
+        - All devices model
         - Thermostats
         - Switches
         - Lights
         - Load Controllers
+        - Leak sensors
+        - Valve
         - API / Compte Neviweb
         - Update / Backup
         - Other
     validations:
       required: false
-
   - type: textarea
     id: alternatives
     attributes:
@@ -66,7 +64,6 @@ body:
       placeholder: "Ex: Use HA automation, script, etc."
     validations:
       required: false
-
   - type: textarea
     id: additional_context
     attributes:
@@ -75,7 +72,6 @@ body:
       placeholder: "Additional information…"
     validations:
       required: false
-
   - type: checkboxes
     id: checklist
     attributes:
