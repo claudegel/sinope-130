@@ -8,6 +8,8 @@ All modification for this custom_component will be added in this file.
 - Add instructions too disable Hacs update tracking.
 
 ### Fix
+- Fix bug report template, French and English
+- Fix feature request template, French and English
 
 ### Doc
 - Add documentation for multi account configuration.
