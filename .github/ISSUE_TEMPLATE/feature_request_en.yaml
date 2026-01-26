@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for contributing to the evolution of Neviweb130! 
+        Thank you for contributing to the evolution of Neviweb130!
         Feature requests help us improve integration for everyone.
   - type: input
     id: title
