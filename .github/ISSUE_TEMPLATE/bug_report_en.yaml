@@ -1,25 +1,25 @@
-name: Bug Report
+name: "Bug Report (EN)"
 description: Report a problem with the Neviweb130 integration
+title: "[BUG]: "
 labels: ["bug"]
+projects: ["Sinope neviweb130"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for using Neviweb130!  
+        Thank you for using Neviweb130 and filling this issue!
         Before creating an issue, make sure you have:
         - The latest version of the integration
-        - Checked Home Assistant logs
+        - Checked Home Assistant and neviweb130 logs
         - Tested a restart of Home Assistant
-
   - type: input
     id: version
     attributes:
       label: Integration version
-      description: "Installed version (ex: 4.0.1b3)"
+      description: "Installed version (ex: v4.0.1)"
       placeholder: "vX.Y.Z"
     validations:
       required: true
-
   - type: input
     id: ha_version
     attributes:
@@ -27,7 +27,6 @@ body:
       placeholder: "2024.12.x"
     validations:
       required: true
-
   - type: textarea
     id: description
     attributes:
@@ -36,7 +35,6 @@ body:
       placeholder: "Describe the expected behavior and the observed behavior."
     validations:
       required: true
-
   - type: textarea
     id: reproduction
     attributes:
@@ -48,7 +46,6 @@ body:
         3. Observe...
     validations:
       required: true
-
   - type: dropdown
     id: device_type
     attributes:
@@ -58,12 +55,13 @@ body:
         - Light
         - Switch
         - Load Controller
-        - API / Compte Neviweb
+        - Valve
+        - Leak sensor
+        - API / Neviweb account
         - Update / Backup
         - Other
     validations:
       required: true
-
   - type: textarea
     id: logs
     attributes:
@@ -80,7 +78,6 @@ body:
       placeholder: "Paste the relevant logs here."
     validations:
       required: false
-
   - type: textarea
     id: config
     attributes:
@@ -89,7 +86,6 @@ body:
       render: yaml
     validations:
       required: false
-
   - type: checkboxes
     id: checklist
     attributes:

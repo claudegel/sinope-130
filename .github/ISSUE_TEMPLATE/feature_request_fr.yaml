@@ -1,13 +1,14 @@
-name: Feature Request
+name: "Demande de fonctionnalité"
 description: Proposer une amélioration ou une nouvelle fonctionnalité pour Neviweb130
+title: "[FEATURE]: "
 labels: ["enhancement"]
+projects: ["Sinope neviweb130"]
 body:
   - type: markdown
     attributes:
       value: |
         Merci de contribuer à l’évolution de Neviweb130 !  
         Les demandes de fonctionnalités nous aident à améliorer l’intégration pour tous.
-
   - type: input
     id: title
     attributes:
@@ -16,7 +17,6 @@ body:
       placeholder: "Ex: Ajouter le support du mode Éco pour les thermostats"
     validations:
       required: true
-
   - type: textarea
     id: description
     attributes:
@@ -30,7 +30,6 @@ body:
         - À quels appareils ou services elle s’applique
     validations:
       required: true
-
   - type: textarea
     id: motivation
     attributes:
@@ -39,23 +38,24 @@ body:
       placeholder: "Ex: Cela permettrait d’automatiser…"
     validations:
       required: true
-
   - type: dropdown
     id: device_type
     attributes:
       label: Appareils concernés
       description: Sélectionnez les appareils ou services liés à la demande.
       options:
+        - Tous les models
         - Thermostats
-        - Switches
-        - Lights
-        - Load Controllers
+        - Contrôleur
+        - Lumières et gradateurs
+        - Controllers de charge
+        - Détecteur de fuite
+        - Valve
         - API / Compte Neviweb
         - Update / Backup
         - Autre
     validations:
       required: false
-
   - type: textarea
     id: alternatives
     attributes:
@@ -64,7 +64,6 @@ body:
       placeholder: "Ex: Utiliser une automatisation HA, un script, etc."
     validations:
       required: false
-
   - type: textarea
     id: additional_context
     attributes:
@@ -73,7 +72,6 @@ body:
       placeholder: "Information additionnelles…"
     validations:
       required: false
-
   - type: checkboxes
     id: checklist
     attributes:

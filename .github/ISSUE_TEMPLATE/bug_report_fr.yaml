@@ -1,25 +1,25 @@
-name: Bug Report
+name: "Rapport de bug"
 description: Signaler un problème avec l’intégration Neviweb130
+title: "[BUG]: "
 labels: ["bug"]
+projects: ["Sinope neviweb130"]
 body:
   - type: markdown
     attributes:
       value: |
-        Merci d’utiliser Neviweb130 !  
+        Merci d’utiliser Neviweb130 et de rapporter cette issue!
         Avant de créer une issue, assurez-vous d’avoir :
         - La dernière version de l’intégration
         - Vérifié les logs Home Assistant
         - Testé un redémarrage de Home Assistant
-
   - type: input
     id: version
     attributes:
-      label: Version de l’intégration
-      description: "Version installée (ex: 4.0.1b3)"
+      label: Version de l’intégration neviweb130
+      description: "Version installée (ex: 4.0.1)"
       placeholder: "vX.Y.Z"
     validations:
       required: true
-
   - type: input
     id: ha_version
     attributes:
@@ -27,7 +27,6 @@ body:
       placeholder: "2024.12.x"
     validations:
       required: true
-
   - type: textarea
     id: description
     attributes:
@@ -36,7 +35,6 @@ body:
       placeholder: "Décrivez le comportement attendu et le comportement observé."
     validations:
       required: true
-
   - type: textarea
     id: reproduction
     attributes:
@@ -48,22 +46,22 @@ body:
         3. Observer...
     validations:
       required: true
-
   - type: dropdown
     id: device_type
     attributes:
       label: Type d’appareil concerné
       options:
         - Thermostat
-        - Light
+        - Lumière et gradateur
         - Switch
-        - Load Controller
+        - Controlleur de charge
+        - Détecteur de fuite
+        - Valve
         - API / Compte Neviweb
         - Update / Backup
         - Autre
     validations:
       required: true
-
   - type: textarea
     id: logs
     attributes:
@@ -80,7 +78,6 @@ body:
       placeholder: "Collez ici les logs pertinents."
     validations:
       required: false
-
   - type: textarea
     id: config
     attributes:
@@ -89,7 +86,6 @@ body:
       render: yaml
     validations:
       required: false
-
   - type: checkboxes
     id: checklist
     attributes:

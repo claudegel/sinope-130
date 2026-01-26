@@ -24,6 +24,14 @@ This is a custom integration!
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 Documentation: {DOC_URL}
+
+To disable update tracking in HACS:
+HACS → Integrations → Sinope Neviweb130 → 3-dot menu → 2 entities →
+Select the Update entity → ⚙️ → disable “Visible”.
+
+Pour désactiver le suivi des mises à jour dans HACS :
+HACS → Intégrations → Sinope Neviweb130 → menu 3-points → 2 entités →
+Sélectionner l’entité Update → ⚙️ → désactiver “Visible”.
 -------------------------------------------------------------------
 """
 
