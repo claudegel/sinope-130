@@ -2,6 +2,17 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.1.1] - 2026-01-__
+### Added
+- Add method trun_em_heat_on for TH6xxxWF.
+- Add method turn_em_heat_off for TH6xxxWF.
+
+### Fix
+- PRESET.BOOST preset for TH6xxxWF that was returning off
+
+### Doc
+- Add documentation for set_em_heat service for TH6xxxWF.
+
 ## [v4.1.0] - 2026-01-24
 ### Added
 - Add multi-account support with custom entity prefixes by @llaforest.
