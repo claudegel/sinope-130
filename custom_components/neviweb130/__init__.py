@@ -154,6 +154,7 @@ from .const import (
     CONF_PREFIX,
     CONF_STAT_INTERVAL,
     DOMAIN,
+    MODE_EM_HEAT,
     MODE_MANUAL,
     STARTUP_MESSAGE,
     VERSION,
@@ -1117,7 +1118,7 @@ class Neviweb130Client:
         """Work differently for Wi-Fi and Zigbee devices and TH6250xx devices."""
         if wifi:
             if HC:
-                neviweb_mode = NEVIWEB_MODE_MAP.get(mode, "off")
+                neviweb_mode = NEVIWEB_MODE_MAP.get(mode, MODE_EM_HEAT)
                 data = {ATTR_HEAT_COOL: neviweb_mode}
             else:
                 if mode in [HVACMode.HEAT, MODE_MANUAL]:
