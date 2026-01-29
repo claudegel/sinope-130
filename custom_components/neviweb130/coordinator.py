@@ -133,6 +133,7 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
     EXPOSED_ATTRIBUTES,
+    MODE_EM_HEAT,
     MODE_MANUAL,
     VERSION,
 )
@@ -249,9 +250,13 @@ def ha_to_neviweb_level(value: str | None) -> int:
         _LOGGER.warning("Unknown HA value for gauge type: %s, fallback to %s", value, result)
     return result
 
-def ha_to_neviweb_mode(mode: HVACMode) -> str:
-    result = HA_TO_NEVIWEB_MODE.get(mode or "off", 0)
-    if mode not in HA_TO_NEVIWEB_MODE and value is not None:
+def ha_to_neviweb_mode(mode) -> str:
+    # For HC thermostat
+    if mode == MODE_EM_HEAT:
+        return MODE_EM_HEAT
+    # others thermostats
+    result = HA_TO_NEVIWEB_MODE.get(mode or HVACMode.OFF, "off")
+    if mode not in HA_TO_NEVIWEB_MODE and mode is not None:
         _LOGGER.warning("Unknown HA value for heatCoolMode: %s, fallback to %s", mode, result)
     return result
 
