@@ -5775,6 +5775,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             "Acc": False,
             "LC": False,
         }
+        self._preset_before = None
         self._room_temp_error = None
         self._temp_display_status = None
         self._temp_offset_heat = None
@@ -6242,6 +6243,23 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
             if self._heat_cool == MODE_EM_HEAT:
                 self.set_hvac_mode(HVACMode.HEAT)
+
+    @override
+    async def async_turn_em_heat_on(self):
+        """Set emergency heat on."""
+        self._preset_before = self._preset_mode
+        self._heat_cool = MODE_EM_HEAT
+        await self._client.async_set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
+        self.set_hvac_mode(HVACMode.HEAT)
+
+    @override
+    async def async_turn_em_heat_off(self):
+        """Set emergency heat off."""
+        self._heat_cool = HVACMode.HEAT
+        await self._client.async_set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
+        if self._preset_before in PRESET_HC_MODES:
+            self._occupancy = self._preset_before
+            await self._client.async_set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
 
     @override
     async def async_set_temperature(self, **kwargs: Any) -> None:
