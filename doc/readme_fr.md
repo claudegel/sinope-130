@@ -525,7 +525,8 @@ ou pour changer certains paramètres des appareils. Ces services personnalisés 
 - neviweb130.set_remaining_time, pour définir la valeur de l'attribut coldLoadPickupRemainingTime.
 - neviweb130.set_on_off_input_delay, pour régler le délai « on » ou « off » en secondes pour les entrées 1 et 2 du MC3100ZB.
 - neviweb130.set_em_heat, pour allumer/éteindre le chauffage auxiliaire pour les thermostats de sol et basse tension. Il s'agit d'un
-  remplacement de `turn_aux_heat_on` ou off qui est obsolète par HA.
+  remplacement de `turn_aux_heat_on` ou off qui est obsolète par HA. Le fonctionnement est différent pour les appareils TH6xxxWF, où le
+  mode préréglé passe à PRESET.BOOST ou revient au mode préréglé précédent lors de la mise hors tension du chauffage auxiliaire.
 - neviweb130.set_display_config, pour activer/désactiver l'affichage sur le contrôleur de la pompe à chaleur.
 - neviweb130.set_sound_config, pour activer/désactiver le son sur le contrôleur de la pompe à chaleur.
 - neviweb130.set_heat_pump_operation_limit, pour définir la température minimale de fonctionnement de la pompe à chaleur.
