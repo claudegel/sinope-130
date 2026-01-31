@@ -514,7 +514,8 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_remaining_time, to set value for coldLoadPickupRemainingTime attribute.
 - neviweb130.set_on_off_input_delay, to set the «on» or «off» delay in seconds for input 1 and 2 of MC3100ZB.
 - neviweb130.set_em_heat, to turn on/off aux heat for floor and low voltage thermostats. This is a replacement of 
-  turn_aux_heat_on or off that was deprecated by HA.
+  turn_aux_heat_on or off that was deprecated by HA. It work differently for the TH6xxxWF devices where it change the
+  preset mode to PRESET.BOOST or back to previous preset mode when turned off.
 - neviweb130.set_display_config, to set on/off display on heatpump.
 - neviweb130.set_sound_config, to set on/off sound on heatpump.
 - neviweb130.set_heat_pump_operation_limit, to set minimum operation temperature for heatpump.
