@@ -8,7 +8,7 @@ Custom components to support [Neviweb](https://neviweb.com/) devices in [Home As
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
 switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
-Neviweb130 will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
+Neviweb130 (Sinope Neviweb130 in HACS) will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
 directly to Neviweb. It is presently almost up to date with Neviweb but some information are still missing from Sinopé. 
 As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
 yet, please open an issue and I'll add it quickly.
@@ -151,14 +151,17 @@ the instructions manual of your device or visit [Neviweb support](https://suppor
 Wi-Fi devices can be connected in the same network (location) then the GT130 Zigbee devices or in a separate network.
 **Neviweb130** support up to three networks in neviweb.
 
-There are two custom component giving you the choice to manage your devices via the neviweb portal or directly via local 
+There are four custom components giving you the choice to manage your devices via the neviweb portal or directly via local 
 
-**Zigbee gateway**:
-- [Neviweb130](https://github.com/claudegel/sinope-130) this custom component, to manage your devices via neviweb portal.
-- [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
-  into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage your Zigbee device locally
-  via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks
-  in HA by coping the sinope-zha files directly in your HA setup. ZHA will load them in place of the standard sinopé quirks.
+- [Neviweb](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb) custom component to manage your devices via Neviweb portal.
+- [Sinope](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
+  your GT125 web gateway.
+- **Zigbee gateway**:
+  - [Neviweb130](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) this custom component, to manage your devices via neviweb portal.
+  - [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
+    into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage your Zigbee device locally
+    via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks
+    in HA by coping the sinope-zha files directly in your HA setup. ZHA will load them in place of the standard sinopé quirks.
 
 You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via 
 ConBee II must be removed from Neviweb as they cannot be on two Zigbee networks at the same time.
@@ -537,7 +540,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
 
 ## Logging for debugging
-As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviwen130 
+As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviweb130 
 to a file `neviweb130_log.txt` in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
 each time it reach 2 meg in size. Log rotation have a total of 4 files.
 
@@ -728,6 +731,8 @@ In you log you can get those messages from Neviweb:
 - VALINVLD: Invalid value sent to Neviweb.
 - ReadTimeout: Request was sent to the device but no answer came back. Network problem.
 - TimeoutError: Timeout error detected... Retry later.
+
+If you find other error code, please forward them to me.
 
 ## Customization
 Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your 
