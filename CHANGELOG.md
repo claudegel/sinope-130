@@ -2,13 +2,13 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.1.1] - 2026-01-__
+## [v4.1.1] - 2026-01-31
 ### Added
 - Add method trun_em_heat_on for TH6xxxWF.
 - Add method turn_em_heat_off for TH6xxxWF.
 
 ### Fix
-- PRESET.BOOST preset for TH6xxxWF that was returning off
+- Fix set_preset for PRESET.BOOST for TH6xxxWF that was returning off.
 
 ### Doc
 - Add documentation for set_em_heat service for TH6xxxWF.
