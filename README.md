@@ -153,17 +153,18 @@ Wi-Fi devices can be connected in the same network (location) then the GT130 Zig
 
 There are four custom components giving you the choice to manage your devices via the neviweb portal or directly via local 
 
-- [Neviweb](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb) custom component to manage your devices via Neviweb portal.
-- [Sinope](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
+- [**neviweb**](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb) custom component to manage your devices via Neviweb portal.
+- [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
   your GT125 web gateway.
 - **Zigbee gateway**:
-  - [Neviweb130](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) this custom component, to manage your devices via neviweb portal.
-  - [sinope-zha](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
+  - [**neviweb130**](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) this custom component, to manage your devices
+    via neviweb portal.
+  - [**sinope-zha**](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
     into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage your Zigbee device locally
     via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks
     in HA by coping the sinope-zha files directly in your HA setup. ZHA will load them in place of the standard sinopé quirks.
 
-You need to install only one of them but both can be used at the same time on HA. Zigbee devices managed directly via 
+You need to install only one of them but all can be used at the same time on HA. Zigbee devices managed directly via 
 ConBee II must be removed from Neviweb as they cannot be on two Zigbee networks at the same time.
 
 ## Installation
@@ -540,11 +541,11 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
 
 ## Logging for debugging
-As the file home-assistant.log is no longer available, we have added a new logger that write all logging data about neviweb130 
-to a file `neviweb130_log.txt` in your config file. This file is overwritten each time Ha is restarted. The file is also rotated 
+As the file home-assistant.log is no longer available, we have added a new logger that write all logger data about neviweb130 
+to a file `neviweb130_log.txt` in your config directory. This file is overwritten each time Ha is restarted. The file is also rotated 
 each time it reach 2 meg in size. Log rotation have a total of 4 files.
 
-To help debugging, add snippet of this file to any issue you may report.
+To help debugging, add relevant snippet of this file to any issue you may report.
 
 ## Catch Eco Sinope signal for peak period
 If you have at least on thermostat or one load controller registered with Éco-Sinopé program, it is now possible to 
