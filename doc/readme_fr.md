@@ -8,7 +8,7 @@ Composants personnalisés pour prendre en charge les appareils [Neviweb](https:/
 Neviweb est une plateforme créée par Sinopé Technologies pour interagir avec leurs appareils intelligents comme les thermostats, l'éclairage
 interrupteurs/gradateurs, contrôleurs de charge, prise, vannes et détecteur de fuite d'eau, etc.
 
-Neviweb130 gérera les appareils Zigbee connectés à Neviweb via la passerelle GT130 et les nouveaux appareils Wi-Fi connectés 
+Neviweb130 (HACS: Sinope Neviweb130) gérera les appareils Zigbee connectés à Neviweb via la passerelle GT130 et les nouveaux appareils Wi-Fi connectés 
 directement sur Neviweb. Il est actuellement pratiquement à jour avec Neviweb mais certaines informations manquent encore chez Sinopé. 
 Au fur et à mesure que de nouveaux appareils sont lancés par Sinopé, ils sont ajoutés à ce composant personnalisé. Si vous possédez 
 un appareil qui n'est pas pris en charge, veuillez ouvrir une issue et je l'ajouterai rapidement.
@@ -151,18 +151,22 @@ vous référer au manuel d'instructions de votre appareil ou visiter [Assistance
 Les appareils Wi-Fi peuvent être connectés au même réseau (emplacement) que les appareils GT130 Zigbee ou dans un réseau séparé.
 **Neviweb130** supporte jusqu'à trois réseaux dans Neviweb.
 
-Il existe deux composants personnalisés vous donnant le choix de gérer vos appareils via le portail neviweb ou directement en local. 
+Il existe quatre composants personnalisés vous donnant le choix de gérer vos appareils via le portail Neviweb ou directement en local. 
+
+- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb) permettant de gérer vos appareils via le portail Neviweb.
+- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS : Sinope GT125) permettant de gérer vos appareils directement via
+  votre passerelle web GT125.
 
 **Passerelle Zigbee**:
-- [Neviweb130](https://github.com/claudegel/sinope-130) ce composant personnalisé, pour gérer vos appareils via le portail Neviweb.
-- [sinope-zha](https://github.com/claudegel/sinope-zha) où je mets tous les gestionnaire d’adaptations Zigbee (quirks) des nouveaux
+- [**neviweb130**](https://github.com/claudegel/sinope-130) ce composant personnalisé, pour gérer vos appareils via le portail Neviweb.
+- [**sinope-zha**](https://github.com/claudegel/sinope-zha) où je mets tous les gestionnaires d’adaptations Zigbee (quirks) des nouveaux
   appareils Sinopé avant qu'ils ne soient fusionnés dans les gestionnaires de périphériques ZHA. Achetez une passerelle Zigbee
   comme la clé USB **Dresden ConBee II** et gérez votre appareil Zigbee localement via le composant ZHA. J'ajoute le support des
   appareils Sinopé Zigbee dans le gestionnaire de périphériques ZHA. Vous pouvez tester les gestionnaire d’adaptations Zigbee
   Sinopé dans HA en copiant les fichiers sinope-zha directement dans votre configuration HA. ZHA les chargera à la place des
   gestionnaire d’adaptations Zigbee standard de Sinopé dans ZHA.
 
-Vous pouvez en installer qu’un seul, mais les deux peuvent être utilisés en même temps sur HA. Les appareils Zigbee gérés directement via 
+Vous pouvez en installer qu’un seul, mais tous peuvent être utilisés en même temps sur HA. Les appareils Zigbee gérés directement via 
 ZHA doivent être supprimées de Neviweb car elles ne peuvent pas être sur deux réseaux Zigbee en même temps.
 
 ## Installation
@@ -521,7 +525,8 @@ ou pour changer certains paramètres des appareils. Ces services personnalisés 
 - neviweb130.set_remaining_time, pour définir la valeur de l'attribut coldLoadPickupRemainingTime.
 - neviweb130.set_on_off_input_delay, pour régler le délai « on » ou « off » en secondes pour les entrées 1 et 2 du MC3100ZB.
 - neviweb130.set_em_heat, pour allumer/éteindre le chauffage auxiliaire pour les thermostats de sol et basse tension. Il s'agit d'un
-  remplacement de `turn_aux_heat_on` ou off qui est obsolète par HA.
+  remplacement de `turn_aux_heat_on` ou off qui est obsolète par HA. Le fonctionnement est différent pour les appareils TH6xxxWF, où le
+  mode préréglé passe à PRESET.BOOST ou revient au mode préréglé précédent lors de la mise hors tension du chauffage auxiliaire.
 - neviweb130.set_display_config, pour activer/désactiver l'affichage sur le contrôleur de la pompe à chaleur.
 - neviweb130.set_sound_config, pour activer/désactiver le son sur le contrôleur de la pompe à chaleur.
 - neviweb130.set_heat_pump_operation_limit, pour définir la température minimale de fonctionnement de la pompe à chaleur.
@@ -552,10 +557,10 @@ ou pour changer certains paramètres des appareils. Ces services personnalisés 
 ## Journalisation pour le debogage
 
 Le fichier home-assistant.log n'étant plus disponible, nous avons ajouté un nouvel enregistreur qui écrit toutes les données de journalisation pour 
-neviwen130 vers un fichier `neviweb130_log.txt` dans votre fichier de configuration (config). Ce fichier est écrasé à chaque redémarrage de Ha. 
+neviweb130 vers un fichier `neviweb130_log.txt` dans votre répertoire de configuration (config). Ce fichier est écrasé à chaque redémarrage de Ha. 
 Le fichier est également renommé à chaque fois que sa taille atteint 2 Mo. La rotation des journaux comporte un total de 4 fichiers.
 
-Pour faciliter le débogage, ajoutez un extrait de ce fichier à tout problème que vous pourriez rencontrer lorsque vous rapportez une issue.
+Pour faciliter le débogage, ajoutez un extrait pertinent de ce fichier à tout problème que vous pourriez rencontrer lorsque vous rapportez une issue.
 
 ## Capter le signal Eco Sinope de Neviweb pour les periodes de pointe
 
@@ -743,6 +748,8 @@ Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb�
 - VALINVLD : Valeur non valide envoyée à Neviweb.
 - ReadTimeout : La demande a été envoyée à l'appareil mais aucune réponse n'est revenue. Problème de réseau.
 - TimeoutError : Erreur de délai d'attente détectée... Réessayez plus tard.
+
+Si vous trouvez d'autres codes d'erreur, veuillez me les transmettre.
 
 ## Personnalisation
 Installez [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS et ajoutez ce qui suit dans votre 
