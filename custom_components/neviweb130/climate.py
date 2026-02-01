@@ -6247,7 +6247,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     @override
     async def async_turn_em_heat_on(self):
         """Set emergency heat on."""
-        self._preset_before = self._preset_mode
+        self._preset_before = self.preset_mode
         self._heat_cool = MODE_EM_HEAT
         await self._client.async_set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
         self.set_hvac_mode(HVACMode.HEAT)
