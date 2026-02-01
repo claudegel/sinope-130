@@ -6044,7 +6044,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._client.set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
         if self._preset_before in PRESET_HC_MODES:
             self._occupancy = self._preset_before
-            self._client.set_occupancy_mode( self._id, self._occupancy, self._is_wifi )
+            self._client.set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
 
     @override
     def set_temperature(self, **kwargs: Any) -> None:
