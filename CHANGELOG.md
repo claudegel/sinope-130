@@ -5,8 +5,8 @@ All modification for this custom_component will be added in this file.
 ## [v4.1.2] - 2026-02-__
 ### Added
 - Add icon file selection based on pi_heating_demand for thermostats.
-- Add icon file selection based on leak_status for leak sensor.
-- Add battery icon based on battery voltage for leak sensor and tank monitor.
+- Add icon file selection based on leak_status for leak sensors.
+- Add battery icon based on battery voltage for leak sensors and tank monitor.
 - Add battery icon based on battery voltage for valves.
 
 ### Fix
