@@ -550,7 +550,10 @@ class Neviweb130Sensor(Entity):
             device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
             or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
         )
-        self._is_connected = device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+        self._is_connected = (
+            device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+            or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+        )
         self._is_new_connected = device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
         self._is_new_leak = (
             device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
@@ -730,16 +733,40 @@ class Neviweb130Sensor(Entity):
         return self._leak_status is not None
 
     @property
+    def icon_type(self) -> str:
+        """Select icon file based on leak_status value."""
+        is_water_sensor = self._is_leak or self._is_connected
+        if is_water_sensor:
+            return "/local/drop.png" if self.leak_status == "ok" else "/local/leak.png"
+        return None
+
+    @property
+    def battery_icon(self) -> str:
+        """Return battery icon file based on battery voltage."""
+        if self._is_gateway:
+            return None
+        batt = (
+            voltage_to_percentage(self._battery_voltage, "lithium")
+            if self._is_monitor
+            else self._batt_percent_normal
+        )
+
+        level = min(batt // 20 + 1, 5)
+        return f"/local/battery-{level}.png"
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
         data.update(
             {
                 "leak_status": self._leak_status,
+                "icon_type": self.icon_type,
                 "temperature": self._cur_temp,
                 "temp_alarm": self._temp_status,
                 "temperature_alert": self._temp_alert,
                 "leak_alert": self._leak_alert,
+                "battery_icon": self.battery_icon,
                 "battery_level": voltage_to_percentage(self._battery_voltage, self._battery_type),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1005,9 +1032,11 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         data.update(
             {
                 "leak_status": self._leak_status,
+                "icon_type": self.icon_type,
                 "temperature": self._cur_temp,
                 "temp_alarm": self._temp_status,
                 "temperature_alert": self._temp_alert,
+                "battery_icon": self.battery_icon,
                 "battery_level": voltage_to_percentage(self._battery_voltage, self._battery_type),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1150,6 +1179,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             {
                 "gauge_angle": self._angle,
                 "last_sampling_time": convert(self._sampling),
+                "battery_icon": self.battery_icon,
                 "battery_level": voltage_to_percentage(self._battery_voltage, "lithium"),
                 "battery_voltage": self._battery_voltage,
                 "tank_type": self._tank_type,
@@ -1309,7 +1339,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
 
 class NeviwebDailyRequestSensor(Entity):
-    """Sensor interne : nombre de requêtes Neviweb130 aujourd'hui."""
+    """Internal sensor : number of neviweb130 requests to Neviweb Today."""
 
     def __init__(self, hass):
         self.hass = hass
