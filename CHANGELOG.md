@@ -4,12 +4,20 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.1.2] - 2026-02-__
 ### Added
-- Add icon file selection based on pi_heating_demand.
+- Add icon file selection based on pi_heating_demand for thermostats.
+- Add icon file selection based on leak_status for leak sensor.
+- Add battery icon based on battery voltage for leak sensor and tank monitor.
+- Add battery icon based on battery voltage for valves.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
-- 
+- Fix Neviweb130WifiHPThermostat class constructor.
+- Fix set_time_format_service for missing Neviweb130HPThermostat in isinstance().
+
 ### Doc
+- Update documentation for customization of icon for thermostats in lovelace.
+- Update documentation for customization of icon for sensors in lovelace.
+- Update documentation for customization of icon for valves in lovelace.
 
 ## [v4.1.1] - 2026-01-31
 ### Added
