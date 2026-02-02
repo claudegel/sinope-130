@@ -683,6 +683,16 @@ class Neviweb130Valve(ValveEntity):
         """Return current valve status, open or closed."""
         return self._valve_status is not None
 
+    @property
+    def battery_icon(self) -> str:
+        """Return battery icon file based on battery voltage."""
+        if self._battery_voltage is None:
+            return "/local/battery-unknown.png"
+
+        batt = voltage_to_percentage(self._battery_voltage, 4)
+        level = min(batt // 20 + 1, 5)
+        return f"/local/battery-{level}.png"
+
     def open_valve(self, **kwargs):
         """Open the valve."""
         if self._is_wifi_valve or self._is_wifi_mesh_valve:
@@ -715,6 +725,7 @@ class Neviweb130Valve(ValveEntity):
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
+                "battery_icon": self.battery_icon,
                 "power_supply": self._power_supply,
                 "battery_alert": alert_to_text(self._battery_alert, "bat"),
                 "temperature_alert": alert_to_text(self._temp_alert, "temp"),
@@ -1175,6 +1186,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
+                "battery_icon": self.battery_icon,
                 "power_supply": self._power_supply,
                 "valve_closure_source": self._valve_closure,
                 "battery_alert": self._battery_alert,
@@ -1358,6 +1370,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
+                "battery_icon": self.battery_icon,
                 "battery_percent_normalized": self._batt_percent_normal,
                 "battery_status_normalized": self._batt_status_normal,
                 "power_supply": self._power_supply,
@@ -1521,6 +1534,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
+                "battery_icon": self.battery_icon,
                 "power_supply": self._power_supply,
                 "alert_motor_jam": self._stm8Error_motorJam,
                 "alert_motor_position": self._stm8Error_motorPosition,
