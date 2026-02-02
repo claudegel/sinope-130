@@ -634,6 +634,12 @@ async def async_setup_platform(
                             device_info, device_name, device_sku, device_firmware, location_id, client
                         )
                     )
+                elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
+                    entities.append(
+                        Neviweb130HPThermostat(
+                            device_info, device_name, device_sku, device_firmware, location_id, client
+                        )
+                    )
                 elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP:
                     entities.append(
                         Neviweb130WifiHPThermostat(
@@ -724,6 +730,12 @@ async def async_setup_platform(
                             device_info, device_name, device_sku, device_firmware, location_id, client
                         )
                     )
+                elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
+                    entities.append(
+                        Neviweb130HPThermostat(
+                            device_info, device_name, device_sku, device_firmware, location_id, client
+                        )
+                    )
                 elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI_HEAT_PUMP:
                     entities.append(
                         Neviweb130WifiHPThermostat(
@@ -811,6 +823,12 @@ async def async_setup_platform(
                 elif device_info["signature"]["model"] in DEVICE_MODEL_HC:
                     entities.append(
                         Neviweb130HcThermostat(
+                            device_info, device_name, device_sku, device_firmware, location_id, client
+                        )
+                    )
+                elif device_info["signature"]["model"] in DEVICE_MODEL_HEAT_PUMP:
+                    entities.append(
+                        Neviweb130HPThermostat(
                             device_info, device_name, device_sku, device_firmware, location_id, client
                         )
                     )
@@ -2123,6 +2141,30 @@ class Neviweb130Thermostat(ClimateEntity):
     def pi_heating_demand(self) -> int:
         """Heating demand."""
         return self._heat_level
+
+    @property
+    def icon_type(self) -> str:
+        """Select icon based on pi_heating_demand value."""
+        prefix = "floor" if (self._is_floor or self._is_wifi_floor) else "heat"
+
+        if self.hvac_mode == HVACMode.OFF:
+            return f"/local/{prefix}-off.png"
+
+        thresholds = [
+            (1,  "-0"),
+            (21, "-1"),
+            (41, "-2"),
+            (61, "-3"),
+            (81, "-4"),
+        ]
+
+        demand = self.pi_heating_demand
+
+        for limit, suffix in thresholds:
+            if demand < limit:
+                return f"/local/{prefix}{suffix}.png"
+
+        return f"/local/{prefix}-5.png"
 
     @property
     @override
