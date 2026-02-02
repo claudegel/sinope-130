@@ -906,7 +906,7 @@ async def async_setup_platform(
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Wi-Fi (lite) thermostat and does not support time format"
             )
-        if isinstance(thermostat, ):
+        if isinstance(thermostat, Neviweb130HPThermostat):
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Heat-Pump thermostat and does not support time format"
             )
@@ -5131,9 +5131,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb HP6000WF-MA and HP6000WF-XX Wi-Fi heat pump interfaces thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location):
+    def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location)
+        super().__init__(device_info, name, sku, firmware, location, client)
         self._cool_max = 31
         self._cool_min = 16
         self._cool_target_temp_away = None
