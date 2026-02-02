@@ -2,6 +2,15 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.1.2] - 2026-02-__
+### Added
+- Add icon file selection based on pi_heating_demand.
+
+### Fix
+- Add back support for Heat Pump thermostat models.
+- 
+### Doc
+
 ## [v4.1.1] - 2026-01-31
 ### Added
 - Add method trun_em_heat_on for TH6xxxWF.
