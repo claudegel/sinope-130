@@ -647,7 +647,7 @@ async def async_setup_platform(
                         )
                     )
                 else:
-                    entities.append(
+                    entities.append(  # DEVICE_MODEL_HEAT_COOL
                         Neviweb130HeatCoolThermostat(
                             device_info, device_name, device_sku, device_firmware, location_id, client
                         )
@@ -743,7 +743,7 @@ async def async_setup_platform(
                         )
                     )
                 else:
-                    entities.append(
+                    entities.append(  # DEVICE_MODEL_HEAT_COOL
                         Neviweb130HeatCoolThermostat(
                             device_info, device_name, device_sku, device_firmware, location_id, client
                         )
@@ -839,7 +839,7 @@ async def async_setup_platform(
                         )
                     )
                 else:
-                    entities.append(
+                    entities.append(  # DEVICE_MODEL_HEAT_COOL
                         Neviweb130HeatCoolThermostat(
                             device_info, device_name, device_sku, device_firmware, location_id, client
                         )
@@ -906,7 +906,7 @@ async def async_setup_platform(
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Wi-Fi (lite) thermostat and does not support time format"
             )
-        if isinstance(thermostat, Neviweb130HPThermostat):
+        if isinstance(thermostat, ):
             raise ServiceValidationError(
                 f"Entity {thermostat.entity_id} is {DOMAIN} Heat-Pump thermostat and does not support time format"
             )
