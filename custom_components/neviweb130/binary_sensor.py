@@ -140,6 +140,14 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         is_on_fn=lambda data, attr: bool(data.get(attr)),
         icon_fn=static_icon("mdi:thermometer-lines", "mdi:thermometer"),
     ),
+    Neviweb130BinarySensorEntityDescription(
+        key="emergency_heat_allowed",
+        device_class=BinarySensorDeviceClass.HEAT,
+        translation_key="emergency_heat_allowed",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:thermometer-lines", "mdi:thermometer"),
+    ),
     #  All devices attributes
     Neviweb130BinarySensorEntityDescription(
         key="activation",
