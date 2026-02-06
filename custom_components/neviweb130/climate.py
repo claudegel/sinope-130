@@ -3235,6 +3235,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -6057,24 +6058,52 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self.set_preset_mode(self._occupancy)
         self._delayed_refresh()
 
+    def _em_heat_allowed(self) -> bool:
+        """Check if device configuration allow turning on emergency heat. 'addOn' or 'conventional'."""
+        if self._heat_installation_type == "conventional":
+            return True
+        return self._temperature < self._balance_pt
+
     @override
     def set_preset_mode(self, preset_mode: str) -> None:
-        """Activate a preset."""
+        """Activate a preset, including BOOST which maps to emergency heat."""
 
+        # --- BOOST = Emergency Heat ---
         if preset_mode == PRESET_BOOST:
+            if not self._em_heat_allowed():
+                # Condition not met → cannot activate PRESET_BOOST
+                self.notify_ha(
+                    "Warning: Cannot activate BOOST (emergency heat) due to device configuration. "
+                    f"Condition not met for {self._name}, Sku: {self._sku}"
+                )
+                return
+            # Mode Conventional → always allowed
             self._heat_cool = MODE_EM_HEAT
             self._client.set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
-        else:
-            self._occupancy = preset_mode
-            self._client.set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
+            return
 
-            if self._heat_cool == MODE_EM_HEAT:
-                self.set_hvac_mode(HVACMode.HEAT)
+        # --- Others presets (Home, Away) ---
+        self._occupancy = preset_mode
+        self._client.set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
+
+        if self._heat_cool == MODE_EM_HEAT:
+            self.set_hvac_mode(HVACMode.HEAT)
 
     @override
     def turn_em_heat_on(self):
-        """Set emergency heat on."""
+        """Set emergency heat 'on' depending on installation type and outdoor temperature."""
         self._preset_before = self.preset_mode
+
+        # --- Mode Conventional : always allowed ---
+        if not self._em_heat_allowed():
+            # --- Condition not met : cannot turn on em_heat ---
+            self.preset_mode = self._preset_before
+            self.notify_ha(
+                "Warning: Cannot activate emergency heat due to device configuration. "
+                f"Condition not met for {self._name}, Sku: {self._sku}"
+            )
+            return
+
         self._heat_cool = MODE_EM_HEAT
         self._client.set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
         self.set_hvac_mode(HVACMode.HEAT)
