@@ -2304,6 +2304,29 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return self._heat_level
 
     @property
+    def icon_type(self) -> str:
+        """Select icon based on pi_heating_demand value."""
+        prefix = "floor" if (self._is_floor or self._is_wifi_floor) else "heat"
+
+        if self.hvac_mode == HVACMode.OFF:
+            return f"/local/{prefix}-off.png"
+
+        thresholds = [
+            (1,  "-0"),
+            (21, "-1"),
+            (41, "-2"),
+            (61, "-3"),
+            (81, "-4"),
+        ]
+
+        demand = self.pi_heating_demand
+        for limit, suffix in thresholds:
+            if demand < limit:
+                return f"/local/{prefix}{suffix}.png"
+
+        return f"/local/{prefix}-5.png"
+
+    @property
     @override
     def supported_features(self):
         """Return the list of supported features."""
@@ -6205,6 +6228,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         else:
             return 70.0
 
+    @property
+    def emergency_heat_allowed(self) -> bool:
+        return self._em_heat_allowed()
+
     @override
     async def async_turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT_COOL."""
@@ -6230,24 +6257,59 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         # Wait before update to avoid getting old data from Neviweb
         await self._delayed_refresh()
 
+    def _em_heat_allowed(self) -> bool:
+        """Check if device configuration allow turning on emergency heat. 'addOn' or 'conventional'."""
+        if self._heat_installation_type == "conventional":
+            return True
+        return self._temperature < self._balance_pt
+
     @override
     async def async_set_preset_mode(self, preset_mode: str) -> None:
-        """Activate a preset."""
+        """Activate a preset, including BOOST which maps to emergency heat."""
 
+        # --- BOOST = Emergency Heat ---
         if preset_mode == PRESET_BOOST:
+            if not self._em_heat_allowed():
+                # Condition not met → cannot activate PRESET_BOOST
+                await async_notify_critical(
+                    self.hass,
+                    "Warning: Cannot activate BOOST (emergency heat) due to device configuration. "
+                    f"Condition not met for {self._name}, Sku: {self._sku}",
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_em_heat_error",
+                )
+                return
+
+            # Mode Conventional → always allowed
             self._heat_cool = MODE_EM_HEAT
             await self._client.async_set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
-        else:
-            self._occupancy = preset_mode
-            await self._client.async_set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
+            return
 
-            if self._heat_cool == MODE_EM_HEAT:
-                self.set_hvac_mode(HVACMode.HEAT)
+        # --- Others presets (Home, Away) ---
+        self._occupancy = preset_mode
+        await self._client.async_set_occupancy_mode(self._id, self._occupancy, self._is_wifi)
+
+        if self._heat_cool == MODE_EM_HEAT:
+            self.set_hvac_mode(HVACMode.HEAT)
 
     @override
     async def async_turn_em_heat_on(self):
-        """Set emergency heat on."""
+        """Set emergency heat 'on' depending on installation type and outdoor temperature."""
         self._preset_before = self.preset_mode
+
+        # --- Mode Conventional : always allowed ---
+        if not self._em_heat_allowed():
+            # --- Condition not met : cannot turn on em_heat ---
+            self.preset_mode = self._preset_before
+            await async_notify_critical(
+                self.hass,
+                "Warning: Cannot activate BOOST (emergency heat) due to device configuration. "
+                f"Condition not met for {self._name}, Sku: {self._sku}",
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_em_heat_error",
+            )
+            return
+
         self._heat_cool = MODE_EM_HEAT
         await self._client.async_set_setpoint_mode(self._id, self._heat_cool, self._is_wifi, self._is_HC)
         self.set_hvac_mode(HVACMode.HEAT)
