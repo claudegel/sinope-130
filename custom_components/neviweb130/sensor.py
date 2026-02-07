@@ -853,7 +853,10 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
             or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
         )
-        self._is_connected = device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+        self._is_connected = (
+            device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+            or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+        )
         self._is_new_connected = device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
         self._is_new_leak = (
             device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
@@ -1065,6 +1068,28 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     def leak_status(self):
         """Return current sensor leak status: 'water' or 'ok'."""
         return self._leak_status is not None
+
+    @property
+    def icon_type(self) -> str:
+        """Select icon file based on leak_status value."""
+        is_water_sensor = self._is_leak or self._is_connected
+        if is_water_sensor:
+            return "/local/drop.png" if self.leak_status == "ok" else "/local/leak.png"
+        return None
+
+    @property
+    def battery_icon(self) -> str:
+        """Return battery icon file based on battery voltage."""
+        if self._is_gateway:
+            return None
+        batt = (
+            voltage_to_percentage(self._battery_voltage, "lithium")
+            if self._is_monitor
+            else self._batt_percent_normal
+        )
+
+        level = min(batt // 20 + 1, 5)
+        return f"/local/battery-{level}.png"
 
     @property
     def rssi(self):
