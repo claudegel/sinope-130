@@ -88,16 +88,39 @@
   "entity": {
     "binary_sensor": {
       "activation": {
-        "name": "Actif"
+        "name": "Actif",
+        "state": {
+          "on": "Activé",
+          "off": "Inactif"
+        }
       },
       "battery_status": {
-        "name": "Alerte Batterie"
+        "name": "Alerte Batterie",
+        "state": {
+          "on": "OK",
+          "off": "Faible"
+        }
       },
       "em_heating": {
-        "name": "Chauffage urgence"
+        "name": "Chauffage d'urgence",
+        "state": {
+          "on": "Chauffe",
+          "off": "Inactif"
+        }
+      },
+      "emergency_heat_allowed": {
+        "name": "Chauffage d'urgence permis",
+        "state": {
+          "on": "Permis",
+          "off": "Interdit"
+        }
       },
       "gateway_status": {
-        "name": "État de la passerelle"
+        "name": "État de la passerelle",
+        "state": {
+          "on": "Presente",
+          "off": "Déconnectée"
+        }
       },
       "gauge_error": {
         "name": "Jauge Débranchée",
@@ -107,19 +130,39 @@
         }
       },
       "heating": {
-        "name": "Chauffe"
+        "name": "Chauffe",
+        "state": {
+          "on": "Chauffe",
+          "off": "Inactif"
+        }
       },
       "leak_status": {
-        "name": "Alerte Fuite"
+        "name": "Alerte Fuite",
+        "state": {
+          "on": "Fuite",
+          "off": "OK"
+        }
       },
       "level_status": {
-        "name": "Alerte Bas Niveau"
+        "name": "Alerte Bas Niveau",
+        "state": {
+          "on": "Bas",
+          "off": "OK"
+        }
       },
       "refuel_status": {
-        "name": "Alerte Remplissage"
+        "name": "Alerte Remplissage",
+        "state": {
+          "on": "Rempli",
+          "off": "Pas de changement"
+        }
       },
       "valve_temp_alert": {
-        "name": "Alerte Température"
+        "name": "Alerte Température",
+        "state": {
+          "on": "Température basse",
+          "off": "Normale"
+        }
       }
     },
     "button": {
