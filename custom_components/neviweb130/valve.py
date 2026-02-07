@@ -767,6 +767,16 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return self._valve_status is not None
 
     @property
+    def battery_icon(self) -> str:
+        """Return battery icon file based on battery voltage."""
+        if self._battery_voltage is None:
+            return "/local/battery-unknown.png"
+
+        batt = voltage_to_percentage(self._battery_voltage, 4)
+        level = min(batt // 20 + 1, 5)
+        return f"/local/battery-{level}.png"
+
+    @property
     def rssi(self):
         if self._rssi is not None:
             return self._rssi
