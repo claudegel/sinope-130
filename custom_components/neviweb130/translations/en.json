@@ -88,16 +88,39 @@
   "entity": {
     "binary_sensor": {
       "activation": {
-        "name": "Active"
+        "name": "Active",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
+        }
       },
       "battery_status": {
-        "name": "Battery Status"
+        "name": "Battery Status",
+        "state": {
+          "on": "OK",
+          "off": "Low"
+        }
       },
       "em_heating": {
-        "name": "Emergency heating"
+        "name": "Emergency heating",
+        "state": {
+          "on": "Heating",
+          "off": "Idle"
+        }
+      },
+      "emergency_heat_allowed": {
+        "name": "Emergency heating allowed",
+        "state": {
+          "on": "Allowed",
+          "off": "Prohibited"
+        }
       },
       "gateway_status": {
-        "name": "Gateway status"
+        "name": "Gateway status",
+        "state": {
+          "on": "Present",
+          "off": "Disconnected"
+        }
       },
       "gauge_error": {
         "name": "Gauge disconnected",
@@ -107,19 +130,39 @@
         }
       },
       "heating": {
-        "name": "Heating"
+        "name": "Heating",
+        "state": {
+          "on": "Heating",
+          "off": "Idle"
+        }
       },
       "leak_status": {
-        "name": "Leak Status"
+        "name": "Leak Status",
+        "state": {
+          "on": "Water",
+          "off": "OK"
+        }
       },
       "level_status": {
-        "name": "Level Status"
+        "name": "Level Status",
+        "state": {
+          "on": "Low",
+          "off": "OK"
+        }
       },
       "refuel_status": {
-        "name": "Refuel Status"
+        "name": "Refuel Status",
+        "state": {
+          "on": "Refueled",
+          "off": "No change"
+        }
       },
       "valve_temp_alert": {
-        "name": "Temperature Alert"
+        "name": "Temperature Alert",
+        "state": {
+          "on": "Low temperature",
+          "off": "Normal"
+        }
       }
     },
     "button": {
