@@ -1150,6 +1150,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                 "temp_alarm": self._temp_status,
                 "temperature_alert": self._temp_alert,
                 "leak_alert": self._leak_alert,
+                "icon_type": self.icon_type,
                 "battery_level": voltage_to_percentage(self._battery_voltage, self._battery_type),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1157,6 +1158,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                 "battery_status_normalized": self._batt_status_normal,
                 "battery_alert": self._battery_alert,
                 "battery_type": self._battery_type,
+                "battery_icon": self.battery_icon,
                 "rssi": self._rssi,
             }
         )
@@ -1447,6 +1449,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "temperature": self._cur_temp,
                 "temp_alarm": self._temp_status,
                 "temperature_alert": self._temp_alert,
+                "icon_type": self.icon_type,
                 "battery_level": voltage_to_percentage(self._battery_voltage, self._battery_type),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1454,6 +1457,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 "battery_status_normalized": self._batt_status_normal,
                 "battery_alert": self._battery_alert,
                 "battery_type": self._battery_type,
+                "battery_icon": self.battery_icon,
                 "closure_action": self._closure_action,
             }
         )
@@ -1652,6 +1656,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 "last_sampling_time": convert(self._sampling),
                 "battery_level": voltage_to_percentage(self._battery_voltage, "lithium"),
                 "battery_voltage": self._battery_voltage,
+                "battery_icon": self.battery_icon,
                 "tank_type": self._tank_type,
                 "tank_height": self._tank_height,
                 "tank_percent": self._tank_percent,
