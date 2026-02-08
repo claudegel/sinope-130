@@ -737,7 +737,7 @@ class Neviweb130Sensor(Entity):
         """Select icon file based on leak_status value."""
         is_water_sensor = self._is_leak or self._is_connected
         if is_water_sensor:
-            return "/local/drop.png" if self.leak_status == "ok" else "/local/leak.png"
+            return "/local/neviweb130/drop.png" if self.leak_status == "ok" else "/local/neviweb130/leak.png"
         return None
 
     @property
@@ -752,7 +752,7 @@ class Neviweb130Sensor(Entity):
         )
 
         level = min(batt // 20 + 1, 5)
-        return f"/local/battery-{level}.png"
+        return f"/local/neviweb130/battery-{level}.png"
 
     @property
     def extra_state_attributes(self):
