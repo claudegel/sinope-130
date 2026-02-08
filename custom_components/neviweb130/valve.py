@@ -770,18 +770,18 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     def icon_type(self) -> str:
         """Select icon file based on leak_status value."""
         if self._water_leak_status is not None:
-            return "/local/drop.png" if self._water_leak_status == "ok" else "/local/leak.png"
+            return "/local/neviweb130/drop.png" if self._water_leak_status == "ok" else "/local/neviweb130/leak.png"
         return None
 
     @property
     def battery_icon(self) -> str:
         """Return battery icon file based on battery voltage."""
         if self._battery_voltage is None:
-            return "/local/battery-unknown.png"
+            return "/local/neviweb130/battery-unknown.png"
 
         batt = voltage_to_percentage(self._battery_voltage, 4)
         level = min(batt // 20 + 1, 5)
-        return f"/local/battery-{level}.png"
+        return f"/local/neviweb130/battery-{level}.png"
 
     @property
     def rssi(self):
