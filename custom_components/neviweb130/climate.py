@@ -2310,7 +2310,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         prefix = "floor" if (self._is_floor or self._is_wifi_floor) else "heat"
 
         if self.hvac_mode == HVACMode.OFF:
-            return f"/local/{prefix}-off.png"
+            return f"/local/neviweb130/{prefix}-off.png"
 
         thresholds = [
             (1,  "-0"),
@@ -2323,9 +2323,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         demand = self.pi_heating_demand
         for limit, suffix in thresholds:
             if demand < limit:
-                return f"/local/{prefix}{suffix}.png"
+                return f"/local/neviweb130/{prefix}{suffix}.png"
 
-        return f"/local/{prefix}-5.png"
+        return f"/local/neviweb130/{prefix}-5.png"
 
     @property
     @override
