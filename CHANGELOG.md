@@ -9,6 +9,7 @@ All modification for this custom_component will be added in this file.
 - Add battery icon based on battery voltage for leak sensors and tank monitor.
 - Add battery icon based on battery voltage for valves.
 - Add configuration validation before changing em_heat or preset for emergency heating on TH6xxxWF.
+- Add icon type for each climate device in extra_states_attributes.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
