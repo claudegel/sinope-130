@@ -12,6 +12,7 @@ All modification for this custom_component will be added in this file.
 - Add icon type for each climate device in extra_states_attributes.
 - Add icon_type for valves with flow meter.
 - Put all icon files in config/www/neviweb130 directory.
+- Add validation that setpoint cannot be lower then roomSetpointMin.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
