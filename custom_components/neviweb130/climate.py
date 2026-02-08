@@ -2101,6 +2101,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -2491,6 +2492,7 @@ class Neviweb130Thermostat(ClimateEntity):
         temperature = max(temperature, self._min_temp)
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
+        self._delayed_refresh()
 
     def set_second_display(self, value):
         """Set thermostat second display between outside and setpoint temperature."""
@@ -3419,6 +3421,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "cycle_length": neviweb_to_ha(self._cycle_length),
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
@@ -3614,6 +3617,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -3754,6 +3758,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -3921,6 +3926,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -4103,6 +4109,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "keypad": lock_to_ha(self._keypad),
                 "backlight": self._backlight,
@@ -4269,6 +4276,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "keypad": lock_to_ha(self._keypad),
                 "backlight": self._backlight,
@@ -4484,6 +4492,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "keypad": lock_to_ha(self._keypad),
                 "backlight": self._backlight,
                 "time_format": self._time_format,
@@ -4683,6 +4692,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
                 "backlight": self._backlight,
@@ -4891,6 +4901,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "available_mode": self._avail_mode,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -5477,6 +5488,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
+        self._delayed_refresh()
 
     @property
     @override
@@ -6153,6 +6165,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
+        self._delayed_refresh()
 
     def set_min_time_on(self, value):
         """Set minimum time the device is on before letting be off again (run-on time)"""
