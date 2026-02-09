@@ -1981,6 +1981,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     )
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
+                    self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME_FORMAT]
@@ -5932,6 +5933,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
+                    self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_cool = float(device_data[ATTR_COOL_SETPOINT])
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
