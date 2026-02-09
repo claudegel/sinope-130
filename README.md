@@ -742,14 +742,24 @@ and get better results.
 
 Prerequisites:
 - The icones are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
-  neviweb130 under config/www.
+  neviweb130 under config/www. (called /local in HA)
 - Install via HACS the lovelace card: card-mod and mushroom
 - Make sure you have at least neviweb130 v4.1.2
 
 Neviweb130 will manage the icon to show depending on heat level for thermostats via the **icon_type** attribute. For
 sensors, monitors and valve, battery icon are manged via **battery_icon** attributes based on battery level.
+You can retreive the icon name with template like this example:
 
-Old style and new style:      
+Heat level: `{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}`
+
+leak detection: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'icon_type') }}`
+
+battery level: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'battery_icon') }}`
+
+Those template point directly to /local/neviweb130/(icons)
+
+Old style and new style: (Many examples)
+
 ![icons](icon_view2.png)   ![icons](icon_view3.jpg) 
 
 (Feel free to improve my icons and let me know.) 
@@ -796,7 +806,7 @@ primary: |
   °C)
 secondary: |
   {{ states(entity) }} – ({{ state_attr(entity, 'hvac_action') }})
-  {{ state_attr(entity, 'current_temperature') }} °C
+  Curently: {{ state_attr(entity, 'current_temperature') }} °C
 picture: |
   {{ state_attr(entity, 'icon_type') }}
 grid_options:
@@ -837,7 +847,7 @@ You can groupe the card in a vertical stack card, stack-in-card.
 
 Same as above. 
 For leak detected icon it is the **icon_type** attribute.
-For battery level it's the same as above.
+For battery level it's the same as above with **battery_icon**.
 
 Icons are available from [www](https://github.com/claudegel/sinope-130/tree/master/www) sub-directory. 
 Copy them in config/www/neviweb130 in your HA.
