@@ -741,17 +741,18 @@ Custom-ui is almost deprecated and hard to configure. So I've switch to modern l
 and get better results.
 
 Prerequisites:
-- The icones are located in www folder. Copy them in config/www/neviweb130/. You need to create the neviweb130 under www.
-- Install via HACS the lovelace card, card-mod and mushroom
+- The icones are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
+  neviweb130 under config/www.
+- Install via HACS the lovelace card: card-mod and mushroom
 - Make sure you have at least neviweb130 v4.1.2
 
-Neviweb130 will manage the icon to show depending on heat level for thermostats via the icon_type attribute. For
-sensors, monitors and valve, battery icon are manged via battery_icon attributes based on battery level 
-Old style:
-![icons](icon_view2.png)
-new style:
-![icons](icon_view3.png)
-Feel free to improve my icons and let me know. 
+Neviweb130 will manage the icon to show depending on heat level for thermostats via the **icon_type** attribute. For
+sensors, monitors and valve, battery icon are manged via **battery_icon** attributes based on battery level.
+
+Old style and new style:      
+![icons](icon_view2.png)   ![icons](icon_view3.jpg) 
+
+(Feel free to improve my icons and let me know.) 
 
 Here the code for tile card, mushroom template card and mushroom climate card. Edit your dahsboard and add the card. 
 Then edit the code like this:
@@ -835,28 +836,15 @@ You can groupe the card in a vertical stack card, stack-in-card.
 ## Customization for leak sensor
 
 Same as above. 
--Create a sensor:
-```yaml
-battery_spa:
-        friendly_name: "Batterie spa"
-        unit_of_measurement: "%"
-        value_template: "{{ state_attr('sensor.neviweb130_sensor_spa', 'Battery_level') }}"
-``` 
--For each leak detector add this to your `customize.yaml` file
-```yaml
-sensor.battery_spa:
-  templates:
-    entity_picture: >
-      if (entity.state < 10) return '/local/battery-1.png';
-      if (entity.state < 30) return '/local/battery-2.png';
-      if (entity.state < 50) return '/local/battery-3.png';
-      if (entity.state < 70) return '/local/battery-4.png';
-      return '/local/battery-5.png';
-sensor.neviweb130_sensor_spa:    
-      if (attributes.Leak_status == "ok") return ''/local/drop.png'';
-      return ''/local/leak.png'';'
-```
-Icons are available from [www](https://github.com/claudegel/sinope-130/tree/master/www) sub-directory. Copy them in config/www
+For leak detected icon it is the **icon_type** attribute.
+For battery level it's the same as above.
+
+Icons are available from [www](https://github.com/claudegel/sinope-130/tree/master/www) sub-directory. 
+Copy them in config/www/neviweb130 in your HA.
+
+## Customization for battery level for monitor and valve:
+
+Same as above with attribute **battery_icon**.
 
 # Device hard reset
 - Thermostats:
