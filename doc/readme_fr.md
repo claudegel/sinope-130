@@ -752,59 +752,125 @@ Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb�
 Si vous trouvez d'autres codes d'erreur, veuillez me les transmettre.
 
 ## Personnalisation
-Installez [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS et ajoutez ce qui suit dans votre 
-code:
+L'interface utilisateur personnalisée est quasiment obsolète et difficile à configurer. J'ai donc opté pour la carte Lovelace moderne afin 
+de simplifier le processus et d'obtenir de meilleurs résultats.
 
-Icônes pour l'intensité de chauffe : créez le dossier www dans le dossier racine .(config/www)
-copiez-y les six icônes. Vous pouvez les trouver sous local/www dans HA.
+Prérequis :
+- Les icônes se trouvent dans le dossier www de ce dépôt. Copiez-les dans config/www/neviweb130/. Vous devez créer le répertoire
+  neviweb130 sous config/www (appelé /local dans HA).
+- Installez la carte Lovelace via HACS : card-mod et mushroom.
+- Assurez-vous d'avoir au moins la version 4.1.2 de neviweb130.
 
-![icônes](../icon_view2.png)
+Neviweb130 gère l'icône affichée pour les thermostats en fonction du niveau de température grâce à l'attribut **icon_type**.
+Pour les capteurs, les moniteurs et les vannes, l'icône de batterie est gérée via l'attribut **battery_icon** en fonction du niveau de batterie.
+Vous pouvez récupérer le nom de l'icône à l'aide d'un modèle comme dans cet exemple :
 
-N'hésitez pas à améliorer mes icônes et à me le faire savoir. 
+Niveau de chaleur: `{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}`
 
-Pour chaque thermostat, ajoutez ce code dans `customize.yaml`
-```yaml
-climate.neviweb_climate_thermostat_name:
-  templates:
-    entity_picture: >
-      if (attributes.heat_level < 1) return '/local/heat-0.png';
-      if (attributes.heat_level < 21) return '/local/heat-1.png';
-      if (attributes.heat_level < 41) return '/local/heat-2.png';
-      if (attributes.heat_level < 61) return '/local/heat-3.png';
-      if (attributes.heat_level < 81) return '/local/heat-4.png';
-      return '/local/heat-5.png';
- ```
-Dans configuration.yaml ajoutez ceci:
-```yaml
-homeassistant:
-  customize: !include customize.yaml
+détection des fuites: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'icon_type') }}`
+
+niveau de batterie: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'battery_icon') }}`
+
+Ces modèles template pointent directement vers /local/neviweb130/(icônes)
+
+Ancien style et nouveau style : (plusieurs exemples)
+
+![icons](../icon_view2.png)   ![icons](../icon_view3.jpg) 
+
+(N'hésitez pas à améliorer mes icônes et à me le faire savoir.)
+
+Voici le code pour la carte de tuile, la carte mushroom template et la carte mushroom climate. Modifiez votre tableau de bord et ajoutez la carte.
+
+Ensuite, modifiez le code de la carte comme ceci :
+
+- tile card:
 ```
+type: tile
+grid_options:
+  columns: 12
+  rows: 1
+entity: climate.neviweb130_climate_th1124wf
+name:
+  - type: text
+    text: Cuisine
+  - type: text
+    text: Tile card
+show_entity_picture: true
+vertical: false
+features_position: bottom
+card_mod:
+  style: |
+    ha-tile-icon {
+      background-color: transparent !important;
+      background: url('{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}');
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+    }
+    ha-state-icon {
+      display: none;
+    }
+```
+Mushroom template:
+```
+type: custom:mushroom-template-card
+entity: climate.neviweb130_climate_th1124wf
+features_position: bottom
+primary: |
+  Cave (
+  {{ state_attr(entity, 'temperature') }}
+  °C)
+secondary: |
+  {{ states(entity) }} – ({{ state_attr(entity, 'hvac_action') }})
+  Currently: {{ state_attr(entity, 'current_temperature') }} °C
+picture: |
+  {{ state_attr(entity, 'icon_type') }}
+grid_options:
+  columns: 12
+  rows: 1
+```
+- Mushroom Climate:
+```
+type: custom:mushroom-climate-card
+entity: climate.neviweb130_climate_th1124wf
+name: th1124wf Mushroom Climate card
+hvac_modes: []
+fill_container: true
+primary_info: name
+secondary_info: state
+grid_options:
+  columns: 12
+  rows: 1
+tap_action:
+  action: more-info
+card_mod:
+  style:
+    mushroom-shape-icon$: |
+      .shape {
+        background-color: transparent !important;
+        background: url("{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}");
+        background-size: cover;
+        background-position: center;
+        border-radius: 50%;
+      }
+    .: |
+      ha-state-icon {
+        display: none !important;
+      }
+```
+Vous pouvez regrouper les cartes dans une pile verticale (stack-in-card).
 
 ## Personnalisation du capteur de fuite
 
-Comme ci-dessus. 
--Créer un capteur :
-```yaml
-battery_spa:
-        friendly_name: "Batterie spa"
-        unit_of_measurement: "%"
-        value_template: "{{ state_attr('sensor.neviweb130_sensor_spa', 'Battery_level') }}"
-```
--Pour chaque détecteur de fuite, ajoutez ceci à votre fichier `customize.yaml`
-```yaml
-sensor.battery_spa:
-  templates:
-    entity_picture: >
-      if (entity.state < 10) return '/local/battery-1.png';
-      if (entity.state < 30) return '/local/battery-2.png';
-      if (entity.state < 50) return '/local/battery-3.png';
-      if (entity.state < 70) return '/local/battery-4.png';
-      return '/local/battery-5.png';
-sensor.neviweb130_sensor_spa:    
-      if (attributes.Leak_status == "ok") return ''/local/drop.png'';
-      return ''/local/leak.png'';'
-```
+Idem comme ci-dessus.
+Pour l'icône de fuite détectée, il s'agit de l'attribut **icon_type**.
+Pour le niveau de batterie, c'est la même chose avec **battery_icon**.
+
 Les icônes sont disponibles dans le sous-répertoire [www](https://github.com/claudegel/sinope-130/tree/master/www). Copiez-les dans config/www
+
+## Personnalisation du niveau de batterie du moniteur et de la valve Sedna :
+
+Identique à ci-dessus avec l’attribut **battery_icon**.
 
 ## Reinitialisation materielle de l'appareil
 - Thermostats :
