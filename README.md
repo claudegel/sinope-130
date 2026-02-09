@@ -741,13 +741,13 @@ Custom-ui is almost deprecated and hard to configure. So I've switch to modern l
 and get better results.
 
 Prerequisites:
-- The icones are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
+- The icons are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
   neviweb130 under config/www. (called /local in HA)
-- Install via HACS the lovelace card: card-mod and mushroom
+- Install via HACS the lovelace card: card-mod and mushroom and for stack-in-card.
 - Make sure you have at least neviweb130 v4.1.2
 
 Neviweb130 will manage the icon to show depending on heat level for thermostats via the **icon_type** attribute. For
-sensors, monitors and valve, battery icon are manged via **battery_icon** attributes based on battery level.
+sensors, monitors and valve, battery icon are managed via **battery_icon** attributes based on battery level.
 You can retreive the icon name with template like this example:
 
 Heat level: `{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}`
@@ -758,9 +758,13 @@ battery level: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'battery_icon')
 
 Those template point directly to /local/neviweb130/(icons)
 
-Old style and new style: (Many examples)
+Old style: (Many examples)
 
-![icons](icon_view2.png)   ![icons](icon_view3.jpg) 
+![icons](icon_view2.png)
+
+New style based on Mushroom and Tile cards:
+
+![icons](icon_view3.jpg) 
 
 (Feel free to improve my icons and let me know.) 
 
@@ -804,6 +808,7 @@ primary: |
   Cave (
   {{ state_attr(entity, 'temperature') }}
   °C)
+  Mushroom template card
 secondary: |
   {{ states(entity) }} – ({{ state_attr(entity, 'hvac_action') }})
   Curently: {{ state_attr(entity, 'current_temperature') }} °C
@@ -842,7 +847,7 @@ card_mod:
         display: none !important;
       }
 ```
-You can groupe the card in a vertical stack card, stack-in-card.
+You can group the card in a vertical stack card, stack-in-card.
 ## Customization for leak sensor
 
 Same as above. 
