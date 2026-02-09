@@ -737,34 +737,101 @@ In you log you can get those messages from Neviweb:
 If you find other error code, please forward them to me.
 
 ## Customization
-Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your 
-code:
+Custom-ui is almost deprecated and hard to configure. So I've switch to modern lovelace card to ease the process 
+and get better results.
 
-Icons for heat level: create folder www in the root folder . (config/www)
-copy the six icons there. You can find them under local/www.
+Prerequisites:
+- The icones are located in www folder. Copy them in config/www/neviweb130/. You need to create the neviweb130 under www.
+- Install via HACS the lovelace card, card-mod and mushroom
+- Make sure you have at least neviweb130 v4.1.2
 
+Neviweb130 will manage the icon to show depending on heat level for thermostats via the icon_type attribute. For
+sensors, monitors and valve, battery icon are manged via battery_icon attributes based on battery level 
+Old style:
 ![icons](icon_view2.png)
-
+new style:
+![icons](icon_view3.png)
 Feel free to improve my icons and let me know. 
 
-For each thermostat add this code in `customize.yaml`
-```yaml
-climate.neviweb_climate_thermostat_name:
-  templates:
-    entity_picture: >
-      if (attributes.heat_level < 1) return '/local/heat-0.png';
-      if (attributes.heat_level < 21) return '/local/heat-1.png';
-      if (attributes.heat_level < 41) return '/local/heat-2.png';
-      if (attributes.heat_level < 61) return '/local/heat-3.png';
-      if (attributes.heat_level < 81) return '/local/heat-4.png';
-      return '/local/heat-5.png';
- ```  
- In `configuration.yaml` add this
-```yaml
-homeassistant:
-  customize: !include customize.yaml
-```
+Here the code for tile card, mushroom template card and mushroom climate card. Edit your dahsboard and add the card. 
+Then edit the code like this:
 
+- tile card:
+```
+type: tile
+grid_options:
+  columns: 12
+  rows: 1
+entity: climate.neviweb130_climate_th1124wf
+name:
+  - type: text
+    text: Cuisine
+  - type: text
+    text: Tile card
+show_entity_picture: true
+vertical: false
+features_position: bottom
+card_mod:
+  style: |
+    ha-tile-icon {
+      background-color: transparent !important;
+      background: url('{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}');
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+    }
+    ha-state-icon {
+      display: none;
+    }
+```
+Mushroom template:
+```
+type: custom:mushroom-template-card
+entity: climate.neviweb130_climate_th1124wf
+features_position: bottom
+primary: |
+  Cave (
+  {{ state_attr(entity, 'temperature') }}
+  °C)
+secondary: |
+  {{ states(entity) }} – ({{ state_attr(entity, 'hvac_action') }})
+  {{ state_attr(entity, 'current_temperature') }} °C
+picture: |
+  {{ state_attr(entity, 'icon_type') }}
+grid_options:
+  columns: 12
+  rows: 1
+```
+- Mushroom Climate:
+```
+type: custom:mushroom-climate-card
+entity: climate.neviweb130_climate_th1124wf
+name: th1124wf Mushroom Climate card
+hvac_modes: []
+fill_container: true
+primary_info: name
+secondary_info: state
+grid_options:
+  columns: 12
+  rows: 1
+tap_action:
+  action: more-info
+card_mod:
+  style:
+    mushroom-shape-icon$: |
+      .shape {
+        background-color: transparent !important;
+        background: url("{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}");
+        background-size: cover;
+        background-position: center;
+        border-radius: 50%;
+      }
+    .: |
+      ha-state-icon {
+        display: none !important;
+      }
+```
+You can groupe the card in a vertical stack card, stack-in-card.
 ## Customization for leak sensor
 
 Same as above. 
