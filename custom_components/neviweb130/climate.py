@@ -2102,7 +2102,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
-                "": self.,
+                "icon_type": self.icon_type,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
