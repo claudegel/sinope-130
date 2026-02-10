@@ -13,11 +13,15 @@ All modification for this custom_component will be added in this file.
 - Add icon_type for valves with flow meter.
 - Put all icon files in config/www/neviweb130 directory.
 - Add validation that setpoint cannot be lower then roomSetpointMin.
+- Add icon_type values for floor devices.
+- Add icon values for hvac mode AUTO.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
 - Fix Neviweb130WifiHPThermostat class constructor.
 - Fix set_time_format_service for missing Neviweb130HPThermostat in isinstance().
+- Review icons color for better looking.
+- Fix bad setpoint values received from Neviweb during peak period.
 
 ### Doc
 - Update documentation for customization of icon for thermostats in lovelace.
