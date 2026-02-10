@@ -2102,7 +2102,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 "error_code": self._error_code,
                 "heat_level": self._heat_level,
                 "pi_heating_demand": self._heat_level,
-                "icon_type": self.icon_type,
+                "": self.,
                 "temp_display_value": self._temp_display_value,
                 "second_display": self._display2,
                 "keypad": lock_to_ha(self._keypad),
@@ -2147,10 +2147,18 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def icon_type(self) -> str:
         """Select icon based on pi_heating_demand value."""
-        prefix = "floor" if (self._is_floor or self._is_wifi_floor) else "heat"
+        is_floor = self._is_floor or self._is_wifi_floor
+        base = "floor" if is_floor else "heat"
 
+        # OFF mode set off icon
         if self.hvac_mode == HVACMode.OFF:
-            return f"/local/neviweb130/{prefix}-off.png"
+            return f"/local/neviweb130/{base}-off.png"
+
+        # AUTO mode → change prefix
+        if self.hvac_mode == HVACMode.AUTO:
+            base = "floor-auto" if is_floor else "heat-auto"
+
+        demand = self.pi_heating_demand or 0
 
         thresholds = [
             (1,  "-0"),
@@ -2160,13 +2168,11 @@ class Neviweb130Thermostat(ClimateEntity):
             (81, "-4"),
         ]
 
-        demand = self.pi_heating_demand
-
         for limit, suffix in thresholds:
             if demand < limit:
-                return f"/local/neviweb130/{prefix}{suffix}.png"
+                return f"/local/neviweb130/{base}{suffix}.png"
 
-        return f"/local/neviweb130/{prefix}-5.png"
+        return f"/local/neviweb130/{base}-5.png"
 
     @property
     @override
