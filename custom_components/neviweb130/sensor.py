@@ -127,6 +127,7 @@ from .schema import (
     SET_SENSOR_TEMP_ALERT_SCHEMA,
     SET_TANK_HEIGHT_SCHEMA,
     SET_TANK_TYPE_SCHEMA,
+    WEATHER_ICON_MAP,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -151,6 +152,32 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_SENSOR_MODEL
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
+
+def _t(hass, key: str) -> str:
+    return hass.helpers.translation.async_get_localized_string(
+        f"custom_components.neviweb130.notifications.{key}"
+    )
+
+async def check_weather_icons_folder(hass):
+    """Return icon file name."""
+    folder = hass.config.path("www/neviweb130/weather")
+
+    # Check if folder exist
+    exists = await hass.async_add_executor_job(os.path.isdir, folder)
+    if not exists:
+        hass.components.persistent_notification.create(
+            _t(hass, "weather_icons_folder_missing"),
+            title="Neviweb130 – weather icon"
+        )
+        return
+
+    # Check if folder is empty
+    files = await hass.async_add_executor_job(os.listdir, folder)
+    if not files:
+        hass.components.persistent_notification.create(
+            _t(hass, "weather_icons_folder_empty"),
+            title="Neviweb130 – weather icon"
+        )
 
 SENSOR_TYPE: dict[
     str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
@@ -260,6 +287,25 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         unit_class="temperature",
         mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:thermometer",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="outdoor_temp",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="outdoor_temp",
+        value_fn=lambda data: data["outdoor_temp"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        unit_class="temperature",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        icon="mdi:thermometer",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="weather_icon",
+        translation_key="weather_icon",
+        value_fn=lambda data: data["weather_icon"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        icon="mdi:weather-partly-snowy-rainy",
     ),
     #  Valve attributes
     Neviweb130SensorEntityDescription(
@@ -437,7 +483,7 @@ def create_physical_sensors(data, coordinator):
     return entities
 
 
-def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
+async def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
     entities: list[Neviweb130Sensor] = []
 
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
@@ -445,6 +491,8 @@ def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
     config_prefix = data["prefix"]
     platform = __name__.split(".")[-1] # "sensor"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
+    await check_weather_icons_folder(hass)
 
     for index, gateway_data in enumerate([
         data["neviweb130_client"].gateway_data,
@@ -465,7 +513,6 @@ def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
             if device_id not in coordinator.data:
                 _LOGGER.warning("Device %s pas encore dans coordinator.data", device_id)
 
-#            device_name = f"{default_name} {device_info['name']}"
             device_name = naming.device_name(platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
@@ -531,7 +578,7 @@ async def async_setup_entry(
         await coordinator.async_config_entry_first_refresh()
 
     #  Add attribute sensors for each device type
-    entities += create_attribute_sensors(hass, entry, data, coordinator, device_registry)
+    entities += await create_attribute_sensors(hass, entry, data, coordinator, device_registry)
 
     # Add daily request counter sensor
     counter = data["counter"]
@@ -1913,6 +1960,36 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
     def device_id(self):
         """Return device_id."""
         return self._device_id
+
+    @property
+    def icon(self):
+        if self.entity_description.key == "weather_icon":
+            return "mdi:weather-partly-snowy-rainy"
+        return self.entity_description.icon
+
+    @property
+    def entity_picture(self):
+        if self.entity_description.key == "weather_icon":
+            try:
+                code = str(self.native_value)
+            except (ValueError, TypeError):
+                return None
+
+            icon_name = WEATHER_ICON_MAP.get(code)
+            if icon_name:
+                path = f"/local/neviweb130/weather/{icon_name}.png"
+                if self._file_exists(path):
+                    return path
+
+        return None
+
+    def _file_exists(self, path: str) -> bool:
+        try:
+            local_path = path.replace("/local/", "www/")
+            full_path = os.path.join(self.hass.config.path(), local_path)
+            return os.path.isfile(full_path)
+        except Exception:
+            return False
 
     @property
     @override
