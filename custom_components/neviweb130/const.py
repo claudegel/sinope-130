@@ -446,9 +446,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -476,7 +478,9 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
+            "outdoor_temp",
             "pi_heating_demand",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -499,7 +503,9 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
+            "outdoor_temp",
             "pi_heating_demand",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -522,7 +528,9 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
+            "outdoor_temp",
             "pi_heating_demand",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -548,9 +556,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -580,8 +590,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
+            "wattage",
+            "weather_icon",
         ],
         "number": [
             "floor_setpoint_max",
@@ -612,9 +625,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "floor_setpoint_max",
@@ -647,9 +662,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "floor_setpoint_max",
@@ -684,9 +701,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -717,9 +736,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -749,9 +770,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -781,9 +804,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -814,9 +839,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -846,8 +873,10 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -882,8 +911,10 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -917,8 +948,10 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -952,6 +985,8 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -968,6 +1003,8 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -984,6 +1021,8 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -1000,6 +1039,8 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -1016,6 +1057,8 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
         ],
         "number": [
             "cool_lockout_temp",
@@ -1035,9 +1078,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "floor_setpoint_max",
@@ -1070,9 +1115,11 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
             "wattage",
+            "weather_icon",
         ],
         "number": [
             "max_temp",
@@ -1652,6 +1699,7 @@ EXPOSED_ATTRIBUTES = [
     "monthly_flow_count",
     "monthly_kwh_count",
     "occupancy_mode",
+    "outdoor_temp",
     "phase_control",
     "pi_heating_demand",
     "power_supply",
@@ -1681,12 +1729,15 @@ EXPOSED_ATTRIBUTES = [
     "wattage",
     "water_leak_status",
     "water_remaining_time",
+    "weather_icon",
     "wifi_aux_cycle_length",
     "wifi_cycle",
     # Constants
+    "is_color_wifi",
     "is_gen2",
     "is_HC_like",
     "is_HC",
+    "is_heating",
     "is_HP",
     "is_WHP",
     "is_wifi",
