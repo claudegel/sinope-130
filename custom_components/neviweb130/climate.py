@@ -2289,6 +2289,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -2308,10 +2310,18 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def icon_type(self) -> str:
         """Select icon based on pi_heating_demand value."""
-        prefix = "floor" if (self._is_floor or self._is_wifi_floor) else "heat"
+        is_floor = self._is_floor or self._is_wifi_floor
+        base = "floor" if is_floor else "heat"
 
+        # OFF mode set off icon
         if self.hvac_mode == HVACMode.OFF:
-            return f"/local/neviweb130/{prefix}-off.png"
+            return f"/local/neviweb130/{base}-off.png"
+
+        # AUTO mode → change prefix
+        if self.hvac_mode == HVACMode.AUTO:
+            base = "floor-auto" if is_floor else "heat-auto"
+
+        demand = self.pi_heating_demand or 0
 
         thresholds = [
             (1,  "-0"),
@@ -2321,12 +2331,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             (81, "-4"),
         ]
 
-        demand = self.pi_heating_demand
         for limit, suffix in thresholds:
             if demand < limit:
-                return f"/local/neviweb130/{prefix}{suffix}.png"
+                return f"/local/neviweb130/{base}{suffix}.png"
 
-        return f"/local/neviweb130/{prefix}-5.png"
+        return f"/local/neviweb130/{base}-5.png"
 
     @property
     @override
@@ -3398,6 +3407,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -3591,6 +3602,8 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -3801,6 +3814,8 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -3949,6 +3964,8 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4126,6 +4143,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4314,6 +4333,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "last_energy_stat_update": self._mark,
                 "interlock_id": self._interlock_id,
                 "interlock_partner": self._interlock_partner,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4708,6 +4729,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -4920,6 +4943,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -5139,6 +5164,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
@@ -5351,6 +5378,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             )
         data.update(
             {
+                "outdoor_temp": self._temperature,
+                "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
