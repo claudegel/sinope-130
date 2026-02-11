@@ -15,6 +15,8 @@ All modification for this custom_component will be added in this file.
 - Add validation that setpoint cannot be lower then roomSetpointMin.
 - Add icon_type values for floor devices.
 - Add icon values for hvac mode AUTO.
+- Add emergency_heating attribute for thermostats.
+- Refactor weather icons to fit HA needs.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
