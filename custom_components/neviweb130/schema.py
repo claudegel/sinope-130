@@ -379,6 +379,41 @@ TIMER_LIST = [
 ]
 TRUE_LIST = [True, False]
 WATER_TEMP = list(HA_TO_NEVIWEB_TEMPERATURE.keys())
+WEATHER_ICON_MAP = {
+    "0": "Hide",
+    "1": "Sun",
+    "2": "Sun2",
+    "3": "Cloudsun",
+    "4": "Cloudsun2",
+    "5": "Cloud",
+    "6": "Cloudrainsun",
+    "7": "Cloudrainsun2",
+    "8": "Cloud2",
+    "9": "Cloud3",
+    "10": "Cloudrain",
+    "11": "Cloudlightning",
+    "12": "Cloudlightning2",
+    "13": "Cloudsnow",
+    "14": "Cloudsnow2",
+    "15": "Cloudsnow3",
+    "16": "Cloudsnow4",
+    "17": "Cloudfog",
+    "18": "Moonstar",
+    "19": "Cloudmoon",
+    "20": "Cloudmoon2",
+    "21": "Cloudmoon3",
+    "22": "Cloudsnow5",
+    "23": "Cloudrainmoon",
+    "24": "Cloudrainmoon2",
+    "25": "Cloudrainmoon3",
+    "26": "Cloudsnow6",
+    "28": "Cloudrain2",
+    "29": "Cloudrain3",
+    "30": "Cloudrainsun3",
+    "31": "Cloudrainmoon4",
+    "32": "Cloudrainsun4",
+    "33": "Cloudrainmoon5",
+}
 WIFI_CYCLE = ["10 min", "15 min", "20 min", "25 min"]
 WIFI_FAN_SPEED = ["auto", "on"]
 
