@@ -85,6 +85,10 @@
       "duplicate_prefix": "This prefix is already used by another Neviweb account."
     }
   },
+  "notifications": {
+    "weather_icons_folder_missing": "The directory `/local/neviweb130/weather` is missing. Weather icons png files won't be displayed.",
+    "weather_icons_folder_empty": "The directory `/local/neviweb130/weather` is empty. No weather icon will be displayed."
+  },
   "entity": {
     "binary_sensor": {
       "activation": {
@@ -417,6 +421,9 @@
       "monthly_kwh_count": {
         "name": "Monthly Energy"
       },
+      "outdoor_temp": {
+        "name": "Outdoor temperature"
+      },
       "pi_heating_demand": {
         "name": "Heating Demand"
       },
@@ -431,6 +438,9 @@
       },
       "wattage": {
         "name": "Wattage"
+      },
+      "weather_icon": {
+        "name": "Weather icon"
       }
     },
     "switch": {
