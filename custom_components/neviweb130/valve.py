@@ -94,6 +94,7 @@ from .const import (
     STATE_VALVE_STATUS,
     VERSION,
 )
+from .helpers import file_exists
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
@@ -563,6 +564,7 @@ class Neviweb130Valve(ValveEntity):
         self._today_kwh = 0
         self._total_kwh_count = 0
         self._valve_status: str | None = None
+        self._water_leak_status: str | None = None
 
     def update(self):
         if self._active:
@@ -641,6 +643,15 @@ class Neviweb130Valve(ValveEntity):
         return device_info[0]
 
     @property
+    def entity_picture(self) -> str:
+        """Replace entity picture by valve or leak icon."""
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
     @override
     def device_class(self) -> ValveDeviceClass | None:
         """Return the device class of this entity."""
@@ -685,6 +696,13 @@ class Neviweb130Valve(ValveEntity):
 
     @property
     def icon_type(self) -> str:
+        """Select valve icon based on valve state and leak status."""
+        if self._water_leak_status == "water":
+            return "/local/neviweb130/leak.png"
+        return "/local/neviweb130/valve-open.png" if self.is_open else "/local/neviweb130/valve-close.png"
+
+    @property
+    def leak_icon(self) -> str:
         """Select icon file based on leak_status value."""
         if self._water_leak_status is not None:
             return "/local/neviweb130/drop.png" if self._water_leak_status == "ok" else "/local/neviweb130/leak.png"
@@ -693,7 +711,7 @@ class Neviweb130Valve(ValveEntity):
     @property
     def battery_icon(self) -> str:
         """Return battery icon file based on battery voltage."""
-        if self._battery_voltage is None:
+        if self._battery_voltage is None or self._battery_voltage == 0:
             return "/local/neviweb130/battery-unknown.png"
 
         batt = voltage_to_percentage(self._battery_voltage, 4)
@@ -1190,6 +1208,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
             {
                 "valve_status": self._valve_status,
                 "temperature_alert": self._temp_alert,
+                "leak_icon": self.leak_icon,
                 "icon_type": self.icon_type,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
@@ -1381,6 +1400,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "battery_icon": self.battery_icon,
                 "battery_percent_normalized": self._batt_percent_normal,
                 "battery_status_normalized": self._batt_status_normal,
+                "leak_icon": self.leak_icon,
                 "icon_type": self.icon_type,
                 "power_supply": self._power_supply,
                 "alert_motor_jam": self._stm8Error_motorJam,
@@ -1540,6 +1560,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "valve_status": self._valve_info_status,
                 "valve_cause": self._valve_info_cause,
                 "valve_info_id": self._valve_info_id,
+                "leak_icon": self.leak_icon,
                 "icon_type": self.icon_type,
                 "battery_level": voltage_to_percentage(self._battery_voltage, 4),
                 "battery_voltage": self._battery_voltage,
