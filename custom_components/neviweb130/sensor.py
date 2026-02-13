@@ -104,6 +104,7 @@ from .helpers import (
     async_notify_critical,
     async_notify_once_or_update,
     async_notify_throttled,
+    file_exists,
     generate_runtime_count_attributes,
     generate_runtime_sensor_descriptions,
     NamingHelper,
@@ -369,6 +370,19 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         mean_type=StatisticMeanType.ARITHMETIC,
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:gauge",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="battery_level",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="battery_level",
+        value_fn=lambda data: data["battery_level"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement="%",
+        unit_class="percentage",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        icon="mdi:pipe-leak",
     ),
     #  Switch attributes
     Neviweb130SensorEntityDescription(
@@ -1059,6 +1073,18 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         return self._id
 
     @property
+    def entity_picture(self) -> str:
+        """Replace entity picture by leak icon."""
+        if self._leak_status is None:
+            return None
+
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
     @override
     def name(self):
         """Return the name of the sensor."""
@@ -1119,6 +1145,9 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     @property
     def icon_type(self) -> str:
         """Select icon file based on leak_status value."""
+        if self._is_gateway or self._is_monitor:
+            return None
+
         is_water_sensor = self._is_leak or self._is_connected
         if is_water_sensor:
             return "/local/neviweb130/drop.png" if self.leak_status == "ok" else "/local/neviweb130/leak.png"
@@ -1129,11 +1158,15 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         """Return battery icon file based on battery voltage."""
         if self._is_gateway:
             return None
+
         batt = (
             voltage_to_percentage(self._battery_voltage, "lithium")
             if self._is_monitor
             else self._batt_percent_normal
         )
+
+        if batt is None:
+            return f"/local/neviweb130/battery-unknown.png"
 
         level = min(batt // 20 + 1, 5)
         return f"/local/neviweb130/battery-{level}.png"
@@ -1238,6 +1271,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     def battery_status(self):
         """Return the current battery status."""
         return self._battery_status
+
+    @property
+    def battery_level(self):
+        """Return battery level in %."""
+        return voltage_to_percentage(self._battery_voltage, self._battery_type)
 
     @property
     @override
@@ -1642,6 +1680,49 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     )
 
     @property
+    @override
+    def entity_picture(self) -> str:
+        """Replace entity picture by tank percent icon."""
+        if self._tank_percent is None:
+            return None
+
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
+    @override
+    def icon_type(self) -> str:
+        """Select icon based on _tank_percent value."""
+        base = "propane"
+        if not self._is_monitor:
+            return None
+
+        if self._tank_percent is None:
+            return "/local/neviweb130/{base}-unknown.png"
+
+        demand = self._tank_percent or 0
+
+        thresholds = [
+            (1,  "-0"),
+            (11, "-1"),
+            (21, "-2"),
+            (31, "-3"),
+            (41, "-4"),
+            (51, "-5"),
+            (61, "-6"),
+            (71, "-7"),
+        ]
+
+        for limit, suffix in thresholds:
+            if demand < limit:
+                return f"/local/neviweb130/{base}{suffix}.png"
+
+        return f"/local/neviweb130/{base}-8.png"
+
+    @property
     def level_status(self):
         """Return current sensor fuel level status."""
         if self._tank_percent > self._fuel_percent_alert:
@@ -1685,7 +1766,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
     @property
     def battery_level(self):
         """Return gauge angle."""
-        return (voltage_to_percentage(self._battery_voltage, "lithium"),)
+        return voltage_to_percentage(self._battery_voltage, "lithium")
 
     @property
     def battery_voltage(self):
@@ -1969,27 +2050,28 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
 
     @property
     def entity_picture(self):
-        if self.entity_description.key == "weather_icon":
+        key = self.entity_description.key
+
+        if key == "weather_icon":
             try:
-                code = str(self.native_value)
+                code = str(int(self.native_value))
             except (ValueError, TypeError):
                 return None
 
             icon_name = WEATHER_ICON_MAP.get(code)
             if icon_name:
                 path = f"/local/neviweb130/weather/{icon_name}.png"
-                if self._file_exists(path):
+                if file_exists(self.hass, path):
                     return path
 
-        return None
+        if key == "battery_level":
+            device_obj = self.coordinator.data.get(self._id)
+            icon_path = device_obj.get("battery_icon") if device_obj else None
 
-    def _file_exists(self, path: str) -> bool:
-        try:
-            local_path = path.replace("/local/", "www/")
-            full_path = os.path.join(self.hass.config.path(), local_path)
-            return os.path.isfile(full_path)
-        except Exception:
-            return False
+            if icon_path and file_exists(self.hass, icon_path):
+                return icon_path
+
+        return None
 
     @property
     @override
