@@ -77,7 +77,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
-from .helpers import get_daily_request_count, notify_ha
+from .helpers import file_exists, get_daily_request_count, notify_ha
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
@@ -693,6 +693,18 @@ class Neviweb130Sensor(Entity):
         return device_info[1]
 
     @property
+    def entity_picture(self) -> str:
+        """Replace entity picture by leak icon."""
+        if self._leak_status is None:
+            return None
+
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
     @override
     def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
@@ -735,6 +747,9 @@ class Neviweb130Sensor(Entity):
     @property
     def icon_type(self) -> str:
         """Select icon file based on leak_status value."""
+        if self._is_gateway or self._is_monitor:
+            return None
+
         is_water_sensor = self._is_leak or self._is_connected
         if is_water_sensor:
             return "/local/neviweb130/drop.png" if self.leak_status == "ok" else "/local/neviweb130/leak.png"
@@ -745,11 +760,15 @@ class Neviweb130Sensor(Entity):
         """Return battery icon file based on battery voltage."""
         if self._is_gateway:
             return None
+
         batt = (
             voltage_to_percentage(self._battery_voltage, "lithium")
             if self._is_monitor
             else self._batt_percent_normal
         )
+
+        if batt is None:
+            return f"/local/neviweb130/battery-unknown.png"
 
         level = min(batt // 20 + 1, 5)
         return f"/local/neviweb130/battery-{level}.png"
@@ -1154,6 +1173,49 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+
+    @property
+    @override
+    def entity_picture(self) -> str:
+        """Replace entity picture by tank percent icon."""
+        if self._tank_percent is None:
+            return None
+
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
+    @override
+    def icon_type(self) -> str:
+        """Select icon based on _tank_percent value."""
+        base = "propane"
+        if not self._is_monitor:
+            return None
+
+        if self._tank_percent is None:
+            return "/local/neviweb130/{base}-unknown.png"
+
+        demand = self._tank_percent or 0
+
+        thresholds = [
+            (1,  "-0"),
+            (11, "-1"),
+            (21, "-2"),
+            (31, "-3"),
+            (41, "-4"),
+            (51, "-5"),
+            (61, "-6"),
+            (71, "-7"),
+        ]
+
+        for limit, suffix in thresholds:
+            if demand < limit:
+                return f"/local/neviweb130/{base}{suffix}.png"
+
+        return f"/local/neviweb130/{base}-8.png"
 
     @property
     def level_status(self):
