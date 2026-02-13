@@ -849,7 +849,7 @@ cards:
       .....
 ```
 
-![icons](../icon_view4.jpg) 
+![icons](icon_view4.jpg) 
 
 ## Customization for leak sensor
 
