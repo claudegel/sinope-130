@@ -262,6 +262,7 @@ from .const import (
     SERVICE_SET_TIME_FORMAT,
     VERSION,
 )
+from .helpers import file_exists
 from .schema import (
     AUX_HEATING,
     CYCLE_LENGTH_VALUES,
@@ -2075,6 +2076,18 @@ class Neviweb130Thermostat(ClimateEntity):
     def name(self) -> str:
         """Return the name of the thermostat."""
         return self._name
+
+    @property
+    def entity_picture(self) -> str:
+        """Replace entity picture by heat level icon."""
+        if self._heat_level is None:
+            return None
+
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
 
     @property
     @override
