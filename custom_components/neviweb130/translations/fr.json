@@ -355,6 +355,9 @@
       "auxHeatStage2_hourly_total_count": {
         "name": "Chauffage aux. étape 2 décompte horaire total"
       },
+      "battery_level": {
+        "name": "Niveau de la batterie"
+      },
       "coolStage1_hourly_count": {
         "name": "refroidissement étape 1 décompte horaire"
       },
