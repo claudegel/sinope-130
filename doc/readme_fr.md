@@ -758,7 +758,7 @@ de simplifier le processus et d'obtenir de meilleurs résultats.
 Prérequis :
 - Les icônes se trouvent dans le dossier www de ce dépôt. Copiez-les dans config/www/neviweb130/. Vous devez créer le répertoire
   neviweb130 sous config/www (appelé /local dans HA).
-- Installez la carte Lovelace via HACS : card-mod et mushroom.
+- Installez la carte Lovelace via HACS : card-mod, mushroom et stack-in-card.
 - Assurez-vous d'avoir au moins la version 4.1.2 de neviweb130.
 
 Neviweb130 gère l'icône affichée pour les thermostats en fonction du niveau de température grâce à l'attribut **icon_type**.
@@ -773,9 +773,13 @@ niveau de batterie: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'battery_i
 
 Ces modèles template pointent directement vers /local/neviweb130/(icônes)
 
-Ancien style et nouveau style : (plusieurs exemples)
+Ancien style: (plusieurs exemples)
 
-![icons](../icon_view2.png)   ![icons](../icon_view3.jpg) 
+![icons](../icon_view2.png) 
+
+Nouveau style basé sur les cartes mushroom  et Tile :
+
+![icons](../icon_view3.jpg) 
 
 (N'hésitez pas à améliorer mes icônes et à me le faire savoir.)
 
@@ -798,18 +802,6 @@ name:
 show_entity_picture: true
 vertical: false
 features_position: bottom
-card_mod:
-  style: |
-    ha-tile-icon {
-      background-color: transparent !important;
-      background: url('{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}');
-      background-size: cover;
-      background-position: center;
-      border-radius: 50%;
-    }
-    ha-state-icon {
-      display: none;
-    }
 ```
 Mushroom template:
 ```
@@ -859,8 +851,23 @@ card_mod:
       }
 ```
 Vous pouvez regrouper les cartes dans une pile verticale (stack-in-card).
+L'image de l'entité étant définie pour tous les thermostats, vannes et capteurs, vous pouvez ajouter les appareils 
+directement dans une pile verticale.
+L'icône sera mise à jour dynamiquement en fonction du niveau de chauffage, du niveau de batterie, etc.
+```
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - entity: climate.neviweb130_climate_th1124wf
+      - entity: climate.neviweb130_climate_office
+      - entity: climate.neviweb130_climate_kitchen
+      .....
+```
 
-## Personnalisation du capteur de fuite
+![icons](../icon_view4.jpg) 
+
+### Personnalisation du capteur de fuite
 
 Idem comme ci-dessus.
 Pour l'icône de fuite détectée, il s'agit de l'attribut **icon_type**.
@@ -868,9 +875,9 @@ Pour le niveau de batterie, c'est la même chose avec **battery_icon**.
 
 Les icônes sont disponibles dans le sous-répertoire [www](https://github.com/claudegel/sinope-130/tree/master/www). Copiez-les dans config/www
 
-## Personnalisation du niveau de batterie du moniteur et de la valve Sedna :
+### Personnalisation du niveau de batterie du moniteur et de la valve Sedna :
 
-Identique à ci-dessus avec l’attribut **battery_icon**.
+Identique à ci-dessus avec l’attribut **battery_icon**, **leak_icon** and **icon_type**.
 
 ## Reinitialisation materielle de l'appareil
 - Thermostats :
