@@ -1478,6 +1478,7 @@ MODEL_ATTRIBUTES = {
     4210: {  # WL4210, WL4210S connected to GT130
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
             "current_temperature",
         ],
         "number": [],
@@ -1497,6 +1498,7 @@ MODEL_ATTRIBUTES = {
     42102: {  # WL4210, WL4210S connected to sedna valve
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
             "current_temperature",
         ],
         "number": [],
@@ -1517,6 +1519,7 @@ MODEL_ATTRIBUTES = {
     5050: {  # WL4200, WL4210 and WL4200S,
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
             "current_temperature",
         ],
         "number": [],
@@ -1537,6 +1540,7 @@ MODEL_ATTRIBUTES = {
     5051: {  # WL4200, WL4200C and WL4200S
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
             "current_temperature",
         ],
         "number": [],
@@ -1556,6 +1560,7 @@ MODEL_ATTRIBUTES = {
     5052: {  # WL4200C, perimeter cable water leak detector connected to Sedna
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
             "current_temperature",
         ],
         "number": [],
@@ -1576,6 +1581,7 @@ MODEL_ATTRIBUTES = {
     5053: {  # WL4200C, perimeter cable water leak detector connected to GT130
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
             "current_temperature",
         ],
         "number": [],
@@ -1593,7 +1599,10 @@ MODEL_ATTRIBUTES = {
         ],
     },
     5055: {  # LM4110-LTE
-        "sensor": [ATTR_RSSI],
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+        ],
         "number": ["gauge_angle"],
         "select": ["gauge_type"],
         "binary_sensor": [
@@ -1681,6 +1690,7 @@ EXPOSED_ATTRIBUTES = [
     "keypad_status",
     "language",
     "leak_alert",
+    "leak_icon",
     "leak_status",
     "led_off_color",
     "led_off_intensity",
