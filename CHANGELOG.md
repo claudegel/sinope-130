@@ -19,6 +19,7 @@ All modification for this custom_component will be added in this file.
 - Add emergency_heating attribute for thermostats.
 - Refactor weather icons to fit HA needs.
 - Add entity_picture property for climate, valve, sensor devices.
+- Add validator for icon availability. Revert to HA icon if neviweb130 icons are not availables.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
