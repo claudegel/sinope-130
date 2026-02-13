@@ -823,6 +823,20 @@ def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
     return descriptions
 
 
+# ─────────────────────────────────────────────
+# Validate icone availability
+# ─────────────────────────────────────────────
+
+
+def file_exists(hass, path: str) -> bool:
+    """Return True if a /local/ file exists."""
+    try:
+        local_path = path.replace("/local/", "www/")
+        full_path = os.path.join(hass.config.path(), local_path)
+        return os.path.isfile(full_path)
+    except Exception:
+        return False
+
 #await async_notify_throttled(
 #    self.hass,
 #    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
