@@ -6,6 +6,7 @@ All modification for this custom_component will be added in this file.
 ### Added
 - Add icon file selection based on pi_heating_demand for thermostats.
 - Add icon file selection based on leak_status for leak sensors.
+- Add icon file selection based on valve status for valves.
 - Add battery icon based on battery voltage for leak sensors and tank monitor.
 - Add battery icon based on battery voltage for valves.
 - Add configuration validation before changing em_heat or preset for emergency heating on TH6xxxWF.
@@ -17,6 +18,7 @@ All modification for this custom_component will be added in this file.
 - Add icon values for hvac mode AUTO.
 - Add emergency_heating attribute for thermostats.
 - Refactor weather icons to fit HA needs.
+- Add entity_picture property for climate, valve, sensor devices.
 
 ### Fix
 - Add back support for Heat Pump thermostat models.
