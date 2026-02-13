@@ -743,7 +743,7 @@ and get better results.
 Prerequisites:
 - The icons are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
   neviweb130 under config/www. (called /local in HA)
-- Install via HACS the lovelace card: card-mod and mushroom and for stack-in-card.
+- Install via HACS the lovelace card: card-mod, mushroom and for stack-in-card.
 - Make sure you have at least neviweb130 v4.1.2
 
 Neviweb130 will manage the icon to show depending on heat level for thermostats via the **icon_type** attribute. For
@@ -786,18 +786,6 @@ name:
 show_entity_picture: true
 vertical: false
 features_position: bottom
-card_mod:
-  style: |
-    ha-tile-icon {
-      background-color: transparent !important;
-      background: url('{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}');
-      background-size: cover;
-      background-position: center;
-      border-radius: 50%;
-    }
-    ha-state-icon {
-      display: none;
-    }
 ```
 Mushroom template:
 ```
@@ -848,6 +836,21 @@ card_mod:
       }
 ```
 You can group the card in a vertical stack card, stack-in-card.
+Since the entity_picture is defined for all thermostats, valve, sensors you can add the devices directly in a vertical stack card.
+Icon will be dynamically updated for heat level, battery level etc
+```
+type: vertical-stack
+cards:
+  - type: entities
+    entities:
+      - entity: climate.neviweb130_climate_th1124wf
+      - entity: climate.neviweb130_climate_office
+      - entity: climate.neviweb130_climate_kitchen
+      .....
+```
+
+![icons](../icon_view4.jpg) 
+
 ## Customization for leak sensor
 
 Same as above. 
@@ -859,7 +862,7 @@ Copy them in config/www/neviweb130 in your HA.
 
 ## Customization for battery level for monitor and valve:
 
-Same as above with attribute **battery_icon**.
+Same as above with attribute **battery_icon**, **leak_icon** and **icon_type**.
 
 # Device hard reset
 - Thermostats:
