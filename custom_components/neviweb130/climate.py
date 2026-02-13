@@ -271,6 +271,7 @@ from .helpers import (
     async_notify_once_or_update,
     async_notify_throttled,
     async_notify_critical,
+    file_exists,
     generate_runtime_count_attributes,
     init_runtime_attributes,
     NeviwebEntityHelper,
@@ -2048,6 +2049,18 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     def id(self) -> str:
         """Alias pour DataUpdateCoordinator."""
         return self._id
+
+    @property
+    def entity_picture(self) -> str:
+        """Replace entity picture by heat level icon."""
+        if self._heat_level is None:
+            return None
+
+        icon_path = self.icon_type
+        if file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
 
     @property
     def sku(self) -> str:
