@@ -373,6 +373,9 @@
       "auxHeatStage2_hourly_total_count": {
         "name": "auxHeatStage2_hourly_total_count"
       },
+      "battery_level": {
+        "name": "Battery level"
+      },
       "coolStage1_hourly_count": {
         "name": "coolStage1_hourly_count"
       },
