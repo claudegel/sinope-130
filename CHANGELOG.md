@@ -9,6 +9,7 @@ All modification for this custom_component will be added in this file.
 - Add icon file selection based on valve status for valves.
 - Add battery icon based on battery voltage for leak sensors and tank monitor.
 - Add battery icon based on battery voltage for valves.
+- Add leak icon for valve flow meeter.
 - Add configuration validation before changing em_heat or preset for emergency heating on TH6xxxWF.
 - Add icon type for each climate device in extra_states_attributes.
 - Add icon_type for valves with flow meter.
