@@ -699,7 +699,7 @@ class Neviweb130Sensor(Entity):
             return None
 
         icon_path = self.icon_type
-        if file_exists(self.hass, icon_path):
+        if icon_path is not None and file_exists(self.hass, icon_path):
             return icon_path
 
         return None
@@ -1180,7 +1180,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             return None
 
         icon_path = self.icon_type
-        if file_exists(self.hass, icon_path):
+        if icon_path is not None and file_exists(self.hass, icon_path):
             return icon_path
 
         return None
