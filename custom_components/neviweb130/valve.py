@@ -708,7 +708,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return device_info[0]
 
     @property
-    def entity_picture(self) -> str:
+    def entity_picture(self) -> str | None:
         """Replace entity picture by valve or leak icon."""
         icon_path = self.icon_type
         if file_exists(self.hass, icon_path):
@@ -789,7 +789,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return "/local/neviweb130/valve-open.png" if self.is_open else "/local/neviweb130/valve-close.png"
 
     @property
-    def leak_icon(self) -> str:
+    def leak_icon(self) -> str | None:
         """Select icon file based on valve leak_status value."""
         if self._water_leak_status is not None:
             return "/local/neviweb130/drop.png" if self._water_leak_status == "ok" else "/local/neviweb130/leak.png"
