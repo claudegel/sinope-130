@@ -748,7 +748,7 @@ Prerequisites:
 
 Neviweb130 will manage the icon to show depending on heat level for thermostats via the **icon_type** attribute. For
 sensors, monitors and valve, battery icon are managed via **battery_icon** attributes based on battery level.
-You can retreive the icon name with template like this example:
+You can retrieve the icon name with template like this example:
 
 Heat level: `{{ state_attr('climate.neviweb130_climate_th1124wf', 'icon_type') }}`
 
@@ -768,7 +768,7 @@ New style based on Mushroom and Tile cards:
 
 (Feel free to improve my icons and let me know.) 
 
-Here the code for tile card, mushroom template card and mushroom climate card. Edit your dahsboard and add the card. 
+Here the code for tile card, mushroom template card and mushroom climate card. Edit your dashboard and add the card. 
 Then edit the code like this:
 
 - tile card:
@@ -799,7 +799,7 @@ primary: |
   Mushroom template card
 secondary: |
   {{ states(entity) }} – ({{ state_attr(entity, 'hvac_action') }})
-  Curently: {{ state_attr(entity, 'current_temperature') }} °C
+  Currently: {{ state_attr(entity, 'current_temperature') }} °C
 picture: |
   {{ state_attr(entity, 'icon_type') }}
 grid_options:
