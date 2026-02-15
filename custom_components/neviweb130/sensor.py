@@ -762,13 +762,11 @@ class Neviweb130Sensor(Entity):
             return None
 
         batt = (
-            voltage_to_percentage(self._battery_voltage, "lithium")
-            if self._is_monitor
-            else self._batt_percent_normal
+            voltage_to_percentage(self._battery_voltage, "lithium") if self._is_monitor else self._batt_percent_normal
         )
 
         if batt is None:
-            return f"/local/neviweb130/battery-unknown.png"
+            return "/local/neviweb130/battery-unknown.png"
 
         level = min(batt // 20 + 1, 5)
         return f"/local/neviweb130/battery-{level}.png"
@@ -1201,7 +1199,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         demand = self._tank_percent or 0
 
         thresholds = [
-            (1,  "-0"),
+            (1, "-0"),
             (11, "-1"),
             (21, "-2"),
             (31, "-3"),

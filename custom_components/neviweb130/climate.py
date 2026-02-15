@@ -2174,7 +2174,7 @@ class Neviweb130Thermostat(ClimateEntity):
         demand = self.pi_heating_demand or 0
 
         thresholds = [
-            (1,  "-0"),
+            (1, "-0"),
             (21, "-1"),
             (41, "-2"),
             (61, "-3"),
