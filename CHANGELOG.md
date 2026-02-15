@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.1.2] - 2026-02-__
+## [v4.1.2] - 2026-02-14
 ### Added
 - Add icon file selection based on pi_heating_demand for thermostats.
 - Add icon file selection based on leak_status for leak sensors.
