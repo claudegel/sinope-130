@@ -2,6 +2,38 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.1.2] - 2026-02-14
+### Added
+- Add icon file selection based on pi_heating_demand for thermostats.
+- Add icon file selection based on leak_status for leak sensors.
+- Add icon file selection based on valve status for valves.
+- Add battery icon based on battery voltage for leak sensors and tank monitor.
+- Add battery icon based on battery voltage for valves.
+- Add leak icon for valve flow meeter.
+- Add configuration validation before changing em_heat or preset for emergency heating on TH6xxxWF.
+- Add icon type for each climate device in extra_states_attributes.
+- Add icon_type for valves with flow meter.
+- Put all icon files in config/www/neviweb130 directory.
+- Add validation that setpoint cannot be lower then roomSetpointMin.
+- Add icon_type values for floor devices.
+- Add icon values for hvac mode AUTO.
+- Add emergency_heating attribute for thermostats.
+- Refactor weather icons to fit HA needs.
+- Add entity_picture property for climate, valve, sensor devices.
+- Add validator for icon availability. Revert to HA icon if neviweb130 icons are not availables.
+
+### Fix
+- Add back support for Heat Pump thermostat models.
+- Fix Neviweb130WifiHPThermostat class constructor.
+- Fix set_time_format_service for missing Neviweb130HPThermostat in isinstance().
+- Review icons color for better looking.
+- Fix bad setpoint values received from Neviweb during peak period.
+
+### Doc
+- Update documentation for customization of icon for thermostats in lovelace.
+- Update documentation for customization of icon for sensors in lovelace.
+- Update documentation for customization of icon for valves in lovelace.
+
 ## [v4.1.1] - 2026-01-31
 ### Added
 - Add method trun_em_heat_on for TH6xxxWF.

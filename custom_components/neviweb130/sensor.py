@@ -77,7 +77,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
-from .helpers import get_daily_request_count, notify_ha
+from .helpers import file_exists, get_daily_request_count, notify_ha
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
@@ -550,7 +550,10 @@ class Neviweb130Sensor(Entity):
             device_info["signature"]["model"] in IMPLEMENTED_SENSOR_MODEL
             or device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
         )
-        self._is_connected = device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+        self._is_connected = (
+            device_info["signature"]["model"] in IMPLEMENTED_CONNECTED_SENSOR
+            or device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
+        )
         self._is_new_connected = device_info["signature"]["model"] in IMPLEMENTED_NEW_CONNECTED_SENSOR
         self._is_new_leak = (
             device_info["signature"]["model"] in IMPLEMENTED_NEW_SENSOR_MODEL
@@ -690,6 +693,18 @@ class Neviweb130Sensor(Entity):
         return device_info[1]
 
     @property
+    def entity_picture(self) -> str | None:
+        """Replace entity picture by leak icon."""
+        if self._leak_status is None:
+            return None
+
+        icon_path = self.icon_type
+        if icon_path is not None and file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
     @override
     def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
@@ -730,16 +745,45 @@ class Neviweb130Sensor(Entity):
         return self._leak_status is not None
 
     @property
+    def icon_type(self) -> str | None:
+        """Select icon file based on leak_status value."""
+        if self._is_gateway or self._is_monitor:
+            return None
+
+        is_water_sensor = self._is_leak or self._is_connected
+        if is_water_sensor:
+            return "/local/neviweb130/drop.png" if self.leak_status == "ok" else "/local/neviweb130/leak.png"
+        return None
+
+    @property
+    def battery_icon(self) -> str | None:
+        """Return battery icon file based on battery voltage."""
+        if self._is_gateway:
+            return None
+
+        batt = (
+            voltage_to_percentage(self._battery_voltage, "lithium") if self._is_monitor else self._batt_percent_normal
+        )
+
+        if batt is None:
+            return "/local/neviweb130/battery-unknown.png"
+
+        level = min(batt // 20 + 1, 5)
+        return f"/local/neviweb130/battery-{level}.png"
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
         data.update(
             {
                 "leak_status": self._leak_status,
+                "icon_type": self.icon_type,
                 "temperature": self._cur_temp,
                 "temp_alarm": self._temp_status,
                 "temperature_alert": self._temp_alert,
                 "leak_alert": self._leak_alert,
+                "battery_icon": self.battery_icon,
                 "battery_level": voltage_to_percentage(self._battery_voltage, self._battery_type),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1005,9 +1049,11 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
         data.update(
             {
                 "leak_status": self._leak_status,
+                "icon_type": self.icon_type,
                 "temperature": self._cur_temp,
                 "temp_alarm": self._temp_status,
                 "temperature_alert": self._temp_alert,
+                "battery_icon": self.battery_icon,
                 "battery_level": voltage_to_percentage(self._battery_voltage, self._battery_type),
                 "battery_voltage": self._battery_voltage,
                 "battery_status": self._battery_status,
@@ -1127,6 +1173,49 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
 
     @property
+    @override
+    def entity_picture(self) -> str | None:
+        """Replace entity picture by tank percent icon."""
+        if self._tank_percent is None:
+            return None
+
+        icon_path = self.icon_type
+        if icon_path is not None and file_exists(self.hass, icon_path):
+            return icon_path
+
+        return None
+
+    @property
+    @override
+    def icon_type(self) -> str | None:
+        """Select icon based on _tank_percent value."""
+        base = "propane"
+        if not self._is_monitor:
+            return None
+
+        if self._tank_percent is None:
+            return "/local/neviweb130/{base}-unknown.png"
+
+        demand = self._tank_percent or 0
+
+        thresholds = [
+            (1, "-0"),
+            (11, "-1"),
+            (21, "-2"),
+            (31, "-3"),
+            (41, "-4"),
+            (51, "-5"),
+            (61, "-6"),
+            (71, "-7"),
+        ]
+
+        for limit, suffix in thresholds:
+            if demand < limit:
+                return f"/local/neviweb130/{base}{suffix}.png"
+
+        return f"/local/neviweb130/{base}-8.png"
+
+    @property
     def level_status(self):
         """Return current sensor fuel level status."""
         if self._fuel_alert:
@@ -1150,6 +1239,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             {
                 "gauge_angle": self._angle,
                 "last_sampling_time": convert(self._sampling),
+                "battery_icon": self.battery_icon,
                 "battery_level": voltage_to_percentage(self._battery_voltage, "lithium"),
                 "battery_voltage": self._battery_voltage,
                 "tank_type": self._tank_type,
@@ -1309,7 +1399,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
 
 class NeviwebDailyRequestSensor(Entity):
-    """Sensor interne : nombre de requêtes Neviweb130 aujourd'hui."""
+    """Internal sensor : number of neviweb130 requests to Neviweb Today."""
 
     def __init__(self, hass):
         self.hass = hass
