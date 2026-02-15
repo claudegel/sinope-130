@@ -1851,14 +1851,14 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._aux_cycle_length = 0
         self._avail_mode = None
         self._backlight = None
-        self._balance_pt = None
+        self._balance_pt: float = -15.0
         self._balance_pt_high = None
         self._balance_pt_low = None
         self._cool_lockout_temp = None
         self._cool_max: float | None = 36
         self._cool_min: float | None = 15
-        self._cur_temp = None
-        self._cur_temp_before = None
+        self._cur_temp = 0.0
+        self._cur_temp_before = 0.0
         self._cycle_length: str | None = None
         self._cycle_length_output2_status: str | None = "off"
         self._cycle_length_output2_value: str | None = None
@@ -1920,7 +1920,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._target_temp = 20.0
         self._target_temp_away = None
         self._temp_display_value = None
-        self._temperature = None
+        self._temperature: float = 20.0
         self._temperature_format = "celsius"
         self._time_format = "24h"
         self._today_kwh = 0
@@ -5493,6 +5493,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                     self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
+                    self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
@@ -5802,7 +5803,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._aux_interstage_min_delay = None
         self._reversing_valve_polarity = "cooling"
         self._backlight_auto_dim = None
-        self._balance_pt = -15
         self._cool_cycle_length = None
         self._cool_interstage_delay = None
         self._cool_interstage_min_delay = None
@@ -6355,7 +6355,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         # --- Mode Conventional : always allowed ---
         if not self._em_heat_allowed():
             # --- Condition not met : cannot turn on em_heat ---
-            self.preset_mode = self._preset_before
             await async_notify_critical(
                 self.hass,
                 "Warning: Cannot activate BOOST (emergency heat) due to device configuration. "
