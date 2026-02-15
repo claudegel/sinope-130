@@ -693,7 +693,7 @@ class Neviweb130Sensor(Entity):
         return device_info[1]
 
     @property
-    def entity_picture(self) -> str:
+    def entity_picture(self) -> str | None:
         """Replace entity picture by leak icon."""
         if self._leak_status is None:
             return None
@@ -745,7 +745,7 @@ class Neviweb130Sensor(Entity):
         return self._leak_status is not None
 
     @property
-    def icon_type(self) -> str:
+    def icon_type(self) -> str | None:
         """Select icon file based on leak_status value."""
         if self._is_gateway or self._is_monitor:
             return None
@@ -756,7 +756,7 @@ class Neviweb130Sensor(Entity):
         return None
 
     @property
-    def battery_icon(self) -> str:
+    def battery_icon(self) -> str | None:
         """Return battery icon file based on battery voltage."""
         if self._is_gateway:
             return None
@@ -1174,7 +1174,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     @property
     @override
-    def entity_picture(self) -> str:
+    def entity_picture(self) -> str | None:
         """Replace entity picture by tank percent icon."""
         if self._tank_percent is None:
             return None
@@ -1187,7 +1187,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     @property
     @override
-    def icon_type(self) -> str:
+    def icon_type(self) -> str | None:
         """Select icon based on _tank_percent value."""
         base = "propane"
         if not self._is_monitor:
