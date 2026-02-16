@@ -85,10 +85,6 @@
       "duplicate_prefix": "Ce préfixe est déjà utilisé par un autre compte."
     }
   },
-  "notifications": {
-    "weather_icons_folder_missing": "Le dossier `/local/neviweb130/weather` est manquant. Les icônes météo ne seront pas affichées.",
-    "weather_icons_folder_empty": "Le dossier `/local/neviweb130/weather` est vide. Aucune icône météo ne sera affichée."
-  },
   "entity": {
     "binary_sensor": {
       "activation": {
@@ -472,5 +468,12 @@
         "name": "Alerte basse Temperature"
       }
     }
+  },
+  "device": {},
+  "services": {},
+  "issues": {},
+  "notifications": {
+    "weather_icons_folder_missing": "Le dossier /local/neviweb130/weather est manquant. Les icônes météo ne seront pas affichées. Voir la documentation pour de l'aide.",
+    "weather_icons_folder_empty": "Le dossier /local/neviweb130/weather est vide. Aucune icône météo ne sera affichée. Voir la documentation pour de l'aide."
   }
 }
