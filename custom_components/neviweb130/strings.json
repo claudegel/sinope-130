@@ -85,10 +85,6 @@
       "duplicate_prefix": "This prefix is already used by another Neviweb account."
     }
   },
-  "notifications": {
-    "weather_icons_folder_missing": "The directory `/local/neviweb130/weather` is missing. Weather icons png files won't be displayed.",
-    "weather_icons_folder_empty": "The directory `/local/neviweb130/weather` is empty. No weather icon will be displayed."
-  },
   "entity": {
     "binary_sensor": {
       "activation": {
@@ -523,5 +519,12 @@
         "name": "Low Temperature Alert"
       }
     }
+  },
+  "device": {},
+  "services": {},
+  "issues": {},
+  "notifications": {
+    "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather icons png files won't be displayed. Read documentation for help.",
+    "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help."
   }
 }
