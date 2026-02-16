@@ -15,8 +15,10 @@ from typing import Any, Callable
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
-from homeassistant.const import UnitOfTime
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfTime
+from homeassistant.core import CoreState
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 from logging.handlers import RotatingFileHandler
 from .const import SIGNAL_EVENTS_CHANGED, VERSION
@@ -548,20 +550,25 @@ async def async_notify_throttled(
 
 
 async def async_notify_critical(hass, msg: str, title: str, notification_id: str):
-    """
-    Always notify the user, regardless of notify settings.
-    Critical notifications cannot be disabled.
-    """
-    # Always log error
+    """Thread-safe critical notification."""
+
+    msg = str(msg)
     _LOGGER.error(msg)
 
-    # Always send a persistent notification
-    await async_notify_once_or_update(
-        hass,
-        msg,
-        title=title,
-        notification_id=notification_id,
-    )
+    async def _send():
+        await hass.services.async_call(
+            "persistent_notification",
+            "create",
+            {
+                "title": title,
+                "message": msg,
+                "notification_id": notification_id,
+            },
+            blocking=False,
+        )
+
+    # Always execute in main loop
+    hass.loop.call_soon_threadsafe(hass.async_create_task, _send())
 
 
 # ─────────────────────────────────────────────
@@ -836,6 +843,70 @@ def file_exists(hass, path: str) -> bool:
         return os.path.isfile(full_path)
     except Exception:
         return False
+
+
+# ─────────────────────────────────────────────
+# Check icon folder presence and content
+# ─────────────────────────────────────────────
+
+
+async def _t(hass, key: str) -> str:
+    """Thread-safe translation lookup for notifications."""
+    domain = "neviweb130"
+    full_key = f"component.{domain}.notifications.{key}"
+
+    translations = await async_get_translations(
+        hass,
+        hass.config.language,
+        "notifications",
+    )
+
+    return translations.get(full_key, key)
+
+async def notify_after_startup(hass, coro_factory):
+    """Schedule a coroutine to run safely after HA is fully started."""
+
+    def _schedule():
+        # exécute la factory pour obtenir la coroutine
+        coro = coro_factory()
+        hass.loop.call_soon_threadsafe(hass.async_create_task, coro)
+
+    if hass.state == CoreState.running:
+        _schedule()
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, lambda event: _schedule())
+
+
+async def check_weather_icons_folder(hass):
+    """Check that the weather and icon folder are presents."""
+    folder = hass.config.path("www/neviweb130/weather")
+
+    exists = await hass.async_add_executor_job(os.path.isdir, folder)
+    if not exists:
+        message = await _t(hass, "weather_icons_folder_missing")
+        await notify_after_startup(
+            hass,
+            lambda: async_notify_critical(
+                hass,
+                message,
+                title="Neviweb130 – weather icon",
+                notification_id="neviweb130_missing_folder",
+            )
+        )
+        return
+
+    files = await hass.async_add_executor_job(os.listdir, folder)
+    if not files:
+        message = await _t(hass, "weather_icons_folder_empty")
+        await notify_after_startup(
+            hass,
+            lambda: async_notify_critical(
+                hass,
+                message,
+                title="Neviweb130 – weather icon",
+                notification_id="neviweb130_empty_folder",
+            )
+        )
 
 #await async_notify_throttled(
 #    self.hass,
