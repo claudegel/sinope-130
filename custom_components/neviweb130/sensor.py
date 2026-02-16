@@ -104,6 +104,7 @@ from .helpers import (
     async_notify_critical,
     async_notify_once_or_update,
     async_notify_throttled,
+    check_weather_icons_folder,
     file_exists,
     generate_runtime_count_attributes,
     generate_runtime_sensor_descriptions,
@@ -153,32 +154,6 @@ IMPLEMENTED_DEVICE_MODEL = (
     + IMPLEMENTED_NEW_SENSOR_MODEL
     + IMPLEMENTED_NEW_CONNECTED_SENSOR
 )
-
-def _t(hass, key: str) -> str:
-    return hass.helpers.translation.async_get_localized_string(
-        f"custom_components.neviweb130.notifications.{key}"
-    )
-
-async def check_weather_icons_folder(hass):
-    """Return icon file name."""
-    folder = hass.config.path("www/neviweb130/weather")
-
-    # Check if folder exist
-    exists = await hass.async_add_executor_job(os.path.isdir, folder)
-    if not exists:
-        hass.components.persistent_notification.create(
-            _t(hass, "weather_icons_folder_missing"),
-            title="Neviweb130 – weather icon"
-        )
-        return
-
-    # Check if folder is empty
-    files = await hass.async_add_executor_job(os.listdir, folder)
-    if not files:
-        hass.components.persistent_notification.create(
-            _t(hass, "weather_icons_folder_empty"),
-            title="Neviweb130 – weather icon"
-        )
 
 SENSOR_TYPE: dict[
     str, tuple[str | None, str | None, BinarySensorDeviceClass | SensorStateClass, str | None, StatisticMeanType | None]
