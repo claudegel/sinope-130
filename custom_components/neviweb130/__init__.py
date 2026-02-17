@@ -32,13 +32,14 @@ from .const import (
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import load_devices, save_devices
 from .helpers import (
+    check_weather_icons_folder,
     DailyRequestCounter,
-    setup_logger,
     extract_log_options,
     extract_notes_for_version,
-    update_logger_level,
     update_logger_config,
+    update_logger_level,
     sanitize_entry_data,
+    setup_logger,
 )
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -321,6 +322,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "notify": notify,
         "prefix": prefix,
     })
+
+    # Check weather and customization icons availability
+    hass.async_create_task(check_weather_icons_folder(hass))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
