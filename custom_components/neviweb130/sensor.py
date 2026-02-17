@@ -104,7 +104,6 @@ from .helpers import (
     async_notify_critical,
     async_notify_once_or_update,
     async_notify_throttled,
-    check_weather_icons_folder,
     file_exists,
     generate_runtime_count_attributes,
     generate_runtime_sensor_descriptions,
@@ -480,8 +479,6 @@ async def create_attribute_sensors(hass, entry, data, coordinator, device_regist
     config_prefix = data["prefix"]
     platform = __name__.split(".")[-1] # "sensor"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
-
-    await check_weather_icons_folder(hass)
 
     for index, gateway_data in enumerate([
         data["neviweb130_client"].gateway_data,
