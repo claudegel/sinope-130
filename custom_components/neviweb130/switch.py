@@ -119,6 +119,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
+from .helpers import translate_error
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_CONTROL_ONOFF_SCHEMA,
@@ -383,7 +384,8 @@ async def async_setup_platform(
     def get_switch(service: ServiceCall) -> Neviweb130Switch:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
+            raise ServiceValidationError(msg)
 
         nonlocal entity_map
         if entity_map is None:
@@ -392,11 +394,13 @@ async def async_setup_platform(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+                        msg = translate_error(hass, "entities_not_ready")
+                        raise ServiceValidationError(msg)
 
         switch = entity_map.get(entity_id)
         if switch is None:
-            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} switch")
+            msg = translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="switch")
+            raise ServiceValidationError(msg)
         return switch
 
     def set_switch_keypad_lock_service(service: ServiceCall) -> None:
@@ -763,7 +767,7 @@ class Neviweb130Switch(SwitchEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     @override
@@ -990,7 +994,8 @@ class Neviweb130Switch(SwitchEntity):
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
-                _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
+                msg = translate_error(self.hass, "no_stat", param="monthly", name=self._name)
+                _LOGGER.warning(msg)
             device_daily_stats = self._client.get_device_daily_stats(self._id, False)
             #            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
@@ -1012,7 +1017,8 @@ class Neviweb130Switch(SwitchEntity):
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
                 self._today_kwh = 0
-                _LOGGER.warning("%s Got None for device_daily_stats", self._name)
+                msg = translate_error(self.hass, "no_stat", param="daily", name=self._name)
+                _LOGGER.warning(msg)
             device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
             #            _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
@@ -1033,7 +1039,8 @@ class Neviweb130Switch(SwitchEntity):
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
                 self._hour_kwh = 0
-                _LOGGER.warning("%s Got None for device_hourly_stats", self._name)
+                msg = translate_error(self.hass, "no_stat", param="hourly", name=self._name)
+                _LOGGER.warning(msg)
             if self._total_kwh_count == 0:
                 self._total_kwh_count = round(
                     self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
@@ -1133,26 +1140,20 @@ class Neviweb130Switch(SwitchEntity):
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
-                self.notify_ha(
-                    "Warning: Received message from Neviweb, device "
-                    + "disconnected... Check your log... Neviweb update will "
-                    + "be halted for 20 minutes for "
-                    + self._name
-                    + " id: "
-                    + str(self._id)
-                    + ", Sku: "
-                    + self._sku
-                )
+                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+                self.notify_ha(msg)
             self._active = False
             self._snooze = time.time()
         else:
-            _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
-                self._name,
-                str(self._id),
-                error_data,
-                self._sku,
+            msg = translate_error(
+                self.hass,
+                "unknown_error",
+                name=self._name,
+                id=self._id,
+                sku=self._sku,
+                data=error_data
             )
+            _LOGGER.warning(msg)
 
     def notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
         """Notify user via HA web frontend."""
@@ -1210,14 +1211,16 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            self.notify_ha(
-                                "Warning: Neviweb Device error code detected: "
-                                + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                + " for device: "
-                                + self._name
-                                + ", Sku: "
-                                + self._sku
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku
                             )
+                            self.notify_ha(msg)
                     else:
                         self._error_code = 0
                     if ATTR_RSSI in device_data:
@@ -1232,7 +1235,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     def extra_state_attributes(self):
@@ -1313,14 +1316,16 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            self.notify_ha(
-                                "Warning: Neviweb Device error code detected: "
-                                + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                + " for device: "
-                                + self._name
-                                + ", Sku: "
-                                + self._sku
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku
                             )
+                            self.notify_ha(msg)
                     else:
                         self._error_code = 0
                     if ATTR_WIFI in device_data:
@@ -1335,7 +1340,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     def extra_state_attributes(self):
@@ -1424,10 +1429,16 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._onoff = device_data[ATTR_ONOFF]
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            self.notify_ha(
-                                f"Warning: Neviweb Device error code detected: {device_data[ATTR_WATER_LEAK_STATUS]} "
-                                f"for device: {self._name}, id: {self._id}, Sku: {self._sku}, Leak sensor disconnected"
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=device_data[ATTR_WATER_LEAK_STATUS],
+                                message="Leak sensor disconnected",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku
                             )
+                            self.notify_ha(msg)
                             self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         else:
                             self._water_leak_status = (
@@ -1443,16 +1454,16 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                     message = "Temperature sensor disconnected"
                                 case 64:
                                     message = "Leak sensor disconnected"
-                            self.notify_ha(
-                                "Warning: Neviweb Device error code detected: "
-                                + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                + " for device: "
-                                + self._name
-                                + ", Sku: "
-                                + self._sku
-                                + ". "
-                                + message
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                message=message,
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku
                             )
+                            self.notify_ha(msg)
                     else:
                         self._error_code = 0
                     self._wattage = device_data[ATTR_WATTAGE]
@@ -1483,7 +1494,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     def extra_state_attributes(self):
@@ -1595,15 +1606,16 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._onoff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
                     if device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS] == "probe":
-                        self.notify_ha(
-                            "Warning: Neviweb Device error code detected: "
-                            + device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
-                            + " for device: "
-                            + self._name
-                            + ", Sku: "
-                            + self._sku
-                            + ", Leak sensor disconnected"
+                        msg = translate_error(
+                            self.hass,
+                            "error_code",
+                            code=device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS],
+                            message="Leak sensor disconnected",
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku
                         )
+                        self.notify_ha(msg)
                     else:
                         self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
@@ -1616,16 +1628,16 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                                     message = "Temperature sensor disconnected"
                                 case 64:
                                     message = "Leak sensor disconnected"
-                            self.notify_ha(
-                                "Warning: Neviweb Device error code detected: "
-                                + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                + " for device: "
-                                + self._name
-                                + ", Sku: "
-                                + self._sku
-                                + ". "
-                                + message
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                message=message,
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku
                             )
+                            self.notify_ha(msg)
                     else:
                         self._error_code = 0
                     if ATTR_DRSTATUS in device_data:
@@ -1662,7 +1674,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     def extra_state_attributes(self):
@@ -1840,7 +1852,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     def extra_state_attributes(self):
