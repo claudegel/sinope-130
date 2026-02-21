@@ -32,6 +32,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 - [Debugging](#logging-for-debugging)
 - [Eco-Sinopé](#catch-eco-sinope-signal-for-peak-period)
 - [Energy statistic](#energy-statistic)
+- [Localisation](#localisation)
 - [Sedna flow meeter](#statistic-for-sedna-flow-meeter)
 - [Troubleshooting](#troubleshooting)
 - [Customization](#customization)
@@ -334,6 +335,11 @@ neviweb130:
 - **Multi-account config (`accounts:`)**:
   - With prefix + location → `climate.neviweb130_parents_chalet_climate_living_room`
   - With location only (no prefix) → `climate.neviweb130_chalet_climate_living_room`
+
+## Localisation
+Neviweb130 is now translated in French for the errors and notifications messages. The translation is done automatically based
+on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
+en.json file located in translations directory into other language. 
 
 ## Sedna valve
 For Sedna valves there are two ways to connect it to Neviweb:
