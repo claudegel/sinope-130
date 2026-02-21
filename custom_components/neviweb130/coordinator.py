@@ -142,6 +142,7 @@ from .helpers import (
     async_notify_throttled,
     async_notify_critical,
     DailyRequestCounter,
+    translate_error,
 )
 from .schema import (
     HA_TO_NEVIWEB_CONTROLLED,
@@ -397,12 +398,14 @@ class Neviweb130Client:
                         )
                     else:
                         _LOGGER.debug("Fail login status: %s", response.status)
-                    raise PyNeviweb130Error("Cannot log in")
+                    msg = translate_error(self.hass, "login_failed")
+                    raise PyNeviweb130Error(msg)
 
                 raw_cookies = response.cookies
                 raw_res = await response.json()
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall.") from e
+            msg = translate_error(self.hass, "login_submit_failed")
+            raise PyNeviweb130Error(msg) from e
 
         # Update cookies
         self._cookies = raw_cookies
@@ -414,17 +417,18 @@ class Neviweb130Client:
             code = data["error"]["code"]
 
             if code == "ACCSESSEXC":
+                msg = translate_error(self.hass, "too_many_sessions", code=data['error']['code'])
                 await async_notify_critical(
                     self.hass,
-                    "Warning: Maximum Neviweb session number reached... Close other connections and try again",
+                    msg,
                     title=f"Neviweb130 integration {VERSION}",
                     notification_id="neviweb130_session_error",
                 )
             elif code == "USRBADLOGIN":
+                msg = translate_error(self.hass, "bad_credentials", code=data['error']['code'])
                 await async_notify_critical(
                     self.hass,
-                    "Warning: Got USRBADLOGIN error, Invalid Neviweb username "
-                    + "and/or password... Check your configuration parameters",
+                    msg,
                     title=f"Neviweb130 integration {VERSION}",
                     notification_id="neviweb130_session_error",
                 )
@@ -442,7 +446,8 @@ class Neviweb130Client:
         """Get gateway id associated to the desired network."""
 
         if self._account is None:
-            raise ValueError("self._account is None")
+            msg = translate_error(self.hass, "account_id_empty")
+            raise ConfigEntryAuthFailed(msg)
 
         await self._increment()
         session = await self.session
@@ -556,7 +561,7 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error("Cannot get Neviweb's networks") from e
+            raise PyNeviweb130Error(translate_error(self.hass, "networks_fetch_failed")) from e
 
         # Prepare data
         self.gateway_data = raw_res
@@ -571,11 +576,10 @@ class Neviweb130Client:
             and self._gateway_id2 is None
             and self._gateway_id3 is None
         ):
+            msg = translate_error(self.hass, "no_gateway_defined")
             await async_notify_critical(
                 self.hass,
-                "All Gateway ID are None. Network selection failed. "
-                + "Check that your configuration network names match one of the networks in your Neviweb account. "
-                + "Available networks were logged during network selection. Check your log",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_session_error",
             )
@@ -595,7 +599,8 @@ class Neviweb130Client:
                     _LOGGER.debug("Received gateway data: %s", raw)
 
                     if "error" in raw and raw["error"]["code"] == "VALINVLD":
-                        raise PyNeviweb130Error("No network found, check your configuration")
+                        msg = translate_error(self.hass, "gateway_data_failed")
+                        raise PyNeviweb130Error(msg)
 
                     # Update cookies
                     self._cookies.update(response.cookies)
@@ -603,7 +608,8 @@ class Neviweb130Client:
                     return raw
 
             except aiohttp.ClientError as e:
-                raise PyNeviweb130Error("Cannot get gateway data") from e
+                msg = translate_error(self.hass, "gateway_data_failed")
+                raise PyNeviweb130Error(msg) from e
 
         # Fetch gateway 1
         raw_res = await _fetch_gateway_data(self._gateway_id)
@@ -631,11 +637,8 @@ class Neviweb130Client:
             _LOGGER.debug("Received signature data: %s", data)
 
             if data[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
-                _LOGGER.debug(
-                    "The Neviweb location selected for parameter «network» contains unsupported MiWi devices. "
-                    "If this location contains only MiWi devices, use the sinope neviweb integration instead. "
-                    "If mixed devices exist, set ignore_miwi: True in your neviweb130 configuration."
-                )
+                msg = translate_error(self.hass, "ignore_miwi", param="«network»")
+                _LOGGER.debug(msg)
 
         # Fetch signature gateway 2
         if self._gateway_id2 is not None:
@@ -647,11 +650,8 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data 2: %s", data2)
 
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
-                    _LOGGER.debug(
-                        "The Neviweb location selected for parameter «network2» contains unsupported MiWi devices. "
-                        "If this location contains only MiWi devices, use the sinope neviweb integration instead. "
-                        "If mixed devices exist, set ignore_miwi: True in your neviweb130 configuration."
-                    )
+                    msg = translate_error(self.hass, "ignore_miwi", param="«network3»")
+                    _LOGGER.debug(msg)
 
         # Fetching signature gateway 3
         if self._gateway_id3 is not None:
@@ -663,11 +663,8 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data 3: %s", data3)
 
                 if data3[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
-                    _LOGGER.debug(
-                        "The Neviweb location selected for parameter «network3» contains unsupported MiWi devices. "
-                        "If this location contains only MiWi devices, use the sinope neviweb integration instead. "
-                        "If mixed devices exist, set ignore_miwi: True in your neviweb130 configuration."
-                    )
+                    msg = translate_error(self.hass, "ignore_miwi", param="«network3»")
+                    _LOGGER.debug(msg)
 
         _LOGGER.info("Loaded gateway %s with %s devices", self._gateway_id, len(self.gateway_data))
         _LOGGER.info("Loaded gateway2 %s with %s devices", self._gateway_id2, len(self.gateway_data2))
@@ -709,11 +706,8 @@ class Neviweb130Client:
                     _LOGGER.debug("Error response for device %s: %s", device_id, raw)
 
                     if code == "USRSESSEXP":
-                        _LOGGER.error(
-                            "Session expired while fetching attributes for device %s. "
-                            "Set scan_interval < 10 minutes to avoid session expiration.",
-                            device_id,
-                        )
+                        msg = translate_error(self.hass, "usr_session")
+                        _LOGGER.error(msg)
 
                     return raw
 
@@ -766,11 +760,8 @@ class Neviweb130Client:
             _LOGGER.debug("Error response for device %s: %s", device_id, raw)
 
             if code == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired while fetching status for device %s. "
-                    "Set scan_interval < 10 minutes to avoid session expiration.",
-                    device_id,
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
 
         _LOGGER.debug("Received device %s status: %s", device_id, raw)
 
@@ -806,11 +797,8 @@ class Neviweb130Client:
             _LOGGER.debug("Error response for Neviweb status: %s", raw)
 
             if code == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired while fetching Neviweb status for location %s. "
-                    "Set scan_interval < 10 minutes to avoid session expiration.",
-                    location,
-                )
+                msg = translate_error(self.hass, "location_status", param=location)
+                _LOGGER.error(msg)
 
         _LOGGER.debug("Received Neviweb status for location %s: %s", str(location), raw)
 
@@ -838,9 +826,8 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get device alert for device {device_id}"
-             ) from e
+            msg = translate_error(self.hass, "device_alert", id=device_id)
+            raise PyNeviweb130Error(msg) from e
 
         # Handle error
         if "error" in raw:
@@ -848,11 +835,8 @@ class Neviweb130Client:
             _LOGGER.debug("Error response for device %s alert: %s", device_id, raw)
 
             if code == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired while fetching device %s alert. "
-                    "Set scan_interval < 10 minutes to avoid session expiration.",
-                    device_id,
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
 
         _LOGGER.debug("Received device %s alert: %s", device_id, raw)
 
@@ -883,9 +867,8 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get monthly stats for device {device_id}"
-            ) from e
+            msg = translate_error(self.hass, "energy_stat", param="monthly", id=device_id)
+            raise PyNeviweb130Error(msg) from e
 
         # Handle error
         if "error" in raw:
@@ -942,9 +925,8 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get daily stats for device {device_id}"
-            ) from e
+            msg = translate_error(self.hass, "energy_stat", param="daily", id=device_id)
+            raise PyNeviweb130Error(msg) from e
 
         # Handle error
         if "error" in raw:
@@ -1000,9 +982,8 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get hourly stats for device {device_id}"
-            ) from e
+            msg = translate_error(self.hass, "energy_stat", param="hourly", id=device_id)
+            raise PyNeviweb130Error(msg) from e
 
         # Handle error
         if "error" in raw:
@@ -1010,11 +991,8 @@ class Neviweb130Client:
             _LOGGER.debug("Error response for device %s hourly stats: %s", device_id, raw)
 
             if code == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired while fetching hourly stats for device %s. "
-                    "Set scan_interval < 10 minutes to avoid session expiration.",
-                    device_id,
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
 
             return None
 
@@ -1060,9 +1038,8 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get Neviweb weather and icon for code {self._code}"
-            ) from e
+            msg = translate_error(self.hass, "weather_data", code=self._code)
+            raise PyNeviweb130Error(msg) from e
 
         # Handle error
         if "error" in raw:
@@ -1070,11 +1047,8 @@ class Neviweb130Client:
             _LOGGER.debug("Error response for weather data from Neviweb: %s", raw)
 
             if code == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired while fetching weather data from Neviweb for code %s. "
-                    "Set scan_interval < 10 minutes to avoid session expiration.",
-                    self._code,
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
 
             return None
 
@@ -1115,11 +1089,8 @@ class Neviweb130Client:
             _LOGGER.debug("Error response for device %s for sensor error: %s", device_id, raw)
 
             if code == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired while fetching device %s error code. "
-                    "Set scan_interval < 10 minutes to avoid session expiration.",
-                    device_id,
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
 
             return None
 
@@ -1245,9 +1216,10 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_schedule_mode")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats.",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1259,9 +1231,10 @@ class Neviweb130Client:
             data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_heatcool_min_delta")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1274,9 +1247,10 @@ class Neviweb130Client:
             data = {ATTR_FAN_FILTER_REMAIN: month_val}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_fan_filter_reminder")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats.",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1288,9 +1262,10 @@ class Neviweb130Client:
             data = {ATTR_TEMP_OFFSET_HEAT: temp}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_temperature_offset")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1302,9 +1277,10 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_humidity_offset")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1316,9 +1292,10 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_humidity_mode")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1340,9 +1317,10 @@ class Neviweb130Client:
             data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_air_ex_time_on")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -1385,7 +1363,8 @@ class Neviweb130Client:
                 case "partiallyLocked":
                     lock = "partialLock"
                 case _:
-                    raise ValueError(f"Invalid lock value: {lock}")
+                    msg = translate_error(self.hass, "Invalid_lock_value", lock=lock, model=self._model)
+                    raise ValueError(msg)
             data = {ATTR_WIFI_KEYPAD: lock}
         else:
             match lock:
@@ -2019,9 +1998,10 @@ class Neviweb130Client:
             _LOGGER.debug("HC heat_dissipation_time.data = %s", data)
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_heat_dissipation_time")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -2034,9 +2014,10 @@ class Neviweb130Client:
             _LOGGER.debug("HC cool_dissipation_time.data = %s", data)
             return await self.async_set_device_attributes(device_id, data)
         else:
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_cool_dissipation_time")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_service_error",
             )
@@ -2168,9 +2149,8 @@ class Neviweb130Client:
                         return True
 
             except aiohttp.ClientError as e:
-                raise PyNeviweb130Error(
-                    f"Cannot set device {device_id} attributes: {data}"
-                ) from e
+                msg = translate_error(self.hass, "set_attribute", id=device_id, data=data)
+                raise PyNeviweb130Error(msg) from e
 
             # Handle API error
             if "error" in resp:
@@ -2178,11 +2158,8 @@ class Neviweb130Client:
                 _LOGGER.debug("Error response for device %s attribute update: %s", device_id, resp)
 
                 if code == "USRSESSEXP":
-                    _LOGGER.error(
-                        "Session expired while setting attributes for device %s. "
-                        "Set scan_interval < 10 minutes to avoid session expiration.",
-                        device_id,
-                    )
+                    msg = translate_error(self.hass, "usr_session")
+                    _LOGGER.error(msg)
                     return False
 
             attempts += 1
@@ -2226,9 +2203,8 @@ class Neviweb130Client:
                     return True
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot post Neviweb status for location {location} with data {data}"
-            ) from e
+            msg = translate_error(self.hass, "neviweb_status", location=location, data=data)
+            raise PyNeviweb130Error(msg) from e
 
         # Handle API error
         if "error" in resp:
