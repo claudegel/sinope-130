@@ -57,7 +57,7 @@
         "unknown_error": "Erreur inconnue pour {name} (id: {id}) (SKU: {sku}) Signaler au responsable. Données reçues: {data}.",
         "daily_access": "Nombre de requête quotidienne maximale atteint... Augmenter l'intervalle d'interrogation de Neviweb, (scan_interval).",
         "update_message": "La mise à jour vers la version {version} a été installée avec succès.",
-        "update_fail": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été restaurée.\n{message}.",
+        "update_rejected": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été restaurée.\n{message}.",
         "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRollback ignoré, aucune sauvegarde locale disponible.\n{message}.",
         "update_fail": "La restauration n'a pas pu être effectuée. Intervention manuelle requise."
       }
