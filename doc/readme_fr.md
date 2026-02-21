@@ -23,7 +23,6 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [Installation](#installation)
 - [Configuration](#configuration-1er-generation)
 - [Multi_comptes](#configuration-multi-comptes)
-- [Localisation](#localisation)
 - [Valve Sedna](#valve-sedna)
 - [GT130](#passerelle-gt130)
 - [Mise à jour](#systeme-de-mise-a-jour)
@@ -33,6 +32,7 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [Journalisation](#journalisation-pour-le-debogage)
 - [Éco-Sinopé](#capter-le-signal-eco-sinope-de-neviweb-pour-les-periodes-de-pointe)
 - [Statistiques d'énergie](#statistiques-pour-lenergie)
+- [Localisation (language)](#localisation)
 - [Statistiques de débit](#statistique-pour-le-capteur-de-debit-sedna)
 - [Dépannage](#depannage)
 - [Personnalisation](#personnalisation)
@@ -344,12 +344,6 @@ Les paramètres sont en anglais. Il ne faut pas les traduire.
   - Avec préfixe + localisation → `climate.neviweb130_parents_chalet_climate_living_room`
   - Avec localisation uniquement (pas de préfixe) → `climate.neviweb130_chalet_climate_living_room`
 
-## Localisation
-Neviweb130 est désormais traduit en français pour les messages d'erreurs et de notifications. La traduction se fait 
-automatiquement en fonction de votre configuration HA pour la langue. Désormais, le français et l'anglais sont pris 
-en charge. N'importe quelle langue peut être ajoutée en traduisant le fichier en.json situé dans le répertoire 
-'translations' vers une autre langue.
-
 ## Valve Sedna
 Pour les valves Sedna, il existe deux façons de les connecter à Neviweb :
 - Via connexion Wi-Fi directe. De cette façon, les capteurs de fuite sont connectés directement à la valve Sedna qui se fermera en cas de fuite. 
@@ -655,6 +649,12 @@ template:
         state: >-
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
 ```
+
+## Localisation
+Neviweb130 est désormais traduit en français pour les messages d'erreurs et de notifications. La traduction se fait 
+automatiquement en fonction de votre configuration HA pour la langue. Désormais, le français et l'anglais sont pris 
+en charge. N'importe quelle langue peut être ajoutée en traduisant le fichier en.json situé dans le répertoire 
+'translations' vers une autre langue.
 
 ## Statistique pour le capteur de debit Sedna
 Sept attributs sont ajoutés pour suivre la consommation d'eau de la valve Sedna. Ils sont affichés en m³ (mètre cube), ce qui correspond aux 
