@@ -278,6 +278,7 @@ from .helpers import (
     NamingHelper,
     update_runtime_stats,
     runtime_attributes_dict,
+    translate_error,
 )
 from .schema import (
     AUX_HEATING,
@@ -788,7 +789,8 @@ async def async_setup_entry(
     def get_thermostat(service: ServiceCall) -> Neviweb130Thermostat:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
+            raise ServiceValidationError(msg)
 
         nonlocal entity_map
         if entity_map is None:
@@ -797,11 +799,19 @@ async def async_setup_entry(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+                        msg = translate_error(hass, "entities_not_ready")
+                        raise ServiceValidationError(msg)
 
         thermostat = entity_map.get(entity_id)
         if thermostat is None:
-            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} thermostat")
+            msg = translate_error(
+                hass,
+                "entity_must_be_domain",
+                entity=entity_id,
+                domain=DOMAIN,
+                platform="thermostat"
+            )
+            raise ServiceValidationError(msg)
         return thermostat
 
     async def set_second_display_service(service: ServiceCall) -> None:
@@ -843,8 +853,17 @@ async def async_setup_entry(
             Neviweb130WifiHPThermostat,
         )
 
+        model = getattr(thermostat, "_device_model", thermostat.__class__.__name__)
+
         if isinstance(thermostat, unsupported_classes):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} do not support time format")
+            msg = translate_error(
+                hass,
+                "does_not_support",
+                entity=thermostat.entity_id,
+                domain=DOMAIN,
+                model=model
+            )
+            raise ServiceValidationError(msg)
 
         value = {"id": thermostat.unique_id, ATTR_TIME: service.data[ATTR_TIME_FORMAT]}
         await thermostat.async_set_time_format(value)
@@ -948,7 +967,8 @@ async def async_setup_entry(
         thermostat = get_thermostat(service)
         val = service.data.get(ATTR_VALUE)
         if val is None:
-            raise ServiceValidationError(f"Missing required parameter: {ATTR_VALUE}")
+            msg = translate_error(hass, "missing_parameter", param=ATTR_VALUE)
+            raise ServiceValidationError(msg)
         value = {"id": thermostat.unique_id, "val": val}
         await thermostat.async_set_aux_cycle_output(value)
         thermostat.async_schedule_update_ha_state(True)
@@ -1010,7 +1030,8 @@ async def async_setup_entry(
         """Set away cooling setpoint."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise HomeAssistantError(f"Entity {thermostat.entity_id} is not a Neviweb130HeatCoolThermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise HomeAssistantError(msg)
         value = {
             "id": thermostat.unique_id,
             "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
@@ -1147,7 +1168,8 @@ async def async_setup_entry(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         await thermostat.async_set_reversing_valve_polarity(service.data)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1157,7 +1179,8 @@ async def async_setup_entry(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             ATTR_TIME: service.data[ATTR_AUX_HEAT_MIN_TIME_ON],
@@ -1171,7 +1194,8 @@ async def async_setup_entry(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         await thermostat.async_set_min_time_off(service.data)
         thermostat.schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1181,7 +1205,8 @@ async def async_setup_entry(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         await thermostat.async_set_heat_interstage_delay(service.data)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1191,7 +1216,8 @@ async def async_setup_entry(
         for TH6500WF and TH6250WF thermostats."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         await thermostat.async_set_cool_interstage_delay(service.data)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1200,7 +1226,8 @@ async def async_setup_entry(
         """Set TH6500WF accessory (humidifier, dehumidifier, air exchanger) type."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {"id": thermostat.unique_id, "type": service.data[ATTR_ACCESSORY_TYPE]}
         await thermostat.async_set_accessory_type(value)
         thermostat.async_schedule_update_ha_state(True)
@@ -1210,7 +1237,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF schedule mode, manual or auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             "mode": service.data[ATTR_SETPOINT_MODE],
@@ -1223,7 +1251,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF delta temperature between heating and cooling setpoint."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             "level": service.data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA],
@@ -1247,7 +1276,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF temperature sensor offset from -2 to 2°C with a 0.5°C increment."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             "temp": service.data[ATTR_TEMP_OFFSET_HEAT],
@@ -1260,7 +1290,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF auxiliary heating device."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             ATTR_AUX_HEAT_SOURCE_TYPE: service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
@@ -1273,7 +1304,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             "speed": service.data[ATTR_FAN_SPEED],
@@ -1286,7 +1318,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
@@ -1299,7 +1332,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             ATTR_TIME: service.data[ATTR_TIME] * 60,
@@ -1312,7 +1346,8 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            raise ServiceValidationError(f"Entity {thermostat.entity_id} must be a {DOMAIN} heat-cool thermostat")
+            msg = translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+            raise ServiceValidationError(msg)
         value = {
             "id": thermostat.unique_id,
             ATTR_TIME: service.data[ATTR_TIME] * 60,
@@ -2032,9 +2067,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -2701,7 +2737,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked."""
         if value["lock"] == "partiallyLocked" and self._is_HP:
-            raise ValueError("Mode 'partiallyLocked' is not available for model HP6000.")
+            msg = translate_error(self.hass, "Invalid_lock_value", lock="partiallyLocked", model="HP6000")
+            raise ValueError(msg)
 
         await self._client.async_set_keypad_lock(value["id"], value["lock"], self._is_wifi)
         self._keypad = value["lock"]
@@ -2875,7 +2912,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Set low voltage thermostats auxiliary cycle status and length."""
         is_wifi = self._is_low_wifi or (self._is_wifi and self._is_HC)
         if is_wifi and value["val"] == "off":
-            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
+            msg = translate_error(self.hass, "no_off_value", entity=self.entity_id)
+            raise ServiceValidationError(msg)
         await self._client.async_set_aux_cycle_output(value["id"], value["val"], is_wifi)
         if is_wifi:
             self._lv_aux_cycle_length = value["val"]
@@ -2889,7 +2927,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_set_cycle_output(self, value):
         """Set low voltage thermostats main cycle output length."""
         if value["val"] == "off":
-            raise ServiceValidationError(f"Entity {self.entity_id} does not support value 'off'")
+            msg = translate_error(self.hass, "no_off_value", entity=self.entity_id)
+            raise ServiceValidationError(msg)
         await self._client.async_set_cycle_output(value["id"], value["val"], self._is_HC)
         self._cycle_length = value["val"]
 
@@ -3008,7 +3047,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     _LOGGER.debug("stat month = %s", dt_month.month)
                 else:
                     self._month_kwh = 0
-                    _LOGGER.warning("%s Got None for device_monthly_stats", self._name)
+                    msg = translate_error(self.hass, "no_stat", param="monthly", name=self._name)
+                    _LOGGER.warning(msg)
                 device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
                 _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
@@ -3030,7 +3070,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
                     self._today_kwh = 0
-                    _LOGGER.warning("%s Got None for device_daily_stats", self._name)
+                    msg = translate_error(self.hass, "no_stat", param="daily", name=self._name)
+                    _LOGGER.warning(msg)
                 device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
                 _LOGGER.debug(
                     "%s device hourly stat (SKU: %s): %s, size = %s",
@@ -3057,7 +3098,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
                 else:
                     self._hour_kwh = 0
-                    _LOGGER.warning("%s Got None for device_hourly_stats", self._name)
+                    msg = translate_error(self.hass, "no_stat", param="hourly", name=self._name)
+                    _LOGGER.warning(msg)
                 if self._total_kwh_count == 0:
                     self._total_kwh_count = round(
                         self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
@@ -3122,11 +3164,18 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             error_message = error_messages.get(self._error_code, "Unknown error")
 
             # Send notification
+            msg = translate_error(
+                self.hass,
+                "error_code",
+                code=raw_code,
+                message="("+error_message+")",
+                name=self._name,
+                id=self._id,
+                sku=self._sku
+            )
             await async_notify_critical(
                 self.hass,
-                f"Warning: Neviweb Device error code detected: {raw_code} "
-                f"({error_message}) for device: {self._name}, "
-                f"ID: {self._id}, Sku: {self._sku}",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_error_code",
             )
@@ -3140,11 +3189,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... Reconnecting...")
             if self._notify == "notification" or self._notify == "both":
+                msg = translate_error(self.hass, "usr_session")
                 await async_notify_once_or_update(
                     self.hass,
-                    "Warning: Got USRSESSEXP error, Neviweb session expired. "
-                    + "Set your scan_interval parameter to less than 10 "
-                    + "minutes to avoid this... Reconnecting...",
+                    msg,
                     title=f"Neviweb130 integration {VERSION}",
                     notification_id="neviweb130_reconnect",
                 )
@@ -3155,17 +3203,19 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance... Retry later")
+            msg = translate_error(self.hass, "maintenance")
             await async_notify_once_or_update(
                 self.hass,
-                "Warning: Neviweb access temporary blocked for maintenance... Retry later",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_access_error",
             )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
+            msg = translate_error(self.hass, "access_limit")
             await async_notify_critical(
                 self.hass,
-                "Warning: Maximum Neviweb session number reached... Close other connections and try again",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_session_error",
             )
@@ -3235,16 +3285,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     self._name,
                 )
             if self._notify == "notification" or self._notify == "both":
+                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
                 await async_notify_once_or_update(
                     self.hass,
-                    "Warning: Received message from Neviweb, device "
-                    + "disconnected... Check your log... Neviweb update will "
-                    + "be halted for 20 minutes for "
-                    + self._name
-                    + ", id: "
-                    + self._id
-                    + ", Sku: "
-                    + self._sku,
+                    msg,
                     title=f"Neviweb130 integration {VERSION}",
                     notification_id="neviweb130_device_error",
                 )
@@ -3374,9 +3418,10 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -3560,9 +3605,10 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -3766,9 +3812,10 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -3933,9 +3980,10 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -4104,9 +4152,10 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -4295,9 +4344,10 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -4467,9 +4517,10 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -4675,9 +4726,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -4895,9 +4947,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -5108,9 +5161,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -5334,9 +5388,10 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -5476,15 +5531,26 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
                     if self._room_temp_error is not None:
+                        msg = translate_error(
+                            self.hass,
+                            "temp_error",
+                            error=self._room_temp_error,
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku
+                        )
                         await async_notify_critical(
                             self.hass,
-                            f"Warning: Neviweb Device temperature error code detected: {self._room_temp_error} "
-                            f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}",
+                            msg,
                             title=f"Neviweb130 integration {VERSION}",
                             notification_id=f"neviweb130_sensor_error",
                         )
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
-                    self._heat_cool = neviweb_to_ha_mode(device_data[ATTR_HEAT_COOL])
+                    try:
+                        self._heat_cool = neviweb_to_ha_mode(device_data[ATTR_HEAT_COOL])
+                    except ValueError:
+                        msg = translate_error(self.hass, "unknown_mode", model=self._device_model, mode=device_data[ATTR_HEAT_COOL])
+                        raise ServiceValidationError(msg)
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
                         if self._heat_cool == "cool"
@@ -5522,7 +5588,11 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     if ATTR_WIFI in device_data:
                         self._rssi = device_data[ATTR_WIFI]
-                    self._fan_speed = neviweb_to_ha_fan(device_data[ATTR_FAN_SPEED], self._device_model)
+                    try:
+                        self._fan_speed = neviweb_to_ha_fan(device_data[ATTR_FAN_SPEED], self._device_model)
+                    except ValueError:
+                        msg = translate_error(self.hass, "fan_model_not_supported", model=self._device_model)
+                        raise ServiceValidationError(msg)
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
                     self._fan_cap = device_data[ATTR_FAN_CAP]
                     self._system_mode_avail = device_data[ATTR_SYSTEM_MODE_AVAIL]
@@ -5557,9 +5627,10 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -5965,10 +6036,17 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
                     if self._room_temp_error is not None:
+                        msg = translate_error(
+                            self.hass,
+                            "temp_error",
+                            error=self._room_temp_error,
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku
+                        )
                         await async_notify_critical(
                             self.hass,
-                            f"Warning: Neviweb Device temperature error code detected: {self._room_temp_error} "
-                            f"for device: {self._name}, ID: {self._id}, Sku: {self._sku}",
+                            msg,
                             title=f"Neviweb130 integration {VERSION}",
                             notification_id=f"neviweb130_sensor_error",
                         )
@@ -6089,9 +6167,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
+                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
-                        "Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku,
+                        msg,
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id=f"neviweb130_update_restarted",
                     )
@@ -6326,10 +6405,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if preset_mode == PRESET_BOOST:
             if not self._em_heat_allowed():
                 # Condition not met → cannot activate PRESET_BOOST
+                msg = translate_error(self.hass, "emergency_heat_error", name=self._name, sku=self._sku)
                 await async_notify_critical(
                     self.hass,
-                    "Warning: Cannot activate BOOST (emergency heat) due to device configuration. "
-                    f"Condition not met for {self._name}, Sku: {self._sku}",
+                    msg,
                     title=f"Neviweb130 integration {VERSION}",
                     notification_id="neviweb130_em_heat_error",
                 )
@@ -6355,10 +6434,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         # --- Mode Conventional : always allowed ---
         if not self._em_heat_allowed():
             # --- Condition not met : cannot turn on em_heat ---
+            msg = translate_error(self.hass, "emergency_heat_error", name=self._name, sku=self._sku)
             await async_notify_critical(
                 self.hass,
-                "Warning: Cannot activate BOOST (emergency heat) due to device configuration. "
-                f"Condition not met for {self._name}, Sku: {self._sku}",
+                msg,
                 title=f"Neviweb130 integration {VERSION}",
                 notification_id="neviweb130_em_heat_error",
             )
@@ -6461,18 +6540,19 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         try:
             time_val = int(value[ATTR_TIME])
         except KeyError:
-            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+            msg = translate_error(self.hass, "missing_parameter", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
         except ValueError:
-            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be an integer")
+            msg = translate_error(self.hass, "integer_needed", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
 
         outputs = self._output_connect_state
         hp_can_heat = self._reversing_valve_polarity == "cooling" or outputs["OB"]
         has_multiple_hp_heat_stages = outputs["Y1"] and outputs["Y2"] and hp_can_heat
         has_multiple_aux_stages = outputs["W"] and outputs["W2"]
         if not has_multiple_hp_heat_stages and not has_multiple_aux_stages:
-            raise ServiceValidationError(
-                f"Entity {self.entity_id} does not support multiple levels of heating with current configuration"
-            )
+            msg = translate_error(self.hass, "multiple_heating_level", entity=self.entity_id)
+            raise ServiceValidationError(msg)
 
         if has_multiple_hp_heat_stages:
             await self._client.async_set_heat_interstage_min_delay(self.unique_id, time_val * 60)
@@ -6485,18 +6565,18 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         try:
             time_val = int(value[ATTR_TIME])
         except KeyError:
-            raise ServiceValidationError(f"Missing required parameter: {ATTR_TIME}")
+            msg = translate_error(self.hass, "missing_parameter", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
         except ValueError:
-            raise ServiceValidationError(f"Invalid value for {ATTR_TIME}, must be an integer")
+            msg = translate_error(self.hass, "integer_needed", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
 
         outputs = self._output_connect_state
         hp_can_cool = self._reversing_valve_polarity == "heating" or outputs["OB"]
         has_multiple_cooling_stages = outputs["Y1"] and outputs["Y2"] and hp_can_cool
         if not has_multiple_cooling_stages:
-            raise ServiceValidationError(
-                f"Entity {self.entity_id} does not support multiple cooling levels "
-                f"with the current output configuration"
-            )
+            msg = translate_error(self.hass, "multiple_cooling_level", entity=self.entity_id)
+            raise ServiceValidationError(msg)
 
         await self._client.async_set_cool_interstage_min_delay(self.unique_id, time_val * 60)
         await self._client.async_set_cool_interstage_delay(self.unique_id, time_val * 60 * 2)
@@ -6505,9 +6585,13 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Set auxiliary heating device."""
         equip = AUX_HEATING.get(value[ATTR_AUX_HEAT_SOURCE_TYPE])
         if equip is None:
-            raise ServiceValidationError(
-                f"Invalid value for {ATTR_AUX_HEAT_SOURCE_TYPE}, must be one of {AUX_HEATING.keys()}"
+            msg = translate_error(
+                self.hass,
+                "invalid_value",
+                param=ATTR_AUX_HEAT_SOURCE_TYPE,
+                value=AUX_HEATING.keys()
             )
+            raise ServiceValidationError(msg)
 
         await self._client.async_set_aux_heating_source(value["id"], equip)
         self._aux_heat_source_type = equip
@@ -6582,9 +6666,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         aux_conf = value.get(ATTR_AUX_OPTIM)
         fan_speed_config = value.get(ATTR_FAN_SPEED_OPTIM)
         if aux_conf is None and fan_speed_config is None:
-            raise ServiceValidationError(
-                f"Missing required parameter: either {ATTR_AUX_OPTIM} or {ATTR_FAN_SPEED_OPTIM} must be set"
-            )
+            param = f"{ATTR_AUX_OPTIM} or {ATTR_FAN_SPEED_OPTIM}"
+            msg = translate_error(self.hass, "missing_parameter", param=param)
+            raise ServiceValidationError(msg)
         await self._client.async_set_hvac_dr_options(value["id"], aux_conf=aux_conf, fan_speed_conf=fan_speed_config)
         if aux_conf is not None:
             self._dr_aux_config = "activated" if aux_conf == "on" else "deactivated"
