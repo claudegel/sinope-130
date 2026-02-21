@@ -26,7 +26,7 @@ from .const import (
     CONF_UPDATE_INTERVAL,
     DEFAULT_UPDATE_INTERVAL,
 )
-from .helpers import build_update_summary, has_breaking_changes
+from .helpers import build_update_summary, has_breaking_changes, translate_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -605,13 +605,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     "current_version": self._installed_version.lstrip("v"),
                 },
             )
-
+            msg = translate_error(self.hass, "update_message", version=self._installed_version)
             await self.hass.services.async_call(
                 "persistent_notification",
                 "create",
                 {
                     "title": "Neviweb130 – Update successful",
-                    "message": f"Update to version {self._installed_version} was installed successfully.",
+                    "message": msg,
                     "notification_id": "neviweb130_update_status",
                 },
             )
@@ -645,31 +645,25 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     await self.hass.async_add_executor_job(_restore)
 
                     self._rollback_status = "success"
+                    msg = translate_error(self.hass, "update_rejected", version=self._latest_version, message=f"[See update notes]({self.release_url})")
                     await self.hass.services.async_call(
                         "persistent_notification",
                         "create",
                         {
                             "title": "Neviweb130 – Update failed",
-                            "message": (
-                                f"Update to version {version or self._latest_version} failed.\n"
-                                "A rollback was performed and the old version was restored.\n"
-                                f"[See update notes]({self.release_url})"
-                            ),
+                            "message": msg,
                             "notification_id": "neviweb130_update_status",
                         },
                     )
                 else:
                     self._rollback_status = "skipped"
+                    msg = translate_error(self.hass, "rollback_skip", version=self._latest_version, message="[See update notes]({self.release_url})")
                     await self.hass.services.async_call(
                         "persistent_notification",
                         "create",
                         {
                             "title": "Neviweb130 – Update failed",
-                            "message": (
-                                f"Update to version {version or self._latest_version} failed.\n"
-                                "Rollback skipped, no local backup available.\n"
-                                f"[See update notes]({self.release_url})"
-                            ),
+                            "message": msg,
                             "notification_id": "neviweb130_update_status",
                         },
                     )
@@ -677,12 +671,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
             except Exception as rb_err:
                 _LOGGER.error("Rollback failed: %s", rb_err)
                 self._rollback_status = "failed"
+                msg = translate_error(self.hass, "update_fail")
                 await self.hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
                         "title": "Neviweb130 – Update failed",
-                        "message": "Rollback could not be completed. Manual intervention required.",
+                        "message": msg,
                         "notification_id": "neviweb130_update_status",
                     },
                 )
