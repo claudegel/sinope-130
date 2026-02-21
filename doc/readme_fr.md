@@ -23,6 +23,7 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [Installation](#installation)
 - [Configuration](#configuration-1er-generation)
 - [Multi_comptes](#configuration-multi-comptes)
+- [Localisation](#localisation)
 - [Valve Sedna](#valve-sedna)
 - [GT130](#passerelle-gt130)
 - [Mise à jour](#systeme-de-mise-a-jour)
@@ -342,6 +343,12 @@ Les paramètres sont en anglais. Il ne faut pas les traduire.
 - **Configuration multi-comptes (`comptes :`)**:
   - Avec préfixe + localisation → `climate.neviweb130_parents_chalet_climate_living_room`
   - Avec localisation uniquement (pas de préfixe) → `climate.neviweb130_chalet_climate_living_room`
+
+## Localisation
+Neviweb130 est désormais traduit en français pour les messages d'erreurs et de notifications. La traduction se fait 
+automatiquement en fonction de votre configuration HA pour la langue. Désormais, le français et l'anglais sont pris 
+en charge. N'importe quelle langue peut être ajoutée en traduisant fichier en.json situé dans le répertoire 
+'translations' vers une autre langue.
 
 ## Valve Sedna
 Pour les valves Sedna, il existe deux façons de les connecter à Neviweb :
