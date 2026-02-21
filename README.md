@@ -186,6 +186,9 @@ There are two methods to install this custom component:
       configuration.yaml
       custom_components/
         neviweb130/
+          translations/
+            en.json
+            fr.json
           __init__.py
           climate.py
           const.py
@@ -195,6 +198,7 @@ There are two methods to install this custom component:
           schema.py
           sensor.py
           services.yaml
+          string.json
           switch.py
           update.py
           valve.py
