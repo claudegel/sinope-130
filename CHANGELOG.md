@@ -7,9 +7,10 @@ All modification for this custom_component will be added in this file.
 - Add english and french translation json files.
 - Add localisation for all error message, notification, warning etc.
 - Add translation helpers for localisation.
+- Add translation for updater
 
 ### Fix
-- Fix sensor leak icons display
+- Fix leak sensor icons display
 
 ### Doc
 - Add documentation on language available
