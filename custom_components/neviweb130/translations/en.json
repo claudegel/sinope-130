@@ -57,7 +57,7 @@
         "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}) Report to maintainer. Data received: {data}.",
         "daily_access": "Maximum daily request reached... Increase intervall polling frequency on Neviweb, (scan_interval).",
         "update_message": "Update to version {version} was installed successfully.",
-        "update_fail": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
+        "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
         "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
         "update_fail": "Rollback could not be completed. Manual intervention required."
       }
