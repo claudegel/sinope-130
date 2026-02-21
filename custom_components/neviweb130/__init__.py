@@ -14,6 +14,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
@@ -40,6 +41,7 @@ from .helpers import (
     update_logger_level,
     sanitize_entry_data,
     setup_logger,
+    translate_error,
 )
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -267,12 +269,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     network3: str | None = entry.data.get("network3")
 
     if username is None:
-        raise TypeError("username is None")
+        raise ConfigEntryError(translate_error(hass, "username_missing"))
+
     if password is None:
-        raise TypeError("password is None")
+        raise ConfigEntryError(translate_error(hass, "password_missing"))
 
     global SCAN_INTERVAL
-    SCAN_INTERVAL = get_scan_interval(entry)
+    try:
+        SCAN_INTERVAL = get_scan_interval(entry)
+    except ValueError:
+        msg = translate_error(hass, "scan_interval_error")
+        raise ConfigEntryError(msg)
+
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
 
     homekit_mode = entry.data.get(CONF_HOMEKIT_MODE, DEFAULT_HOMEKIT_MODE)
