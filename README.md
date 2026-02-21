@@ -32,7 +32,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 - [Debugging](#logging-for-debugging)
 - [Eco-Sinopé](#catch-eco-sinope-signal-for-peak-period)
 - [Energy statistic](#energy-statistic)
-- [Localisation](#localisation)
+- [Localisation (language)](#localisation)
 - [Sedna flow meeter](#statistic-for-sedna-flow-meeter)
 - [Troubleshooting](#troubleshooting)
 - [Customization](#customization)
@@ -336,11 +336,6 @@ neviweb130:
   - With prefix + location → `climate.neviweb130_parents_chalet_climate_living_room`
   - With location only (no prefix) → `climate.neviweb130_chalet_climate_living_room`
 
-## Localisation
-Neviweb130 is now translated in French for the errors and notifications messages. The translation is done automatically based
-on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
-en.json file located in translations directory into other language. 
-
 ## Sedna valve
 For Sedna valves there are two ways to connect it to Neviweb:
 - Via Wi-Fi direct connection. This way leak sensor are connected directly to the Sedna valve which will close if leak 
@@ -638,6 +633,11 @@ template:
         state: >-
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
 ```
+
+## Localisation
+Neviweb130 is now translated in French for the errors and notifications messages. The translation is done automatically based
+on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
+en.json file located in translations directory into other language. 
 
 ## Statistic for Sedna flow meeter
 Seven attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what 
