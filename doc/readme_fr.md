@@ -347,7 +347,7 @@ Les paramètres sont en anglais. Il ne faut pas les traduire.
 ## Localisation
 Neviweb130 est désormais traduit en français pour les messages d'erreurs et de notifications. La traduction se fait 
 automatiquement en fonction de votre configuration HA pour la langue. Désormais, le français et l'anglais sont pris 
-en charge. N'importe quelle langue peut être ajoutée en traduisant fichier en.json situé dans le répertoire 
+en charge. N'importe quelle langue peut être ajoutée en traduisant le fichier en.json situé dans le répertoire 
 'translations' vers une autre langue.
 
 ## Valve Sedna
