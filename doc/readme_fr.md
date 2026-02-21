@@ -187,6 +187,9 @@ Il existe deux méthodes pour installer ce composant personnalisé :
       configuration.yaml
       custom_components/
         neviweb130/
+          translations/
+            en.json
+            fr.json
           __init__.py
           climate.py
           const.py
@@ -196,6 +199,7 @@ Il existe deux méthodes pour installer ce composant personnalisé :
           schema.py
           sensor.py
           services.yaml
+          strings.json
           switch.py
           update.py
           valve.py
