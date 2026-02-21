@@ -908,6 +908,48 @@ async def check_weather_icons_folder(hass):
             )
         )
 
+
+# ─────────────────────────────────────────────
+# Check icon folder presence and content
+# ─────────────────────────────────────────────
+
+
+_translation_cache = {}
+
+def translate_error(hass, key: str, **kwargs) -> str:
+    lang = hass.config.language or "en"
+    base = os.path.dirname(__file__)
+    path = os.path.join(base, "translations", f"{lang}.json")
+
+    if lang not in _translation_cache:
+        # Fallback to English if file missing
+        if not os.path.exists(path):
+            path = os.path.join(base, "translations", "en.json")
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                _translation_cache[lang] = json.load(f)
+        except Exception:
+            return key
+
+    data = _translation_cache[lang]
+
+    msg = (
+        data.get("component", {})
+            .get("neviweb130", {})
+            .get("errors", {})
+            .get(key)
+    )
+
+    if msg is None:
+        return key
+
+    try:
+        return msg.format(**kwargs)
+    except Exception:
+        return msg
+
+
 #await async_notify_throttled(
 #    self.hass,
 #    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
