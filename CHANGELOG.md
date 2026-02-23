@@ -13,9 +13,11 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Fix leak sensor icons display.
+- Fix wrong self._name in _LOGGER.
 
 ### Doc
 - Add documentation on language available.
+- Add set_switch_temp_alert service description.
 
 ## [v4.1.2] - 2026-02-14
 ### Added
