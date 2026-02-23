@@ -72,6 +72,22 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         icon_fn=static_icon("mdi:battery-80", "mdi:battery-alert-variant-outline"),
     ),
     Neviweb130BinarySensorEntityDescription(
+        key="input1_status",
+        device_class=BinarySensorDeviceClass.BATTERY,
+        translation_key="input1_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"on"},
+        icon_fn=static_icon("mdi:import", "mdi:battery-alert-variant-outline"),
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="input2_status",
+        device_class=BinarySensorDeviceClass.BATTERY,
+        translation_key="input2_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: str(data[attr]).lower() in {"on"},
+        icon_fn=static_icon("mdi:import", "mdi:battery-alert-variant-outline"),
+    ),
+    Neviweb130BinarySensorEntityDescription(
         key="gauge_error",
         name="Gauge disconected",
         device_class=BinarySensorDeviceClass.PROBLEM,
