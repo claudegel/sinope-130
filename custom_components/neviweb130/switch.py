@@ -1311,15 +1311,19 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     "eco_onoff": self._drstatus_onoff,
                     "error_code": self._error_code,
                     "rssi": self._rssi,
-                    "sku": self._sku,
-                    "device_model": str(self._device_model),
-                    "device_model_cfg": self._device_model_cfg,
-                    "firmware": self._firmware,
-                    "activation": self._active,
-                    "device_type": self._device_type,
-                    "id": self._id,
                 }
             )
+        data.update(
+            {
+                "sku": self._sku,
+                "device_model": str(self._device_model),
+                "device_model_cfg": self._device_model_cfg,
+                "firmware": self._firmware,
+                "activation": self._active,
+                "device_type": self._device_type,
+                "id": self._id,
+            }
+        )
 
         return data
 
@@ -1956,14 +1960,18 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                     "temp_alert": "active" if self._temp_alert == 5 else "inactive",
                     "low_temp_status": self._low_temp_status,
                     "rssi": self._rssi,
-                    "sku": self._sku,
-                    "device_model": str(self._device_model),
-                    "device_model_cfg": self._device_model_cfg,
-                    "firmware": self._firmware,
-                    "activation": self._active,
-                    "device_type": self._device_type,
-                    "id": self._id,
                 }
             )
+        data.update(
+            {
+                "sku": self._sku,
+                "device_model": str(self._device_model),
+                "device_model_cfg": self._device_model_cfg,
+                "firmware": self._firmware,
+                "activation": self._active,
+                "device_type": self._device_type,
+                "id": self._id,
+            }
+        )
 
         return data
