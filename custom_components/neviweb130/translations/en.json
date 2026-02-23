@@ -36,14 +36,14 @@
         "scan_interval_error": "Invalid scan interval format. Use seconds or HH:MM:SS.",
         "username_missing": "Username cannot be empty.",
         "password_missing": "Password cannot be empty.",
-        "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id:{id}, Sku:{sku}",
-        "update_restarted": "Warning: Neviweb Device update restarted for {name}, Sku: {sku}",
+        "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id:{id}, Sku:{sku}.",
+        "update_restarted": "Warning: Neviweb Device update restarted for {name}, Sku: {sku}.",
         "usr_session": "Warning: Got USRSESSEXP error, Neviweb session expired.\nSet your scan_interval parameter to less than 10 minutes to avoid this...\nReconnecting...",
-        "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later",
-        "access_limit": "Warning: ACCSESSEXC maximum Neviweb session number reached... Close other connections and try again.",
+        "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
+        "access_limit": "Warning: ACCSESSEXC, maximum Neviweb session number reached... Close other connections and try again.",
         "error_code": "Warning: Neviweb Device error code detected: {code} for device: {name}, ID: {id}, Sku: {sku}. {message}",
-        "temp_error": "Warning: Neviweb Device temperature error code detected: {error} for device: {name}, ID: {id}, Sku: {sku}",
-        "emergency_heat_error": "Warning: Cannot activate BOOST (emergency heat) due to device configuration. Condition not met for {name}, Sku: {sku}",
+        "temp_error": "Warning: Neviweb Device temperature error code detected: {error} for device: {name}, ID: {id}, Sku: {sku}.",
+        "emergency_heat_error": "Warning: Cannot activate BOOST (emergency heat) due to device configuration. Condition not met for {name}, Sku: {sku}.",
         "ignore_miwi": "The Neviweb location selected for parameter {param} contains unsupported MiWi devices.\nIf this location contains only MiWi devices, use the sinope neviweb integration instead.\nIf mixed devices exist, set ignore_miwi: True in your neviweb130 configuration.",
         "location_status": "Session expired while fetching Neviweb status for location {param}. Set scan_interval < 10 minutes to avoid session expiration.",
         "device_alert": "Cannot get device alert for device {id}.",
@@ -75,7 +75,7 @@
         "data": {
           "prefix": "Neviweb account name, optional for first account.",
           "username": "Neviweb email",
-          "password": "Neviweb password",
+          "password": "[%key:common::config_flow::data::password%]",
           "network": "Optional, First Neviweb location name or '_' or nothing for auto detection.",
           "network2": "Optional, Second Neviweb location name or '_' or nothing for auto detection.",
           "network3": "Optional, Third Neviweb location name or '_' or nothing for auto detection.",
@@ -92,7 +92,7 @@
         "data": {
           "prefix": "Neviweb account name, required for all accounts, set to default for first one.",
           "username": "Neviweb email",
-          "password": "Neviweb password",
+          "password": "[%key:common::config_flow::data::password%]",
           "network": "Optional, First Neviweb location name or '_' or nothing for auto detection.",
           "network2": "Optional, Second Neviweb location name or '_' or nothing for auto detection.",
           "network3": "Optional, Third Neviweb location name or '_' or nothing for auto detection.",
@@ -201,6 +201,20 @@
         "state": {
           "on": "Heating",
           "off": "Idle"
+        }
+      },
+      "input1_status": {
+        "name": "Imput 1 status",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
+        }
+      },
+      "input2_status": {
+        "name": "Imput 2 status",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
         }
       },
       "leak_status": {
