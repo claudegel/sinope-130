@@ -4,7 +4,7 @@
       "errors": {
         "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
         "login_failed": "Cannot log in.",
-        "too_many_sessions": "Too many active sessions.\nClose all neviweb130 sessions you have opened on other platform.\nIf this error persists, deactivate this integration...",
+        "too_many_sessions": "Too many active sessions ({count}).\nClose all Neviweb sessions opened on other platforms.\nIf the error persists, disable this integration (or stop Home Assistant), wait a few minutes, then re-enable it (or restart Home Assistant).",
         "bad_credentials": "Invalid Neviweb username and/or password. Check your configuration parameters. Error code: {code}.",
         "unknown_login_error": "Unknown error while logging to Neviweb. Error code: {code}.",
         "account_id_empty": "Account ID is empty, check your username and password to log into Neviweb...",
@@ -59,7 +59,10 @@
         "update_message": "Update to version {version} was installed successfully.",
         "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
         "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
-        "update_fail": "Rollback could not be completed. Manual intervention required."
+        "update_fail": "Rollback could not be completed. Manual intervention required.",
+        "service_failed": "Service '{service}' failed: {error}",
+        "critical_service_failed": "Critical error while executing service '{service}': {error}",
+        "VALINVLD": "Invalid value '{value}' for attribute '{name}'."
       }
     }
   },
@@ -489,6 +492,9 @@
       },
       "pi_heating_demand": {
         "name": "Heating Demand"
+      },
+      "room_temperature": {
+        "name": "Room temperature"
       },
       "rssi": {
         "name": "Signal Strength"
