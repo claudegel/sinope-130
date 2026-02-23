@@ -68,6 +68,19 @@ set_switch_power_timer:
       description: Time to set, "off", "1 min", "2 min", "5 min", "10 min", "15 min", "30 min", "1 hr", "2 hrs", "3 hrs", "6 hrs", "12 hrs", "24 hrs".
       example: "30 min"
 
+set_switch_temp_alert:
+  description: Set the low temperature alert for an MC3100ZB switch.
+  fields:
+    entity_id:
+      description: Name of the MC3100ZB switch entity.
+      example: "switch.neviweb130_switch_MC3100ZB"
+    alertLowTemp:
+      description: >
+        Low temperature alert threshold.
+        Set to 0 to disable the alert.
+        Set to 5 to enable the alert (alert triggers if temperature drops below 5°C).
+      example: 5
+
 set_time_format:
   description: Set device time format 12h or 24h.
   fields:
