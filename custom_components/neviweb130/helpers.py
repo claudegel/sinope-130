@@ -910,7 +910,7 @@ async def check_weather_icons_folder(hass):
 
 
 # ─────────────────────────────────────────────
-# Check icon folder presence and content
+# Translate error and other messages
 # ─────────────────────────────────────────────
 
 
@@ -948,6 +948,110 @@ def translate_error(hass, key: str, **kwargs) -> str:
         return msg.format(**kwargs)
     except Exception:
         return msg
+
+
+def translate_neviweb_error(self, err):
+    """Translate Neviweb error structure into a human-readable message."""
+
+    # Case 1 : Neviweb structured response {"error": {...}}
+    if isinstance(err, dict) and "error" in err:
+        code = err["error"].get("code")
+        data = err["error"].get("data", {})
+
+        # We try a translation bade on code
+        msg = self.hass.helpers.translation.async_translate(
+            f"component.neviweb130.errors.{code}",
+            data
+        )
+        if msg:
+            return msg
+
+        # Fallback if no translation available
+        return f"Neviweb error {code}: {data}"
+
+    # Case 2 : error is already a simple code
+    if isinstance(err, str):
+        msg = self.hass.helpers.translation.async_translate(
+            f"component.neviweb130.errors.{err}"
+        )
+        if msg:
+            return msg
+        return err
+
+    # Case 3 : Python exceptions
+    if isinstance(err, Exception):
+        return str(err)
+
+    return str(err)
+
+
+# ─────────────────────────────────────────────
+# Apply devices update from service (action)
+# ─────────────────────────────────────────────
+
+
+async def async_apply_device_update(
+    entity,
+    coro,
+    service_name: str,
+    attr_name: str | None = None,
+    new_value=None,
+    critical: bool = False,
+):
+    """
+    Execute a coordinator update coroutine and apply the result to the entity.
+
+    entity: HA entity (self)
+    coro: coroutine return True/False
+    service_name: name of service used
+    attr_name: Name of attribute to update (ex: "_temp_alert")
+    new_value: Value to apply on success
+    critical: if True → use async_notify_critical to send notification
+    """
+    try:
+        resp = await coro
+
+        # Case 1 : Neviweb structured response {"error": {...}}
+        if isinstance(resp, dict) and "error" in resp:
+            translated = entity.translate_neviweb_error(resp)
+            full_msg = entity.hass.helpers.translation.async_translate(
+                "component.neviweb130.errors.service_failed",
+                {"service": service_name, "error": translated},
+            )
+            _LOGGER.error(full_msg)
+            return False
+
+    except Exception as err:
+        # Cas 2 : Python or API error exception
+        translated = entity.translate_neviweb_error(err)
+        full_msg = entity.hass.helpers.translation.async_translate(
+            "component.neviweb130.errors.service_failed",
+            {"service": service_name, "error": translated},
+        )
+        _LOGGER.error(full_msg)
+        return False
+
+    if resp:
+        # Success → local update
+        if attr_name is not None:
+            setattr(entity, attr_name, new_value)
+        return True
+
+    # Case 3 : Logical fail (resp=False)
+    if resp is False:
+        translated = entity.translate_error("update_failed")
+        full_msg = entity.hass.helpers.translation.async_translate(
+            "component.neviweb130.errors.service_failed",
+            {"service": service_name, "error": translated},
+        )
+        _LOGGER.error(full_msg)
+        return False
+
+    # Success → local update
+    if attr_name is not None:
+        setattr(entity, attr_name, new_value)
+
+    return True
 
 
 #await async_notify_throttled(
