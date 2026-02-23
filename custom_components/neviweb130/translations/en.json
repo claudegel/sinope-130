@@ -451,6 +451,9 @@
       "emergencyHeat_hourly_total_count": {
         "name": "emergencyHeat_hourly_total_count"
       },
+      "extern_temperature": {
+        "name": "External temperature"
+      },
       "fan_hourly_count": {
         "name": "fan_hourly_count"
       },
