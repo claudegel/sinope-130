@@ -375,6 +375,7 @@ SERVICE_SET_SETPOINT_MIN = "set_setpoint_min"
 SERVICE_SET_SOUND_CONFIG = "set_sound_config"
 SERVICE_SET_SWITCH_KEYPAD_LOCK = "set_switch_keypad_lock"
 SERVICE_SET_SWITCH_POWER_TIMER = "set_switch_power_timer"
+SERVICE_SET_SWITCH_TEMP_ALERT = "set_switch_temp_alert"
 SERVICE_SET_SWITCH_TIMER = "set_switch_timer"
 SERVICE_SET_SWITCH_TIMER_2 = "set_switch_timer2"
 SERVICE_SET_TANK_HEIGHT = "set_tank_height"
@@ -413,7 +414,7 @@ CLIMATE_MODEL = [
     7373,
 ]
 LIGHT_MODEL = [2121, 2131, 2132]
-SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 2600, 2610]
+SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 25062, 2600, 2610]
 VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
 SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
@@ -1280,7 +1281,10 @@ MODEL_ATTRIBUTES = {
     2180: {  # MC3100ZB connected to GT130
         "sensor": [
             ATTR_RSSI,
+            "battery_voltage",
             "room_humidity",
+            "room_temperature",
+            "extern_temperature",
         ],
         "number": [],
         "select": [
@@ -1290,6 +1294,8 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [
             "activation",
             "low_temp_status",
+            "input1_status",
+            "input2_status",
         ],
         "button": [],
         "switch": [
@@ -1299,23 +1305,16 @@ MODEL_ATTRIBUTES = {
     },
     2181: {  # MC3100ZB connected to Sedna valve
         "sensor": [
-            ATTR_RSSI,
-            "room_humidity",
+            "battery_voltage",
         ],
         "number": [],
-        "select": [
-            "timer",
-            "timer2",
-        ],
+        "select": [],
         "binary_sensor": [
             "activation",
-            "low_temp_status",
+            "input1_status",
         ],
         "button": [],
-        "switch": [
-            "alert_temp",
-            "onoff2",
-        ],
+        "switch": [],
     },
     2506: {  # RM3250ZB, 50A, Zigbee
         "sensor": [
@@ -1331,6 +1330,14 @@ MODEL_ATTRIBUTES = {
             "power_timer",
             "switch_keypad",
         ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    25062: {  # RM3250ZB-VA, 50A, Zigbee connected via Sedna valve
+        "sensor": [],
+        "number": [],
+        "select": [],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": [],
@@ -1666,6 +1673,7 @@ EXPOSED_ATTRIBUTES = [
     "daily_kwh_count",
     "early_start",
     "emergency_heat_allowed",
+    "extern_temperature",
     "fan_filter_remain",
     "floor_setpoint_max",
     "floor_setpoint_min",
@@ -1683,6 +1691,8 @@ EXPOSED_ATTRIBUTES = [
     "hourly_flow_count",
     "hourly_kwh_count",
     "icon_type",
+    "input1_status",
+    "input2_status",
     "intensity_min",
     "is_em_heat",
     "is_heating",
@@ -1718,6 +1728,7 @@ EXPOSED_ATTRIBUTES = [
     "refuel_alert",
     "refuel_status",
     "room_humidity",
+    "room_temperature",
     "rssi",
     "second_display",
     "sensor_mode",
