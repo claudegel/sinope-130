@@ -545,6 +545,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_temperature_offset, to adjust temperature sensor from -2 to 2°C with 0.5°C increment, for TH6xxxWF.
 - neviweb130.set_aux_heating_source, to select which type of auxiliary heating source is in use for TH6xxxWF.
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
+- neviweb130.set_switch_temp_alert, to set low temperature alert on / off for MC3100ZB devices.
 
 ## Logging for debugging
 As the file home-assistant.log is no longer available, we have added a new logger that write all logger data about neviweb130 
