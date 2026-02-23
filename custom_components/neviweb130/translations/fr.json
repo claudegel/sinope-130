@@ -203,6 +203,20 @@
           "off": "Inactif"
         }
       },
+      "input1_status": {
+        "name": "Statut input 1",
+        "state": {
+          "on": "Actif",
+          "off": "Inactif"
+        }
+      },
+      "input2_status": {
+        "name": "Statut imput 2",
+        "state": {
+          "on": "Actif",
+          "off": "Inactif"
+        }
+      },
       "leak_status": {
         "name": "Alerte Fuite",
         "state": {
