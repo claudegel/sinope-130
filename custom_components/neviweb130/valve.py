@@ -548,7 +548,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._conf_dir = data["conf_dir"]
         self._device_dict = data["device_dict"]
         self._device = device_info
