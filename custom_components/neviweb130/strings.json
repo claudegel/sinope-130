@@ -88,7 +88,7 @@
       },
       "reconfigure": {
         "title": "Neviweb130: reconfigure options",
-        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), set to _ to bloc detection, scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
+        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
           "prefix": "Neviweb account name, required for all accounts, set to default for first one.",
           "username": "Neviweb email",
@@ -201,6 +201,20 @@
         "state": {
           "on": "Heating",
           "off": "Idle"
+        }
+      },
+      "input1_status": {
+        "name": "Imput 1 status",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
+        }
+      },
+      "input2_status": {
+        "name": "Imput 2 status",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
         }
       },
       "leak_status": {
