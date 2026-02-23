@@ -451,6 +451,9 @@
       "emergencyHeat_hourly_total_count": {
         "name": "Chauffage d'urgence décompte horaire total"
       },
+      "extern_temperature": {
+        "name": "Température externe"
+      },
       "fan_hourly_count": {
         "name": "ventilateur décompte horaire"
       },
