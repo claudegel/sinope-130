@@ -417,7 +417,8 @@ class Neviweb130Client:
             code = data["error"]["code"]
 
             if code == "ACCSESSEXC":
-                msg = translate_error(self.hass, "too_many_sessions", code=data['error']['code'])
+                error_data = data["error"].get("data", {})
+                msg = translate_error(self.hass, "too_many_sessions", **error_data)
                 await async_notify_critical(
                     self.hass,
                     msg,
@@ -425,7 +426,9 @@ class Neviweb130Client:
                     notification_id="neviweb130_session_error",
                 )
             elif code == "USRBADLOGIN":
-                msg = translate_error(self.hass, "bad_credentials", code=data['error']['code'])
+                error_data = data["error"].get("data", {}) or {}
+                error_data["code"] = code
+                msg = translate_error(self.hass, "bad_credentials", **error_data)
                 await async_notify_critical(
                     self.hass,
                     msg,
@@ -650,7 +653,7 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data 2: %s", data2)
 
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
-                    msg = translate_error(self.hass, "ignore_miwi", param="«network3»")
+                    msg = translate_error(self.hass, "ignore_miwi", param="«network2»")
                     _LOGGER.debug(msg)
 
         # Fetching signature gateway 3
@@ -1725,7 +1728,12 @@ class Neviweb130Client:
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_switch_temp_alert(self, device_id: str, temp: int | None) -> bool:
-        """Set Sedna valve temperature alert on/off."""
+        """Set low temperature alert for MC3100ZB. 0 = off, 5 = on."""
+        if temp == 0:
+            temp = None
+        if temp == 1:
+            temp = 5
+
         data: dict[str, Any] = {ATTR_TEMP_ALERT: temp}
         _LOGGER.debug("switch temp alert.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
