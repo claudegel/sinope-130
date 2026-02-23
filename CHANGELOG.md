@@ -8,6 +8,7 @@ All modification for this custom_component will be added in this file.
 - Add localisation for all error message, notification, warning etc.
 - Add translation helpers for localisation.
 - Add translation for updater.
+- Add set_switch_temp_alert service for MC3100ZB device.
 
 ### Fix
 - Fix leak sensor icons display.
