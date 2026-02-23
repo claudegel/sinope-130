@@ -373,6 +373,30 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         mean_type=StatisticMeanType.ARITHMETIC,
         icon="mdi:water-percent",
     ),
+    Neviweb130SensorEntityDescription(
+        key="room_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="room_temperature",
+        value_fn=lambda data: data["room_temperature"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        unit_class="temperature",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        icon="mdi:thermometer",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="extern_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="extern_temperature",
+        value_fn=lambda data: data["extern_temperature"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        unit_class="temperature",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        icon="mdi:thermometer",
+    ),
 )
 
 # Add runtime-generated sensor descriptions
@@ -417,7 +441,7 @@ for model in RUNTIME_COMPATIBLE_MODELS["TH6"]:
             )
 
 
-def create_physical_sensors(data, coordinator):
+def create_physical_sensors(data, entry, coordinator):
     entities: list[Neviweb130Sensor] = []
 
     config_prefix = data["prefix"]
@@ -557,7 +581,7 @@ async def async_setup_entry(
     entities: list[Neviweb130Sensor] = []
 
     #  Add sensors
-    entities += create_physical_sensors(data, coordinator)
+    entities += create_physical_sensors(data, entry, coordinator)
     await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.data:
@@ -920,7 +944,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._device = device_info
         self._name = name
         self._sku = sku
