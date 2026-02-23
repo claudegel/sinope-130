@@ -1601,6 +1601,15 @@ class Neviweb130Client:
         _LOGGER.debug("valve.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_switch_temp_alert(self, device_id: str, temp):
+        """Set low temperature alert for MC3100ZB. 0 = off, 5 = on."""
+        if temp == 0:
+            temp = None
+
+        data = {ATTR_TEMP_ALERT: temp}
+        _LOGGER.debug("switch_temp_alert.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_battery_type(self, device_id: str, batt):
         """Set water leak sensor battery type, lithium or alkaline."""
         data = {ATTR_BATTERY_TYPE: batt}
