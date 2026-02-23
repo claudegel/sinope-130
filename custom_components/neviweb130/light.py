@@ -488,7 +488,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     def __init__(self, data, device_info, name, sku, firmware, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_unit_class = "energy"
         self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
