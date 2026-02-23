@@ -4,7 +4,7 @@
       "errors": {
         "login_submit_failed": "Impossible de soumettre le formulaire de connexion. Vérifiez votre réseau ou votre pare-feu.",
         "login_failed": "Impossible de se connecter.",
-        "too_many_sessions": "Trop de sessions actives.\nFermez toutes les sessions Neviweb ouvertes sur d’autres plateformes (mobile, navigateur, etc.).\nSi l’erreur persiste, désactivez cette intégration (ou arrêtez Home Assistant), attendez quelques minutes, puis réactivez-la (ou redémarrez Home Assistant).",
+        "too_many_sessions": "Trop de sessions actives ({count}).\nFermez toutes les sessions Neviweb ouvertes sur d’autres plateformes (mobile, navigateur, etc.).\nSi l’erreur persiste, désactivez cette intégration (ou arrêtez Home Assistant), attendez quelques minutes, puis réactivez-la (ou redémarrez Home Assistant).",
         "bad_credentials": "Nom d’utilisateur ou mot de passe Neviweb invalide. Vérifiez vos paramètres de configuration. Code d’erreur : {code}.",
         "unknown_login_error": "Erreur inconnue lors de la connexion à Neviweb. Code d’erreur : {code}.",
         "account_id_empty": "L’ID du compte est vide. Vérifiez votre nom d’utilisateur et votre mot de passe pour vous connecter à Neviweb.",
@@ -59,7 +59,10 @@
         "update_message": "La mise à jour vers la version {version} a été installée avec succès.",
         "update_rejected": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été restaurée.\n{message}.",
         "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRollback ignoré, aucune sauvegarde locale disponible.\n{message}.",
-        "update_fail": "La restauration n'a pas pu être effectuée. Intervention manuelle requise."
+        "update_fail": "La restauration n'a pas pu être effectuée. Intervention manuelle requise.",
+        "service_failed": "Le service '{service}' a échoué : {error}",
+        "critical_service_failed": "Erreur critique lors de l'exécution du service '{service}' : {error}",
+        "VALINVLD": "Valeur invalide '{value}' pour l’attribut '{name}'."
       }
     }
   },
@@ -489,6 +492,9 @@
       },
       "pi_heating_demand": {
         "name": "Intensite Chauffage"
+      },
+      "room_temperature": {
+        "name": "Température du local"
       },
       "rssi": {
         "name": "Force du signal"
