@@ -1,10 +1,9 @@
 """
 Support for Neviweb switch connected via GT130 Zigbee.
-Multi-Controller
-model 2180 = Multi controller for sedna valve MC3100ZB connected to GT130
-model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
+Multi-Controller connected to GT130
+model 2180 = Multi controller for sedna valve MC3100ZB
 
-load controller
+Load controller connected to GT130 or Wi-Fi
 Support for Neviweb switch connected via GT130 Zigbee.
 model 2506 = load controller device, RM3250ZB, 50A, Zigbee
 model 346 = load controller device, RM3250WF, 50A, Wi-Fi
@@ -13,6 +12,12 @@ model 2152 = Calypso load controller for water heater, RM3500WF 20,8A, Wi-Fi
 model 339 = Calypso load controller for water heater, RM3510WF 20,8A, Wi-Fi
 model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
+
+Multi controller connected to Sedna valve
+model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
+
+Load controller connected to Sedna valve
+model 25062 = load controller device, RM3250ZB-VA, 50A, Zigbee
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -86,6 +91,7 @@ from .const import (
     ATTR_STATUS,
     ATTR_SYSTEM_MODE,
     ATTR_TANK_SIZE,
+    ATTR_TEMP_ALERT,
     ATTR_TIMER,
     ATTR_TIMER2,
     ATTR_VALUE,
@@ -120,6 +126,7 @@ from .const import (
     SERVICE_SET_REMAINING_TIME,
     SERVICE_SET_SWITCH_KEYPAD_LOCK,
     SERVICE_SET_SWITCH_POWER_TIMER,
+    SERVICE_SET_SWITCH_TEMP_ALERT,
     SERVICE_SET_SWITCH_TIMER,
     SERVICE_SET_SWITCH_TIMER_2,
     SERVICE_SET_TANK_SIZE,
@@ -131,6 +138,7 @@ from .const import (
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import save_devices
 from .helpers import (
+    async_apply_device_update,
     async_notify_once_or_update,
     async_notify_throttled,
     async_notify_critical,
@@ -154,6 +162,7 @@ from .schema import (
     SET_REMAINING_TIME_SCHEMA,
     SET_SWITCH_KEYPAD_LOCK_SCHEMA,
     SET_SWITCH_POWER_TIMER_SCHEMA,
+    SET_SWITCH_TEMP_ALERT_SCHEMA,
     SET_SWITCH_TIMER_2_SCHEMA,
     SET_SWITCH_TIMER_SCHEMA,
     SET_TANK_SIZE_SCHEMA,
@@ -193,6 +202,15 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
         translation_key="onOff2",
         signal=SIGNAL_EVENTS_CHANGED,
         icon="mdi:alarm",
+    ),
+    Neviweb130SwitchEntityDescription(
+        key="alert_temp",
+        name="alert_temp",
+        device_class=SwitchDeviceClass.SWITCH,
+        translation_key="alert_temp",
+        signal=SIGNAL_EVENTS_CHANGED,
+        icon="mdi:snowflake",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     #  sensor attributes
     Neviweb130SwitchEntityDescription(
@@ -297,9 +315,11 @@ IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
 IMPLEMENTED_LOAD_DEVICES = [2506]
+IMPLEMENTED_SED_LOAD_DEVICES = [25062]
 IMPLEMENTED_WIFI_LOAD_DEVICES = [346]
 IMPLEMENTED_DEVICE_MODEL = (
     IMPLEMENTED_LOAD_DEVICES
+    + IMPLEMENTED_SED_LOAD_DEVICES
     + IMPLEMENTED_WALL_DEVICES
     + IMPLEMENTED_ZB_DEVICE_CONTROL
     + IMPLEMENTED_SED_DEVICE_CONTROL
@@ -314,6 +334,7 @@ def determine_device_type(model):
         return "outlet"
     elif model in (
         IMPLEMENTED_LOAD_DEVICES,
+        IMPLEMENTED_SED_LOAD_DEVICES,
         IMPLEMENTED_WIFI_LOAD_DEVICES,
         IMPLEMENTED_WATER_HEATER_LOAD_MODEL,
         IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL,
@@ -325,7 +346,7 @@ def determine_device_type(model):
 def get_switch_class(model):
     if model in IMPLEMENTED_WALL_DEVICES:
         return Neviweb130Switch
-    elif model in IMPLEMENTED_LOAD_DEVICES:
+    elif model in IMPLEMENTED_LOAD_DEVICES or model in IMPLEMENTED_SED_LOAD_DEVICES:
         return Neviweb130PowerSwitch
     elif model in IMPLEMENTED_WIFI_LOAD_DEVICES:
         return Neviweb130WifiPowerSwitch
@@ -338,7 +359,7 @@ def get_switch_class(model):
     return None
 
 
-def create_physical_switch(data, coordinator):
+def create_physical_switch(data, entry, coordinator):
     entities: list[Neviweb130Switch] = []
 
     config_prefix = data["prefix"]
@@ -467,7 +488,7 @@ async def async_setup_entry(
     device_registry = dr.async_get(hass)
 
     # Add switch
-    entities += create_physical_switch(data, coordinator)
+    entities += create_physical_switch(data, entry, coordinator)
     await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.data:
@@ -531,6 +552,14 @@ async def async_setup_entry(
         switch = get_switch(service)
         value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
         await switch.async_set_timer(value)
+        switch.async_schedule_update_ha_state(True)
+        hass.async_create_task(coordinator.async_request_refresh())
+
+    async def set_switch_temp_alert_service(service: ServiceCall) -> None:
+        """Set temperature alert for switch device MC3100ZB."""
+        switch = get_switch(service)
+        value = {"id": switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
+        await switch.async_set_temp_alert(value)
         switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
@@ -655,6 +684,13 @@ async def async_setup_entry(
         SERVICE_SET_SWITCH_POWER_TIMER,
         set_switch_power_timer_service,
         schema=SET_SWITCH_POWER_TIMER_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SWITCH_TEMP_ALERT,
+        set_switch_temp_alert_service,
+        schema=SET_SWITCH_TEMP_ALERT_SCHEMA,
     )
 
     hass.services.async_register(
@@ -884,7 +920,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
-        _LOGGER.debug("Setting up %s: %s", self._name, device_info)
+        _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._attr_state_class = SensorStateClass.TOTAL
         self._attr_unit_class = "energy"
         self._attr_statistic_mean_type = StatisticMeanType.ARITHMETIC
@@ -909,6 +945,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._is_wall = device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
         self._is_load = device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES
         self._is_wifi_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
+        self._is_sedna_load = device_info["signature"]["model"] in IMPLEMENTED_SED_LOAD_DEVICES
         self._is_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WATER_HEATER_LOAD_MODEL
         self._is_wifi_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._is_zb_control = device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL
@@ -1235,6 +1272,17 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         await self._client.async_set_timer2(value["id"], value["time"])
         self._timer2 = value["time"]
 
+    async def async_set_temp_alert(self, value):
+        """Set temperature alert on/off for MC3100ZB."""
+        await async_apply_device_update(
+            self,
+            self._client.async_set_switch_temp_alert(value["id"], value["alert"]),
+            service_name="set_switch_temp_alert",
+            attr_name="_temp_alert",
+            new_value=value["alert"],
+            critical=False,
+        )
+
     async def async_set_load_dr_options(self, value):
         """Set load controller Éco Sinopé attributes."""
         await self._client.async_set_load_dr_options(value["id"], value["onoff"], value["droptout"], value["dractive"])
@@ -1519,7 +1567,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
 
 class Neviweb130PowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb power controller switch, RM3250ZB."""
+    """Implementation of a Neviweb power controller switch, RM3250ZB connected to GT130 or Sedna."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
@@ -1531,16 +1579,19 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
     @override
     async def async_update(self) -> None:
         if self._active:
-            LOAD_ATTRIBUTES = [
-                ATTR_WATTAGE,
-                ATTR_WATTAGE_INSTANT,
-                ATTR_TIMER,
-                ATTR_KEYPAD,
-                ATTR_DRSTATUS,
-                ATTR_RSSI,
-                ATTR_CONTROLLED_DEVICE,
-                ATTR_ERROR_CODE_SET1,
-            ]
+            if self._is_load:
+                LOAD_ATTRIBUTES = [
+                    ATTR_WATTAGE,
+                    ATTR_WATTAGE_INSTANT,
+                    ATTR_TIMER,
+                    ATTR_KEYPAD,
+                    ATTR_DRSTATUS,
+                    ATTR_RSSI,
+                    ATTR_CONTROLLED_DEVICE,
+                    ATTR_ERROR_CODE_SET1,
+                ]
+            else:
+                LOAD_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
@@ -1551,35 +1602,36 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
-                    self._wattage = device_data[ATTR_WATTAGE]
-                    self._keypad = STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
-                    self._power_timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
-                    if ATTR_DRSTATUS in device_data:
-                        self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
-                        self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
-                        self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = translate_error(
-                                self.hass,
-                                "error_code",
-                                code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
-                                message="",
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku
-                            )
-                            await async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
-                    self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
+                    if not self._is_sedna_load:
+                        self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                        self._wattage = device_data[ATTR_WATTAGE]
+                        self._keypad = STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
+                        self._power_timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
+                        if ATTR_DRSTATUS in device_data:
+                            self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
+                            self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
+                            self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
+                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                msg = translate_error(
+                                    self.hass,
+                                    "error_code",
+                                    code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku
+                                )
+                                await async_notify_critical(
+                                    self.hass,
+                                    msg,
+                                    title=f"Neviweb130 integration {VERSION}",
+                                    notification_id="neviweb130_error_code",
+                                )
+                        if ATTR_RSSI in device_data:
+                            self._rssi = device_data[ATTR_RSSI]
+                        self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
                     self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
@@ -1610,33 +1662,39 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         data.update(
             {
                 "onOff": self._onoff,
-                "controlled_device": self._controlled_device,
-                "wattage": self._wattage,
-                "wattage_instant": self._current_power_w,
-                "total_kwh_count": self._total_kwh_count,
-                "monthly_kwh_count": self._monthly_kwh_count,
-                "daily_kwh_count": self._daily_kwh_count,
-                "hourly_kwh_count": self._hourly_kwh_count,
-                "hourly_kwh": self._hour_kwh,
-                "daily_kwh": self._today_kwh,
-                "monthly_kwh": self._month_kwh,
-                "last_energy_stat_update": self._mark,
-                "keypad": lock_to_ha(self._keypad),
-                "power_timer": self._power_timer,
-                "eco_status": self._drstatus_active,
-                "eco_optOut": self._drstatus_optout,
-                "eco_onoff": self._drstatus_onoff,
-                "error_code": self._error_code,
-                "rssi": self._rssi,
-                "sku": self._sku,
-                "device_model": str(self._device_model),
-                "device_model_cfg": self._device_model_cfg,
-                "firmware": self._firmware,
-                "activation": self._active,
-                "device_type": self._device_type,
-                "id": self._id,
             }
         )
+        if not self._is_sedna_load:
+            data.update(
+                {
+                    "controlled_device": self._controlled_device,
+                    "wattage": self._wattage,
+                    "wattage_instant": self._current_power_w,
+                    "total_kwh_count": self._total_kwh_count,
+                    "monthly_kwh_count": self._monthly_kwh_count,
+                    "daily_kwh_count": self._daily_kwh_count,
+                    "hourly_kwh_count": self._hourly_kwh_count,
+                    "hourly_kwh": self._hour_kwh,
+                    "daily_kwh": self._today_kwh,
+                    "monthly_kwh": self._month_kwh,
+                    "last_energy_stat_update": self._mark,
+                    "keypad": lock_to_ha(self._keypad),
+                    "power_timer": self._power_timer,
+                    "eco_status": self._drstatus_active,
+                    "eco_optOut": self._drstatus_optout,
+                    "eco_onoff": self._drstatus_onoff,
+                    "error_code": self._error_code,
+                    "rssi": self._rssi,
+                    "sku": self._sku,
+                    "device_model": str(self._device_model),
+                    "device_model_cfg": self._device_model_cfg,
+                    "firmware": self._firmware,
+                    "activation": self._active,
+                    "device_type": self._device_type,
+                    "id": self._id,
+                }
+            )
+
         return data
 
 
@@ -2190,8 +2248,11 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                     ATTR_OUTPUT_NAME_2,
                 ]
             else:
-                NAME_ATTRIBUTES = []
-            if self._is_zb_control or self._is_sedna_control:
+                NAME_ATTRIBUTES = [
+                    ATTR_NAME_1,
+                    ATTR_OUTPUT_NAME_1,
+                ]
+            if self._is_zb_control:
                 if self._firmware == "0.1.1":
                     LOAD_ATTRIBUTES = [
                         ATTR_ONOFF2,
@@ -2230,8 +2291,13 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                         ATTR_TIMER2,
                         ATTR_RSSI,
                     ]
-            else:
-                LOAD_ATTRIBUTES = []
+            if self._is_sedna_control:
+                LOAD_ATTRIBUTES = [
+                    ATTR_INPUT_STATUS,
+                    ATTR_BATTERY_VOLTAGE,
+                    ATTR_BATT_INFO,
+                ]
+
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = await self._client.async_get_device_attributes(
@@ -2245,18 +2311,21 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                 if "errorCode" not in device_data:
                     if self._is_zb_control or self._is_sedna_control:
                         self._onoff = device_data[ATTR_ONOFF]
+                        self._input_status = device_data[ATTR_INPUT_STATUS]
+                        self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                        if ATTR_BATT_INFO in device_data:
+                            self._batt_info = device_data[ATTR_BATT_INFO]
+                        self._input_name_1 = device_data[ATTR_NAME_1]
+                        self._output_name_1 = device_data[ATTR_OUTPUT_NAME_1]
+                    if self._is_zb_control:
                         self._onoff2 = device_data[ATTR_ONOFF2]
                         self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                        self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                        self._input_status = device_data[ATTR_INPUT_STATUS]
                         self._input2_status = device_data[ATTR_INPUT2_STATUS]
                         self._humidity = device_data[ATTR_REL_HUMIDITY]
                         self._room_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._ext_temp = device_data[ATTR_EXT_TEMP]
                         self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
                         self._timer2 = neviweb_to_ha_timer(device_data[ATTR_TIMER2])
-                        if ATTR_BATT_INFO in device_data:
-                            self._batt_info = device_data[ATTR_BATT_INFO]
                         if ATTR_INPUT_1_ON_DELAY in device_data:
                             self._input_1_on_delay = neviweb_to_ha_delay(device_data[ATTR_INPUT_1_ON_DELAY])
                             self._input_2_on_delay = neviweb_to_ha_delay(device_data[ATTR_INPUT_2_ON_DELAY])
@@ -2272,14 +2341,11 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                             self._temp_alert = device_data[ATTR_TEMP_ALERT]
                         if ATTR_LOW_TEMP_STATUS in device_data:
                             self._low_temp_status = device_data[ATTR_LOW_TEMP_STATUS]
-                    if self._is_zb_control:
-                        self._input_name_1 = device_data[ATTR_NAME_1]
                         self._input_name_2 = device_data[ATTR_NAME_2]
-                        self._output_name_1 = device_data[ATTR_OUTPUT_NAME_1]
                         self._output_name_2 = device_data[ATTR_OUTPUT_NAME_2]
-                    if ATTR_DRSTATUS in device_data:
-                        self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
-                        self._drstatus_onOff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
+                        if ATTR_DRSTATUS in device_data:
+                            self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
+                            self._drstatus_onOff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
                     self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
@@ -2302,49 +2368,71 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                     )
 
     @property
+    def input1_status(self) -> str:
+        return self._input_status
+
+    @property
+    def input2_status(self) -> str:
+        return self._input2_status
+
+    @property
+    def room_temperature(self) -> float:
+        return self._room_temp
+
+    @property
+    def extern_temperature(self) -> float:
+        return self._ext_temp
+
+    @property
     @override
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
             {
-                "battery_level": voltage_to_percentage(self._battery_voltage, 2),
-                "battery_display_info": self._batt_info,
-                "battery_voltage": self._battery_voltage,
-                "battery_status": self._battery_status,
-                "battery_percent_normalized": self._batt_percent_normal,
-                "battery_status_normalized": self._batt_status_normal,
-                "extern_temperature": self._ext_temp,
-                "room_temperature": self._room_temp,
-                "room_humidity": self._humidity,
-                "timer": self._timer,
-                "timer2": self._timer2,
-                "input1_status": self._input_status,
-                "input2_status": self._input2_status,
                 "onOff": self._onoff,
-                "onOff2": self._onoff2,
-                "eco_status": self._drstatus_active,
-                "eco_onOff": self._drstatus_onOff,
-                "input1_on_delay": self._input_1_on_delay,
-                "input2_on_delay": self._input_2_on_delay,
-                "input1_off_delay": self._input_1_off_delay,
-                "input2_off_delay": self._input_2_off_delay,
+                "input1_status": self._input_status,
+                "battery_voltage": self._battery_voltage,
+                "battery_display_info": self._batt_info,
                 "input1_name": self._input_name_1,
-                "input2_name": self._input_name_2,
                 "output1_name": self._output_name_1,
-                "output2_name": self._output_name_2,
-                "temp_alert": "active" if self._temp_alert == 5 else "inactive",
-                "low_temp_status": self._low_temp_status,
-                "rssi": self._rssi,
-                "sku": self._sku,
-                "device_model": str(self._device_model),
-                "device_model_cfg": self._device_model_cfg,
-                "firmware": self._firmware,
-                "activation": self._active,
-                "device_type": self._device_type,
-                "id": self._id,
             }
         )
+        if self._is_zb_control:
+            data.update(
+                {
+                    "battery_level": voltage_to_percentage(self._battery_voltage, 2),
+                    "battery_status": self._battery_status,
+                    "battery_percent_normalized": self._batt_percent_normal,
+                    "battery_status_normalized": self._batt_status_normal,
+                    "extern_temperature": self._ext_temp,
+                    "room_temperature": self._room_temp,
+                    "room_humidity": self._humidity,
+                    "timer": self._timer,
+                    "timer2": self._timer2,
+                    "input2_status": self._input2_status,
+                    "onOff2": self._onoff2,
+                    "eco_status": self._drstatus_active,
+                    "eco_onOff": self._drstatus_onOff,
+                    "input1_on_delay": self._input_1_on_delay,
+                    "input2_on_delay": self._input_2_on_delay,
+                    "input1_off_delay": self._input_1_off_delay,
+                    "input2_off_delay": self._input_2_off_delay,
+                    "input2_name": self._input_name_2,
+                    "output2_name": self._output_name_2,
+                    "temp_alert": "active" if self._temp_alert == 5 else "inactive",
+                    "low_temp_status": self._low_temp_status,
+                    "rssi": self._rssi,
+                    "sku": self._sku,
+                    "device_model": str(self._device_model),
+                    "device_model_cfg": self._device_model_cfg,
+                    "firmware": self._firmware,
+                    "activation": self._active,
+                    "device_type": self._device_type,
+                    "id": self._id,
+                }
+            )
+
         return data
 
 
@@ -2355,6 +2443,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
     _attr_should_poll = True
 
     _ATTRIBUTE_METHODS = {
+        "alert_temp": lambda self, state: self._client.async_set_switch_temp_alert(self._id, 1 if state else 0),
         "batt_alert": lambda self, state: self._client.async_set_battery_alert(self._id, state),
         "action_close": lambda self, state: self._client.async_set_sensor_closure_action(self._id, state),
         "fuel_alert": lambda self, state: self._client.async_set_fuel_alert(self._id, state),
