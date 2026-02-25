@@ -3,7 +3,7 @@
     "neviweb130": {
       "errors": {
         "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
-        "login_failed": "Cannot log in.",
+        "login_failed": "Cannot log in to Neviweb. {code}.",
         "too_many_sessions": "Too many active sessions ({count}).\nClose all Neviweb sessions opened on other platforms.\nIf the error persists, disable this integration (or stop Home Assistant), wait a few minutes, then re-enable it (or restart Home Assistant).",
         "bad_credentials": "Invalid Neviweb username and/or password. Check your configuration parameters. Error code: {code}.",
         "unknown_login_error": "Unknown error while logging to Neviweb. Error code: {code}.",
