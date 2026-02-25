@@ -6,6 +6,12 @@ model 2131 = light dimmer DM2500ZB
 model 2131 = light dimmer DM2500ZB-G2
 model 2132 = light dimmer DM2550ZB
 model 2132 = light dimmer DM2550ZB-G2
+
+model connected to Sedna valve
+model 21212 = light switch SW2500ZB connected to Sedna valve
+model 21312 = light dimmer DM2500ZB connected to Sedna valve
+model 21322 = light dimmer DM2550ZB connected to Sedna valve
+
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
 """
@@ -108,10 +114,19 @@ UPDATE_ATTRIBUTES = [
 ]
 
 DEVICE_MODEL_DIMMER = [2131]
+DEVICE_MODEL_SED_DIMMER = [21312]
 DEVICE_MODEL_NEW_DIMMER = [2132]
+DEVICE_MODEL_SED_NEW_DIMMER = [21322]
 DEVICE_MODEL_LIGHT = [2121]
-IMPLEMENTED_DEVICE_MODEL = DEVICE_MODEL_LIGHT + DEVICE_MODEL_DIMMER + DEVICE_MODEL_NEW_DIMMER
-
+DEVICE_MODEL_SED_LIGHT = [21212]
+IMPLEMENTED_DEVICE_MODEL = (
+    DEVICE_MODEL_LIGHT
+    + DEVICE_MODEL_SED_LIGHT
+    + DEVICE_MODEL_DIMMER
+    + DEVICE_MODEL_SED_DIMMER
+    + DEVICE_MODEL_NEW_DIMMER
+    + DEVICE_MODEL_SED_NEW_DIMMER
+)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -165,7 +180,10 @@ async def async_setup_entry(
                             sw_version=device_firmware,
                         )
                         device = None
-                        if device_info["signature"]["model"] in DEVICE_MODEL_LIGHT:
+                        if (
+                            device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
+                            or device_info["signature"]["model"] in DEVICE_MODEL_SED_LIGHT
+                        ):
                             device = Neviweb130Light(
                                 data,
                                 device_info,
@@ -175,7 +193,10 @@ async def async_setup_entry(
                                 coordinator,
                                 entry,
                             )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_DIMMER:
+                        elif (
+                            device_info["signature"]["model"] in DEVICE_MODEL_DIMMER
+                            or device_info["signature"]["model"] in DEVICE_MODEL_SED_DIMMER
+                        ):
                             device = Neviweb130Dimmer(
                                 data,
                                 device_info,
@@ -185,7 +206,10 @@ async def async_setup_entry(
                                 coordinator,
                                 entry,
                             )
-                        elif device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER:
+                        elif (
+                            device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
+                            or device_info["signature"]["model"] in DEVICE_MODEL_SED_NEW_DIMMER
+                        ):
                             device = Neviweb130NewDimmer(
                                 data,
                                 device_info,
@@ -510,11 +534,15 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._hard_rev = device_info["signature"]["hardRev"]
         self._identifier = device_info["identifier"]
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
+        self._is_sedna_light = device_info["signature"]["model"] in DEVICE_MODEL_SED_LIGHT
         self._is_dimmable = (
             device_info["signature"]["model"] in DEVICE_MODEL_DIMMER
             or device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         )
-        self._is_new_dimmable = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
+        self._is_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_DIMMER
+        self._is_sedna_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_SED_DIMMER
+        self._is_new_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
+        self._is_sedna_new_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_SED_NEW_DIMMER
         self._active: bool = True
         self._brightness_pct = 0
         self._daily_kwh_count = 0
@@ -562,7 +590,10 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 ATTR_ERROR_CODE_SET1,
             ]
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            if self._is_light:
+                device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, ATTR_ONOFF)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -570,45 +601,46 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
-                    self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = translate_error(
-                                self.hass,
-                                "error_code",
-                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                message="",
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku
-                            )
-                            await self.async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
-                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
-                    self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
-                    self._rssi = device_data[ATTR_RSSI]
-                    self._led_on_color = (
-                        str(device_data[ATTR_LED_ON_COLOR]["red"])
-                        + ","
-                        + str(device_data[ATTR_LED_ON_COLOR]["green"])
-                        + ","
-                        + str(device_data[ATTR_LED_ON_COLOR]["blue"])
-                    )
-                    self._led_off_color = (
-                        str(device_data[ATTR_LED_OFF_COLOR]["red"])
-                        + ","
-                        + str(device_data[ATTR_LED_OFF_COLOR]["green"])
-                        + ","
-                        + str(device_data[ATTR_LED_OFF_COLOR]["blue"])
-                    )
-                    self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
-                    self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
+                    if self._is_light:
+                        self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                        self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
+                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                msg = translate_error(
+                                    self.hass,
+                                    "error_code",
+                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku
+                                )
+                                await self.async_notify_critical(
+                                    self.hass,
+                                    msg,
+                                    title=f"Neviweb130 integration {VERSION}",
+                                    notification_id="neviweb130_error_code",
+                                )
+                        self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                        self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
+                        self._rssi = device_data[ATTR_RSSI]
+                        self._led_on_color = (
+                            str(device_data[ATTR_LED_ON_COLOR]["red"])
+                            + ","
+                            + str(device_data[ATTR_LED_ON_COLOR]["green"])
+                            + ","
+                            + str(device_data[ATTR_LED_ON_COLOR]["blue"])
+                        )
+                        self._led_off_color = (
+                            str(device_data[ATTR_LED_OFF_COLOR]["red"])
+                            + ","
+                            + str(device_data[ATTR_LED_OFF_COLOR]["green"])
+                            + ","
+                            + str(device_data[ATTR_LED_OFF_COLOR]["blue"])
+                        )
+                        self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
+                        self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
                     self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
@@ -618,7 +650,8 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                     )
             else:
                 await self.async_log_error(device_data["error"]["code"])
-            await self.async_do_stat(start)
+            if self._is_light:
+                await self.async_do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -758,26 +791,35 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         data = {}
         data.update(
             {
-                "wattage": self._wattage,
-                "wattage_status": self._wattage_status,
-                "error_code": self._error_code,
-                "onOff": self._onoff,
-                "keypad": self._keypad,
-                "timer": self._timer,
-                "led_on_value": self._led_on_color,
-                "led_off_value": self._led_off_color,
-                "led_on_color": rgb_to_color(self._led_on_color),
-                "led_off_color": rgb_to_color(self._led_off_color),
-                "led_on_intensity": self._led_on_intensity,
-                "led_off_intensity": self._led_off_intensity,
-                "total_kwh_count": self._total_kwh_count,
-                "monthly_kwh_count": self._monthly_kwh_count,
-                "daily_kwh_count": self._daily_kwh_count,
-                "hourly_kwh_count": self._hourly_kwh_count,
-                "hourly_kwh": self._hour_kwh,
-                "daily_kwh": self._today_kwh,
-                "monthly_kwh": self._month_kwh,
-                "last_energy_stat_update": self._mark,
+                "onOff": self._onoff
+            }
+        )
+        if self._is_light:
+            data.update(
+                {
+                    "wattage": self._wattage,
+                    "wattage_status": self._wattage_status,
+                    "error_code": self._error_code,
+                    "keypad": self._keypad,
+                    "timer": self._timer,
+                    "led_on_value": self._led_on_color,
+                    "led_off_value": self._led_off_color,
+                    "led_on_color": rgb_to_color(self._led_on_color),
+                    "led_off_color": rgb_to_color(self._led_off_color),
+                    "led_on_intensity": self._led_on_intensity,
+                    "led_off_intensity": self._led_off_intensity,
+                    "total_kwh_count": self._total_kwh_count,
+                    "monthly_kwh_count": self._monthly_kwh_count,
+                    "daily_kwh_count": self._daily_kwh_count,
+                    "hourly_kwh_count": self._hourly_kwh_count,
+                    "hourly_kwh": self._hour_kwh,
+                    "daily_kwh": self._today_kwh,
+                    "monthly_kwh": self._month_kwh,
+                    "last_energy_stat_update": self._mark,
+                }
+            )
+        data.update(
+            {
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -1089,58 +1131,62 @@ class Neviweb130Dimmer(Neviweb130Light):
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            if self._is_dimmer:
+                device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, ATTR_ONOFF)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
 
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    if ATTR_INTENSITY in device_data:
-                        self._brightness_pct = (
-                            round(device_data[ATTR_INTENSITY]) if device_data[ATTR_INTENSITY] is not None else 0
-                        )
-                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
-                    self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = translate_error(
-                                self.hass,
-                                "error_code",
-                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                message="",
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku
+                    if self._is_dimmer:
+                        if ATTR_INTENSITY in device_data:
+                            self._brightness_pct = (
+                                round(device_data[ATTR_INTENSITY]) if device_data[ATTR_INTENSITY] is not None else 0
                             )
-                            await async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
-                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
-                    self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
-                    self._rssi = device_data[ATTR_RSSI]
-                    self._led_on_color = (
-                        str(device_data[ATTR_LED_ON_COLOR]["red"])
-                        + ","
-                        + str(device_data[ATTR_LED_ON_COLOR]["green"])
-                        + ","
-                        + str(device_data[ATTR_LED_ON_COLOR]["blue"])
-                    )
-                    self._led_off_color = (
-                        str(device_data[ATTR_LED_OFF_COLOR]["red"])
-                        + ","
-                        + str(device_data[ATTR_LED_OFF_COLOR]["green"])
-                        + ","
-                        + str(device_data[ATTR_LED_OFF_COLOR]["blue"])
-                    )
-                    self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
-                    self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
+                        self._intensity_min = device_data[ATTR_INTENSITY_MIN]
+                        self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
+                        self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
+                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                msg = translate_error(
+                                    self.hass,
+                                    "error_code",
+                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku
+                                )
+                                await async_notify_critical(
+                                    self.hass,
+                                    msg,
+                                    title=f"Neviweb130 integration {VERSION}",
+                                    notification_id="neviweb130_error_code",
+                                )
+                        self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                        self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
+                        self._rssi = device_data[ATTR_RSSI]
+                        self._led_on_color = (
+                            str(device_data[ATTR_LED_ON_COLOR]["red"])
+                            + ","
+                            + str(device_data[ATTR_LED_ON_COLOR]["green"])
+                            + ","
+                            + str(device_data[ATTR_LED_ON_COLOR]["blue"])
+                        )
+                        self._led_off_color = (
+                            str(device_data[ATTR_LED_OFF_COLOR]["red"])
+                            + ","
+                            + str(device_data[ATTR_LED_OFF_COLOR]["green"])
+                            + ","
+                            + str(device_data[ATTR_LED_OFF_COLOR]["blue"])
+                        )
+                        self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
+                        self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
                     self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
@@ -1150,7 +1196,8 @@ class Neviweb130Dimmer(Neviweb130Light):
                     )
             else:
                 await self.async_log_error(device_data["error"]["code"])
-            await self.async_do_stat(start)
+            if self._is_dimmer:
+                await self.async_do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -1170,26 +1217,35 @@ class Neviweb130Dimmer(Neviweb130Light):
         data = {}
         data.update(
             {
-                ATTR_BRIGHTNESS_PCT: self._brightness_pct,
-                "minimum_intensity": self._intensity_min,
-                "error_code": self._error_code,
-                "wattage": self._wattage,
-                "wattage_status": self._wattage_status,
-                "onOff": self._onoff,
-                "keypad": self._keypad,
-                "timer": self._timer,
-                "led_on_color": self._led_on_color,
-                "led_off_color": self._led_off_color,
-                "led_on_intensity": self._led_on_intensity,
-                "led_off_intensity": self._led_off_intensity,
-                "total_kwh_count": self._total_kwh_count,
-                "monthly_kwh_count": self._monthly_kwh_count,
-                "daily_kwh_count": self._daily_kwh_count,
-                "hourly_kwh_count": self._hourly_kwh_count,
-                "hourly_kwh": self._hour_kwh,
-                "daily_kwh": self._today_kwh,
-                "monthly_kwh": self._month_kwh,
-                "last_energy_stat_update": self._mark,
+                "onOff": self._onoff
+            }
+        )
+        if self._is_dimmer:
+            data.update(
+                {
+                    ATTR_BRIGHTNESS_PCT: self._brightness_pct,
+                    "minimum_intensity": self._intensity_min,
+                    "error_code": self._error_code,
+                    "wattage": self._wattage,
+                    "wattage_status": self._wattage_status,
+                    "keypad": self._keypad,
+                    "timer": self._timer,
+                    "led_on_color": self._led_on_color,
+                    "led_off_color": self._led_off_color,
+                    "led_on_intensity": self._led_on_intensity,
+                    "led_off_intensity": self._led_off_intensity,
+                    "total_kwh_count": self._total_kwh_count,
+                    "monthly_kwh_count": self._monthly_kwh_count,
+                    "daily_kwh_count": self._daily_kwh_count,
+                    "hourly_kwh_count": self._hourly_kwh_count,
+                    "hourly_kwh": self._hour_kwh,
+                    "daily_kwh": self._today_kwh,
+                    "monthly_kwh": self._month_kwh,
+                    "last_energy_stat_update": self._mark,
+                }
+            )
+        data.update(
+            {
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -1216,59 +1272,63 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 ATTR_ERROR_CODE_SET1,
             ]
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            if self._is_new_dimmer:
+                device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, ATTR_ONOFF)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
 
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    if ATTR_INTENSITY in device_data:
-                        self._brightness_pct = (
-                            round(device_data[ATTR_INTENSITY]) if device_data[ATTR_INTENSITY] is not None else 0
-                        )
-                    self._intensity_min = device_data[ATTR_INTENSITY_MIN]
-                    self._phase_control = device_data[ATTR_PHASE_CONTROL]
-                    self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
-                    self._wattage = device_data[ATTR_WATTAGE_INSTANT]
-                    self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = translate_error(
-                                self.hass,
-                                "error_code",
-                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                message="",
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku
+                    if self._is_new_dimmer:
+                        if ATTR_INTENSITY in device_data:
+                            self._brightness_pct = (
+                                round(device_data[ATTR_INTENSITY]) if device_data[ATTR_INTENSITY] is not None else 0
                             )
-                            await self.async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
-                    self._rssi = device_data[ATTR_RSSI]
-                    self._led_on_color = (
-                        str(device_data[ATTR_LED_ON_COLOR]["red"])
-                        + ","
-                        + str(device_data[ATTR_LED_ON_COLOR]["green"])
-                        + ","
-                        + str(device_data[ATTR_LED_ON_COLOR]["blue"])
-                    )
-                    self._led_off_color = (
-                        str(device_data[ATTR_LED_OFF_COLOR]["red"])
-                        + ","
-                        + str(device_data[ATTR_LED_OFF_COLOR]["green"])
-                        + ","
-                        + str(device_data[ATTR_LED_OFF_COLOR]["blue"])
-                    )
-                    self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
-                    self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
+                        self._intensity_min = device_data[ATTR_INTENSITY_MIN]
+                        self._phase_control = device_data[ATTR_PHASE_CONTROL]
+                        self._double_up = device_data[ATTR_KEY_DOUBLE_UP]
+                        self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
+                        self._wattage = device_data[ATTR_WATTAGE_INSTANT]
+                        self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
+                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
+                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                msg = translate_error(
+                                    self.hass,
+                                    "error_code",
+                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku
+                                )
+                                await self.async_notify_critical(
+                                    self.hass,
+                                    msg,
+                                    title=f"Neviweb130 integration {VERSION}",
+                                    notification_id="neviweb130_error_code",
+                                )
+                        self._rssi = device_data[ATTR_RSSI]
+                        self._led_on_color = (
+                            str(device_data[ATTR_LED_ON_COLOR]["red"])
+                            + ","
+                            + str(device_data[ATTR_LED_ON_COLOR]["green"])
+                            + ","
+                            + str(device_data[ATTR_LED_ON_COLOR]["blue"])
+                        )
+                        self._led_off_color = (
+                            str(device_data[ATTR_LED_OFF_COLOR]["red"])
+                            + ","
+                            + str(device_data[ATTR_LED_OFF_COLOR]["green"])
+                            + ","
+                            + str(device_data[ATTR_LED_OFF_COLOR]["blue"])
+                        )
+                        self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
+                        self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
                     self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
@@ -1278,7 +1338,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
                     )
             else:
                 await self.async_log_error(device_data["error"]["code"])
-            await self.async_do_stat(start)
+            if self._is_new_dimmer:
+                await self.async_do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -1303,13 +1364,18 @@ class Neviweb130NewDimmer(Neviweb130Light):
         data = {}
         data.update(
             {
+                "onOff": self._onoff
+            }
+        )
+        if self._is_new_dimmer:
+            data.update(
+                {
                 ATTR_BRIGHTNESS_PCT: self._brightness_pct,
                 "minimum_intensity": self._intensity_min,
                 "error_code": self._error_code,
                 "phase_control": self._phase_control,
                 "double_up_Action": self._double_up,
                 "wattage": self._wattage,
-                "onOff": self._onoff,
                 "keypad": self._keypad,
                 "timer": self._timer,
                 "led_on_color": self._led_on_color,
@@ -1324,6 +1390,10 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
+                }
+            )
+        data.update(
+            {
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -1333,4 +1403,5 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "id": self._id,
             }
         )
+
         return data
