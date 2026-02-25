@@ -99,12 +99,21 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé DM2500ZB-G2 Dimmer
   - Sinopé DM2550ZB Dimmer
   - Sinopé DM2550ZB-G2 Dimmer
+- **Zigbee lighting connected to Sedna valve**:
+  - Sinopé SW2500ZB-VA Light switch
+  - Sinopé DM2500ZB-VA Dimmer
+  - Sinopé DM2550ZB-VA Dimmer
 - **Zigbee specialized control**:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for alarm system
+- **Zigbee specialized control connected to Sedna valve**:
+  - Sinopé RM3250ZB-VA Load controller 50A
+  - Sinopé SP2610ZB-VA in-wall outlet
+  - Sinopé SP2600ZB-VA smart portable plug
+  - Sinopé MC3100ZB-VA Sedna valve multi-controller for alarm system
 - **Wi-Fi specialized control**:
   - Sinopé RM3500WF Load controller for water heater
   - Sinopé RM3510WF Load controller for water heater
