@@ -20,6 +20,8 @@ All modification for this custom_component will be added in this file.
 ### Doc
 - Add documentation on language available.
 - Add set_switch_temp_alert service description.
+- Add list of supported Zigbee devices connected directly to Sedna valve.
+- Add same to french documentation.
 
 ## [v4.1.2] - 2026-02-14
 ### Added
