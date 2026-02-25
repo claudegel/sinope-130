@@ -413,8 +413,8 @@ CLIMATE_MODEL = [
     7372,
     7373,
 ]
-LIGHT_MODEL = [2121, 2131, 2132]
-SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 25062, 2600, 2610]
+LIGHT_MODEL = [2121, 21212, 2131, 21312, 2132, 21322]
+SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 25062, 2600, 2610, 26002, 26102]
 VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
 SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
@@ -1169,6 +1169,16 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
+    21212: {  # SW2500ZB, SW2500ZB-G2 connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
     2131: {  # DM2500ZB, DM2500ZB-G2
         "sensor": [
             ATTR_RSSI,
@@ -1190,6 +1200,16 @@ MODEL_ATTRIBUTES = {
             "led_on_color",
             "light_timer",
         ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    21312: {  # DM2500ZB, DM2500ZB-G2 connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
+        ],
+        "number": [],
+        "select": [],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": [],
@@ -1216,6 +1236,16 @@ MODEL_ATTRIBUTES = {
             "light_timer",
             "phase_control",
         ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    21322: {  # DM2550ZB, DM2550ZB-G2 connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
+        ],
+        "number": [],
+        "select": [],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": [],
@@ -1357,6 +1387,16 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
+    26002: {  # SP2600ZB connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
     2610: {  # SP2610ZB
         "sensor": [
             ATTR_RSSI,
@@ -1365,6 +1405,16 @@ MODEL_ATTRIBUTES = {
             "monthly_kwh_count",
             "total_kwh_count",
             "wattage",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    26102: {  # SP2610ZB connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
         ],
         "number": [],
         "select": [],
