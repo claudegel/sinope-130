@@ -99,12 +99,21 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé DM2500ZB-G2, gradateur nouvelle génération
   - Sinopé DM2550ZB, gradateur
   - Sinopé DM2550ZB-G2, gradateur
+- **éclairage Zigbee connecté directement à la valve Sedna**:
+  - Sinopé SW2500ZB-VA, Interrupteur
+  - Sinopé DM2500ZB-VA, gradateur
+  - Sinopé DM2550ZB-VA, gradateur
 - **Contrôle spécialisé Zigbee**:
   - Sinopé RM3250ZB, Contrôleur de charge 50A
   - Sinopé RM3500ZB, Contrôleur de charge Calypso pour chauffe-eau 20,8A 
   - Sinopé SP2610ZB, prise murale
   - Sinopé SP2600ZB, prise portable intelligente
   - Sinopé MC3100ZB, multicontrôleur pour système d'alarme et valve Sedna
+- **Contrôle spécialisé Zigbee connecté directement à la valve Sedna**:
+  - Sinopé RM3250ZB-VA, Contrôleur de charge 50A 
+  - Sinopé SP2610ZB-VA, prise murale
+  - Sinopé SP2600ZB-VA, prise portable intelligente
+  - Sinopé MC3100ZB-VA, multicontrôleur pour système d'alarme et valve Sedna
 - **Contrôle spécialisé Wi-Fi**:
   - Sinopé RM3500WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
   - Sinopé RM3510WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
