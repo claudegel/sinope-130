@@ -1024,12 +1024,7 @@ class Neviweb130Valve(ValveEntity):
             self._snooze = time.time()
         else:
             msg = translate_error(
-                self.hass,
-                "unknown_error",
-                name=self._name,
-                id=self._id,
-                sku=self._sku,
-                data=error_data
+                self.hass, "unknown_error", name=self._name, id=self._id, sku=self._sku, data=error_data
             )
             _LOGGER.warning(msg)
 
@@ -1134,7 +1129,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                     if ATTR_MOTOR_TARGET in device_data:
@@ -1335,7 +1330,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                             message="",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         self.notify_ha(msg)
                     if ATTR_FLOW_ALARM_TIMER in device_data:
@@ -1364,7 +1359,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                             _LOGGER.warning(
@@ -1518,7 +1513,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                             message="",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         self.notify_ha(msg)
                     if ATTR_FLOW_ALARM_TIMER in device_data:

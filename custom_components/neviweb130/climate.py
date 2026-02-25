@@ -908,29 +908,17 @@ async def async_setup_platform(
         thermostat = get_thermostat(service)
         if isinstance(thermostat, Neviweb130WifiLiteThermostat):
             msg = translate_error(
-                hass,
-                "does_not_support",
-                entity=thermostat.entity_id,
-                domain=DOMAIN,
-                model="Wi-Fi (lite)"
+                hass, "does_not_support", entity=thermostat.entity_id, domain=DOMAIN, model="Wi-Fi (lite)"
             )
             raise ServiceValidationError(msg)
         if isinstance(thermostat, Neviweb130HPThermostat):
             msg = translate_error(
-                hass,
-                "does_not_support",
-                entity=thermostat.entity_id,
-                domain=DOMAIN,
-                model="Heat-Pump"
+                hass, "does_not_support", entity=thermostat.entity_id, domain=DOMAIN, model="Heat-Pump"
             )
             raise ServiceValidationError(msg)
         if isinstance(thermostat, Neviweb130WifiHPThermostat):
             msg = translate_error(
-                hass,
-                "does_not_support",
-                entity=thermostat.entity_id,
-                domain=DOMAIN,
-                model="Wi-Fi Heat-Pump"
+                hass, "does_not_support", entity=thermostat.entity_id, domain=DOMAIN, model="Wi-Fi Heat-Pump"
             )
             raise ServiceValidationError(msg)
 
@@ -2889,10 +2877,7 @@ class Neviweb130Thermostat(ClimateEntity):
         icon = weather.get("icon")
 
         if temperature is None or icon is None:
-            _LOGGER.warning(
-                "Neviweb weather data incomplete: %s (missing temperature or icon)",
-                weather
-            )
+            _LOGGER.warning("Neviweb weather data incomplete: %s (missing temperature or icon)", weather)
             return
 
         # Update weather data
@@ -3081,10 +3066,10 @@ class Neviweb130Thermostat(ClimateEntity):
                 self.hass,
                 "error_code",
                 code=raw_code,
-                message="("+error_message+")",
+                message="(" + error_message + ")",
                 name=self._name,
                 id=self._id,
-                sku=self._sku
+                sku=self._sku,
             )
             self.notify_ha(msg)
             _LOGGER.warning("New error code %s (%s)", raw_code, error_message)
@@ -3195,12 +3180,7 @@ class Neviweb130Thermostat(ClimateEntity):
             )
         else:
             msg = translate_error(
-                self.hass,
-                "unknown_error",
-                name=self._name,
-                id=self._id,
-                sku=self._sku,
-                data=error_data
+                self.hass, "unknown_error", name=self._name, id=self._id, sku=self._sku, data=error_data
             )
             _LOGGER.warning(msg)
 
@@ -5308,7 +5288,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             error=self._room_temp_error,
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         self.notify_ha(msg)
                         _LOGGER.warning(msg)
@@ -5316,7 +5296,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     try:
                         self._heat_cool = neviweb_to_ha_mode(device_data[ATTR_HEAT_COOL])
                     except ValueError:
-                        msg = translate_error(self.hass, "unknown_mode", model=self._device_model, mode=device_data[ATTR_HEAT_COOL])
+                        msg = translate_error(
+                            self.hass, "unknown_mode", model=self._device_model, mode=device_data[ATTR_HEAT_COOL]
+                        )
                         raise ServiceValidationError(msg)
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
@@ -5571,7 +5553,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if temperature_low is not None:
             temperature_low = max(temperature_low, self._min_temp)
             if self.hvac_mode == HVACMode.HEAT_COOL:
-                temperature_low = min(temperature_low, self._target_cool - self._heatcool_setpoint_delta)  # a corriger le delta
+                temperature_low = min(
+                    temperature_low, self._target_cool - self._heatcool_setpoint_delta
+                )  # a corriger le delta
             else:
                 temperature_low = min(temperature_low, self._max_temp)
 
@@ -5582,7 +5566,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if temperature_high is not None:
             temperature_high = min(temperature_high, self._cool_max)
             if self.hvac_mode == HVACMode.HEAT_COOL:
-                temperature_high = max(temperature_high, self._target_temp + self._heatcool_setpoint_delta)  # a corriger le delta
+                temperature_high = max(
+                    temperature_high, self._target_temp + self._heatcool_setpoint_delta
+                )  # a corriger le delta
             else:
                 temperature_high = max(temperature_high, self._cool_min)
 
@@ -5840,7 +5826,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             error=self._room_temp_error,
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         self.notify_ha(msg)
                         _LOGGER.warning(msg)
@@ -6352,7 +6338,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         hp_can_cool = self._reversing_valve_polarity == "heating" or outputs["OB"]
         has_multiple_cooling_stages = outputs["Y1"] and outputs["Y2"] and hp_can_cool
         if not has_multiple_cooling_stages:
-            msg = translate_error(self.hass, "multiple_cooling_level",  entity=self.entity_id)
+            msg = translate_error(self.hass, "multiple_cooling_level", entity=self.entity_id)
             raise ServiceValidationError(msg)
 
         self._client.set_cool_interstage_min_delay(self.unique_id, time_val * 60)

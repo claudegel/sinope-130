@@ -554,7 +554,7 @@ class Neviweb130Client:
         if raw_res.status_code != 200:
             _LOGGER.debug("Login status: %s", raw_res.json())
             data = raw_res.json()
-            msg = translate_error(self.hass, "login_failed", code=data['error']['code'])
+            msg = translate_error(self.hass, "login_failed", code=data["error"]["code"])
             raise PyNeviweb130Error(msg)
 
         # Update cookies
@@ -567,12 +567,12 @@ class Neviweb130Client:
         _LOGGER.debug("Login response: %s", data)
         if "error" in data:
             if data["error"]["code"] == "ACCSESSEXC":
-                msg = translate_error(self.hass, "too_many_sessions", code=data['error']['code'])
+                msg = translate_error(self.hass, "too_many_sessions", code=data["error"]["code"])
                 raise ConfigEntryNotReady(msg)
             elif data["error"]["code"] == "USRBADLOGIN":
-                msg = translate_error(self.hass, "bad_credentials", code=data['error']['code'])
+                msg = translate_error(self.hass, "bad_credentials", code=data["error"]["code"])
                 raise ConfigEntryAuthFailed(msg)
-            msg = translate_error(self.hass, "unknown_login_error", code=data['error']['code'])
+            msg = translate_error(self.hass, "unknown_login_error", code=data["error"]["code"])
             raise ConfigEntryError(msg)
 
         self.user = data["user"]

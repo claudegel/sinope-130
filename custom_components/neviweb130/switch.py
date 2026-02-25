@@ -194,7 +194,7 @@ IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
-IMPLEMENTED_SED_WALL_DEVICES =[26002, 26102]
+IMPLEMENTED_SED_WALL_DEVICES = [26002, 26102]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_SED_LOAD_DEVICES = [25062]
 IMPLEMENTED_WIFI_LOAD_DEVICES = [346]
@@ -285,7 +285,7 @@ async def async_setup_platform(
                         )
                     )
                 else:  # IMPLEMENTED_ZB_DEVICE_CONTROL or model in IMPLEMENTED_SED_DEVICE_CONTROL
-                    device_type = "control"  
+                    device_type = "control"
                     entities.append(
                         Neviweb130ControlerSwitch(
                             device_info, device_name, device_sku, device_firmware, device_type, client
@@ -891,11 +891,7 @@ class Neviweb130Switch(SwitchEntity):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_wall:
             data.update(
                 {
@@ -1216,12 +1212,7 @@ class Neviweb130Switch(SwitchEntity):
             self._snooze = time.time()
         else:
             msg = translate_error(
-                self.hass,
-                "unknown_error",
-                name=self._name,
-                id=self._id,
-                sku=self._sku,
-                data=error_data
+                self.hass, "unknown_error", name=self._name, id=self._id, sku=self._sku, data=error_data
             )
             _LOGGER.warning(msg)
 
@@ -1276,7 +1267,9 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     if not self._is_sedna_load:
                         self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                         self._wattage = device_data[ATTR_WATTAGE]
-                        self._keypad = STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
+                        self._keypad = (
+                            STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
+                        )
                         self._timer = device_data[ATTR_TIMER]
                         if ATTR_DRSTATUS in device_data:
                             self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
@@ -1292,7 +1285,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 self.notify_ha(msg)
                         else:
@@ -1316,11 +1309,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self):
         """Return the extra state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if not self._is_sedna_load:
             data.update(
                 {
@@ -1408,7 +1397,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                     else:
@@ -1521,7 +1510,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                 message="Leak sensor disconnected",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                             self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
@@ -1546,7 +1535,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                 message=message,
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                     else:
@@ -1698,7 +1687,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                             message="Leak sensor disconnected",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         self.notify_ha(msg)
                     else:
@@ -1720,7 +1709,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                                 message=message,
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                     else:

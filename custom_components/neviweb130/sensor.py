@@ -353,11 +353,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="tank sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
@@ -369,11 +365,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="tank sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
             )
             raise ServiceValidationError(msg)
         value = {
@@ -388,11 +380,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="tank sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
             )
             raise ServiceValidationError(msg)
         value = {
@@ -407,11 +395,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="tank sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
@@ -423,11 +407,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="tank sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
@@ -439,11 +419,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="tank sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
@@ -462,11 +438,7 @@ async def async_setup_platform(
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130GatewaySensor):
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=sensor.entity_id,
-                domain=DOMAIN,
-                platform="gateway sensor"
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="gateway sensor"
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
@@ -683,7 +655,7 @@ class Neviweb130Sensor(Entity):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             self.notify_ha(msg)
                             self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
@@ -1008,12 +980,7 @@ class Neviweb130Sensor(Entity):
             self._snooze = time.time()
         else:
             msg = translate_error(
-                self.hass,
-                "unknown_error",
-                name=self._name,
-                id=self._id,
-                sku=self._sku,
-                data=error_data
+                self.hass, "unknown_error", name=self._name, id=self._id, sku=self._sku, data=error_data
             )
             _LOGGER.warning(msg)
 
@@ -1061,14 +1028,14 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                     if self._is_connected or self._is_new_connected:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
                             msg = translate_error(
-                                        self.hass,
-                                        "error_code",
-                                        code=device_data[ATTR_WATER_LEAK_STATUS],
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku
-                                    )
+                                self.hass,
+                                "error_code",
+                                code=device_data[ATTR_WATER_LEAK_STATUS],
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
+                            )
                             self.notify_ha(msg)
                             self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         else:
@@ -1188,11 +1155,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     self._angle = device_data[ATTR_ANGLE]["value"]
                     if self._angle == -2:
                         msg = translate_error(
-                            self.hass,
-                            "gauge_disconnected",
-                            name=self._name,
-                            id=self._id,
-                            sku=self._sku
+                            self.hass, "gauge_disconnected", name=self._name, id=self._id, sku=self._sku
                         )
                         self.notify_ha(msg)
                     self._sampling = device_data[ATTR_ANGLE][ATTR_SAMPLING]
@@ -1218,7 +1181,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 self.notify_ha(msg)
                     return

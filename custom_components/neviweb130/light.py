@@ -528,7 +528,7 @@ class Neviweb130Light(LightEntity):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 self.notify_ha(msg)
                         self._keypad = device_data[ATTR_KEYPAD]
@@ -600,11 +600,7 @@ class Neviweb130Light(LightEntity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_light:
             data.update(
                 {
@@ -902,12 +898,7 @@ class Neviweb130Light(LightEntity):
             self._snooze = time.time()
         else:
             msg = translate_error(
-                self.hass,
-                "unknown_error",
-                name=self._name,
-                id=self._id,
-                sku=self._sku,
-                data=error_data
+                self.hass, "unknown_error", name=self._name, id=self._id, sku=self._sku, data=error_data
             )
             _LOGGER.warning(msg)
 
@@ -961,7 +952,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 self.notify_ha(msg)
                         self._keypad = device_data[ATTR_KEYPAD]
@@ -1001,11 +992,7 @@ class Neviweb130Dimmer(Neviweb130Light):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_dimmer:
             data.update(
                 {
@@ -1086,7 +1073,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 self.notify_ha(msg)
                         self._rssi = device_data[ATTR_RSSI]
@@ -1124,11 +1111,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
     def extra_state_attributes(self):
         """Return the state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_new_dimmer:
             data.update(
                 {

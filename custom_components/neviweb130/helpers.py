@@ -301,6 +301,7 @@ def file_exists(hass, path: str) -> bool:
 
 _translation_cache = {}
 
+
 def translate_error(hass, key: str, **kwargs) -> str:
     lang = hass.config.language or "en"
 
@@ -314,19 +315,14 @@ def translate_error(hass, key: str, **kwargs) -> str:
             path = os.path.join(base, "translations", "en.json")
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 _translation_cache[lang] = json.load(f)
         except Exception:
             return key
 
     data = _translation_cache[lang]
 
-    msg = (
-        data.get("component", {})
-            .get("neviweb130", {})
-            .get("errors", {})
-            .get(key)
-    )
+    msg = data.get("component", {}).get("neviweb130", {}).get("errors", {}).get(key)
 
     if msg is None:
         return key
