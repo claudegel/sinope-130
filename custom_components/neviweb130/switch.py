@@ -14,14 +14,14 @@ model 2610 = wall outlet, SP2610ZB
 model 2600 = portable plug, SP2600ZB
 
 Multi controller connected to Sedna valve
-model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
+model 2181 = Multi controller for sedna valve MC3100ZB-VA connected sedna valve
 
 Load controller connected to Sedna valve
 model 25062 = load controller device, RM3250ZB-VA, 50A, Zigbee
 
 Outlet and plug connected to Sedna valve
-model 26102 = wall outlet, SP2610ZB
-model 26002 = portable plug, SP2600ZB
+model 26102 = wall outlet, SP2610ZB-VA
+model 26002 = portable plug, SP2600ZB-VA
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
