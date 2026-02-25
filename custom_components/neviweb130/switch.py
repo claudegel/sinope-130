@@ -1,5 +1,5 @@
 """
-Support for Neviweb switch connected via GT130 Zigbee.
+Support for Neviweb switch connected to GT130 Zigbee.
 Multi-Controller connected to GT130
 model 2180 = Multi controller for sedna valve MC3100ZB
 
@@ -18,6 +18,10 @@ model 2181 = Multi controller for sedna valve MC3100ZB connected sedna valve
 
 Load controller connected to Sedna valve
 model 25062 = load controller device, RM3250ZB-VA, 50A, Zigbee
+
+Outlet and plug connected to Sedna valve
+model 26102 = wall outlet, SP2610ZB
+model 26002 = portable plug, SP2600ZB
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
@@ -190,6 +194,7 @@ IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
+IMPLEMENTED_SED_WALL_DEVICES =[26002, 26102]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_SED_LOAD_DEVICES = [25062]
 IMPLEMENTED_WIFI_LOAD_DEVICES = [346]
@@ -197,6 +202,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     IMPLEMENTED_LOAD_DEVICES
     + IMPLEMENTED_SED_LOAD_DEVICES
     + IMPLEMENTED_WALL_DEVICES
+    + IMPLEMENTED_SED_WALL_DEVICES
     + IMPLEMENTED_ZB_DEVICE_CONTROL
     + IMPLEMENTED_SED_DEVICE_CONTROL
     + IMPLEMENTED_WATER_HEATER_LOAD_MODEL
@@ -239,7 +245,10 @@ async def async_setup_platform(
                     device_info["signature"]["softVersion"]["middle"],
                     device_info["signature"]["softVersion"]["minor"],
                 )
-                if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                if (
+                    device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
+                    or device_info["signature"]["model"] in IMPLEMENTED_SED_WALL_DEVICES
+                ):
                     device_type = "outlet"
                     entities.append(
                         Neviweb130Switch(device_info, device_name, device_sku, device_firmware, device_type, client)
@@ -295,7 +304,10 @@ async def async_setup_platform(
                     device_info["signature"]["softVersion"]["middle"],
                     device_info["signature"]["softVersion"]["minor"],
                 )
-                if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                if (
+                    device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
+                    or device_info["signature"]["model"] in IMPLEMENTED_SED_WALL_DEVICES
+                ):
                     device_type = "outlet"
                     entities.append(
                         Neviweb130Switch(device_info, device_name, device_sku, device_firmware, device_type, client)
@@ -351,7 +363,10 @@ async def async_setup_platform(
                     device_info["signature"]["softVersion"]["middle"],
                     device_info["signature"]["softVersion"]["minor"],
                 )
-                if device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES:
+                if (
+                    device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
+                    or device_info["signature"]["model"] in IMPLEMENTED_SED_WALL_DEVICES
+                ):
                     device_type = "outlet"
                     entities.append(
                         Neviweb130Switch(device_info, device_name, device_sku, device_firmware, device_type, client)
@@ -735,6 +750,7 @@ class Neviweb130Switch(SwitchEntity):
         self._device_model_cfg = device_info["signature"]["modelCfg"]
         self._device_type = device_type
         self._is_wall = device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
+        self._is_sedna_wall = device_info["signature"]["model"] in IMPLEMENTED_SED_WALL_DEVICES
         self._is_load = device_info["signature"]["model"] in IMPLEMENTED_LOAD_DEVICES
         self._is_wifi_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
         self._is_sedna_load = device_info["signature"]["model"] in IMPLEMENTED_SED_LOAD_DEVICES
@@ -782,7 +798,10 @@ class Neviweb130Switch(SwitchEntity):
 
     def update(self):
         if self._active:
-            LOAD_ATTRIBUTES = [ATTR_WATTAGE_INSTANT]
+            if self._is_wall:
+                LOAD_ATTRIBUTES = [ATTR_WATTAGE_INSTANT]
+            else:
+                LOAD_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
@@ -791,13 +810,15 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                    if self._is_wall:
+                        self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onoff = device_data[ATTR_ONOFF]
                 else:
                     _LOGGER.warning("Error reading device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            self.do_stat(start)
+            if self._is_wall:
+                self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -872,16 +893,25 @@ class Neviweb130Switch(SwitchEntity):
         data = {}
         data.update(
             {
-                "onOff": self._onoff,
-                "wattage_instant": self._current_power_w,
-                "total_kwh_count": self._total_kwh_count,
-                "monthly_kwh_count": self._monthly_kwh_count,
-                "daily_kwh_count": self._daily_kwh_count,
-                "hourly_kwh_count": self._hourly_kwh_count,
-                "hourly_kwh": self._hour_kwh,
-                "daily_kwh": self._today_kwh,
-                "monthly_kwh": self._month_kwh,
-                "last_energy_stat_update": self._mark,
+                "onOff": self._onoff
+            }
+        )
+        if self._is_wall:
+            data.update(
+                {
+                    "wattage_instant": self._current_power_w,
+                    "total_kwh_count": self._total_kwh_count,
+                    "monthly_kwh_count": self._monthly_kwh_count,
+                    "daily_kwh_count": self._daily_kwh_count,
+                    "hourly_kwh_count": self._hourly_kwh_count,
+                    "hourly_kwh": self._hour_kwh,
+                    "daily_kwh": self._today_kwh,
+                    "monthly_kwh": self._month_kwh,
+                    "last_energy_stat_update": self._mark,
+                }
+            )
+        data.update(
+            {
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -1274,7 +1304,8 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
                 self.log_error(device_data["error"]["code"])
-            self.do_stat(start)
+            if self._is_load:
+                self.do_stat(start)
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -1857,7 +1888,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         ATTR_TIMER2,
                         ATTR_RSSI,
                     ]
-            if self._is_sedna_control:
+            else:
                 LOAD_ATTRIBUTES = [
                     ATTR_INPUT_STATUS,
                     ATTR_BATTERY_VOLTAGE,
