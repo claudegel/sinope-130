@@ -553,7 +553,8 @@ class Neviweb130Client:
             raise PyNeviweb130Error(msg)
         if raw_res.status_code != 200:
             _LOGGER.debug("Login status: %s", raw_res.json())
-            msg = translate_error(self.hass, "login_failed")
+            data = raw_res.json()
+            msg = translate_error(self.hass, "login_failed", code=data['error']['code'])
             raise PyNeviweb130Error(msg)
 
         # Update cookies
