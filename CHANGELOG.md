@@ -10,6 +10,8 @@ All modification for this custom_component will be added in this file.
 - Add translation for updater.
 - Add set_switch_temp_alert service for MC3100ZB device.
 - Add support for MC3100ZB, RM3250ZB connected directly to Sedna valve.
+- Add support for SW2500ZB, DM25x0ZB connected to Sedna valve.
+- Add support for SP26x0ZB connected to Sedna valve.
 
 ### Fix
 - Fix leak sensor icons display.
