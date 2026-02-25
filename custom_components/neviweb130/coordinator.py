@@ -398,7 +398,7 @@ class Neviweb130Client:
                         )
                     else:
                         _LOGGER.debug("Fail login status: %s", response.status)
-                    msg = translate_error(self.hass, "login_failed")
+                    msg = translate_error(self.hass, "login_failed", code=response.json())
                     raise PyNeviweb130Error(msg)
 
                 raw_cookies = response.cookies
@@ -435,6 +435,10 @@ class Neviweb130Client:
                     title=f"Neviweb130 integration {VERSION}",
                     notification_id="neviweb130_session_error",
                 )
+            error_data = data["error"].get("data", {}) or {}
+            error_data["code"] = code
+            msg = translate_error(self.hass, "unknown_login_error", **error_data)
+            raise ConfigEntryError(msg)
             return False
 
         # Success
