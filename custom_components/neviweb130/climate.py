@@ -3004,8 +3004,31 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_get_weather(self):
         """Get weather temperature for my location."""
         weather = await self._client.async_get_weather()
-        self._temperature = weather["temperature"]
-        self._weather_icon = weather["icon"]
+
+        # Check that weather is a valid dict
+        if not isinstance(weather, dict):
+            _LOGGER.warning("Neviweb returned invalid weather data: %s", weather)
+            return
+
+        # Check if neviweb return an error
+        if "error" in weather:
+            _LOGGER.warning("Neviweb weather error: %s", weather["error"])
+            return
+
+        # Check that needed attributes exist
+        temperature = weather.get("temperature")
+        icon = weather.get("icon")
+
+        if temperature is None or icon is None:
+            _LOGGER.warning(
+                "Neviweb weather data incomplete: %s (missing temperature or icon)",
+                weather
+            )
+            return
+
+        # Update weather data
+        self._temperature = temperature
+        self._weather_icon = icon
 
     async def async_set_climate_neviweb_status(self, value):
         """Set Neviweb global occupancy mode, away or home"""
