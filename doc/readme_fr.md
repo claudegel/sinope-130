@@ -750,6 +750,8 @@ informations plus détaillées.
 ### Messages d'erreur reçus de Neviweb
 Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb :
 - ACCDAYREQMAX : Requête quotidienne maximale atteinte (« quotidienne » : 30000)... Réduire la fréquence d'interrogation (scan_interval).
+- ACCRATELIMIT: Limite maximale de tentatives de connexion atteinte lors de la connexion à Neviweb. Connexions trop fréquentes.
+  Veuillez patienter quelques minutes avant le redémarrage de HA.
 - ACCSESSEXC : Plusieurs sessions ouvertes en même temps. Ceci est courant si vous redémarrez Home Assistant plusieurs fois et/ou si vous 
   ayez également une session ouverte sur Neviweb.
 - DVCACTNSPTD : Action du périphérique non prise en charge. L'appel de service n'est pas pris en charge pour cet appareil spécifique.
