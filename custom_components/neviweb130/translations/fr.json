@@ -3,7 +3,7 @@
     "neviweb130": {
       "errors": {
         "login_submit_failed": "Impossible de soumettre le formulaire de connexion. Vérifiez votre réseau ou votre pare-feu.",
-        "login_failed": "Impossible de se connecter.",
+        "login_failed": "Impossible de se connecter à Neviweb. {code}.",
         "too_many_sessions": "Trop de sessions actives.\nFermez toutes les sessions Neviweb ouvertes sur d’autres plateformes (mobile, navigateur, etc.).\nSi l’erreur persiste, désactivez cette intégration (ou arrêtez Home Assistant), attendez quelques minutes, puis réactivez-la (ou redémarrez Home Assistant). Code d’erreur: {code}.",
         "bad_credentials": "Nom d’utilisateur ou mot de passe Neviweb invalide. Vérifiez vos paramètres de configuration. Code d’erreur: {code}.",
         "unknown_login_error": "Erreur inconnue lors de la connexion à Neviweb. Code d’erreur : {code}.",
