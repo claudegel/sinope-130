@@ -8,9 +8,9 @@ model 2132 = light dimmer DM2550ZB
 model 2132 = light dimmer DM2550ZB-G2
 
 model connected to Sedna valve
-model 21212 = light switch SW2500ZB connected to Sedna valve
-model 21312 = light dimmer DM2500ZB connected to Sedna valve
-model 21322 = light dimmer DM2550ZB connected to Sedna valve
+model 21212 = light switch SW2500ZB-VA connected to Sedna valve
+model 21312 = light dimmer DM2500ZB-VA connected to Sedna valve
+model 21322 = light dimmer DM2550ZB-VA connected to Sedna valve
 
 For more details about this platform, please refer to the documentation at
 https://www.sinopetech.com/en/support/#api
