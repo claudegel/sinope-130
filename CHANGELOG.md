@@ -16,6 +16,7 @@ All modification for this custom_component will be added in this file.
 ### Fix
 - Fix leak sensor icons display.
 - Fix wrong self._name in _LOGGER.
+- Add better validation of weather data received from Neviweb.
 
 ### Doc
 - Add documentation on language available.
