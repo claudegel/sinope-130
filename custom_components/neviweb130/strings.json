@@ -52,7 +52,7 @@
         "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}.",
         "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
         "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}) Report to maintainer. Data received: {data}.",
-        "daily_access": "Maximum daily request reached... Increase intervall polling frequency on Neviweb, (scan_interval)."
+        "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval)."
       }
     }
   }
