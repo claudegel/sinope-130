@@ -1,7 +1,8 @@
 {
   "title": "neviweb130",
   "config": {
-    "errors": {
+    "step": {},
+    "error": {
       "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
       "login_failed": "Cannot log in to Neviweb. {code}.",
       "too_many_sessions": "Too many active sessions.\nClose all neviweb130 sessions you have opened on other platform.\nIf this error persists, deactivate this integration... Error code {code}.",
@@ -23,8 +24,8 @@
       "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool thermostat.",
       "fan_model_not_supported": "Fan speed is not supported for model {model}.",
       "unknown_mode": "Unknown heat-cool mode for {model}: {mode}.",
-      "fan_mode_not_supported": "Fan mode '{mode}' is not supported for model {model}.",
-      "Invalid_lock_value": "Lock value '{lock}' is not supported for model {model}.",
+      "fan_mode_not_supported": "Fan mode {mode} is not supported for model {model}.",
+      "Invalid_lock_value": "Lock value {lock} is not supported for model {model}.",
       "no_off_value": "Entity {entity} does not support value 'off'.",
       "multiple_heating_level": "Entity {entity} does not support multiple levels of heating with current configuration.",
       "multiple_cooling_level": "Entity {entity} does not support multiple levels of cooling with current configuration.",
