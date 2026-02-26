@@ -2,7 +2,6 @@
 
 import asyncio
 import datetime
-import json
 import logging
 import os
 import shutil
@@ -300,7 +299,4 @@ def file_exists(hass, path: str) -> bool:
 
 
 def translate_error(hass, key: str, **kwargs) -> str:
-    return hass.helpers.translation.async_translate(
-        f"component.neviweb130.config.error.{key}",
-        kwargs or None
-    )
+    return hass.helpers.translation.async_translate(f"component.neviweb130.config.error.{key}", kwargs or None)
