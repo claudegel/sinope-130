@@ -1,7 +1,8 @@
 {
   "title": "neviweb130",
   "config": {
-    "errors": {
+    "step": {},
+    "error": {
       "login_submit_failed": "Impossible de soumettre le formulaire de connexion. Vérifiez votre réseau ou votre pare-feu.",
       "login_failed": "Impossible de se connecter à Neviweb. {code}.",
       "too_many_sessions": "Trop de sessions actives.\nFermez toutes les sessions Neviweb ouvertes sur d’autres plateformes (mobile, navigateur, etc.).\nSi l’erreur persiste, désactivez cette intégration (ou arrêtez Home Assistant), attendez quelques minutes, puis réactivez-la (ou redémarrez Home Assistant). Code d’erreur: {code}.",
@@ -23,8 +24,8 @@
       "must_be_heat_cool": "L'entité {entity} doit être un thermostat {domain} du groupe heat-cool (TH6xxxWF).",
       "fan_model_not_supported": "La vitesse du ventilateur n’est pas supportée pour le modèle {model}.",
       "unknown_mode": "Mode heat-cool inconnu pour {model}: {mode}.",
-      "fan_mode_not_supported": "Le mode de ventilation '{mode}' n’est pas supporté pour le modèle {model}.",
-      "Invalid_lock_value": "La valeur de verrouillage '{lock}' n’est pas supportée pour le modèle {model}.",
+      "fan_mode_not_supported": "Le mode de ventilation {mode} n’est pas supporté pour le modèle {model}.",
+      "Invalid_lock_value": "La valeur de verrouillage {lock} n’est pas supportée pour le modèle {model}.",
       "no_off_value": "L'entité {entity} ne supporte pas la valeur 'off'.",
       "multiple_heating_level": "L'entité {entity} ne supporte pas des niveaux de chauffe multiples avec la configuration actuelle.",
       "multiple_cooling_level": "L'entité {entity} ne supporte pas des niveaux de climatisation multiples avec la configuration actuelle.",
