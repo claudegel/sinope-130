@@ -1299,7 +1299,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -1517,7 +1517,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                             message="",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         await async_notify_critical(
                             self.hass,
@@ -1551,7 +1551,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -1724,7 +1724,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                             message="",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         await async_notify_critical(
                             self.hass,
