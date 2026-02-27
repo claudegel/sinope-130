@@ -914,40 +914,11 @@ async def check_weather_icons_folder(hass):
 # ─────────────────────────────────────────────
 
 
-_translation_cache = {}
-
 def translate_error(hass, key: str, **kwargs) -> str:
-    lang = hass.config.language or "en"
-    base = os.path.dirname(__file__)
-    path = os.path.join(base, "translations", f"{lang}.json")
-
-    if lang not in _translation_cache:
-        # Fallback to English if file missing
-        if not os.path.exists(path):
-            path = os.path.join(base, "translations", "en.json")
-
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                _translation_cache[lang] = json.load(f)
-        except Exception:
-            return key
-
-    data = _translation_cache[lang]
-
-    msg = (
-        data.get("component", {})
-            .get("neviweb130", {})
-            .get("errors", {})
-            .get(key)
+    return hass.helpers.translation.async_translate(
+        f"component.neviweb130.config.error.{key}",
+        kwargs or None
     )
-
-    if msg is None:
-        return key
-
-    try:
-        return msg.format(**kwargs)
-    except Exception:
-        return msg
 
 
 def translate_neviweb_error(self, err):
@@ -960,7 +931,7 @@ def translate_neviweb_error(self, err):
 
         # We try a translation bade on code
         msg = self.hass.helpers.translation.async_translate(
-            f"component.neviweb130.errors.{code}",
+            f"component.neviweb130.config.error.{code}",
             data
         )
         if msg:
@@ -972,7 +943,7 @@ def translate_neviweb_error(self, err):
     # Case 2 : error is already a simple code
     if isinstance(err, str):
         msg = self.hass.helpers.translation.async_translate(
-            f"component.neviweb130.errors.{err}"
+            f"component.neviweb130.config.error.{err}"
         )
         if msg:
             return msg
