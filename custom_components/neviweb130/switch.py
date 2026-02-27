@@ -1224,11 +1224,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_wall:
             data.update(
                 {
@@ -1582,7 +1578,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
-                data=error_data
+                data=error_data,
             )
             _LOGGER.warning(msg)
 
@@ -1642,7 +1638,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 await async_notify_critical(
                                     self.hass,
@@ -1680,11 +1676,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff,
-            }
-        )
+        data.update({"onOff": self._onoff})
         if not self._is_sedna_load:
             data.update(
                 {
@@ -1773,7 +1765,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -1904,7 +1896,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                 message="Leak sensor disconnected",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -1934,7 +1926,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                 message=message,
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -2105,7 +2097,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                             message="Leak sensor disconnected",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         await async_notify_critical(
                             self.hass,
@@ -2132,7 +2124,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                                 message=message,
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
