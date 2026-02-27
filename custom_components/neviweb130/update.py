@@ -645,7 +645,12 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     await self.hass.async_add_executor_job(_restore)
 
                     self._rollback_status = "success"
-                    msg = translate_error(self.hass, "update_rejected", version=self._latest_version, message=f"[See update notes]({self.release_url})")
+                    msg = translate_error(
+                        self.hass,
+                        "update_rejected",
+                        version=self._latest_version,
+                        message=f"[See update notes]({self.release_url})",
+                    )
                     await self.hass.services.async_call(
                         "persistent_notification",
                         "create",
@@ -657,7 +662,12 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     )
                 else:
                     self._rollback_status = "skipped"
-                    msg = translate_error(self.hass, "rollback_skip", version=self._latest_version, message="[See update notes]({self.release_url})")
+                    msg = translate_error(
+                        self.hass,
+                        "rollback_skip",
+                        version=self._latest_version,
+                        message="[See update notes]({self.release_url})",
+                    )
                     await self.hass.services.async_call(
                         "persistent_notification",
                         "create",
