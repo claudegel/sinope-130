@@ -614,7 +614,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 await self.async_notify_critical(
                                     self.hass,
@@ -789,11 +789,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_light:
             data.update(
                 {
@@ -1160,7 +1156,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 await async_notify_critical(
                                     self.hass,
@@ -1215,11 +1211,7 @@ class Neviweb130Dimmer(Neviweb130Light):
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_dimmer:
             data.update(
                 {
@@ -1304,7 +1296,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 await self.async_notify_critical(
                                     self.hass,
@@ -1362,11 +1354,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
     def extra_state_attributes(self)  -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
-        data.update(
-            {
-                "onOff": self._onoff
-            }
-        )
+        data.update({"onOff": self._onoff})
         if self._is_new_dimmer:
             data.update(
                 {
