@@ -1370,7 +1370,7 @@ class Neviweb130Client:
                 case "partiallyLocked":
                     lock = "partialLock"
                 case _:
-                    msg = translate_error(self.hass, "Invalid_lock_value", lock=lock, model=self._model)
+                    msg = translate_error(self.hass, "invalid_lock_value", lock=lock, model=self._model)
                     raise ValueError(msg)
             data = {ATTR_WIFI_KEYPAD: lock}
         else:
