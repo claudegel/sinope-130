@@ -805,11 +805,7 @@ async def async_setup_entry(
         thermostat = entity_map.get(entity_id)
         if thermostat is None:
             msg = translate_error(
-                hass,
-                "entity_must_be_domain",
-                entity=entity_id,
-                domain=DOMAIN,
-                platform="thermostat"
+                hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="thermostat"
             )
             raise ServiceValidationError(msg)
         return thermostat
@@ -857,11 +853,7 @@ async def async_setup_entry(
 
         if isinstance(thermostat, unsupported_classes):
             msg = translate_error(
-                hass,
-                "does_not_support",
-                entity=thermostat.entity_id,
-                domain=DOMAIN,
-                model=model
+                hass, "does_not_support", entity=thermostat.entity_id, domain=DOMAIN, model=model
             )
             raise ServiceValidationError(msg)
 
@@ -2737,7 +2729,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_set_keypad_lock(self, value):
         """Lock or unlock device's keypad, locked = Locked, unlocked = Unlocked."""
         if value["lock"] == "partiallyLocked" and self._is_HP:
-            msg = translate_error(self.hass, "Invalid_lock_value", lock="partiallyLocked", model="HP6000")
+            msg = translate_error(self.hass, "invalid_lock_value", lock="partiallyLocked", model="HP6000")
             raise ValueError(msg)
 
         await self._client.async_set_keypad_lock(value["id"], value["lock"], self._is_wifi)
@@ -3194,7 +3186,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 message="("+error_message+")",
                 name=self._name,
                 id=self._id,
-                sku=self._sku
+                sku=self._sku,
             )
             await async_notify_critical(
                 self.hass,
@@ -5560,7 +5552,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             error=self._room_temp_error,
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         await async_notify_critical(
                             self.hass,
@@ -5572,7 +5564,12 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     try:
                         self._heat_cool = neviweb_to_ha_mode(device_data[ATTR_HEAT_COOL])
                     except ValueError:
-                        msg = translate_error(self.hass, "unknown_mode", model=self._device_model, mode=device_data[ATTR_HEAT_COOL])
+                        msg = translate_error(
+                            self.hass,
+                            "unknown_mode",
+                            model=self._device_model,
+                            mode=device_data[ATTR_HEAT_COOL],
+                        )
                         raise ServiceValidationError(msg)
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
@@ -6065,7 +6062,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             error=self._room_temp_error,
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         await async_notify_critical(
                             self.hass,
@@ -6612,7 +6609,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 self.hass,
                 "invalid_value",
                 param=ATTR_AUX_HEAT_SOURCE_TYPE,
-                value=AUX_HEATING.keys()
+                value=AUX_HEATING.keys(),
             )
             raise ServiceValidationError(msg)
 
