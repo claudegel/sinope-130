@@ -155,7 +155,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to 
-interact with them within Home Assistant. Wi-Fi devices must be connected directly to Neviweb. Please refer to 
+interact with them within Home Assistant. Wi-Fi devices must be connected directly to Neviweb. Some Zigbee devices 
+can be connected directly to a Sedna valve which is connected to Neviweb directly. Please refer to 
 the instructions manual of your device or visit [Neviweb support](https://support.sinopetech.com/)
 
 Wi-Fi devices can be connected in the same network (location) then the GT130 Zigbee devices or in a separate network.
