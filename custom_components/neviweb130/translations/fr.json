@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Neviweb130: gestion Sinopé Zigbee et Wi-Fi.",
-        "description": "Entrer les informations pour la connection à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Interval de scan, support pour Homekit, intervale de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "description": "Entrer les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervale de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
         "data": {
           "prefix": "Compte Neviweb, optionel pour le premier compte.",
           "username": "Courriel pour Neviweb",
@@ -16,12 +16,12 @@
           "ignore_miwi": "Optionel, Ignorer les appareils miwi:",
           "scan_interval": "Optionel, Intervalle des requêtes sur neviweb, 300 à 600 sec.",
           "stat_interval": "Optionel, Intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
-          "notify": "Optionel, Avis en cas de déconnection pour un appareil."
+          "notify": "Optionel, Avis en cas de déconnexion pour un appareil."
         }
       },
       "reconfigure":{
         "title": "Neviweb130: reconfiguration.",
-        "description": "Modifier les informations pour la connection à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Interval de scan, support pour Homekit, intervale de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "description": "Modifier les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervale de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
         "data": {
           "prefix": "Compte Neviweb, requis pour tous les comptes, défini comme 'default' pour le premier.",
           "username": "Courriel pour Neviweb",
@@ -45,7 +45,7 @@
     },
     "error": {
       "bad_data_entry": "Vérifiez les informations entrées, il y a des erreurs.",
-      "bad_network_name": "Le nom d'emplacement ne peut contenir de caractère accentués.",
+      "bad_network_name": "Le nom d'emplacement ne peut contenir de caractères accentués.",
       "cannot_connect": "Le test de connection à neviweb a échoué, vérifier le courriel et le mot de passe.",
       "invalid_user_email": "Le courriel fournit est invalide.",
       "unknown": "[%key:common::config_flow::error::unknown%]",
