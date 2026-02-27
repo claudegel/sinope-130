@@ -624,7 +624,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="sensor"
+                platform="sensor",
             )
             raise ServiceValidationError(msg)
         return sensor
@@ -681,7 +681,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor"
+                platform="tank sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
@@ -698,7 +698,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor"
+                platform="tank sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id,"low": service.data[ATTR_FUEL_PERCENT_ALERT]}
@@ -715,7 +715,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor"
+                platform="tank sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "height": service.data[ATTR_TANK_HEIGHT]}
@@ -732,7 +732,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor"
+                platform="tank sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
@@ -749,7 +749,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor"
+                platform="tank sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
@@ -766,7 +766,7 @@ async def async_setup_entry(
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor"
+                platform="tank sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
@@ -1056,7 +1056,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -1091,7 +1091,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                                         message="",
                                         name=self._name,
                                         id=self._id,
-                                        sku=self._sku
+                                        sku=self._sku,
                                     )
                                     await async_notify_critical(
                                         self.hass,
@@ -1542,7 +1542,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                                 message="",
                                 name=self._name,
                                 id=self._id,
-                                sku=self._sku
+                                sku=self._sku,
                             )
                             await async_notify_critical(
                                 self.hass,
@@ -1688,7 +1688,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                             "gauge_disconnected",
                             name=self._name,
                             id=self._id,
-                            sku=self._sku
+                            sku=self._sku,
                         )
                         await async_notify_critical(
                             self.hass,
@@ -1719,7 +1719,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                                     message="",
                                     name=self._name,
                                     id=self._id,
-                                    sku=self._sku
+                                    sku=self._sku,
                                 )
                                 await async_notify_critical(
                                     self.hass,
