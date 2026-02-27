@@ -1,71 +1,4 @@
 {
-  "component": {
-    "neviweb130": {
-      "errors": {
-        "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
-        "login_failed": "Cannot log in to Neviweb. {code}.",
-        "too_many_sessions": "Too many active sessions ({count}).\nClose all Neviweb sessions opened on other platforms.\nIf the error persists, disable this integration (or stop Home Assistant), wait a few minutes, then re-enable it (or restart Home Assistant).",
-        "bad_credentials": "Invalid Neviweb username and/or password. Check your configuration parameters. Error code: {code}.",
-        "unknown_login_error": "Unknown error while logging to Neviweb. Error code: {code}.",
-        "account_id_empty": "Account ID is empty, check your username and password to log into Neviweb...",
-        "networks_fetch_failed": "Cannot get Neviweb's networks",
-        "gateway_data_failed": "Cannot get gateway data.",
-        "gateway_data2_failed": "Cannot get gateway data 2.",
-        "gateway_data3_failed": "Cannot get gateway data 3.",
-        "no_gateway_defined": "All Gateway ID are None.\nNetwork selection failed. Check that your configuration network names match one of the networks in your Neviweb account.\nAvailable networks were logged during network selection. Check your log.",
-        "notification_title": "Notice from neviweb130",
-        "heat_cool_warning": "Warning: Service {code} is only for TH6500WF or TH6250WF thermostats.",
-        "Service_warning": "Service warning...",
-        "entities_not_ready": "Entities not finished loading, try again shortly.",
-        "entity_must_be_domain": "Entity {entity} must be a {domain} {platform}.",
-        "missing_parameter": "Missing required parameter: {param}.",
-        "does_not_support": "Entity {entity} is {domain} {model} thermostat and does not support time format.",
-        "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool thermostat.",
-        "fan_model_not_supported": "Fan speed is not supported for model {model}.",
-        "unknown_mode": "Unknown heat-cool mode for {model}: {mode}.",
-        "fan_mode_not_supported": "Fan mode '{mode}' is not supported for model {model}.",
-        "Invalid_lock_value": "Lock value '{lock}' is not supported for model {model}.",
-        "no_off_value": "Entity {entity} does not support value 'off'.",
-        "multiple_heating_level": "Entity {entity} does not support multiple levels of heating with current configuration.",
-        "multiple_cooling_level": "Entity {entity} does not support multiple levels of cooling with current configuration.",
-        "integer_needed": "Invalid value for {param}, must be an integer.",
-        "float_needed": "Invalid value for {param}, must be a float",
-        "missing_functionality": "Entity {entity} does not have both a heat pump and an auxiliary heater.",
-        "invalid_value": "Invalid value for {param}, must be one of {value}.",
-        "cannot_use_entity": "Entity {entity} cannot be used with this service (action).",
-        "scan_interval_error": "Invalid scan interval format. Use seconds or HH:MM:SS.",
-        "username_missing": "Username cannot be empty.",
-        "password_missing": "Password cannot be empty.",
-        "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id:{id}, Sku:{sku}.",
-        "update_restarted": "Warning: Neviweb Device update restarted for {name}, Sku: {sku}.",
-        "usr_session": "Warning: Got USRSESSEXP error, Neviweb session expired.\nSet your scan_interval parameter to less than 10 minutes to avoid this...\nReconnecting...",
-        "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
-        "access_limit": "Warning: ACCSESSEXC, maximum Neviweb session number reached... Close other connections and try again.",
-        "error_code": "Warning: Neviweb Device error code detected: {code} for device: {name}, ID: {id}, Sku: {sku}. {message}",
-        "temp_error": "Warning: Neviweb Device temperature error code detected: {error} for device: {name}, ID: {id}, Sku: {sku}.",
-        "emergency_heat_error": "Warning: Cannot activate BOOST (emergency heat) due to device configuration. Condition not met for {name}, Sku: {sku}.",
-        "ignore_miwi": "The Neviweb location selected for parameter {param} contains unsupported MiWi devices.\nIf this location contains only MiWi devices, use the sinope neviweb integration instead.\nIf mixed devices exist, set ignore_miwi: True in your neviweb130 configuration.",
-        "location_status": "Session expired while fetching Neviweb status for location {param}. Set scan_interval < 10 minutes to avoid session expiration.",
-        "device_alert": "Cannot get device alert for device {id}.",
-        "energy_stat": "Cannot get {param} stats for device {id}.",
-        "weather_data": "Cannot get Neviweb weather and icon for code {code}.",
-        "set_attribute": "Cannot set device {id} attributes: {data}.",
-        "neviweb_status": "Cannot post Neviweb status for location {location} with data {data}.",
-        "no_stat": "Got None for device {param} stats for device {name}.",
-        "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}",
-        "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
-        "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}) Report to maintainer. Data received: {data}.",
-        "daily_access": "Maximum daily request reached... Increase intervall polling frequency on Neviweb, (scan_interval).",
-        "update_message": "Update to version {version} was installed successfully.",
-        "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
-        "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
-        "update_fail": "Rollback could not be completed. Manual intervention required.",
-        "service_failed": "Service '{service}' failed: {error}",
-        "critical_service_failed": "Critical error while executing service '{service}': {error}",
-        "VALINVLD": "Invalid value '{value}' for attribute '{name}'."
-      }
-    }
-  },
   "title": "Neviweb130",
   "config": {
     "step": {
@@ -118,9 +51,70 @@
       "unknown": "[%key:common::config_flow::error::unknown%]",
       "empty_folder": "Folder cannot be empty.",
       "invalid_characters": "Folder name contains invalid characters.",
-      "folder_not_found": "Folder '{folder}' doesn't exist.",
-      "not_a_directory": "This path '{folder}' is not a folder.",
-      "not_writable": "Home Assistant cannot write in '{folder}'."
+      "folder_not_found": "Folder {folder} does not exist.",
+      "not_a_directory": "This path {folder} is not a folder.",
+      "not_writable": "Home Assistant cannot write in {folder}.",
+      "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
+      "login_failed": "Cannot log in to Neviweb. {code}.",
+      "too_many_sessions": "Too many active sessions ({count}).\nClose all Neviweb sessions opened on other platforms.\nIf the error persists, disable this integration (or stop Home Assistant), wait a few minutes, then re-enable it (or restart Home Assistant).",
+      "bad_credentials": "Invalid Neviweb username and/or password. Check your configuration parameters. Error code: {code}.",
+      "unknown_login_error": "Unknown error while logging to Neviweb. Error code: {code}.",
+      "account_id_empty": "Account ID is empty, check your username and password to log into Neviweb...",
+      "networks_fetch_failed": "Cannot get Neviweb's networks",
+      "gateway_data_failed": "Cannot get gateway data.",
+      "gateway_data2_failed": "Cannot get gateway data 2.",
+      "gateway_data3_failed": "Cannot get gateway data 3.",
+      "no_gateway_defined": "All Gateway ID are None.\nNetwork selection failed. Check that your configuration network names match one of the networks in your Neviweb account.\nAvailable networks were logged during network selection. Check your log.",
+      "notification_title": "Notice from neviweb130",
+      "heat_cool_warning": "Warning: Service {code} is only for TH6500WF or TH6250WF thermostats.",
+      "service_warning": "Service warning...",
+      "entities_not_ready": "Entities not finished loading, try again shortly.",
+      "entity_must_be_domain": "Entity {entity} must be a {domain} {platform}.",
+      "missing_parameter": "Missing required parameter: {param}.",
+      "does_not_support": "Entity {entity} is {domain} {model} thermostat and does not support time format.",
+      "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool thermostat.",
+      "fan_model_not_supported": "Fan speed is not supported for model {model}.",
+      "unknown_mode": "Unknown heat-cool mode for {model}: {mode}.",
+      "fan_mode_not_supported": "Fan mode {mode} is not supported for model {model}.",
+      "invalid_lock_value": "Lock value {lock} is not supported for model {model}.",
+      "no_off_value": "Entity {entity} does not support value off.",
+      "multiple_heating_level": "Entity {entity} does not support multiple levels of heating with current configuration.",
+      "multiple_cooling_level": "Entity {entity} does not support multiple levels of cooling with current configuration.",
+      "integer_needed": "Invalid value for {param}, must be an integer.",
+      "float_needed": "Invalid value for {param}, must be a float",
+      "missing_functionality": "Entity {entity} does not have both a heat pump and an auxiliary heater.",
+      "invalid_value": "Invalid value for {param}, must be one of {value}.",
+      "cannot_use_entity": "Entity {entity} cannot be used with this service (action).",
+      "scan_interval_error": "Invalid scan interval format. Use seconds or HH:MM:SS.",
+      "username_missing": "Username cannot be empty.",
+      "password_missing": "Password cannot be empty.",
+      "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id:{id}, Sku:{sku}.",
+      "update_restarted": "Warning: Neviweb Device update restarted for {name}, Sku: {sku}.",
+      "usr_session": "Warning: Got USRSESSEXP error, Neviweb session expired.\nSet your scan_interval parameter to less than 10 minutes to avoid this...\nReconnecting...",
+      "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
+      "access_limit": "Warning: ACCSESSEXC, maximum Neviweb session number reached... Close other connections and try again.",
+      "error_code": "Warning: Neviweb Device error code detected: {code} for device: {name}, ID: {id}, Sku: {sku}. {message}",
+      "temp_error": "Warning: Neviweb Device temperature error code detected: {error} for device: {name}, ID: {id}, Sku: {sku}.",
+      "emergency_heat_error": "Warning: Cannot activate BOOST (emergency heat) due to device configuration. Condition not met for {name}, Sku: {sku}.",
+      "ignore_miwi": "The Neviweb location selected for parameter {param} contains unsupported MiWi devices.\nIf this location contains only MiWi devices, use the sinope neviweb integration instead.\nIf mixed devices exist, set ignore_miwi: True in your neviweb130 configuration.",
+      "location_status": "Session expired while fetching Neviweb status for location {param}. Set scan_interval < 10 minutes to avoid session expiration.",
+      "device_alert": "Cannot get device alert for device {id}.",
+      "energy_stat": "Cannot get {param} stats for device {id}.",
+      "weather_data": "Cannot get Neviweb weather and icon for code {code}.",
+      "set_attribute": "Cannot set device {id} attributes: {data}.",
+      "neviweb_status": "Cannot post Neviweb status for location {location} with data {data}.",
+      "no_stat": "Got None for device {param} stats for device {name}.",
+      "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}",
+      "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
+      "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}) Report to maintainer. Data received: {data}.",
+      "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval).",
+      "update_message": "Update to version {version} was installed successfully.",
+      "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
+      "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
+      "update_fail": "Rollback could not be completed. Manual intervention required.",
+      "service_failed": "Service {service} failed: {error}",
+      "critical_service_failed": "Critical error while executing service {service}: {error}",
+      "VALINVLD": "Invalid value {value} for attribute {name}."
     }
   },
   "options": {
@@ -321,13 +315,17 @@
         "name": "Cycle Length"
       },
       "early_start": {
-        "name": "Early Start"
+        "name": "Early Start",
+        "state": {
+          "off": "Inactive",
+          "on": "Active"
+        }
       },
       "flow_duration": {
         "name": "Flow Duration"
       },
       "flowmeter_timer": {
-        "name": "Flow_meter Timer"
+        "name": "Flow meter Timer"
       },
       "flow_meter": {
         "name": "Flow Meter"
@@ -339,7 +337,12 @@
         "name": "Gauge Model"
       },
       "hc_second_display": {
-        "name": "Second Display"
+        "name": "Second Display",
+        "state": {
+          "exteriorTemperature": "Exterior temperature",
+          "setpoint": "Setpoint",
+          "none": "None"
+        }
       },
       "keypad_lock": {
         "name": "Lock Keypad",
@@ -353,13 +356,37 @@
         }
       },
       "language": {
-        "name": "Language"
+        "name": "Language",
+        "state": {
+          "en": "English",
+          "fr": "French"
+        }
       },
       "led_off_color": {
-        "name": "Led Off Color"
+        "name": "Led Off Color",
+        "state": {
+          "lime": "Lime",
+          "amber": "Amber",
+          "fuchsia": "Fuchsia",
+          "perle": "Perle",
+          "blue": "Blue",
+          "red": "Red",
+          "orange": "Orange",
+          "green": "Green"
+        }
       },
       "led_on_color": {
-        "name": "Led On Color"
+        "name": "Led On Color",
+        "state": {
+          "lime": "Lime",
+          "amber": "Amber",
+          "fuchsia": "Fuchsia",
+          "perle": "Perle",
+          "blue": "Blue",
+          "red": "Red",
+          "orange": "Orange",
+          "green": "Green"
+        }
       },
       "occupancy_mode": {
         "name": "Global Occupancy Mode",
@@ -369,13 +396,27 @@
         }
       },
       "phase": {
-        "name": "Phase"
+        "name": "Phase",
+        "state": {
+          "forward": "Forward",
+          "reverse": "Reverse"
+        }
       },
       "power_supply": {
-        "name": "Power Supply"
+        "name": "Power Supply",
+        "state": {
+          "ACUPS-01": "ACUPS-01",
+          "Battery": "Battery",
+          "Battery and ACUPS-01": "Both"
+        }
       },
       "second_display": {
-        "name": "Second Display"
+        "name": "Second Display",
+        "state": {
+          "default": "Default",
+          "exteriorTemperature": "Exterior temperature",
+          "setpoint": "Setpoint"
+        }
       },
       "sensor_mode": {
         "name": "Sensor Mode"
@@ -404,10 +445,14 @@
         }
       },
       "temp_format": {
-        "name": "temp_format"
+        "name": "temperature format",
+        "state": {
+          "celsius": "Celsius",
+          "fahrenheit": "Fahrenheit"
+        }
       },
       "temp_protection": {
-        "name": "Temp. Protection"
+        "name": "Temperature Protection"
       },
       "time_format": {
         "name": "Time Format"
@@ -421,31 +466,31 @@
     },
     "sensor": {
       "auxHeatStage1_hourly_count": {
-        "name": "auxHeatStage1_hourly_count"
+        "name": "AuxHeatStage1 hourly count"
       },
       "auxHeatStage2_hourly_count": {
-        "name": "auxHeatStage2_hourly_count"
+        "name": "AuxHeatStage2 hourly count"
       },
       "auxHeatStage1_hourly_total_count": {
-        "name": "auxHeatStage1_hourly_total_count"
+        "name": "AuxHeatStage1 hourly total count"
       },
       "auxHeatStage2_hourly_total_count": {
-        "name": "auxHeatStage2_hourly_total_count"
+        "name": "AuxHeatStage2 hourly total count"
       },
       "battery_level": {
         "name": "Battery level"
       },
       "coolStage1_hourly_count": {
-        "name": "coolStage1_hourly_count"
+        "name": "CoolStage1 hourly count"
       },
       "coolStage2_hourly_count": {
-        "name": "coolStage2_hourly_count"
+        "name": "CoolStage2 hourly count"
       },
       "coolStage1_hourly_total_count": {
-        "name": "coolStage1_hourly_total_count"
+        "name": "CoolStage1 hourly total count"
       },
       "coolStage2_hourly_total_count": {
-        "name": "coolStage2_hourly_total_count"
+        "name": "CoolStage2 hourly total count"
       },
       "daily_flow_count": {
         "name": "Daily Flow",
@@ -460,34 +505,34 @@
         }
       },
       "emergencyHeat_hourly_count": {
-        "name": "emergencyHeat_hourly_count"
+        "name": "EmergencyHeat hourly count"
       },
       "emergencyHeat_hourly_total_count": {
-        "name": "emergencyHeat_hourly_total_count"
+        "name": "EmergencyHeat hourly total count"
       },
       "extern_temperature": {
         "name": "External temperature"
       },
       "fan_hourly_count": {
-        "name": "fan_hourly_count"
+        "name": "Fan hourly count"
       },
       "fan_hourly_total_count": {
-        "name": "fan_hourly_total_count"
+        "name": "Fan hourly total count"
       },
       "gauge_angle": {
         "name": "Gauge Angle"
       },
       "heatStage1_hourly_count": {
-        "name": "heatStage1_hourly_count"
+        "name": "HeatStage1 hourly count"
       },
       "heatStage2_hourly_count": {
-        "name": "heatStage2_hourly_count"
+        "name": "HeatStage2 hourly count"
       },
       "heatStage1_hourly_total_count": {
-        "name": "heatStage1_hourly_total_count"
+        "name": "HeatStage1 hourly total count"
       },
       "heatStage2_hourly_total_count": {
-        "name": "heatStage2_hourly_total_count"
+        "name": "HeatStage2 hourly tota count"
       },
       "hourly_flow_count": {
         "name": "Hourly Flow"
