@@ -299,18 +299,25 @@ def file_exists(hass, path: str) -> bool:
 # ─────────────────────────────────────────────
 
 
-async def translate_error(hass, key: str, **placeholders):
-    """Translate an error message using HA translation system."""
-    translations = await async_get_translations(
-        hass,
-        hass.config.language,
-        "neviweb130",
-    )
+def translate_error(hass, key: str, **placeholders):
+    """Translate an error message using HA translation system (sync wrapper)."""
 
-    full_key = f"component.neviweb130.error.{key.lower()}"
+    async def _async_translate():
+        translations = await async_get_translations(
+            hass,
+            hass.config.language,
+            "neviweb130",
+        )
 
-    msg = translations.get(full_key)
-    if msg:
-        return msg.format(**placeholders)
+        full_key = f"component.neviweb130.error.{key.lower()}"
+        msg = translations.get(full_key)
 
-    return key
+        if msg:
+            return msg.format(**placeholders)
+
+        return key
+
+    # Run async translation safely from sync context
+    return asyncio.run_coroutine_threadsafe(
+        _async_translate(), hass.loop
+    ).result()
