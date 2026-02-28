@@ -106,7 +106,7 @@
       "no_stat": "Got None for device {param} stats for device {name}.",
       "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}",
       "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
-      "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}) Report to maintainer. Data received: {data}.",
+      "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}), (Model: {model}). Report to maintainer. Data received: {data}.",
       "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval).",
       "update_message": "Update to version {version} was installed successfully.",
       "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
