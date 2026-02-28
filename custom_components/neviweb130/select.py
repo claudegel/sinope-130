@@ -17,9 +17,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES, RISKY_ATTRIBUTES
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
-from .helpers import NamingHelper
+from .helpers import create_risky_issue, NamingHelper
 from .schema import (
     BACKLIGHT_LIST,
     BATT_TYPE_LIST,
@@ -395,7 +395,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
         "batt_type": lambda self, option: self._client.async_set_battery_type(self._id, option),
-        "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option),
+        "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option, self.is_HC),
         "early_start": lambda self, option: self._client.async_set_early_start(self._id, option),
         "flowmeter_timer": lambda self, option: self._client.async_set_flow_alarm_timer(self._id, option),
         "flow_duration": lambda self, option: self._client.async_set_flow_meter_delay(self._id, option),
@@ -518,6 +518,12 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected select option if Neviweb accepts it."""
+        attribute = self._attribute
+
+        # Fire an issue if attribut is risky
+        if attribute in RISKY_ATTRIBUTES:
+            create_risky_issue(self.hass, self.entity_id, attribute, option)
+
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
         if handler:
             success = await handler(self, option)
