@@ -660,7 +660,12 @@
   },
   "device": {},
   "services": {},
-  "issues": {},
+  "issues": {
+    "dangerous_attribute_change": {
+      "title": "Risky attribute change",
+      "description": "Changing attribute {attribute}\non entity {entity}\nmay cause unexpected or unsafe device behavior.\nValue attempted: {value}.\n\nFor more informations, consult : {doc_url}"
+    }
+  },
   "notifications": {
     "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather icons png files won't be displayed. Read documentation for help.",
     "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help."
