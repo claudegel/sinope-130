@@ -318,6 +318,4 @@ def translate_error(hass, key: str, **placeholders):
         return key
 
     # Run async translation safely from sync context
-    return asyncio.run_coroutine_threadsafe(
-        _async_translate(), hass.loop
-    ).result()
+    return asyncio.run_coroutine_threadsafe(_async_translate(), hass.loop).result()
