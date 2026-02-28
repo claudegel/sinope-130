@@ -32,6 +32,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 - [Debugging](#logging-for-debugging)
 - [Eco-Sinopé](#catch-eco-sinope-signal-for-peak-period)
 - [Energy statistic](#energy-statistic)
+- [Localisation (language)](#localisation)
 - [Sedna flow meeter](#statistic-for-sedna-flow-meeter)
 - [Troubleshooting](#troubleshooting)
 - [Customization](#customization)
@@ -98,12 +99,21 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé DM2500ZB-G2 Dimmer
   - Sinopé DM2550ZB Dimmer
   - Sinopé DM2550ZB-G2 Dimmer
+- **Zigbee lighting connected to Sedna valve**:
+  - Sinopé SW2500ZB-VA Light switch
+  - Sinopé DM2500ZB-VA Dimmer
+  - Sinopé DM2550ZB-VA Dimmer
 - **Zigbee specialized control**:
   - Sinopé RM3250ZB Load controller 50A
   - Sinopé RM3500ZB Calypso load controller 20,8A for water heater
   - Sinopé SP2610ZB in-wall outlet
   - Sinopé SP2600ZB smart portable plug
   - Sinopé MC3100ZB Sedna valve multi-controller for alarm system
+- **Zigbee specialized control connected to Sedna valve**:
+  - Sinopé RM3250ZB-VA Load controller 50A
+  - Sinopé SP2610ZB-VA in-wall outlet
+  - Sinopé SP2600ZB-VA smart portable plug
+  - Sinopé MC3100ZB-VA Sedna valve multi-controller for alarm system
 - **Wi-Fi specialized control**:
   - Sinopé RM3500WF Load controller for water heater
   - Sinopé RM3510WF Load controller for water heater
@@ -145,7 +155,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
 
 ## Prerequisite
 You need to connect your devices to a GT130 web gateway and add them in your Neviweb portal before being able to 
-interact with them within Home Assistant. Wi-Fi devices must be connected directly to Neviweb. Please refer to 
+interact with them within Home Assistant. Wi-Fi devices must be connected directly to Neviweb. Some Zigbee devices 
+can be connected directly to a Sedna valve which is connected to Neviweb directly. Please refer to 
 the instructions manual of your device or visit [Neviweb support](https://support.sinopetech.com/)
 
 Wi-Fi devices can be connected in the same network (location) then the GT130 Zigbee devices or in a separate network.
@@ -185,6 +196,9 @@ There are two methods to install this custom component:
       configuration.yaml
       custom_components/
         neviweb130/
+          translations/
+            en.json
+            fr.json
           __init__.py
           climate.py
           const.py
@@ -194,6 +208,7 @@ There are two methods to install this custom component:
           schema.py
           sensor.py
           services.yaml
+          string.json
           switch.py
           update.py
           valve.py
@@ -540,6 +555,7 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_temperature_offset, to adjust temperature sensor from -2 to 2°C with 0.5°C increment, for TH6xxxWF.
 - neviweb130.set_aux_heating_source, to select which type of auxiliary heating source is in use for TH6xxxWF.
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
+- neviweb130.set_switch_temp_alert, to set low temperature alert on / off for MC3100ZB devices.
 
 ## Logging for debugging
 As the file home-assistant.log is no longer available, we have added a new logger that write all logger data about neviweb130 
@@ -633,6 +649,11 @@ template:
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
 ```
 
+## Localisation
+Neviweb130 is now translated in French for the errors and notifications messages. The translation is done automatically based
+on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
+en.json file located in translations directory into other language. 
+
 ## Statistic for Sedna flow meeter
 Seven attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what 
 energy module is looking for:
@@ -714,6 +735,7 @@ messages.
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
 - ACCDAYREQMAX: Maximum daily request reached ('daily': 30000)... Reduce polling frequency.
+- ACCRATELIMIT: Maximum access rate limit reach when login to Neviweb. Too frequent login. Wait few minute before HA restart.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
   also have an open session on Neviweb.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.

@@ -77,7 +77,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
-from .helpers import file_exists, get_daily_request_count, notify_ha
+from .helpers import file_exists, get_daily_request_count, notify_ha, translate_error
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
@@ -291,7 +291,8 @@ async def async_setup_platform(
     def get_sensor(service: ServiceCall) -> Neviweb130Sensor:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
+            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
+            raise ServiceValidationError(msg)
 
         nonlocal entity_map
         if entity_map is None:
@@ -300,14 +301,17 @@ async def async_setup_platform(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        raise ServiceValidationError("Entities not finished loading, try again shortly")
+                        msg = translate_error(hass, "entities_not_ready")
+                        raise ServiceValidationError(msg)
 
         sensor = entity_map.get(entity_id)
         if sensor is None:
-            raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} sensor")
+            msg = translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="sensor")
+            raise ServiceValidationError(msg)
 
         if not isinstance(sensor, Neviweb130Sensor):
-            raise ServiceValidationError(f"Entity {entity_id} must be a Neviweb130Sensor")
+            msg = translate_error(hass, "entity_must_be_domain", entity=entity_id)
+            raise ServiceValidationError(msg)
 
         return cast(Neviweb130Sensor, sensor)
 
@@ -338,7 +342,8 @@ async def async_setup_platform(
         """Set tank type for fuel tank."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} cannot be used with this service")
+            msg = translate_error(hass, "cannot_use_entity", entity=sensor.entity_id)
+            raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
         sensor.set_tank_type(value)
         sensor.schedule_update_ha_state(True)
@@ -347,7 +352,10 @@ async def async_setup_platform(
         """Set gauge type for propane tank."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} must be a {DOMAIN} tank sensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
         sensor.set_gauge_type(value)
         sensor.schedule_update_ha_state(True)
@@ -356,7 +364,10 @@ async def async_setup_platform(
         """Set low fuel alert on tank, propane or oil."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} must be a {DOMAIN} tank sensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {
             "id": sensor.unique_id,
             "low": service.data[ATTR_FUEL_PERCENT_ALERT],
@@ -368,7 +379,10 @@ async def async_setup_platform(
         """Set tank height for oil tank."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {
             "id": sensor.unique_id,
             "height": service.data[ATTR_TANK_HEIGHT],
@@ -380,7 +394,10 @@ async def async_setup_platform(
         """Set fuel alert for LM4110-ZB."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
         sensor.set_fuel_alert(value)
         sensor.schedule_update_ha_state(True)
@@ -389,7 +406,10 @@ async def async_setup_platform(
         """Set refuel alert for LM4110-ZB."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
         sensor.set_refuel_alert(value)
         sensor.schedule_update_ha_state(True)
@@ -398,7 +418,10 @@ async def async_setup_platform(
         """Set battery alert for LM4110-ZB."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130TankSensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="tank sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
         sensor.set_battery_alert(value)
         sensor.schedule_update_ha_state(True)
@@ -414,7 +437,10 @@ async def async_setup_platform(
         """Set Neviweb global status, home or away."""
         sensor = get_sensor(service)
         if not isinstance(sensor, Neviweb130GatewaySensor):
-            raise ServiceValidationError(f"Entity {sensor.entity_id} is not a Neviweb130GatewaySensor")
+            msg = translate_error(
+                hass, "entity_must_be_domain", entity=sensor.entity_id, domain=DOMAIN, platform="gateway sensor"
+            )
+            raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
         sensor.set_neviweb_status(value)
         sensor.schedule_update_ha_state(True)
@@ -622,10 +648,16 @@ class Neviweb130Sensor(Entity):
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            self.notify_ha(
-                                f"Warning: Neviweb Device error detected: {device_data[ATTR_WATER_LEAK_STATUS]} "
-                                f"for device: {self._name}, id: {self._id}, Sku: {self._sku}, Leak sensor disconnected"
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=device_data[ATTR_WATER_LEAK_STATUS],
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
+                            self.notify_ha(msg)
                             self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         else:
                             self._leak_status = (
@@ -668,7 +700,7 @@ class Neviweb130Sensor(Entity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     @override
@@ -742,7 +774,7 @@ class Neviweb130Sensor(Entity):
     @property
     def leak_status(self):
         """Return current sensor leak status: 'water' or 'ok'."""
-        return self._leak_status is not None
+        return self._leak_status
 
     @property
     def icon_type(self) -> str | None:
@@ -862,24 +894,25 @@ class Neviweb130Sensor(Entity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            _LOGGER.warning("Session expired... Reconnecting...")
+            msg = translate_error(self.hass, "usr_session")
+            _LOGGER.warning(msg)
             if NOTIFY == "notification" or NOTIFY == "both":
-                self.notify_ha(
-                    "Warning: Got USRSESSEXP error, Neviweb session expired. "
-                    "Set your scan_interval parameter to less than 10 minutes to avoid this... Reconnecting..."
-                )
+                self.notify_ha(msg)
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
-            _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
+            msg = translate_error(self.hass, "daily_access")
+            _LOGGER.warning(msg)
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            _LOGGER.warning("Access blocked for maintenance... Retry later")
-            self.notify_ha("Warning: Neviweb access temporary blocked for maintenance... Retry later")
+            msg = translate_error(self.hass, "maintenance")
+            _LOGGER.warning(msg)
+            self.notify_ha(msg)
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            _LOGGER.warning("Maximum session number reached... Close other connections and try again")
-            self.notify_ha("Warning: Maximum Neviweb session number reached... Close other connections and try again")
+            msg = translate_error(self.hass, "access_limit")
+            _LOGGER.warning(msg)
+            self.notify_ha(msg)
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -891,10 +924,11 @@ class Neviweb130Sensor(Entity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer",
+                "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
                 self._name,
                 str(self._id),
                 self._sku,
+                str(self._device_model),
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -941,26 +975,21 @@ class Neviweb130Sensor(Entity):
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
-                self.notify_ha(
-                    "Warning: Received message from Neviweb, device "
-                    + "disconnected... Check your log... Neviweb update will "
-                    + "be halted for 20 minutes for "
-                    + self._name
-                    + ", id: "
-                    + str(self._id)
-                    + ", Sku: "
-                    + self._sku
-                )
+                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+                self.notify_ha(msg)
             self._active = False
             self._snooze = time.time()
         else:
-            _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
-                self._name,
-                str(self._id),
-                error_data,
-                self._sku,
+            msg = translate_error(
+                self.hass,
+                "unknown_error",
+                name=self._name,
+                id=self._id,
+                sku=self._sku,
+                model=str(self._device_model),
+                data=error_data,
             )
+            _LOGGER.warning(msg)
 
 
 class Neviweb130ConnectedSensor(Neviweb130Sensor):
@@ -1005,10 +1034,16 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            self.notify_ha(
-                                f"Warning: Neviweb Device error detected: {device_data[ATTR_WATER_LEAK_STATUS]} "
-                                f"for device: {self._name}, id: {self._id}, Sku: {self._sku}, Leak sensor disconnected"
+                            msg = translate_error(
+                                self.hass,
+                                "error_code",
+                                code=device_data[ATTR_WATER_LEAK_STATUS],
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
+                            self.notify_ha(msg)
                             self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         else:
                             self._leak_status = (
@@ -1040,7 +1075,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     def extra_state_attributes(self):
@@ -1126,15 +1161,10 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 if "errorCode" not in device_data:
                     self._angle = device_data[ATTR_ANGLE]["value"]
                     if self._angle == -2:
-                        self.notify_ha(
-                            "Warning: Tank monitor gauge disconnected: "
-                            + " for device: "
-                            + self._name
-                            + ", id: "
-                            + str(self._id)
-                            + ", Sku: "
-                            + self._sku
+                        msg = translate_error(
+                            self.hass, "gauge_disconnected", name=self._name, id=self._id, sku=self._sku
                         )
+                        self.notify_ha(msg)
                     self._sampling = device_data[ATTR_ANGLE][ATTR_SAMPLING]
                     self._tank_percent = device_data[ATTR_TANK_PERCENT]
                     self._tank_type = device_data[ATTR_TANK_TYPE]
@@ -1151,16 +1181,16 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                self.notify_ha(
-                                    "Warning: Neviweb Device error code detected: "
-                                    + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                    + " for device: "
-                                    + self._name
-                                    + ", id: "
-                                    + str(self._id)
-                                    + ", Sku: "
-                                    + self._sku
+                                msg = translate_error(
+                                    self.hass,
+                                    "error_code",
+                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
                                 )
+                                self.notify_ha(msg)
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
@@ -1170,7 +1200,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha("Warning: Neviweb Device update restarted for " + self._name + ", Sku: " + self._sku)
+                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
 
     @property
     @override
@@ -1438,7 +1468,8 @@ class NeviwebDailyRequestSensor(Entity):
         # Secure limit for notification
         if count > 25000 and not self._notified:
             self._notified = True
-            notify_ha(self.hass, f"Warning : {count} today request. Limit : 30000.")
+            msg = translate_error(self.hass, "request_count", count=count, limit=25000)
+            notify_ha(self.hass, msg)
 
         # Reset du flag si on change de jour
         data = self.hass.data[DOMAIN]["request_data"]

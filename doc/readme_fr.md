@@ -32,6 +32,7 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [Journalisation](#journalisation-pour-le-debogage)
 - [Éco-Sinopé](#capter-le-signal-eco-sinope-de-neviweb-pour-les-periodes-de-pointe)
 - [Statistiques d'énergie](#statistiques-pour-lenergie)
+- [Localisation (language)](#localisation)
 - [Statistiques de débit](#statistique-pour-le-capteur-de-debit-sedna)
 - [Dépannage](#depannage)
 - [Personnalisation](#personnalisation)
@@ -98,12 +99,21 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé DM2500ZB-G2, gradateur nouvelle génération
   - Sinopé DM2550ZB, gradateur
   - Sinopé DM2550ZB-G2, gradateur
+- **éclairage Zigbee connecté directement à la valve Sedna**:
+  - Sinopé SW2500ZB-VA, Interrupteur
+  - Sinopé DM2500ZB-VA, gradateur
+  - Sinopé DM2550ZB-VA, gradateur
 - **Contrôle spécialisé Zigbee**:
   - Sinopé RM3250ZB, Contrôleur de charge 50A
   - Sinopé RM3500ZB, Contrôleur de charge Calypso pour chauffe-eau 20,8A 
   - Sinopé SP2610ZB, prise murale
   - Sinopé SP2600ZB, prise portable intelligente
   - Sinopé MC3100ZB, multicontrôleur pour système d'alarme et valve Sedna
+- **Contrôle spécialisé Zigbee connecté directement à la valve Sedna**:
+  - Sinopé RM3250ZB-VA, Contrôleur de charge 50A 
+  - Sinopé SP2610ZB-VA, prise murale
+  - Sinopé SP2600ZB-VA, prise portable intelligente
+  - Sinopé MC3100ZB-VA, multicontrôleur pour système d'alarme et valve Sedna
 - **Contrôle spécialisé Wi-Fi**:
   - Sinopé RM3500WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
   - Sinopé RM3510WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
@@ -145,8 +155,9 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
  
 ## Prerequis
 Vous devez connecter vos appareils à une passerelle Web GT130 et les ajouter dans votre portail Neviweb avant de pouvoir 
-interagir avec eux dans Home Assistant. Pour les appareils Wi-Fi vous devez les connecter directement à Neviweb. Veuillez
-vous référer au manuel d'instructions de votre appareil ou visiter [Assistance Neviweb](https://support.sinopetech.com/)
+interagir avec eux dans Home Assistant. Pour les appareils Wi-Fi vous devez les connecter directement à Neviweb. Certain 
+appareils Zigbee peuvent être connectés à une valve Sedna connectée directement à Neviweb et agissant comme une passerelle.
+Veuillez vous référer au manuel d'instructions de votre appareil ou visiter [Assistance Neviweb](https://support.sinopetech.com/)
 
 Les appareils Wi-Fi peuvent être connectés au même réseau (emplacement) que les appareils GT130 Zigbee ou dans un réseau séparé.
 **Neviweb130** supporte jusqu'à trois réseaux dans Neviweb.
@@ -186,6 +197,9 @@ Il existe deux méthodes pour installer ce composant personnalisé :
       configuration.yaml
       custom_components/
         neviweb130/
+          translations/
+            en.json
+            fr.json
           __init__.py
           climate.py
           const.py
@@ -195,6 +209,7 @@ Il existe deux méthodes pour installer ce composant personnalisé :
           schema.py
           sensor.py
           services.yaml
+          strings.json
           switch.py
           update.py
           valve.py
@@ -553,6 +568,7 @@ ou pour changer certains paramètres des appareils. Ces services personnalisés 
 - neviweb130.set_temperature_offset, pour ajuster la calibration sur le capteur de température de -2 à 2°C par incrément de 0,5°C, pour TH6xxxWF.
 - neviweb130.set_aux_heating_source, pour sélectionner le type de source de chauffage d'appoint utilisé pour le TH6xxxWF.
 - neviweb130.set_fan_speed, pour régler la vitesse du ventilateur, activé ou automatique pour TH6xxxWF.
+- neviweb130.set_switch_temp_alert, pour régler la fonction d'envoi d'alerte de basse température pour les MC3100ZB.
 
 ## Journalisation pour le debogage
 
@@ -649,6 +665,12 @@ template:
           {{ state_attr("climate.neviweb130_th1124zb_basement","hourly_kwh") }}
 ```
 
+## Localisation
+Neviweb130 est désormais traduit en français pour les messages d'erreurs et de notifications. La traduction se fait 
+automatiquement en fonction de votre configuration HA pour la langue. Désormais, le français et l'anglais sont pris 
+en charge. N'importe quelle langue peut être ajoutée en traduisant le fichier en.json situé dans le répertoire 
+'translations' vers une autre langue.
+
 ## Statistique pour le capteur de debit Sedna
 Sept attributs sont ajoutés pour suivre la consommation d'eau de la valve Sedna. Ils sont affichés en m³ (mètre cube), ce qui correspond aux 
 data que le module énergie recherche :
@@ -729,6 +751,8 @@ informations plus détaillées.
 ### Messages d'erreur reçus de Neviweb
 Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb :
 - ACCDAYREQMAX : Requête quotidienne maximale atteinte (« quotidienne » : 30000)... Réduire la fréquence d'interrogation (scan_interval).
+- ACCRATELIMIT: Limite maximale de tentatives de connexion atteinte lors de la connexion à Neviweb. Connexions trop fréquentes.
+  Veuillez patienter quelques minutes avant le redémarrage de HA.
 - ACCSESSEXC : Plusieurs sessions ouvertes en même temps. Ceci est courant si vous redémarrez Home Assistant plusieurs fois et/ou si vous 
   ayez également une session ouverte sur Neviweb.
 - DVCACTNSPTD : Action du périphérique non prise en charge. L'appel de service n'est pas pris en charge pour cet appareil spécifique.

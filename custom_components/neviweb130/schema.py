@@ -785,6 +785,13 @@ SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
     }
 )
 
+SET_SWITCH_TEMP_ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+        vol.Required(ATTR_TEMP_ALERT): vol.In([0, 5]),
+    }
+)
+
 SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,

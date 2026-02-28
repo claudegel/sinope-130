@@ -10,6 +10,7 @@ from logging.handlers import RotatingFileHandler
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.translation import async_get_translations
 
 from .const import DOMAIN
 
@@ -291,3 +292,30 @@ def file_exists(hass, path: str) -> bool:
         return os.path.isfile(full_path)
     except Exception:
         return False
+
+
+# ─────────────────────────────────────────────
+# Translate error messages
+# ─────────────────────────────────────────────
+
+
+def translate_error(hass, key: str, **placeholders):
+    """Translate an error message using HA translation system (sync wrapper)."""
+
+    async def _async_translate():
+        translations = await async_get_translations(
+            hass,
+            hass.config.language,
+            "neviweb130",
+        )
+
+        full_key = f"component.neviweb130.error.{key.lower()}"
+        msg = translations.get(full_key)
+
+        if msg:
+            return msg.format(**placeholders)
+
+        return key
+
+    # Run async translation safely from sync context
+    return asyncio.run_coroutine_threadsafe(_async_translate(), hass.loop).result()

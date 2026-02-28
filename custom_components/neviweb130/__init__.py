@@ -159,7 +159,13 @@ from .const import (
     STARTUP_MESSAGE,
     VERSION,
 )
-from .helpers import fetch_release_notes, increment_request_counter, init_request_counter, setup_logger
+from .helpers import (
+    fetch_release_notes,
+    increment_request_counter,
+    init_request_counter,
+    setup_logger,
+    translate_error,
+)
 from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -543,10 +549,13 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error("Cannot submit login form... Check your network or firewall")
+            msg = translate_error(self.hass, "login_submit_failed")
+            raise PyNeviweb130Error(msg)
         if raw_res.status_code != 200:
             _LOGGER.debug("Login status: %s", raw_res.json())
-            raise PyNeviweb130Error("Cannot log in")
+            data = raw_res.json()
+            msg = translate_error(self.hass, "login_failed", code=data["error"]["code"])
+            raise PyNeviweb130Error(msg)
 
         # Update cookies
         if self._cookies is None:
@@ -558,19 +567,13 @@ class Neviweb130Client:
         _LOGGER.debug("Login response: %s", data)
         if "error" in data:
             if data["error"]["code"] == "ACCSESSEXC":
-                raise ConfigEntryNotReady(
-                    "Too many active sessions. "
-                    "Close all neviweb130 sessions you have opened on other platform (mobile, browser, ...). "
-                    "If this error persists, deactivate this integration (or shutdown homeassistant), "
-                    f"wait a few minutes, then reactivate (or restart) it. Error code: {data['error']['code']}"
-                )
+                msg = translate_error(self.hass, "too_many_sessions", code=data["error"]["code"])
+                raise ConfigEntryNotReady(msg)
             elif data["error"]["code"] == "USRBADLOGIN":
-                raise ConfigEntryAuthFailed(
-                    "Invalid Neviweb username and/or password... "
-                    f"Check your configuration parameters. Error code: {data['error']['code']}"
-                )
-
-            raise ConfigEntryError(f"Unknown error while logging to Neviweb. Error code: {data['error']['code']}")
+                msg = translate_error(self.hass, "bad_credentials", code=data["error"]["code"])
+                raise ConfigEntryAuthFailed(msg)
+            msg = translate_error(self.hass, "unknown_login_error", code=data["error"]["code"])
+            raise ConfigEntryError(msg)
 
         self.user = data["user"]
         self._headers = {"Session-Id": data["session"]}
@@ -582,7 +585,8 @@ class Neviweb130Client:
         increment_request_counter(self.hass)
         # Http requests
         if self._account is None:
-            raise ConfigEntryAuthFailed("Account ID is empty, check your username and password to log into Neviweb...")
+            msg = translate_error(self.hass, "account_id_empty")
+            raise ConfigEntryAuthFailed(msg)
 
         try:
             raw_res = requests.get(
@@ -703,7 +707,8 @@ class Neviweb130Client:
                                 f"discovered network {network['name']}, skipping this one..."
                             )
         except OSError:
-            raise PyNeviweb130Error("Cannot get Neviweb's networks")
+            msg = translate_error(self.hass, "networks_fetch_failed")
+            raise PyNeviweb130Error(msg)
 
         # Update cookies
         if self._cookies is None:
@@ -720,11 +725,8 @@ class Neviweb130Client:
         # Check if gateway_id was set
         if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
             _LOGGER.warning("No gateway defined, check your config for networks names...")
-            self.notify_ha(
-                "All Gateway ID are None. Network selection failed. "
-                + "Check that your configuration network names match one of the networks in your Neviweb account. "
-                + "Available networks were logged during network selection. Check your log"
-            )
+            msg = translate_error(self.hass, "no_gateway_defined")
+            self.notify_ha(msg, title=translate_error(self.hass, "notification_title"))
         # Http requests
         try:
             raw_res = requests.get(
@@ -735,7 +737,8 @@ class Neviweb130Client:
             )
             _LOGGER.debug("Received gateway data: %s", raw_res.json())
         except OSError:
-            raise PyNeviweb130Error("Cannot get gateway data")
+            msg = translate_error(self.hass, "gateway_data_failed")
+            raise PyNeviweb130Error(msg)
 
         # Update cookies
         if self._cookies is None:
@@ -757,7 +760,8 @@ class Neviweb130Client:
                 )
                 _LOGGER.debug("Received gateway data 2: %s", raw_res2.json())
             except OSError:
-                raise PyNeviweb130Error("Cannot get gateway data 2")
+                msg = translate_error(self.hass, "gateway_data2_failed")
+                raise PyNeviweb130Error(msg)
 
             # Prepare data
             self.gateway_data2 = raw_res2.json()
@@ -773,7 +777,8 @@ class Neviweb130Client:
                 )
                 _LOGGER.debug("Received gateway data 3: %s", raw_res3.json())
             except OSError:
-                raise PyNeviweb130Error("Cannot get gateway data 3")
+                msg = translate_error(self.hass, "gateway_data3_failed")
+                raise PyNeviweb130Error(msg)
 
             # Prepare data
             self.gateway_data3 = raw_res3.json()
@@ -786,13 +791,8 @@ class Neviweb130Client:
             _LOGGER.debug("Received signature data: %s", data)
             if data[ATTR_SIGNATURE]["protocol"] == "miwi":
                 if not self._ignore_miwi:
-                    _LOGGER.debug(
-                        "The Neviweb location selected for parameter «network» contain unsupported device "
-                        "with protocol miwi. If this location contain only miwi devices, "
-                        "it should be added to custom_component «sinope neviweb» instead. "
-                        "If the location contain mixed miwi, Zigbee and/or Wi-Fi devices, "
-                        "add parameter: ignore_miwi: True, in your neviweb130 configuration"
-                    )
+                    msg = translate_error(self.hass, "ignore_miwi", param="«network»")
+                    _LOGGER.debug(msg)
         if self._gateway_id2 is not None:
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
@@ -801,13 +801,8 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data: %s", data2)
                 if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
                     if not self._ignore_miwi:
-                        _LOGGER.debug(
-                            "The Neviweb location selected for parameter «network2» contain unsupported device "
-                            "with protocol miwi. If this location contain only miwi devices, "
-                            "it should be added to custom_component «sinope neviweb» instead. "
-                            "If the location contain mixed miwi, Zigbee and/or Wi-Fi devices, "
-                            "add parameter: ignore_miwi: True, in your neviweb130 configuration"
-                        )
+                        msg = translate_error(self.hass, "ignore_miwi", param="«network2»")
+                        _LOGGER.debug(msg)
         if self._gateway_id3 is not None:
             for device in self.gateway_data3:
                 data3 = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
@@ -816,13 +811,8 @@ class Neviweb130Client:
                 _LOGGER.debug("Received signature data: %s", data3)
                 if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
                     if not self._ignore_miwi:
-                        _LOGGER.debug(
-                            "The Neviweb location selected for parameter «network3» contain unsupported device "
-                            "with protocol miwi. If this location contain only miwi devices, "
-                            "it should be added to custom_component «sinope neviweb» instead. "
-                            "If the location contain mixed miwi, Zigbee and/or Wi-Fi devices, "
-                            "add parameter: ignore_miwi: True, in your neviweb130 configuration"
-                        )
+                        msg = translate_error(self.hass, "ignore_miwi", param="«network3»")
+                        _LOGGER.debug(msg)
 
     def get_device_attributes(self, device_id: str, attributes: list[str]) -> dict[str, Any]:
         """Get device attributes."""
@@ -849,9 +839,8 @@ class Neviweb130Client:
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
                 # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
@@ -875,9 +864,8 @@ class Neviweb130Client:
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
                 # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
@@ -900,9 +888,8 @@ class Neviweb130Client:
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
-                )
+                msg = translate_error(self.hass, "location_status", param=location)
+                _LOGGER.error(msg)
                 # raise PyNeviweb130Error("Session expired...reconnecting...")
         return data
 
@@ -921,7 +908,7 @@ class Neviweb130Client:
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
         except Exception as e:
-            raise PyNeviweb130Error("Cannot get device alert", e)
+            raise PyNeviweb130Error(translate_error(self.hass, "device_alert", id=device_id), e)
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -931,9 +918,8 @@ class Neviweb130Client:
         data = raw_res.json()
         if "error" in data:
             if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    "Session expired. Set a scan_interval less than 10 minutes, otherwise the session will end"
-                )
+                msg = translate_error(self.hass, "usr_session")
+                _LOGGER.error(msg)
                 # raise PyNeviweb130Error("Session expired... Reconnecting...")
         return data
 
@@ -954,7 +940,8 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error("Cannot get device monthly stats...")
+            msg = translate_error(self.hass, "energy_stat", param="monthly", id=device_id)
+            raise PyNeviweb130Error(msg)
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -988,7 +975,8 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error("Cannot get device daily stats...")
+            msg = translate_error(self.hass, "energy_stat", param="daily", id=device_id)
+            raise PyNeviweb130Error(msg)
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -1022,7 +1010,8 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error("Cannot get device hourly stats...")
+            msg = translate_error(self.hass, "energy_stat", param="hourly", id=device_id)
+            raise PyNeviweb130Error(msg)
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -1052,7 +1041,8 @@ class Neviweb130Client:
                 timeout=self._timeout,
             )
         except OSError:
-            raise PyNeviweb130Error("Cannot get Neviweb weather and icon...")
+            msg = translate_error(self.hass, "weather_data", code=self._code)
+            raise PyNeviweb130Error(msg)
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -1162,7 +1152,8 @@ class Neviweb130Client:
             data = {ATTR_COOL_SETPOINT_AWAY: temperature}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_cool_setpoint_away is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_cool_setpoint_away")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_humidity(self, device_id: str, humidity):
         """Set device humidity target."""
@@ -1188,7 +1179,8 @@ class Neviweb130Client:
             data = {ATTR_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_schedule_mode is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_schedule_mode")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_heatcool_delta(self, device_id: str, level, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -1196,7 +1188,8 @@ class Neviweb130Client:
             data = {ATTR_HEATCOOL_SETPOINT_MIN_DELTA: level}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_heatcool_min_delta is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_heatcool_min_delta")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_fan_filter_reminder(self, device_id: str, month, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -1205,7 +1198,8 @@ class Neviweb130Client:
             data = {ATTR_FAN_FILTER_REMAIN: month_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_fan_filter_reminder is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_fan_filter_reminder")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_temperature_offset(self, device_id: str, temp, HC):
         """Set schedule mode for TH6500WF and TH6250WF."""
@@ -1213,7 +1207,8 @@ class Neviweb130Client:
             data = {ATTR_TEMP_OFFSET_HEAT: temp}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_temperature_offset is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_temperature_offset")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_humidity_offset(self, device_id: str, offset, HC):
         """Set humidity setpoint offset for TH6500WF and TH6250WF."""
@@ -1221,7 +1216,8 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_OFFSET: offset}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_offset is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_humidity_offset")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_humidity_mode(self, device_id: str, mode, HC):
         """Set humidity setpoint mode for TH6500WF and TH6250WF."""
@@ -1229,7 +1225,8 @@ class Neviweb130Client:
             data = {ATTR_HUMIDITY_SETPOINT_MODE: mode}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_humidity_mode is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_humidity_mode")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_air_ex_min_time_on(self, device_id: str, time, HC):
         """Set minimum time the air exchanger is on per hour."""
@@ -1247,7 +1244,8 @@ class Neviweb130Client:
             data = {ATTR_AIR_EX_MIN_TIME_ON: time_val}
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_air_ex_time_on is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_air_ex_time_on")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_heat_installation_type(self, device_id: str, type_val: str):
         """Set heater installation type (add-on or conventional)."""
@@ -1604,6 +1602,15 @@ class Neviweb130Client:
         _LOGGER.debug("valve.data = %s", data)
         self.set_device_attributes(device_id, data)
 
+    def set_switch_temp_alert(self, device_id: str, temp):
+        """Set low temperature alert for MC3100ZB. 0 = off, 5 = on."""
+        if temp == 0:
+            temp = None
+
+        data = {ATTR_TEMP_ALERT: temp}
+        _LOGGER.debug("switch_temp_alert.data = %s", data)
+        self.set_device_attributes(device_id, data)
+
     def set_battery_type(self, device_id: str, batt):
         """Set water leak sensor battery type, lithium or alkaline."""
         data = {ATTR_BATTERY_TYPE: batt}
@@ -1834,7 +1841,8 @@ class Neviweb130Client:
             _LOGGER.debug("HC heat_dissipation_time.data = %s", data)
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_heat_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_heat_dissipation_time")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_cool_dissipation_time(self, device_id: str, time: int, HC):
         """Set cooling purge time for TH6500WF and TH6250WF thermostats."""
@@ -1843,7 +1851,8 @@ class Neviweb130Client:
             _LOGGER.debug("HC cool_dissipation_time.data = %s", data)
             self.set_device_attributes(device_id, data)
         else:
-            self.notify_ha("Warning: Service set_cool_dissipation_time is only for TH6500WF or TH6250WF thermostats")
+            msg = translate_error(self.hass, "heat_cool_warning", code="set_cool_dissipation_time")
+            self.notify_ha(msg, title=translate_error(self.hass, "service_warning"))
 
     def set_reversing_valve_polarity(self, device_id: str, polarity: str):
         """Set minimum time the heater is on before letting be off again (run-on time).
@@ -1979,7 +1988,8 @@ class Neviweb130Client:
                     result,
                 )
             except OSError:
-                raise PyNeviweb130Error("Cannot set device %s attributes: %s", device_id, data)
+                msg = translate_error(self.hass, "set_attribute", id=device_id, data=data)
+                raise PyNeviweb130Error(msg)
 
     def post_neviweb_status(self, location: int | str, mode: str):
         """Send post requests to Neviweb for global occupancy mode"""
@@ -1999,6 +2009,7 @@ class Neviweb130Client:
             _LOGGER.debug("Requests response = %s", resp.status_code)
             _LOGGER.debug("Json Data received= %s", resp.json())
         except OSError:
-            raise PyNeviweb130Error("Cannot post Neviweb: %s", data)
+            msg = translate_error(self.hass, "neviweb_status", location=location, data=data)
+            raise PyNeviweb130Error(msg)
         if "error" in resp.json():
             _LOGGER.debug("Service error received: %s", resp.json())

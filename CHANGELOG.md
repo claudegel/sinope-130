@@ -2,6 +2,28 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.0] - 2026-02-__
+### Added
+- Add english and french translation json files.
+- Add localisation for all error message, notification, warning etc.
+- Add translation helpers for localisation.
+- Add translation for updater.
+- Add set_switch_temp_alert service for MC3100ZB device.
+- Add support for MC3100ZB, RM3250ZB connected directly to Sedna valve.
+- Add support for SW2500ZB, DM25x0ZB connected to Sedna valve.
+- Add support for SP26x0ZB connected to Sedna valve.
+
+### Fix
+- Fix leak sensor icons display.
+- Fix wrong self._name in _LOGGER.
+- Add better validation of weather data received from Neviweb.
+
+### Doc
+- Add documentation on language available.
+- Add set_switch_temp_alert service description.
+- Add list of supported Zigbee devices connected directly to Sedna valve.
+- Add same to french documentation.
+
 ## [v4.1.2] - 2026-02-14
 ### Added
 - Add icon file selection based on pi_heating_demand for thermostats.
