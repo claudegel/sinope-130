@@ -17,11 +17,12 @@ from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfTime
 from homeassistant.core import CoreState
+from homeassistant.helpers.issue_registry import async_create_issue, IssueSeverity
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 from logging.handlers import RotatingFileHandler
-from .const import SIGNAL_EVENTS_CHANGED, VERSION
+from .const import RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -914,42 +915,59 @@ async def check_weather_icons_folder(hass):
 # ─────────────────────────────────────────────
 
 
-def translate_error(hass, key: str, **kwargs) -> str:
-    return hass.helpers.translation.async_translate(
-        f"component.neviweb130.config.error.{key}",
-        kwargs or None
+async def translate_error(hass, key: str, **placeholders):
+    """Translate an error message using HA translation system."""
+    translations = await async_get_translations(
+        hass,
+        hass.config.language,
+        "neviweb130",
     )
 
+    # keys are in the form of "component.neviweb130.error.key"
+    full_key = f"component.neviweb130.error.{key}"
 
-def translate_neviweb_error(self, err):
-    """Translate Neviweb error structure into a human-readable message."""
+    msg = translations.get(full_key)
+    if msg:
+        return msg.format(**placeholders)
 
-    # Case 1 : Neviweb structured response {"error": {...}}
+    return key
+
+
+async def translate_neviweb_error(self, err, **placeholders):
+    hass = self.hass
+
+    # Log
+    _LOGGER.debug("Neviweb error received: %s", err)
+
+    # Load translations once
+    translations = await async_get_translations(
+        hass,
+        hass.config.language,
+        "neviweb130",
+    )
+
+    # Case 1 : structured error
     if isinstance(err, dict) and "error" in err:
         code = err["error"].get("code")
         data = err["error"].get("data", {})
 
-        # We try a translation bade on code
-        msg = self.hass.helpers.translation.async_translate(
-            f"component.neviweb130.config.error.{code}",
-            data
-        )
-        if msg:
-            return msg
+        if code:
+            key = f"component.neviweb130.error.{code.lower()}"
+            msg = translations.get(key)
+            if msg:
+                return msg.format(**placeholders)
 
-        # Fallback if no translation available
         return f"Neviweb error {code}: {data}"
 
-    # Case 2 : error is already a simple code
+    # Case 2 : simple code
     if isinstance(err, str):
-        msg = self.hass.helpers.translation.async_translate(
-            f"component.neviweb130.config.error.{err}"
-        )
+        key = f"component.neviweb130.error.{err.lower()}"
+        msg = translations.get(key)
         if msg:
-            return msg
+            return msg.format(**placeholders)
         return err
 
-    # Case 3 : Python exceptions
+    # Case 3 : Python exception
     if isinstance(err, Exception):
         return str(err)
 
@@ -1023,6 +1041,89 @@ async def async_apply_device_update(
         setattr(entity, attr_name, new_value)
 
     return True
+
+
+# ─────────────────────────────────────────────
+# Create issue in specific case
+# ─────────────────────────────────────────────
+
+
+def create_issue(
+    hass,
+    issue_id: str,
+    translation_key: str,
+    severity: IssueSeverity = IssueSeverity.WARNING,
+    fixable: bool = False,
+    **placeholders,
+):
+    """Create a Home Assistant issue for Neviweb130."""
+    async_create_issue(
+        hass=hass,
+        domain="neviweb130",
+        issue_id=issue_id,
+        is_fixable=fixable,
+        severity=severity,
+        translation_key=translation_key,
+        translation_placeholders=placeholders or None,
+    )
+
+
+# ─────────────────────────────────────────────
+# Return safe attribute and safe value for issues
+# ─────────────────────────────────────────────
+
+
+BASE_DOC_URL = "https://github.com/claudegel/sinope-130/wiki"
+
+def get_doc_url(attribute: str) -> str:
+    """Return documentation URL for a risky attribute."""
+    if attribute in RISKY_ATTRIBUTES:
+        return f"{BASE_DOC_URL}/{attribute}"
+    return f"{BASE_DOC_URL}/Risky-Attributes"
+
+def _sanitize(text: str) -> str:
+    """Sanitize text for use in issue_id."""
+    return (
+        str(text)
+        .lower()
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace(":", "_")
+        .replace(".", "_")
+        .replace("/", "_")
+    )
+
+def create_risky_issue(hass, entity_id: str, attribute: str, value):
+    """Create a risky attribute issue with a safe issue_id."""
+
+    safe_attribute = _sanitize(attribute)
+
+    # Normalisation de la valeur selon son type
+    if isinstance(value, bool):
+        safe_value = "on" if value else "off"
+    else:
+        safe_value = _sanitize(value)
+
+    issue_id = f"risky_{safe_attribute}_{safe_value}"
+
+    doc_url = get_doc_url(attribute)
+
+    _LOGGER.warning(
+        "Risky attribute '%s' modified on entity %s with value %s",
+        attribute,
+        entity_id,
+        value,
+    )
+
+    create_issue(
+        hass,
+        issue_id=issue_id,
+        translation_key="dangerous_attribute_change",
+        entity=entity_id,
+        attribute=attribute,
+        value=value,
+        doc_url=doc_url,
+    )
 
 
 #await async_notify_throttled(
