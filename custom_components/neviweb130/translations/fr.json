@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Neviweb130: gestion Sinopé Zigbee et Wi-Fi.",
-        "description": "Entrer les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervale de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "description": "Entrer les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
         "data": {
           "prefix": "Compte Neviweb, optionel pour le premier compte.",
           "username": "Courriel pour Neviweb",
@@ -21,7 +21,7 @@
       },
       "reconfigure":{
         "title": "Neviweb130: reconfiguration.",
-        "description": "Modifier les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervale de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "description": "Modifier les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
         "data": {
           "prefix": "Compte Neviweb, requis pour tous les comptes, défini comme 'default' pour le premier.",
           "username": "Courriel pour Neviweb",
@@ -114,7 +114,7 @@
       "update_fail": "La restauration n'a pas pu être effectuée. Intervention manuelle requise.",
       "service_failed": "Le service {service} a échoué : {error}",
       "critical_service_failed": "Erreur critique lors de l'exécution du service {service} : {error}",
-      "VALINVLD": "Valeur invalide {value} pour l’attribut {name}."
+      "valinvld": "Valeur invalide {value} pour l’attribut {name}."
     }
   },
   "options": {
