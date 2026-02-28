@@ -603,7 +603,12 @@
   },
   "device": {},
   "services": {},
-  "issues": {},
+  "issues": {
+    "dangerous_attribute_change": {
+      "title": "Modification d’attribut risquée",
+      "description": "La modification de l’attribut {attribute}\npour l’entité {entity}\npeut entraîner un comportement imprévisible ou risqué de l’appareil.\nValeur tentée : {value}.\n\nPour plus d’informations, consultez : {doc_url}"
+    }
+  },
   "notifications": {
     "weather_icons_folder_missing": "Le dossier /local/neviweb130/weather est manquant. Les icônes météo ne seront pas affichées. Voir la documentation pour de l'aide.",
     "weather_icons_folder_empty": "Le dossier /local/neviweb130/weather est vide. Aucune icône météo ne sera affichée. Voir la documentation pour de l'aide."
