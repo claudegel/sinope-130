@@ -16,7 +16,7 @@
       "no_gateway_defined": "All Gateway ID are None.\nNetwork selection failed. Check that your configuration network names match one of the networks in your Neviweb account.\nAvailable networks were logged during network selection. Check your log.",
       "notification_title": "Notice from neviweb130",
       "heat_cool_warning": "Warning: Service {code} is only for TH6500WF or TH6250WF thermostats.",
-      "Service_warning": "Service warning...",
+      "service_warning": "Service warning...",
       "entities_not_ready": "Entities not finished loading, try again shortly.",
       "entity_must_be_domain": "Entity {entity} must be a {domain} {platform}.",
       "missing_parameter": "Missing required parameter: {param}.",
@@ -52,7 +52,7 @@
       "no_stat": "Got None for device {param} stats for device {name}.",
       "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}.",
       "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
-      "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}) Report to maintainer. Data received: {data}.",
+      "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}), (Model: {model}). Report to maintainer. Data received: {data}.",
       "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval)."
     }
   }
