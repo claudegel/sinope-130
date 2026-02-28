@@ -3245,10 +3245,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)...(SKU: %s) Report to maintainer",
+                "Device action not supported for %s (id: %s)...(SKU: %s), (Model: %s). Report to maintainer",
                 self._name,
                 self._id,
                 self._sku,
+                str(self._device_model),
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -3326,13 +3327,16 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 self._sku,
             )
         else:
-            _LOGGER.warning(
-                "Unknown error for %s (id: %s): %s... (SKU: %s) Report to maintainer",
-                self._name,
-                self._id,
-                error_data,
-                self._sku,
+            msg = translate_error(
+                self.hass,
+                "unknown_error",
+                name=self._name,
+                id=self._id,
+                sku=self._sku,
+                model=str(self._device_model),
+                data=error_data,
             )
+            _LOGGER.warning(msg)
 
 
 class Neviweb130G2Thermostat(Neviweb130Thermostat):
