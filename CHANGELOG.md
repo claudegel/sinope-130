@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.0] - 2026-02-__
+## [v4.2.0] - 2026-02-28
 ### Added
 - Add english and french translation json files.
 - Add localisation for all error message, notification, warning etc.
