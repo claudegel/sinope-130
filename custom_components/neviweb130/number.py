@@ -18,9 +18,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES, RISKY_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
-from .helpers import NamingHelper
+from .helpers import create_risky_issue, NamingHelper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -429,6 +429,12 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
     @override
     async def async_set_native_value(self, value: float) -> None:
         """Change the selected number value."""
+        attribute = self._attribute
+
+        # Fire an issue if attribut is risky
+        if attribute in RISKY_ATTRIBUTES:
+            create_risky_issue(self.hass, self.entity_id, attribute, value)
+
         handler = self._ATTRIBUTE_METHODS.get(self._attribute)
 
         if handler:
