@@ -114,7 +114,7 @@
       "update_fail": "Rollback could not be completed. Manual intervention required.",
       "service_failed": "Service {service} failed: {error}",
       "critical_service_failed": "Critical error while executing service {service}: {error}",
-      "VALINVLD": "Invalid value {value} for attribute {name}."
+      "valinvld": "Invalid value {value} for attribute {name}."
     }
   },
   "options": {
