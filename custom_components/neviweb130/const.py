@@ -437,6 +437,20 @@ RUNTIME_COMPATIBLE_MODELS = {
 
 RUNTIME_PREFIXES = ["hourly"]
 
+RISKY_ATTRIBUTES = [
+    "aux_cycle_length",
+    "cool_lockout_temp",
+    "cycle_length",
+    "flowmeter_timer",
+    "flow_duration",
+    "heat_lockout_temp",
+    "lv_cycle_length",
+    "phase_control",
+    "pro_aux_cycle_length",
+    "wifi_aux_cycle_length",
+    "wifi_cycle_length",
+]
+
 # list attributes available for each device model
 MODEL_ATTRIBUTES = {
     # thermostats
