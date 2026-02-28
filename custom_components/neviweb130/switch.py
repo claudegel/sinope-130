@@ -120,6 +120,7 @@ from .const import (
     MODE_MANUAL,
     MODE_OFF,
     MODEL_ATTRIBUTES,
+    RISKY_ATTRIBUTES,
     SERVICE_SET_ACTIVATION,
     SERVICE_SET_CONTROL_ONOFF,
     SERVICE_SET_CONTROLLED_DEVICE,
@@ -146,6 +147,7 @@ from .helpers import (
     async_notify_once_or_update,
     async_notify_throttled,
     async_notify_critical,
+    create_risky_issue,
     NamingHelper,
     translate_error,
 )
@@ -1512,10 +1514,11 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             )
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s) Report to maintainer",
+                "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
                 self._name,
                 self._id,
                 self._sku,
+                str(self._device_model),
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -1578,6 +1581,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
+                model=str(self._device_model),
                 data=error_data,
             )
             _LOGGER.warning(msg)
@@ -2568,8 +2572,20 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch device on."""
+        attribute = self._attribute
+
+        # Fire an issue if attribut is risky
+        if attribute in RISKY_ATTRIBUTES:
+            create_risky_issue(self.hass, self.entity_id, attribute, True)
+
         await self._set_state(True)
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch device off."""
+        attribute = self._attribute
+
+        # Fire an issue if attribut is risky
+        if attribute in RISKY_ATTRIBUTES:
+            create_risky_issue(self.hass, self.entity_id, attribute, False)
+
         await self._set_state(False)
