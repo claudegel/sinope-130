@@ -535,8 +535,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             msg = translate_error(
                 self.hass,
-                "update_successfull",
-                version=version or self._latest_version,
+                "update_successful",
+                version=self._latest_version,
                 url=self.release_url,
             )
             await self.hass.services.async_call(
@@ -559,7 +559,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             msg = translate_error(
                 self.hass,
                 "update_fail",
-                version=version or self._latest_version,
+                version=self._latest_version,
                 url=self.release_url,
             )
             await self.hass.services.async_call(
@@ -591,7 +591,22 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     _LOGGER.warning("Rollback completed successfully")
                     self._rollback_status = "success"
                 else:
-                    _LOGGER.error("Rollback skipped: no local backup available")
+                    msg = translate_error(
+                        self.hass,
+                        "rollback_skip",
+                        version=self._latest_version,
+                        message="[See update notes]({self.release_url})",
+                    )
+                    await self.hass.services.async_call(
+                        "persistent_notification",
+                        "create",
+                        {
+                            "title": "Neviweb130 – Update failed",
+                            "message": msg,
+                            "notification_id": "neviweb130_update_status",
+                        },
+                    )
+                    _LOGGER.error(msg)
                     self._rollback_status = "skipped"
             except Exception as rb_err:
                 _LOGGER.error("Rollback failed: %s", rb_err)
