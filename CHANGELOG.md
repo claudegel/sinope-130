@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.1] - 2026-03-__
+## [v4.2.1] - 2026-03-05
 ### Added
 - Add translation for updater messages.
 - Add abort section in translation.
