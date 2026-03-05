@@ -3072,7 +3072,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 sku=self._sku,
             )
             self.notify_ha(msg)
-            _LOGGER.warning("New error code %s (%s)", raw_code, error_message)
+            _LOGGER.warning(msg)
             self._active_errors.add(raw_code)
 
         # Save last error code

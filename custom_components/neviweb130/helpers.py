@@ -309,13 +309,20 @@ def translate_error(hass, key: str, **placeholders):
             "neviweb130",
         )
 
-        full_key = f"component.neviweb130.error.{key.lower()}"
+        full_key = f"component.neviweb130.config.error.{key.lower()}"
         msg = translations.get(full_key)
 
         if msg:
             return msg.format(**placeholders)
 
-        return key
+        _LOGGER.warning(
+            "Missing translation for key '%s' (%s) in neviweb130 (%s).",
+            key,
+            full_key,
+            hass.config.language,
+        )
+
+        return f"[Missing translation: {key}] {key}"
 
     # Run async translation safely from sync context
     return asyncio.run_coroutine_threadsafe(_async_translate(), hass.loop).result()

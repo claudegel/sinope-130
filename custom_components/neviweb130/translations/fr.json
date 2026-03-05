@@ -2,6 +2,7 @@
   "title": "neviweb130",
   "config": {
     "step": {},
+    "abort": {},
     "error": {
       "login_submit_failed": "Impossible de soumettre le formulaire de connexion. Vérifiez votre réseau ou votre pare-feu.",
       "login_failed": "Impossible de se connecter à Neviweb. {code}.",
@@ -53,7 +54,10 @@
       "gauge_disconnected": "Avertissement: Jauge de surveillance du réservoir déconnectée: pour l'appareil: {name} id: {id}, Sku: {sku}.",
       "request_count": "Avertissement: {count} demandes aujourd'hui. Limite de sécurité: {limit}, Limite quotidienne: 30000.",
       "unknown_error": "Erreur inconnue pour {name} (id: {id}) (SKU: {sku}), (Modèle: {model}). Signaler au responsable. Données reçues: {data}.",
-      "daily_access": "Nombre de requête quotidienne maximale atteint... Augmenter l'intervalle d'interrogation de Neviweb, (scan_interval)."
+      "daily_access": "Nombre de requête quotidienne maximale atteint... Augmenter l'intervalle d'interrogation de Neviweb, (scan_interval).",
+      "update_successful": "La mise à jour vers la version {version} a été installée avec succès.\n[Voir les notes de mise à jour]({url}).",
+      "update_fail": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été rétablie.\n[Voir les notes de mise à jour]({url}).",
+      "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRestauration ignorée, aucune sauvegarde locale disponible.\n{message}."
     }
   }
 }
