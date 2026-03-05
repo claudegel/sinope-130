@@ -2,6 +2,7 @@
   "title": "neviweb130",
   "config": {
     "step": {},
+    "abort": {},
     "error": {
       "login_submit_failed": "Impossible de soumettre le formulaire de connexion. Vérifiez votre réseau ou votre pare-feu.",
       "login_failed": "Impossible de se connecter à Neviweb. {code}.",
