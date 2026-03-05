@@ -2,6 +2,7 @@
   "title": "neviweb130",
   "config": {
     "step": {},
+    "abort": {},
     "error": {
       "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
       "login_failed": "Cannot log in to Neviweb. {code}.",
