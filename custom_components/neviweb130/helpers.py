@@ -309,7 +309,7 @@ def translate_error(hass, key: str, **placeholders):
             "neviweb130",
         )
 
-        full_key = f"component.neviweb130.error.{key.lower()}"
+        full_key = f"component.neviweb130.config.error.{key.lower()}"
         msg = translations.get(full_key)
 
         if msg:
