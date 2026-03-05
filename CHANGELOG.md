@@ -9,6 +9,7 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Change path to retrieve error messages in translation.
+- Fix logging error message.
 
 ### Doc
 
