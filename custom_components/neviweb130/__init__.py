@@ -12,10 +12,17 @@ import aiohttp
 import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_SCAN_INTERVAL,
+    CONF_USERNAME,
+    EVENT_HOMEASSISTANT_STARTED,
+    Platform,
+)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady, IntegrationError
 from homeassistant.helpers import discovery, entity_registry
+from homeassistant.helpers.translation import async_get_translations
 from requests.cookies import RequestsCookieJar
 
 from .const import (
@@ -228,6 +235,21 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     _LOGGER.warning(STARTUP_MESSAGE)
 
     hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["translation_cache"] = None
+
+    async def _load_translations(event):
+        """Load translations into cache hass.data"""
+        _LOGGER.debug("Loading neviweb130 translations into hass.data...")
+
+        hass.data[DOMAIN]["translation_cache"] = await async_get_translations(
+            hass,
+            hass.config.language,
+            "config",
+            integrations=["neviweb130"],
+        )
+
+    # Load translations after HA has started
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _load_translations)
 
     # Initialise request counter
     init_request_counter(hass)
