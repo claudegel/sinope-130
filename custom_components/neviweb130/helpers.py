@@ -10,7 +10,6 @@ from logging.handlers import RotatingFileHandler
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.translation import async_get_translations
 
 from .const import DOMAIN
 
@@ -300,30 +299,23 @@ def file_exists(hass, path: str) -> bool:
 
 
 def translate_error(hass, key: str, **placeholders):
-    """Translate an error message using HA translation system (sync wrapper)."""
+    """Translate an error message using cached translations (sync)."""
+    cache = hass.data[DOMAIN].get("translation_cache")
 
-    async def _async_translate():
-        translations = await async_get_translations(
-            hass,
-            hass.config.language,
-            "config",
-            integrations=["neviweb130"],
-        )
+    if cache is None:
+        return f"[Missing translation: {key}]"
 
-        full_key = f"component.neviweb130.config.error.{key.lower()}"
-        msg = translations.get(full_key)
+    full_key = f"component.neviweb130.config.error.{key}"
+    msg = cache.get(full_key)
 
-        if msg:
-            return msg.format(**placeholders)
+    if msg:
+        return msg.format(**placeholders)
 
-        _LOGGER.warning(
-            "Missing translation for key '%s' (%s) in neviweb130 (%s).",
-            key,
-            full_key,
-            hass.config.language,
-        )
+    _LOGGER.warning(
+        "Missing translation for key '%s' (%s) in neviweb130 (%s).",
+        key,
+        full_key,
+        hass.config.language,
+    )
 
-        return f"[Missing translation: {key}] {key}"
-
-    # Run async translation safely from sync context
-    return asyncio.run_coroutine_threadsafe(_async_translate(), hass.loop).result()
+    return f"[Missing translation: {key}]"
