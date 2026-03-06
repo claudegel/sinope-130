@@ -306,7 +306,8 @@ def translate_error(hass, key: str, **placeholders):
         translations = await async_get_translations(
             hass,
             hass.config.language,
-            "neviweb130",
+            "config",
+            integrations=["neviweb130"],
         )
 
         full_key = f"component.neviweb130.config.error.{key.lower()}"
