@@ -269,16 +269,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     network3: str | None = entry.data.get("network3")
 
     if username is None:
-        raise ConfigEntryError(translate_error(hass, "username_missing"))
+        msg = await translate_error(hass, "username_missing")
+        raise ConfigEntryError(msg)
 
     if password is None:
-        raise ConfigEntryError(translate_error(hass, "password_missing"))
+        msg = await translate_error(hass, "password_missing")
+        raise ConfigEntryError(msg)
 
     global SCAN_INTERVAL
     try:
         SCAN_INTERVAL = get_scan_interval(entry)
     except ValueError:
-        msg = translate_error(hass, "scan_interval_error")
+        msg = await translate_error(hass, "scan_interval_error")
         raise ConfigEntryError(msg)
 
     _LOGGER.debug("Setting scan interval to: %s", SCAN_INTERVAL)
