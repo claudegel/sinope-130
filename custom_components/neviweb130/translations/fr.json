@@ -602,7 +602,541 @@
     }
   },
   "device": {},
-  "services": {},
+  "services": {
+    "set_climate_keypad_lock": {
+      "name": "Verrouillage du clavier du climatiseur",
+      "description": "Verrouille ou déverrouille le clavier d’un appareil climatique Zigbee.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130 dont vous souhaitez verrouiller ou déverrouiller le clavier."
+        },
+        "lockKeypad": {
+          "name": "Mode de verrouillage",
+          "description": "Statut du verrouillage : « locked » = Verrouillé, « unlocked » = Déverrouillé, « partiallyLocked » = Protection contre les manipulations. Non disponible pour les appareils HP6000ZB-xx."
+        }
+      }
+    },
+
+    "set_light_keypad_lock": {
+      "name": "Verrouillage du clavier de l’éclairage",
+      "description": "Verrouille ou déverrouille le clavier d’un appareil d’éclairage ou d’un gradateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil d’éclairage neviweb130 dont vous souhaitez verrouiller ou déverrouiller le clavier."
+        },
+        "lockKeypad": {
+          "name": "Mode de verrouillage",
+          "description": "Statut du verrouillage : « locked », « unlocked » ou « partiallyLocked »."
+        }
+      }
+    },
+
+    "set_switch_keypad_lock": {
+      "name": "Verrouillage du clavier de l’interrupteur",
+      "description": "Verrouille ou déverrouille le clavier d’un interrupteur Zigbee.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 dont vous souhaitez verrouiller ou déverrouiller le clavier."
+        },
+        "lockKeypad": {
+          "name": "Mode de verrouillage",
+          "description": "Statut du verrouillage : « locked », « unlocked » ou « partiallyLocked »."
+        }
+      }
+    },
+
+    "set_light_timer": {
+      "name": "Définir la minuterie d’éclairage",
+      "description": "Définit une minuterie pour un appareil d’éclairage. L’appareil s’éteindra après le délai choisi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil d’éclairage neviweb130 pour définir la minuterie."
+        },
+        "powerTimer": {
+          "name": "Durée",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs »."
+        }
+      }
+    },
+
+    "set_switch_timer": {
+      "name": "Définir la minuterie de l’interrupteur",
+      "description": "Définit une minuterie pour un interrupteur. L’appareil s’éteindra après le délai choisi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 pour définir la minuterie."
+        },
+        "powerTimer": {
+          "name": "Durée",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs »."
+        }
+      }
+    },
+
+    "set_switch_timer2": {
+      "name": "Définir la minuterie 2 de l’interrupteur",
+      "description": "Définit la minuterie secondaire (timer2) pour les interrupteurs multi‑contrôleurs.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 pour définir la minuterie 2."
+        },
+        "powerTimer2": {
+          "name": "Durée minuterie 2",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs »."
+        }
+      }
+    },
+
+    "set_switch_power_timer": {
+      "name": "Définir la minuterie de puissance",
+      "description": "Définit une minuterie pour les interrupteurs RM3250ZB. L’appareil s’éteindra après le délai choisi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 pour définir la minuterie."
+        },
+        "powerTimer": {
+          "name": "Durée",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs », « 6 hrs », « 12 hrs », « 24 hrs »."
+        }
+      }
+    },
+
+    "set_switch_temp_alert": {
+      "name": "Définir l’alerte de température",
+      "description": "Configure l’alerte de basse température pour l’interrupteur MC3100ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom de l’interrupteur MC3100ZB."
+        },
+        "alertLowTemp": {
+          "name": "Seuil de température",
+          "description": "0 pour désactiver l’alerte, ou une valeur de température (ex. 5 °C)."
+        }
+      }
+    },
+
+    "set_time_format": {
+      "name": "Définir le format de l’heure",
+      "description": "Définit le format horaire de l’appareil (12 h ou 24 h).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir le format horaire."
+        },
+        "timeFormat": {
+          "name": "Format horaire",
+          "description": "Valeurs possibles : 12 ou 24."
+        }
+      }
+    },
+
+    "set_temperature_format": {
+      "name": "Définir le format de température",
+      "description": "Définit le format de température (Celsius ou Fahrenheit).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir le format de température."
+        },
+        "temperatureFormat": {
+          "name": "Format de température",
+          "description": "Valeurs possibles : « celsius » ou « fahrenheit »."
+        }
+      }
+    },
+
+    "set_led_indicator": {
+      "name": "Définir la couleur du témoin lumineux",
+      "description": "Définit la couleur du témoin lumineux selon l’état de la lumière (allumée/éteinte).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir la couleur du témoin lumineux."
+        },
+        "state": {
+          "name": "État",
+          "description": "0 = lumière éteinte, 1 = lumière allumée."
+        },
+        "color": {
+          "name": "Couleur",
+          "description": "Couleurs possibles : « lime », « amber », « fushia », « perle », « blue », « red », « orange », « green »."
+        }
+      }
+    },
+
+    "set_led_on_intensity": {
+      "name": "Définir l’intensité du témoin allumé",
+      "description": "Définit l’intensité du témoin lumineux lorsque la lumière est allumée.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir l’intensité du témoin."
+        },
+        "statusLedOnIntensity": {
+          "name": "Intensité",
+          "description": "Valeur entre 0 et 100 %."
+        }
+      }
+    },
+
+    "set_led_off_intensity": {
+      "name": "Définir l’intensité du témoin éteint",
+      "description": "Définit l’intensité du témoin lumineux lorsque la lumière est éteinte.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir l’intensité du témoin."
+        },
+        "statusLedOnIntensity": {
+          "name": "Intensité",
+          "description": "Valeur entre 0 et 100 %."
+        }
+      }
+    },
+
+    "set_light_min_intensity": {
+      "name": "Définir l’intensité minimale",
+      "description": "Définit l’intensité minimale d’un gradateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir l’intensité minimale."
+        },
+        "intensityMin": {
+          "name": "Intensité minimale",
+          "description": "Valeur entre 1 et 3000."
+        }
+      }
+    },
+
+    "set_second_display": {
+      "name": "Définir l’affichage secondaire",
+      "description": "Définit l’affichage secondaire du thermostat (température extérieure ou consigne).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130 pour définir l’affichage secondaire."
+        },
+        "config2ndDisplay": {
+          "name": "Mode d’affichage",
+          "description": "Valeurs possibles : « exteriorTemperature », « setpoint », « default »."
+        }
+      }
+    },
+
+    "set_backlight": {
+      "name": "Définir le rétroéclairage",
+      "description": "Définit le mode de rétroéclairage de l’appareil.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir le rétroéclairage."
+        },
+        "backlightAdaptive": {
+          "name": "Mode de rétroéclairage",
+          "description": "Valeurs possibles : « auto », « on », « bedroom »."
+        }
+      }
+    },
+
+        "set_reversing_valve_polarity": {
+      "name": "Définir la polarité de la vanne d’inversion",
+      "description": "Définit la polarité de la vanne d’inversion de la thermopompe. Cette configuration doit être effectuée par un professionnel.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130."
+        },
+        "polarity": {
+          "name": "Polarité",
+          "description": "Valeurs possibles : « cooling » (refroidissement lorsque la vanne est activée) ou « heating » (chauffage lorsque la vanne est activée)."
+        }
+      }
+    },
+
+    "set_min_time_on": {
+      "name": "Définir le temps minimal ON",
+      "description": "Définit le temps minimal pendant lequel l’appareil doit rester allumé avant de pouvoir s’éteindre. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "heatMinTimeOn": {
+          "name": "Temps minimal chauffage ON",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "auxHeatMinTimeOn": {
+          "name": "Temps minimal chauffage auxiliaire ON",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "coolMinTimeOn": {
+          "name": "Temps minimal refroidissement ON",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "airExchangerMinTimeOn": {
+          "name": "Temps minimal échangeur d’air ON",
+          "description": "Valeurs possibles : « Off », « 20 min », « 40 min », « Continuous »."
+        }
+      }
+    },
+
+    "set_min_time_off": {
+      "name": "Définir le temps minimal OFF",
+      "description": "Définit le temps minimal pendant lequel l’appareil doit rester éteint avant de pouvoir se rallumer. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "heatMinTimeOff": {
+          "name": "Temps minimal chauffage OFF",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "auxHeatMinTimeOff": {
+          "name": "Temps minimal chauffage auxiliaire OFF",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "coolMinTimeOff": {
+          "name": "Temps minimal refroidissement OFF",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        }
+      }
+    },
+
+    "set_heat_interstage_delay": {
+      "name": "Définir le délai inter‑étage chauffage",
+      "description": "Définit le temps minimal de chauffage avant de permettre l’augmentation du niveau de chauffage. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "time": {
+          "name": "Délai",
+          "description": "Valeurs possibles : 1 à 60 minutes."
+        }
+      }
+    },
+
+    "set_cool_interstage_delay": {
+      "name": "Définir le délai inter‑étage refroidissement",
+      "description": "Définit le temps minimal de refroidissement avant de permettre l’augmentation du niveau de refroidissement. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "time": {
+          "name": "Délai",
+          "description": "Valeurs possibles : 1 à 60 minutes."
+        }
+      }
+    },
+
+    "set_neviweb_status": {
+      "name": "Définir l’état Neviweb",
+      "description": "Définit l’état global d’occupation Neviweb (maison ou absent) via le GT130.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom du GT130."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Valeurs possibles : « home » ou « away »."
+        }
+      }
+    },
+
+    "set_climate_neviweb_status": {
+      "name": "Définir l’état Neviweb via thermostat",
+      "description": "Définit l’état global d’occupation Neviweb (maison ou absent) via un thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom du thermostat."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Valeurs possibles : « home » ou « away »."
+        }
+      }
+    },
+
+    "set_accessory_type": {
+      "name": "Définir le type d’accessoire",
+      "description": "Définit le type d’accessoire (humidificateur, déshumidificateur, échangeur d’air). Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "accessoryType": {
+          "name": "Type d’accessoire",
+          "description": "Valeurs possibles : « none », « humOnHeat », « humOnFan », « dehum », « airExchanger »."
+        }
+      }
+    },
+
+    "set_schedule_mode": {
+      "name": "Définir le mode d’horaire",
+      "description": "Définit le mode d’horaire du thermostat (manuel ou automatique).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "setpointMode": {
+          "name": "Mode d’horaire",
+          "description": "Valeurs possibles : « manual », « auto »."
+        }
+      }
+    },
+
+    "set_flow_alarm_disable_timer": {
+      "name": "Définir le délai de désactivation d’alarme de débit",
+      "description": "Définit un délai pour désactiver l’alarme du débitmètre pour les vannes Sedna 2e génération.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de la vanne Sedna 2e génération."
+        },
+        "flowMeterAlarmDisableTimer": {
+          "name": "Délai",
+          "description": "Valeur en secondes entre 0 et 86400 (24 h). 0 = désactivé."
+        }
+      }
+    },
+
+    "set_heatcool_setpoint_delta": {
+      "name": "Définir le delta chauffage/refroidissement",
+      "description": "Définit la différence minimale entre les consignes de chauffage et de refroidissement en mode automatique.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "heatCoolSetpointMinDelta": {
+          "name": "Delta",
+          "description": "Valeurs possibles : 1 °C à 5 °C."
+        }
+      }
+    },
+
+    "set_fan_filter_reminder": {
+      "name": "Définir le rappel de filtre",
+      "description": "Définit la période de rappel pour le filtre du ventilateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "fanFilterReminderPeriod": {
+          "name": "Période",
+          "description": "Valeurs possibles : 1 à 12 mois."
+        }
+      }
+    },
+
+    "set_temperature_offset": {
+      "name": "Définir l’ajustement de température",
+      "description": "Définit l’ajustement de température du thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "temperatureOffsetHeat": {
+          "name": "Ajustement",
+          "description": "Valeurs possibles : de -2 à 2 °C par pas de 0,5 °C."
+        }
+      }
+    },
+
+    "set_aux_heating_source": {
+      "name": "Définir la source de chauffage auxiliaire",
+      "description": "Définit la source de chauffage auxiliaire. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "auxHeatSourceType": {
+          "name": "Source auxiliaire",
+          "description": "Valeurs possibles : « Electric » ou « Fossil »."
+        }
+      }
+    },
+
+    "set_fan_speed": {
+      "name": "Définir la vitesse du ventilateur",
+      "description": "Définit la vitesse du ventilateur du thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "fanSpeed": {
+          "name": "Vitesse",
+          "description": "Valeurs possibles : « On », « Auto » pour TH6xxxWF; ou 0, 20, 40, 60, 80, 100, 128 pour HP6000WF‑xx."
+        }
+      }
+    },
+
+    "set_humidity_mode": {
+      "name": "Définir le mode d’humidité",
+      "description": "Définit le mode de consigne d’humidité.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "humiditySetpointMode": {
+          "name": "Mode d’humidité",
+          "description": "Valeurs possibles : « defog », « manual »."
+        }
+      }
+    },
+
+    "set_heat_dissipation_time": {
+      "name": "Définir le temps de purge chauffage",
+      "description": "Définit le temps de purge du chauffage. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat."
+        },
+        "time": {
+          "name": "Temps de purge",
+          "description": "Valeurs possibles : 0 à 5 minutes. 0 = désactivé."
+        }
+      }
+    },
+
+    "set_cool_dissipation_time": {
+      "name": "Définir le temps de purge refroidissement",
+      "description": "Définit le temps de purge du refroidissement. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat."
+        },
+        "time": {
+          "name": "Temps de purge",
+          "description": "Valeurs possibles : 0 à 5 minutes. 0 = désactivé."
+        }
+      }
+    }
+  },
   "issues": {
     "dangerous_attribute_change": {
       "title": "Modification d’attribut risquée",
