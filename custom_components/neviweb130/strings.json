@@ -659,7 +659,368 @@
     }
   },
   "device": {},
-  "services": {},
+  "services": {
+    "set_climate_keypad_lock": {
+      "name": "Set climate keypad lock",
+      "description": "Lock or unlock Zigbee climate device keypad."
+    },
+    "set_light_keypad_lock": {
+      "name": "Set light keypad lock",
+      "description": "Lock or unlock light device keypad."
+    },
+    "set_switch_keypad_lock": {
+      "name": "Set switch keypad lock",
+      "description": "Lock or unlock switch device keypad."
+    },
+    "set_light_timer": {
+      "name": "Set light timer",
+      "description": "Set timer for light device."
+    },
+    "set_switch_timer": {
+      "name": "Set switch timer",
+      "description": "Set timer for switch device."
+    },
+    "set_switch_timer2": {
+      "name": "Set switch timer 2",
+      "description": "Set secondary timer for multi-controller switch."
+    },
+    "set_switch_power_timer": {
+      "name": "Set switch power timer",
+      "description": "Set timer for RM3250ZB power switch."
+    },
+    "set_switch_temp_alert": {
+      "name": "Set switch temperature alert",
+      "description": "Configure low temperature alert for MC3100ZB switch."
+    },
+    "set_time_format": {
+      "name": "Set time format",
+      "description": "Set device time format (12h or 24h)."
+    },
+    "set_temperature_format": {
+      "name": "Set temperature format",
+      "description": "Set device temperature format."
+    },
+    "set_led_indicator": {
+      "name": "Set LED indicator color",
+      "description": "Configure LED indicator color for light device."
+    },
+    "set_led_on_intensity": {
+      "name": "Set LED on intensity",
+      "description": "Configure LED intensity when light is on."
+    },
+    "set_led_off_intensity": {
+      "name": "Set LED off intensity",
+      "description": "Configure LED intensity when light is off."
+    },
+    "set_light_min_intensity": {
+      "name": "Set minimum light intensity",
+      "description": "Configure dimmer minimum intensity."
+    },
+    "set_second_display": {
+      "name": "Set second display",
+      "description": "Configure thermostat secondary display."
+    },
+    "set_backlight": {
+      "name": "Set backlight",
+      "description": "Configure device backlight mode."
+    },
+    "set_wattage": {
+      "name": "Set wattage override",
+      "description": "Configure wattage override for light or dimmer."
+    },
+    "set_setpoint_max": {
+      "name": "Set max setpoint",
+      "description": "Configure maximum room setpoint temperature."
+    },
+    "set_setpoint_min": {
+      "name": "Set min setpoint",
+      "description": "Configure minimum room setpoint temperature."
+    },
+    "set_room_setpoint_away": {
+      "name": "Set away heating setpoint",
+      "description": "Configure away heating setpoint."
+    },
+    "set_cool_setpoint_away": {
+      "name": "Set away cooling setpoint",
+      "description": "Configure away cooling setpoint."
+    },
+    "set_floor_air_limit": {
+      "name": "Set floor air limit",
+      "description": "Configure floor thermostat air temperature limit."
+    },
+    "set_sensor_batt_alert": {
+      "name": "Set sensor battery alert",
+      "description": "Enable or disable battery alert for leak sensor."
+    },
+    "set_sensor_closure_action": {
+      "name": "Set sensor closure action",
+      "description": "Configure closure action for leak sensor."
+    },
+    "set_sensor_leak_alert": {
+      "name": "Set leak alert",
+      "description": "Enable or disable leak alert for sensor."
+    },
+    "set_sensor_temp_alert": {
+      "name": "Set temperature alert",
+      "description": "Enable or disable low temperature alert for sensor."
+    },
+    "set_valve_alert": {
+      "name": "Set valve battery alert",
+      "description": "Enable or disable battery alert for valve."
+    },
+    "set_valve_temp_alert": {
+      "name": "Set valve temperature alert",
+      "description": "Enable or disable temperature alert for valve."
+    },
+    "set_early_start": {
+      "name": "Set early start",
+      "description": "Enable or disable early heating start."
+    },
+    "set_air_floor_mode": {
+      "name": "Set air/floor mode",
+      "description": "Configure thermostat air/floor control mode."
+    },
+    "set_phase_control": {
+      "name": "Set phase control",
+      "description": "Configure dimmer phase control mode."
+    },
+    "set_hvac_dr_options": {
+      "name": "Set HVAC DR options",
+      "description": "Configure demand response options for thermostats."
+    },
+    "set_hvac_dr_setpoint": {
+      "name": "Set HVAC DR setpoint",
+      "description": "Configure DR setpoint reduction."
+    },
+    "set_load_dr_options": {
+      "name": "Set load DR options",
+      "description": "Configure demand response options for load controller."
+    },
+    "set_control_onoff": {
+      "name": "Set controller output",
+      "description": "Configure valve controller output state."
+    },
+    "set_auxiliary_load": {
+      "name": "Set auxiliary load",
+      "description": "Configure auxiliary heat load."
+    },
+    "set_cycle_output": {
+      "name": "Set cycle output",
+      "description": "Configure primary cycle time."
+    },
+    "set_aux_cycle_output": {
+      "name": "Set auxiliary cycle output",
+      "description": "Configure auxiliary cycle time."
+    },
+    "set_battery_type": {
+      "name": "Set battery type",
+      "description": "Configure leak sensor battery type."
+    },
+    "set_pump_protection": {
+      "name": "Set pump protection",
+      "description": "Enable or disable pump protection."
+    },
+    "set_tank_size": {
+      "name": "Set tank size",
+      "description": "Configure water heater tank size."
+    },
+    "set_controlled_device": {
+      "name": "Set controlled device",
+      "description": "Configure device type controlled by RM3250ZB."
+    },
+    "set_cool_setpoint_max": {
+      "name": "Set max cooling setpoint",
+      "description": "Configure maximum cooling setpoint."
+    },
+    "set_cool_setpoint_min": {
+      "name": "Set min cooling setpoint",
+      "description": "Configure minimum cooling setpoint."
+    },
+    "set_low_temp_protection": {
+      "name": "Set low temperature protection",
+      "description": "Configure low temperature protection."
+    },
+    "set_flow_meter_model": {
+      "name": "Set flow meter model",
+      "description": "Configure flow meter model and protection."
+    },
+    "set_flow_meter_delay": {
+      "name": "Set flow meter delay",
+      "description": "Configure delay before leak alarm."
+    },
+    "set_flow_meter_options": {
+      "name": "Set flow meter options",
+      "description": "Configure flow meter leak actions."
+    },
+    "set_floor_limit_high": {
+      "name": "Set floor limit high",
+      "description": "Configure maximum floor temperature."
+    },
+    "set_floor_limit_low": {
+      "name": "Set floor limit low",
+      "description": "Configure minimum floor temperature."
+    },
+    "set_tank_type": {
+      "name": "Set tank type",
+      "description": "Configure tank type for LM4110-ZB."
+    },
+    "set_gauge_type": {
+      "name": "Set gauge type",
+      "description": "Configure gauge type for LM4110-ZB."
+    },
+    "set_low_fuel_alert": {
+      "name": "Set low fuel alert",
+      "description": "Configure low fuel alert threshold."
+    },
+    "set_tank_height": {
+      "name": "Set tank height",
+      "description": "Configure tank height for LM4110-ZB."
+    },
+    "set_fuel_alert": {
+      "name": "Set fuel alert",
+      "description": "Enable or disable fuel alert."
+    },
+    "set_refuel_alert": {
+      "name": "Set refuel alert",
+      "description": "Enable or disable refuel alert."
+    },
+    "set_battery_alert": {
+      "name": "Set battery alert",
+      "description": "Enable or disable battery alert."
+    },
+    "set_power_supply": {
+      "name": "Set power supply",
+      "description": "Configure Sedna valve power supply."
+    },
+    "set_input_output_names": {
+      "name": "Set I/O names",
+      "description": "Configure names for MC3100ZB inputs and outputs."
+    },
+    "set_activation": {
+      "name": "Set activation",
+      "description": "Activate or deactivate unavailable devices."
+    },
+    "set_key_double_up": {
+      "name": "Set double-up key action",
+      "description": "Enable or disable double-up key press."
+    },
+    "set_sensor_type": {
+      "name": "Set sensor type",
+      "description": "Configure floor sensor type."
+    },
+    "set_remaining_time": {
+      "name": "Set remaining time",
+      "description": "Configure remaining time before restart."
+    },
+    "set_on_off_input_delay": {
+      "name": "Set input delay",
+      "description": "Configure on/off delay for MC3100ZB inputs."
+    },
+    "set_em_heat": {
+      "name": "Set emergency heat",
+      "description": "Enable or disable emergency heat."
+    },
+    "set_heat_pump_operation_limit": {
+      "name": "Set heat pump operation limit",
+      "description": "Configure low temperature limit for heat pump."
+    },
+    "set_cool_lockout_temperature": {
+      "name": "Set cool lockout temperature",
+      "description": "Configure cooling lockout temperature."
+    },
+    "set_heat_lockout_temperature": {
+      "name": "Set heat lockout temperature",
+      "description": "Configure heating lockout temperature."
+    },
+    "set_display_config": {
+      "name": "Set display config",
+      "description": "Enable or disable heat pump display."
+    },
+    "set_sound_config": {
+      "name": "Set sound config",
+      "description": "Enable or disable heat pump sound."
+    },
+    "set_hc_second_display": {
+      "name": "Set second display (HC)",
+      "description": "Configure second display for TH1134ZB-HC."
+    },
+    "set_language": {
+      "name": "Set language",
+      "description": "Configure thermostat display language."
+    },
+    "set_reversing_valve_polarity": {
+      "name": "Set reversing valve polarity",
+      "description": "Configure heat pump reversing valve polarity."
+    },
+    "set_min_time_on": {
+      "name": "Set minimum ON time",
+      "description": "Configure minimum ON duration for thermostat stages."
+    },
+    "set_min_time_off": {
+      "name": "Set minimum OFF time",
+      "description": "Configure minimum OFF duration for thermostat stages."
+    },
+    "set_heat_interstage_delay": {
+      "name": "Set heat interstage delay",
+      "description": "Configure delay before increasing heating stage."
+    },
+    "set_cool_interstage_delay": {
+      "name": "Set cool interstage delay",
+      "description": "Configure delay before increasing cooling stage."
+    },
+    "set_neviweb_status": {
+      "name": "Set Neviweb status",
+      "description": "Set global Neviweb occupancy status (home/away)."
+    },
+    "set_climate_neviweb_status": {
+      "name": "Set climate Neviweb status",
+      "description": "Set occupancy status via thermostat."
+    },
+    "set_accessory_type": {
+      "name": "Set accessory type",
+      "description": "Configure accessory type for thermostat."
+    },
+    "set_schedule_mode": {
+      "name": "Set schedule mode",
+      "description": "Configure thermostat schedule mode."
+    },
+    "set_flow_alarm_disable_timer": {
+      "name": "Set flow alarm disable timer",
+      "description": "Configure timer disabling flowmeter alarm."
+    },
+    "set_heatcool_setpoint_delta": {
+      "name": "Set heat/cool delta",
+      "description": "Configure delta between heating and cooling setpoints."
+    },
+    "set_fan_filter_reminder": {
+      "name": "Set fan filter reminder",
+      "description": "Configure fan filter reminder period."
+    },
+    "set_temperature_offset": {
+      "name": "Set temperature offset",
+      "description": "Configure thermostat temperature offset."
+    },
+    "set_aux_heating_source": {
+      "name": "Set auxiliary heating source",
+      "description": "Configure auxiliary heating source type."
+    },
+    "set_fan_speed": {
+      "name": "Set fan speed",
+      "description": "Configure thermostat fan speed."
+    },
+    "set_humidity_mode": {
+      "name": "Set humidity mode",
+      "description": "Configure humidity setpoint mode."
+    },
+    "set_heat_dissipation_time": {
+      "name": "Set heat dissipation time",
+      "description": "Configure heating purge time."
+    },
+    "set_cool_dissipation_time": {
+      "name": "Set cool dissipation time",
+      "description": "Configure cooling purge time."
+    }
+  },
   "issues": {
     "dangerous_attribute_change": {
       "title": "Risky attribute change",
