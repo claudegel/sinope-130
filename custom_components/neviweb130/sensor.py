@@ -601,10 +601,10 @@ async def async_setup_entry(
     entity_map: dict[str, Neviweb130Sensor] | None = None
     _entity_map_lock = Lock()
 
-    def get_sensor(service: ServiceCall) -> Neviweb130Sensor:
+    async def get_sensor(service: ServiceCall) -> Neviweb130Sensor:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
+            msg = await translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
             raise ServiceValidationError(msg)
 
         nonlocal entity_map
@@ -614,12 +614,12 @@ async def async_setup_entry(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        msg = translate_error(hass, "entities_not_ready")
+                        msg = await translate_error(hass, "entities_not_ready")
                         raise ServiceValidationError(msg)
 
         sensor = entity_map.get(entity_id)
         if sensor is None:
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -631,7 +631,7 @@ async def async_setup_entry(
 
     async def set_sensor_leak_alert_service(service: ServiceCall) -> None:
         """Set water leak sensor leak alert action."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         value = {"id": sensor.unique_id, "leak": service.data[ATTR_LEAK_ALERT]}
         await sensor.async_set_sensor_leak_alert(value)
         sensor.async_schedule_update_ha_state(True)
@@ -639,7 +639,7 @@ async def async_setup_entry(
 
     async def set_sensor_temp_alert_service(service: ServiceCall) -> None:
         """Set water leak sensor low temperature alert action."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         value = {"id": sensor.unique_id, "temp": service.data[ATTR_TEMP_ALERT]}
         await sensor.async_set_sensor_temp_alert(value)
         sensor.async_schedule_update_ha_state(True)
@@ -647,7 +647,7 @@ async def async_setup_entry(
 
     async def set_sensor_closure_action_service(service: ServiceCall) -> None:
         """Set water leak sensor connected to Sedna valve closure action in case of leak alert."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         value = {"id": sensor.unique_id, "close": service.data[ATTR_CONF_CLOSURE]}
         await sensor.async_set_sensor_closure_action(value)
         sensor.async_schedule_update_ha_state(True)
@@ -655,7 +655,7 @@ async def async_setup_entry(
 
     async def set_battery_type_service(service: ServiceCall) -> None:
         """Set battery type for water leak sensor."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         value = {"id": sensor.unique_id, "type": service.data[ATTR_BATTERY_TYPE]}
         await sensor.async_set_battery_type(value)
         sensor.async_schedule_update_ha_state(True)
@@ -663,9 +663,9 @@ async def async_setup_entry(
 
     async def set_tank_type_service(service: ServiceCall) -> None:
         """Set tank type for fuel tank."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(hass, "cannot_use_entity", entity=sensor.entity_id)
+            msg = await translate_error(hass, "cannot_use_entity", entity=sensor.entity_id)
             raise ServiceValidationError(msg)
         value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
         await sensor.async_set_tank_type(value)
@@ -674,9 +674,9 @@ async def async_setup_entry(
 
     async def set_gauge_type_service(service: ServiceCall) -> None:
         """Set gauge type for propane tank."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -691,9 +691,9 @@ async def async_setup_entry(
 
     async def set_low_fuel_alert_service(service: ServiceCall) -> None:
         """Set low fuel alert on tank, propane or oil."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -708,9 +708,9 @@ async def async_setup_entry(
 
     async def set_tank_height_service(service: ServiceCall) -> None:
         """Set tank height for oil tank."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -725,9 +725,9 @@ async def async_setup_entry(
 
     async def set_fuel_alert_service(service: ServiceCall) -> None:
         """Set fuel alert for LM4110-ZB."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -742,9 +742,9 @@ async def async_setup_entry(
 
     async def set_refuel_alert_service(service: ServiceCall) -> None:
         """Set refuel alert for LM4110-ZB."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -759,9 +759,9 @@ async def async_setup_entry(
 
     async def set_battery_alert_service(service: ServiceCall) -> None:
         """Set battery alert for LM4110-ZB."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         if not isinstance(sensor, Neviweb130TankSensor):
-            msg = translate_error(
+            msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
@@ -776,7 +776,7 @@ async def async_setup_entry(
 
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
         await sensor.async_set_activation(value)
         sensor.async_schedule_update_ha_state(True)
@@ -784,7 +784,7 @@ async def async_setup_entry(
 
     async def set_neviweb_status_service(service: ServiceCall) -> None:
         """Set Neviweb global status, home or away."""
-        sensor = get_sensor(service)
+        sensor = await get_sensor(service)
         value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
         await sensor.async_set_neviweb_status(value)
         sensor.async_schedule_update_ha_state(True)
@@ -1049,7 +1049,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=device_data[ATTR_WATER_LEAK_STATUS],
@@ -1084,7 +1084,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                             if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                                 if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                     self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                    msg = translate_error(
+                                    msg = await translate_error(
                                         self.hass,
                                         "error_code",
                                         code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
@@ -1114,7 +1114,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1377,7 +1377,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
     async def async_log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            msg = translate_error(self.hass, "usr_session")
+            msg = await translate_error(self.hass, "usr_session")
             _LOGGER.warning(msg)
             if self._notify == "notification" or self._notify == "both":
                 await async_notify_once_or_update(
@@ -1388,12 +1388,12 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                 )
             await self._client.async_reconnect()
         elif error_data == "ACCDAYREQMAX":
-            msg = translate_error(self.hass, "daily_access")
+            msg = await translate_error(self.hass, "daily_access")
             _LOGGER.warning(msg)
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            msg = translate_error(self.hass, "maintenance")
+            msg = await translate_error(self.hass, "maintenance")
             _LOGGER.warning(msg)
             await async_notify_once_or_update(
                 self.hass,
@@ -1403,7 +1403,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
-            msg = translate_error(self.hass, "access_limit")
+            msg = await translate_error(self.hass, "access_limit")
             await async_notify_critical(
                 self.hass,
                 msg,
@@ -1472,7 +1472,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                     self._name,
                 )
             if self._notify == "notification" or self._notify == "both":
-                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+                msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
                 await async_notify_once_or_update(
                     self.hass,
                     msg,
@@ -1482,7 +1482,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             self._active = False
             self._snooze = time.time()
         else:
-            msg = translate_error(
+            msg = await translate_error(
                 self.hass,
                 "unknown_error",
                 name=self._name,
@@ -1539,7 +1539,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=device_data[ATTR_WATER_LEAK_STATUS],
@@ -1585,7 +1585,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1687,7 +1687,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                 if "errorCode" not in device_data:
                     self._angle = device_data[ATTR_ANGLE]["value"]
                     if self._angle == -2:
-                        msg = translate_error(
+                        msg = await translate_error(
                             self.hass,
                             "gauge_disconnected",
                             name=self._name,
@@ -1716,7 +1716,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
+                                msg = await translate_error(
                                     self.hass,
                                     "error_code",
                                     code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -1745,7 +1745,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -2057,7 +2057,7 @@ class Neviweb130DailyRequestSensor(SensorEntity):
         # Notify when above threshold
         if count > limit and not self._notified:
             self._notified = True
-            msg = translate_error(self.hass, "request_count", count=count, limit=limit)
+            msg = await translate_error(self.hass, "request_count", count=count, limit=limit)
             await async_notify_once_or_update(
                 self.hass,
                 msg,
