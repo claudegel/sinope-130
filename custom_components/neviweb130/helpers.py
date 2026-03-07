@@ -860,6 +860,7 @@ async def _t(hass, key: str) -> str:
         hass,
         hass.config.language,
         "notifications",
+        integrations=["neviweb130"],
     )
 
     return translations.get(full_key, key)
@@ -915,22 +916,35 @@ async def check_weather_icons_folder(hass):
 # ─────────────────────────────────────────────
 
 
+_translation_cache = None
+
 async def translate_error(hass, key: str, **placeholders):
     """Translate an error message using HA translation system."""
-    translations = await async_get_translations(
-        hass,
-        hass.config.language,
-        "neviweb130",
-    )
+    global _translation_cache
 
-    # keys are in the form of "component.neviweb130.error.key"
-    full_key = f"component.neviweb130.error.{key}"
+    if _translation_cache is None:
+        _translation_cache = await async_get_translations(
+            hass,
+            hass.config.language,
+            "config",
+            integrations=["neviweb130"],
+        )
 
-    msg = translations.get(full_key)
+    # keys are in the form of "component.neviweb130.config.error.key"
+    full_key = f"component.neviweb130.config.error.{key.lower()}"
+    msg = _translation_cache.get(full_key)
+
     if msg:
         return msg.format(**placeholders)
 
-    return key
+    _LOGGER.warning(
+        "Missing translation for key '%s' (%s) in neviweb130 (%s).",
+        key,
+        full_key,
+        hass.config.language,
+    )
+
+    return f"[Missing translation: {key}]"
 
 
 async def translate_neviweb_error(self, err, **placeholders):
@@ -943,7 +957,8 @@ async def translate_neviweb_error(self, err, **placeholders):
     translations = await async_get_translations(
         hass,
         hass.config.language,
-        "neviweb130",
+        "config",
+        integrations=["neviweb130"],
     )
 
     # Case 1 : structured error
@@ -952,7 +967,7 @@ async def translate_neviweb_error(self, err, **placeholders):
         data = err["error"].get("data", {})
 
         if code:
-            key = f"component.neviweb130.error.{code.lower()}"
+            key = f"component.neviweb130.config.error.{code.lower()}"
             msg = translations.get(key)
             if msg:
                 return msg.format(**placeholders)
@@ -961,7 +976,7 @@ async def translate_neviweb_error(self, err, **placeholders):
 
     # Case 2 : simple code
     if isinstance(err, str):
-        key = f"component.neviweb130.error.{err.lower()}"
+        key = f"component.neviweb130.config.error.{err.lower()}"
         msg = translations.get(key)
         if msg:
             return msg.format(**placeholders)
