@@ -1121,7 +1121,6 @@
         }
       }
     },
-
     "set_cool_dissipation_time": {
       "name": "Set cool dissipation time",
       "description": "Set cooling purge time. Equipment configuration should be performed by a professional.",
