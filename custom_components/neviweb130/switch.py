@@ -512,7 +512,7 @@ async def async_setup_entry(
     entity_map: dict[str, Neviweb130Switch] | None = None
     _entity_map_lock = Lock()
 
-    def get_switch(service: ServiceCall) -> Neviweb130Switch:
+    async def get_switch(service: ServiceCall) -> Neviweb130Switch:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
             raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
@@ -533,7 +533,7 @@ async def async_setup_entry(
 
     async def set_switch_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
         await switch.async_set_keypad_lock(value)
         switch.async_schedule_update_ha_state(True)
@@ -541,7 +541,7 @@ async def async_setup_entry(
 
     async def set_switch_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
         await switch.async_set_timer(value)
         switch.async_schedule_update_ha_state(True)
@@ -549,7 +549,7 @@ async def async_setup_entry(
 
     async def set_switch_timer2_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER2]}
         await switch.async_set_timer2(value)
         switch.async_schedule_update_ha_state(True)
@@ -557,7 +557,7 @@ async def async_setup_entry(
 
     async def set_switch_power_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
         await switch.async_set_timer(value)
         switch.async_schedule_update_ha_state(True)
@@ -565,7 +565,7 @@ async def async_setup_entry(
 
     async def set_switch_temp_alert_service(service: ServiceCall) -> None:
         """Set temperature alert for switch device MC3100ZB."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
         await switch.async_set_temp_alert(value)
         switch.async_schedule_update_ha_state(True)
@@ -573,7 +573,7 @@ async def async_setup_entry(
 
     async def set_load_dr_options_service(service: ServiceCall) -> None:
         """Set dr mode options for load controller."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {
             "id": switch.unique_id,
             "dractive": service.data[ATTR_DRACTIVE],
@@ -586,7 +586,7 @@ async def async_setup_entry(
 
     async def set_control_onoff_service(service: ServiceCall) -> None:
         """Set status of both onoff controller."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {
             "id": switch.unique_id,
             "onoff_num": service.data[ATTR_ONOFF_NUM],
@@ -598,7 +598,7 @@ async def async_setup_entry(
 
     async def set_tank_size_service(service: ServiceCall) -> None:
         """Set water tank size for RM3500ZB."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
         await switch.async_set_tank_size(value)
         switch.async_schedule_update_ha_state(True)
@@ -606,7 +606,7 @@ async def async_setup_entry(
 
     async def set_controlled_device_service(service: ServiceCall) -> None:
         """Set controlled device type for RM3250ZB."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
         await switch.async_set_controlled_device(value)
         switch.async_schedule_update_ha_state(True)
@@ -614,7 +614,7 @@ async def async_setup_entry(
 
     async def set_low_temp_protection_service(service: ServiceCall) -> None:
         """Set water tank temperature protection for RM3500ZB."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "val": service.data[ATTR_WATER_TEMP_MIN]}
         await switch.async_set_low_temp_protection(value)
         switch.async_schedule_update_ha_state(True)
@@ -622,7 +622,7 @@ async def async_setup_entry(
 
     async def set_input_output_names_service(service: ServiceCall) -> None:
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {
             "id": switch.unique_id,
             "input1": service.data[ATTR_NAME_1],
@@ -636,7 +636,7 @@ async def async_setup_entry(
 
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
         await switch.async_set_activation(value)
         switch.async_schedule_update_ha_state(True)
@@ -644,7 +644,7 @@ async def async_setup_entry(
 
     async def set_remaining_time_service(service: ServiceCall) -> None:
         """Set coldLoadPickupRemainingTime value."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {
             "id": switch.unique_id,
             "time": service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
@@ -655,7 +655,7 @@ async def async_setup_entry(
 
     async def set_on_off_input_delay_service(service: ServiceCall) -> None:
         """Set input 1 or 2 on/off delay for MC3100ZB device."""
-        switch = get_switch(service)
+        switch = await get_switch(service)
         value = {
             "id": switch.unique_id,
             "input_number": service.data[ATTR_INPUT_NUMBER],
@@ -1043,7 +1043,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1397,7 +1397,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
-                msg = translate_error(self.hass, "energy_stat", param="monthly", id=self._name)
+                msg = await translate_error(self.hass, "energy_stat", param="monthly", id=self._name)
                 _LOGGER.warning(msg)
             device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
             # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
@@ -1420,7 +1420,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
                 self._today_kwh = 0
-                msg = translate_error(self.hass, "energy_stat", param="daily", id=self._name)
+                msg = await translate_error(self.hass, "energy_stat", param="daily", id=self._name)
                 _LOGGER.warning(msg)
             device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
             # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
@@ -1442,7 +1442,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
                 self._hour_kwh = 0
-                msg = translate_error(self.hass, "energy_stat", param="hourly", id=self._name)
+                msg = await translate_error(self.hass, "energy_stat", param="hourly", id=self._name)
                 _LOGGER.warning(name)
             if self._total_kwh_count == 0:
                 self._total_kwh_count = round(
@@ -1473,7 +1473,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... Reconnecting...")
             if self._notify == "notification" or self._notify == "both":
-                msg = translate_error(self.hass, "usr_session")
+                msg = await translate_error(self.hass, "usr_session")
                 await async_notify_once_or_update(
                     self.hass,
                     msg,
@@ -1487,7 +1487,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
             _LOGGER.warning("Access blocked for maintenance... Retry later")
-            msg = translate_error(self.hass, "maintenance")
+            msg = await translate_error(self.hass, "maintenance")
             await async_notify_once_or_update(
                 self.hass,
                 msg,
@@ -1496,7 +1496,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
-            msg = translate_error(self.hass, "access_limit")
+            msg = await translate_error(self.hass, "access_limit")
             await async_notify_critical(
                 self.hass,
                 msg,
@@ -1565,7 +1565,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                     self._name,
                 )
             if self._notify == "notification" or self._notify == "both":
-                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+                msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
                 await async_notify_once_or_update(
                     self.hass,
                     msg,
@@ -1575,7 +1575,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             self._active = False
             self._snooze = time.time()
         else:
-            msg = translate_error(
+            msg = await translate_error(
                 self.hass,
                 "unknown_error",
                 name=self._name,
@@ -1635,7 +1635,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
+                                msg = await translate_error(
                                     self.hass,
                                     "error_code",
                                     code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
@@ -1667,7 +1667,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1762,7 +1762,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -1796,7 +1796,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1893,7 +1893,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._onoff = device_data[ATTR_ONOFF]
                     if ATTR_WATER_LEAK_STATUS in device_data:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=device_data[ATTR_WATER_LEAK_STATUS],
@@ -1923,7 +1923,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                     message = "Temperature sensor disconnected"
                                 case 64:
                                     message = "Leak sensor disconnected"
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -1973,7 +1973,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -2094,7 +2094,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._onoff = device_data[ATTR_ONOFF]
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
                     if device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS] == "probe":
-                        msg = translate_error(
+                        msg = await translate_error(
                             self.hass,
                             "error_code",
                             code=device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS],
@@ -2121,7 +2121,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                                     message = "Temperature sensor disconnected"
                                 case 64:
                                     message = "Leak sensor disconnected"
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -2177,7 +2177,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -2380,7 +2380,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
