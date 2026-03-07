@@ -230,10 +230,10 @@ async def async_setup_entry(
     entity_map: dict[str, Neviweb130Light] | None = None
     _entity_map_lock = Lock()
 
-    def get_light(service: ServiceCall) -> Neviweb130Light:
+    async def get_light(service: ServiceCall) -> Neviweb130Light:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
+            msg = await translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
             raise ServiceValidationError(msg)
 
         nonlocal entity_map
@@ -243,18 +243,18 @@ async def async_setup_entry(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        msg = translate_error(hass, "entities_not_ready")
+                        msg = await translate_error(hass, "entities_not_ready")
                         raise ServiceValidationError(msg)
 
         light = entity_map.get(entity_id)
         if light is None:
-            msg = translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="light")
+            msg = await translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="light")
             raise ServiceValidationError(msg)
         return light
 
     async def set_light_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
         await light.async_set_keypad_lock(value)
         light.async_schedule_update_ha_state(True)
@@ -262,7 +262,7 @@ async def async_setup_entry(
 
     async def set_light_timer_service(service: ServiceCall) -> None:
         """Set timer for light device."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
         await light.async_set_timer(value)
         light.async_schedule_update_ha_state(True)
@@ -270,7 +270,7 @@ async def async_setup_entry(
 
     async def set_led_indicator_service(service: ServiceCall) -> None:
         """Set led color and intensity for light indicator."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "state": service.data[ATTR_STATE],
@@ -282,7 +282,7 @@ async def async_setup_entry(
 
     async def set_led_on_intensity_service(service: ServiceCall) -> None:
         """Set led on intensity for light indicator."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "led_on": service.data[ATTR_LED_ON_INTENSITY],
@@ -293,7 +293,7 @@ async def async_setup_entry(
 
     async def set_led_off_intensity_service(service: ServiceCall) -> None:
         """Set led off intensity for light indicator."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "led_off": service.data[ATTR_LED_OFF_INTENSITY],
@@ -304,7 +304,7 @@ async def async_setup_entry(
 
     async def set_light_min_intensity_service(service: ServiceCall) -> None:
         """Set dimmer light minimum intensity."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "intensity": service.data[ATTR_INTENSITY_MIN],
@@ -315,7 +315,7 @@ async def async_setup_entry(
 
     async def set_wattage_service(service: ServiceCall) -> None:
         """Set watt load for light device."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "watt": service.data[ATTR_LIGHT_WATTAGE],
@@ -326,7 +326,7 @@ async def async_setup_entry(
 
     async def set_phase_control_service(service: ServiceCall) -> None:
         """Change phase control mode for dimmer device."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "phase": service.data[ATTR_PHASE_CONTROL],
@@ -337,7 +337,7 @@ async def async_setup_entry(
 
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "active": service.data[ATTR_ACTIVE],
@@ -348,7 +348,7 @@ async def async_setup_entry(
 
     async def set_key_double_up_service(service: ServiceCall) -> None:
         """Change key double up action for dimmer device."""
-        light = get_light(service)
+        light = await get_light(service)
         value = {
             "id": light.unique_id,
             "double": service.data[ATTR_KEY_DOUBLE_UP],
@@ -607,7 +607,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
+                                msg = await translate_error(
                                     self.hass,
                                     "error_code",
                                     code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -656,7 +656,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -932,7 +932,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
-                msg = translate_error(self.hass, "no_stat", param="monthly", name=self._name)
+                msg = await translate_error(self.hass, "no_stat", param="monthly", name=self._name)
                 _LOGGER.warning(msg)
             device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
             # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
@@ -955,7 +955,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
                 self._today_kwh = 0
-                msg = translate_error(self.hass, "no_stat", param="daily", name=self._name)
+                msg = await translate_error(self.hass, "no_stat", param="daily", name=self._name)
                 _LOGGER.warning(msg)
             device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
             # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
@@ -977,7 +977,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
                 self._hour_kwh = 0
-                msg = translate_error(self.hass, "no_stat", param="hourly", name=self._name)
+                msg = await translate_error(self.hass, "no_stat", param="hourly", name=self._name)
                 _LOGGER.warning(msg)
             if self._total_kwh_count == 0:
                 self._total_kwh_count = round(
@@ -1008,7 +1008,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... Reconnecting...")
             if self._notify == "notification" or self._notify == "both":
-                msg = translate_error(self.hass, "usr_session")
+                msg = await translate_error(self.hass, "usr_session")
                 await async_notify_once_or_update(
                     self.hass,
                     msg,
@@ -1021,7 +1021,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            msg = translate_error(self.hass, "maintenance")
+            msg = await translate_error(self.hass, "maintenance")
             await async_notify_critical(
                 self.hass,
                 msg,
@@ -1030,7 +1030,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
-            msg = translate_error(self.hass, "access_limit")
+            msg = await translate_error(self.hass, "access_limit")
             _LOGGER.warning(msg)
             await async_notify_once_or_update(
                 self.hass,
@@ -1100,7 +1100,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                     self._name,
                 )
             if self._notify == "notification" or self._notify == "both":
-                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+                msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
                 await async_notify_once_or_update(
                     self.hass,
                     msg,
@@ -1110,7 +1110,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             self._active = False
             self._snooze = time.time()
         else:
-            msg = translate_error(
+            msg = await translate_error(
                 self.hass,
                 "unknown_error",
                 name=self._name,
@@ -1153,7 +1153,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
+                                msg = await translate_error(
                                     self.hass,
                                     "error_code",
                                     code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -1202,7 +1202,7 @@ class Neviweb130Dimmer(Neviweb130Light):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1293,7 +1293,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
+                                msg = await translate_error(
                                     self.hass,
                                     "error_code",
                                     code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -1340,7 +1340,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
