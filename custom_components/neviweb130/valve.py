@@ -260,10 +260,10 @@ async def async_setup_entry(
     entity_map: dict[str, Neviweb130Valve] | None = None
     _entity_map_lock = Lock()
 
-    def get_valve(service: ServiceCall) -> Neviweb130Valve:
+    async def get_valve(service: ServiceCall) -> Neviweb130Valve:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
+            msg = await translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
             raise ServiceValidationError(msg)
 
         nonlocal entity_map
@@ -273,18 +273,18 @@ async def async_setup_entry(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        msg = translate_error(hass, "entities_not_ready")
+                        msg = await translate_error(hass, "entities_not_ready")
                         raise ServiceValidationError(msg)
 
         valve = entity_map.get(entity_id)
         if valve is None:
-            msg = translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="valve")
+            msg = await translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="valve")
             raise ServiceValidationError(msg)
         return valve
 
     async def set_valve_alert_service(service: ServiceCall) -> None:
         """Set alert for water valve."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "batt": service.data[ATTR_BATT_ALERT],
@@ -295,7 +295,7 @@ async def async_setup_entry(
 
     async def set_valve_temp_alert_service(service: ServiceCall) -> None:
         """Set alert for water valve temperature location."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "temp": service.data[ATTR_TEMP_ALERT],
@@ -307,7 +307,7 @@ async def async_setup_entry(
 
     async def set_flow_meter_model_service(service: ServiceCall) -> None:
         """Set the flow meter model connected to water valve."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
@@ -318,7 +318,7 @@ async def async_setup_entry(
 
     async def set_flow_meter_delay_service(service: ServiceCall) -> None:
         """Set the flow meter delay before alert is turned on."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
@@ -329,7 +329,7 @@ async def async_setup_entry(
 
     async def set_flow_meter_options_service(service: ServiceCall) -> None:
         """Set the flow meter options when leak is detected."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "alarm": service.data[ATTR_TRIGGER_ALARM],
@@ -341,7 +341,7 @@ async def async_setup_entry(
 
     async def set_power_supply_service(service: ServiceCall) -> None:
         """Set power supply type for water valve."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "supply": service.data[ATTR_POWER_SUPPLY],
@@ -352,7 +352,7 @@ async def async_setup_entry(
 
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "active": service.data[ATTR_ACTIVE],
@@ -363,7 +363,7 @@ async def async_setup_entry(
 
     async def set_flow_alarm_disable_timer_service(service: ServiceCall) -> None:
         """Set alert for water valve temperature location."""
-        valve = get_valve(service)
+        valve = await get_valve(service)
         value = {
             "id": valve.unique_id,
             "timer": service.data[ATTR_FLOW_ALARM_TIMER],
@@ -674,7 +674,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1026,7 +1026,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     _LOGGER.debug("stat month = %s", dt_month.month)
                 else:
                     self._month_kwh = 0
-                    msg = translate_error(self.hass, "no_stat", param="monthly", name=self._name)
+                    msg = await translate_error(self.hass, "no_stat", param="monthly", name=self._name)
                     _LOGGER.warning(msg)
                 device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
                 # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
@@ -1049,7 +1049,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
                     self._today_kwh = 0
-                    msg = translate_error(self.hass, "no_stat", param="daily", name=self._name)
+                    msg = await translate_error(self.hass, "no_stat", param="daily", name=self._name)
                     _LOGGER.warning(msg)
                 device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
                 # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
@@ -1074,7 +1074,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
                 else:
                     self._hour_kwh = 0
-                    msg = translate_error(self.hass, "no_stat", param="hourly", name=self._name)
+                    msg = await translate_error(self.hass, "no_stat", param="hourly", name=self._name)
                     _LOGGER.warning(msg)
                 if self._total_kwh_count is None:
                     self._total_kwh_count = round(
@@ -1109,7 +1109,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         if error_data == "USRSESSEXP":
             _LOGGER.warning("Session expired... Reconnecting...")
             if self._notify == "notification" or self._notify == "both":
-                msg = translate_error(self.hass, "usr_session")
+                msg = await translate_error(self.hass, "usr_session")
                 await async_notify_once_or_update(
                     self.hass,
                     msg,
@@ -1118,12 +1118,12 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 )
             await self._client.async_reconnect()
         elif error_data == "ACCDAYREQMAX":
-            msg = translate_error(self.hass, "daily_access")
+            msg = await translate_error(self.hass, "daily_access")
             _LOGGER.warning(msg)
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            msg = translate_error(self.hass, "maintenance")
+            msg = await translate_error(self.hass, "maintenance")
             _LOGGER.warning(msg)
             await async_notify_once_or_update(
                 self.hass,
@@ -1133,7 +1133,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             )
             await self._client.async_reconnect()
         elif error_data == "ACCSESSEXC":
-            msg = translate_error(self.hass, "access_limit")
+            msg = await translate_error(self.hass, "access_limit")
             await async_notify_critical(
                 self.hass,
                 msg,
@@ -1183,7 +1183,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 self._sku,
             )
         elif error_data == "DVCUNVLB":
-            msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+            msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
             if self._notify == "logging" or self._notify == "both":
                 _LOGGER.warning("%s:", error_data, msg)
                 _LOGGER.warning(
@@ -1202,7 +1202,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             self._active = False
             self._snooze = time.time()
         else:
-            msg = translate_error(
+            msg = await translate_error(
                 self.hass,
                 "unknown_error",
                 name=self._name,
@@ -1296,7 +1296,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                             self._water_leak_status == "flowMeter"
                             and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0
                         ):
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=device_data[ATTR_WATER_LEAK_STATUS],
@@ -1369,7 +1369,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1514,7 +1514,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
-                        msg = translate_error(
+                        msg = await translate_error(
                             self.hass,
                             "error_code",
                             code=device_data[ATTR_WATER_LEAK_STATUS],
@@ -1548,7 +1548,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = translate_error(
+                            msg = await translate_error(
                                 self.hass,
                                 "error_code",
                                 code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
@@ -1583,7 +1583,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
@@ -1721,7 +1721,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
-                        msg = translate_error(
+                        msg = await translate_error(
                             self.hass,
                             "error_code",
                             code=device_data[ATTR_WATER_LEAK_STATUS],
@@ -1765,7 +1765,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if self._notify == "notification" or self._notify == "both":
-                    msg = translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
+                    msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
                         msg,
