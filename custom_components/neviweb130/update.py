@@ -605,7 +605,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     "current_version": self._installed_version.lstrip("v"),
                 },
             )
-            msg = translate_error(self.hass, "update_message", version=self._installed_version)
+            msg = await translate_error(self.hass, "update_message", version=self._installed_version)
             await self.hass.services.async_call(
                 "persistent_notification",
                 "create",
@@ -645,7 +645,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     await self.hass.async_add_executor_job(_restore)
 
                     self._rollback_status = "success"
-                    msg = translate_error(
+                    msg = await translate_error(
                         self.hass,
                         "update_rejected",
                         version=self._latest_version,
@@ -662,7 +662,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     )
                 else:
                     self._rollback_status = "skipped"
-                    msg = translate_error(
+                    msg = await translate_error(
                         self.hass,
                         "rollback_skip",
                         version=self._latest_version,
@@ -681,7 +681,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             except Exception as rb_err:
                 _LOGGER.error("Rollback failed: %s", rb_err)
                 self._rollback_status = "failed"
-                msg = translate_error(self.hass, "update_fail")
+                msg = await translate_error(self.hass, "update_fail")
                 await self.hass.services.async_call(
                     "persistent_notification",
                     "create",
