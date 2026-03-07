@@ -2,6 +2,15 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.2] - 2026-03-__
+### Added
+- Add translation into hass.data.
+
+### Fix
+- refactor translate_error
+
+### Doc
+
 ## [v4.2.1] - 2026-03-05
 ### Added
 - Add translation for updater messages.
