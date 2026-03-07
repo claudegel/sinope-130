@@ -602,7 +602,541 @@
     }
   },
   "device": {},
-  "services": {},
+  "services": {
+    "set_climate_keypad_lock": {
+      "name": "Set climate keypad lock",
+      "description": "Lock or unlock the Zigbee climate device keypad.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 climate device to lock or unlock the keypad."
+        },
+        "lockKeypad": {
+          "name": "Keypad lock mode",
+          "description": "LockKeypad status to set: \"locked\" = Locked, \"unlocked\" = Unlocked, \"partiallyLocked\" = Tamper protection. For HP6000ZB-xx devices, \"partiallyLocked\" is not available."
+        }
+      }
+    },
+
+    "set_light_keypad_lock": {
+      "name": "Set light keypad lock",
+      "description": "Lock or unlock the keypad of a light or dimmer device.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 light device to lock or unlock the keypad."
+        },
+        "lockKeypad": {
+          "name": "Keypad lock mode",
+          "description": "LockKeypad status to set: \"locked\", \"unlocked\", or \"partiallyLocked\"."
+        }
+      }
+    },
+
+    "set_switch_keypad_lock": {
+      "name": "Set switch keypad lock",
+      "description": "Lock or unlock the keypad of a switch device.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to lock or unlock the keypad."
+        },
+        "lockKeypad": {
+          "name": "Keypad lock mode",
+          "description": "LockKeypad status to set: \"locked\", \"unlocked\", or \"partiallyLocked\"."
+        }
+      }
+    },
+
+    "set_light_timer": {
+      "name": "Set light timer",
+      "description": "Set a timer for a light device. Device will turn off after the selected delay.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 light device to set the timer."
+        },
+        "powerTimer": {
+          "name": "Timer value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_timer": {
+      "name": "Set switch timer",
+      "description": "Set a timer for a switch device. Device will turn off after the selected delay.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to set the timer."
+        },
+        "powerTimer": {
+          "name": "Timer value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_timer2": {
+      "name": "Set switch timer 2",
+      "description": "Set the secondary timer (timer2) for multi-controller switch devices.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to set timer2."
+        },
+        "powerTimer2": {
+          "name": "Timer 2 value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_power_timer": {
+      "name": "Set switch power timer",
+      "description": "Set a timer for RM3250ZB power switch devices. Device will turn off after the selected delay.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to set the timer."
+        },
+        "powerTimer": {
+          "name": "Timer value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\", \"6 hrs\", \"12 hrs\", \"24 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_temp_alert": {
+      "name": "Set switch temperature alert",
+      "description": "Configure low temperature alert threshold for MC3100ZB switch.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name of the MC3100ZB switch entity."
+        },
+        "alertLowTemp": {
+          "name": "Low temperature threshold",
+          "description": "Set to 0 to disable the alert, or a temperature value (e.g., 5°C)."
+        }
+      }
+    },
+
+    "set_time_format": {
+      "name": "Set time format",
+      "description": "Set device time format to 12h or 24h.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the time format."
+        },
+        "timeFormat": {
+          "name": "Time format",
+          "description": "Time format to set: 12 or 24."
+        }
+      }
+    },
+
+    "set_temperature_format": {
+      "name": "Set temperature format",
+      "description": "Set device temperature format to Celsius or Fahrenheit.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the temperature format."
+        },
+        "temperatureFormat": {
+          "name": "Temperature format",
+          "description": "Temperature format to set: \"celsius\" or \"fahrenheit\"."
+        }
+      }
+    },
+
+    "set_led_indicator": {
+      "name": "Set LED indicator color",
+      "description": "Set LED indicator color for each light state (on/off).",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the LED indicator color."
+        },
+        "state": {
+          "name": "Light state",
+          "description": "0 = when light is off, 1 = when light is on."
+        },
+        "color": {
+          "name": "LED color",
+          "description": "Color to set: \"lime\", \"amber\", \"fushia\", \"perle\", \"blue\", \"red\", \"orange\", \"green\"."
+        }
+      }
+    },
+
+    "set_led_on_intensity": {
+      "name": "Set LED on intensity",
+      "description": "Set LED indicator intensity when the light is on.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the LED intensity."
+        },
+        "statusLedOnIntensity": {
+          "name": "Intensity",
+          "description": "Intensity from 0 to 100%."
+        }
+      }
+    },
+
+    "set_led_off_intensity": {
+      "name": "Set LED off intensity",
+      "description": "Set LED indicator intensity when the light is off.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the LED intensity."
+        },
+        "statusLedOnIntensity": {
+          "name": "Intensity",
+          "description": "Intensity from 0 to 100%."
+        }
+      }
+    },
+
+    "set_light_min_intensity": {
+      "name": "Set minimum light intensity",
+      "description": "Set dimmer minimum intensity.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the minimum intensity."
+        },
+        "intensityMin": {
+          "name": "Minimum intensity",
+          "description": "Value from 1 to 3000."
+        }
+      }
+    },
+
+    "set_second_display": {
+      "name": "Set second display",
+      "description": "Configure thermostat secondary display (setpoint or outside temperature).",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the second display."
+        },
+        "config2ndDisplay": {
+          "name": "Second display mode",
+          "description": "\"exteriorTemperature\", \"setpoint\", or \"default\"."
+        }
+      }
+    },
+
+    "set_backlight": {
+      "name": "Set backlight",
+      "description": "Set backlight intensity or mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the backlight."
+        },
+        "backlightAdaptive": {
+          "name": "Backlight mode",
+          "description": "\"auto\", \"on\", or \"bedroom\"."
+        }
+      }
+    },
+
+    "set_reversing_valve_polarity": {
+      "name": "Set reversing valve polarity",
+      "description": "Set the polarity of the heat pump reversing valve. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device."
+        },
+        "polarity": {
+          "name": "Polarity",
+          "description": "Possible values: \"cooling\" (cool when valve is on, heat when off) or \"heating\" (heat when on, cool when off)."
+        }
+      }
+    },
+
+    "set_min_time_on": {
+      "name": "Set minimum ON time",
+      "description": "Set minimum ON duration before the device can turn off again. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "heatMinTimeOn": {
+          "name": "Heat minimum ON time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "auxHeatMinTimeOn": {
+          "name": "Aux heat minimum ON time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "coolMinTimeOn": {
+          "name": "Cool minimum ON time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "airExchangerMinTimeOn": {
+          "name": "Air exchanger minimum ON time",
+          "description": "Possible values: \"Off\", \"20 min\", \"40 min\", \"Continuous\"."
+        }
+      }
+    },
+
+    "set_min_time_off": {
+      "name": "Set minimum OFF time",
+      "description": "Set minimum OFF duration before the device can turn on again. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "heatMinTimeOff": {
+          "name": "Heat minimum OFF time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "auxHeatMinTimeOff": {
+          "name": "Aux heat minimum OFF time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "coolMinTimeOff": {
+          "name": "Cool minimum OFF time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        }
+      }
+    },
+
+    "set_heat_interstage_delay": {
+      "name": "Set heat interstage delay",
+      "description": "Set minimum heating time before increasing heating stage. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "time": {
+          "name": "Delay time",
+          "description": "Possible values: 1 to 60 minutes."
+        }
+      }
+    },
+
+    "set_cool_interstage_delay": {
+      "name": "Set cool interstage delay",
+      "description": "Set minimum cooling time before increasing cooling stage. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "time": {
+          "name": "Delay time",
+          "description": "Possible values: 1 to 60 minutes."
+        }
+      }
+    },
+
+    "set_neviweb_status": {
+      "name": "Set Neviweb status",
+      "description": "Set global Neviweb occupancy status (home or away) via GT130.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name of GT130 gateway device."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Possible values: \"home\" or \"away\"."
+        }
+      }
+    },
+
+    "set_climate_neviweb_status": {
+      "name": "Set climate Neviweb status",
+      "description": "Set global Neviweb occupancy status (home or away) via thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name of thermostat device."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Possible values: \"home\" or \"away\"."
+        }
+      }
+    },
+
+    "set_accessory_type": {
+      "name": "Set accessory type",
+      "description": "Set accessory type (humidifier, dehumidifier, air-exchanger). Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "accessoryType": {
+          "name": "Accessory type",
+          "description": "Possible values: \"none\", \"humOnHeat\", \"humOnFan\", \"dehum\", \"airExchanger\"."
+        }
+      }
+    },
+
+    "set_schedule_mode": {
+      "name": "Set schedule mode",
+      "description": "Set thermostat schedule mode (manual or auto).",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "setpointMode": {
+          "name": "Schedule mode",
+          "description": "Possible values: \"manual\", \"auto\"."
+        }
+      }
+    },
+
+    "set_flow_alarm_disable_timer": {
+      "name": "Set flow alarm disable timer",
+      "description": "Set a timer to disable flowmeter alarm action for Sedna 2nd gen valves.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of Sedna 2nd gen device."
+        },
+        "flowMeterAlarmDisableTimer": {
+          "name": "Disable timer",
+          "description": "Value in seconds from 0 to 86400 (24 hours). 0 = disabled."
+        }
+      }
+    },
+
+    "set_heatcool_setpoint_delta": {
+      "name": "Set heat/cool setpoint delta",
+      "description": "Set delta temperature between heating and cooling setpoints in auto mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "heatCoolSetpointMinDelta": {
+          "name": "Delta",
+          "description": "Values from 1°C to 5°C."
+        }
+      }
+    },
+
+    "set_fan_filter_reminder": {
+      "name": "Set fan filter reminder",
+      "description": "Set fan filter reminder period.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "fanFilterReminderPeriod": {
+          "name": "Reminder period",
+          "description": "Values from 1 to 12 months."
+        }
+      }
+    },
+
+    "set_temperature_offset": {
+      "name": "Set temperature offset",
+      "description": "Set thermostat temperature offset.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "temperatureOffsetHeat": {
+          "name": "Temperature offset",
+          "description": "Values from -2 to 2°C with 0.5°C increments."
+        }
+      }
+    },
+
+    "set_aux_heating_source": {
+      "name": "Set auxiliary heating source",
+      "description": "Set auxiliary heating source type. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "auxHeatSourceType": {
+          "name": "Aux heat source",
+          "description": "Possible values: \"Electric\" or \"Fossil\"."
+        }
+      }
+    },
+
+    "set_fan_speed": {
+      "name": "Set fan speed",
+      "description": "Set thermostat fan speed.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "fanSpeed": {
+          "name": "Fan speed",
+          "description": "Possible values: \"On\", \"Auto\" for TH6xxxWF; or 0, 20, 40, 60, 80, 100, 128 for HP6000WF-xx."
+        }
+      }
+    },
+
+    "set_humidity_mode": {
+      "name": "Set humidity mode",
+      "description": "Set humidity setpoint mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "humiditySetpointMode": {
+          "name": "Humidity mode",
+          "description": "Possible values: \"defog\", \"manual\"."
+        }
+      }
+    },
+
+    "set_heat_dissipation_time": {
+      "name": "Set heat dissipation time",
+      "description": "Set heating purge time. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of thermostat device."
+        },
+        "time": {
+          "name": "Dissipation time",
+          "description": "Possible values: 0 to 5 minutes. 0 = off."
+        }
+      }
+    },
+
+    "set_cool_dissipation_time": {
+      "name": "Set cool dissipation time",
+      "description": "Set cooling purge time. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of thermostat device."
+        },
+        "time": {
+          "name": "Dissipation time",
+          "description": "Possible values: 0 to 5 minutes. 0 = off."
+        }
+      }
+    }
+  },
   "issues": {
     "dangerous_attribute_change": {
       "title": "Risky attribute change",
