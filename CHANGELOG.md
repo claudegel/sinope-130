@@ -11,7 +11,8 @@ All modification for this custom_component will be added in this file.
 ### Fix
 - refactor translate_error.
 - refactor TH6xxxWF code.
-- Fix formatting in update_stopped message for english.
+- Fix formatting in update_stopped message for English.
+- Refine update_stopped warning message in French.
 
 ### Doc
 
