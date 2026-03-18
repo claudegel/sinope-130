@@ -13,6 +13,7 @@ All modification for this custom_component will be added in this file.
 - refactor TH6xxxWF code.
 - Fix formatting in update_stopped message for English.
 - Refine update_stopped warning message in French.
+- Fix formatting in update_stopped message
 
 ### Doc
 
