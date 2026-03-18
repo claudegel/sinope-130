@@ -6,6 +6,7 @@ All modification for this custom_component will be added in this file.
 ### Added
 - Add translation into hass.data.
 - Add new attributes for TH6xxxWF.
+- Add heatAccumulator to Accessory type list.
 
 ### Fix
 - refactor translate_error.
