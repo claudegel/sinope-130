@@ -5,7 +5,9 @@ All modification for this custom_component will be added in this file.
 ## [v4.2.2] - 2026-03-__
 ### Added
 - Add translation into hass.data.
-- Add new attributes for TH6xxxWF.
+- Add new attributes for heat output polarity, humidifier type, scheduled peak delay,
+  and scheduled peak status.
+- Updated methods to handle new device models and firmware versions.
 - Add heatAccumulator to Accessory type list.
 
 ### Fix
