@@ -5,9 +5,11 @@ All modification for this custom_component will be added in this file.
 ## [v4.2.2] - 2026-03-__
 ### Added
 - Add translation into hass.data.
+- Add new attributes for TH6xxxWF.
 
 ### Fix
-- refactor translate_error
+- refactor translate_error.
+- refactor TH6xxxWF code.
 
 ### Doc
 
