@@ -15,7 +15,9 @@ All modification for this custom_component will be added in this file.
 - refactor TH6xxxWF code.
 - Fix formatting in update_stopped message for English.
 - Refine update_stopped warning message in French.
-- Fix formatting in update_stopped message
+- Fix formatting in update_stopped message.
+- Removed redundant initialization of heat_min_time_off and heat_min_time_on.
+- Updated heat/cool logging to include attributes in debug message.
 
 ### Doc
 
