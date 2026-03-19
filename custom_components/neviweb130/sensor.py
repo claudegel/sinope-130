@@ -6,8 +6,8 @@ model 5050 = WL4200, WL4210 and WL4200S, water leak detector connected to Sedna 
 model 5052 = WL4200C, perimeter cable water leak detector connected to sedna 2 gen.
 model 4210 = WL4210, WL4210S connected to GT130.
 model 42102 = WL4210, WL4210S connected to sedna valve.
-model 5056 = LM4110-ZB, level monitor.
-model 5055 = LM4110-LTE, level monitor, multiples tanks.
+model 5056 = LM4110-ZB, level monitor (SE500ZB).
+model 5055 = LM4110-LTE, level monitor (SE5000), multiples tanks.
 model 130 = gateway GT130.
 model 3156 = gateway GT4220WF, GT4220WF-M for mesh valve network.
 For more details about this platform, please refer to the documentation at
