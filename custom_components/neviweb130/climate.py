@@ -5692,8 +5692,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._heat_interstage_min_delay = None
         self._heat_level_source_type = "heating"
         self._heat_min_time_off = None
-        self._heat_min_time_off = None
-        self._heat_min_time_on = None
         self._heat_min_time_on = None
         self._heat_output_polarity = None
         self._heat_purge_time = 0
@@ -5824,16 +5822,17 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s (firmware %s): %s",
-                self._name,
-                self._firmware,
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_CONFIG + HC_STAGE + HC_SPECIAL_FIRMWARE + HC_43,
+            attributes = (
+                UPDATE_HEAT_COOL_ATTRIBUTES
+                + HC_ATTRIBUTES
+                + HC_EXTRA
+                + HC_CONFIG
+                + HC_STAGE
+                + HC_SPECIAL_FIRMWARE
+                + HC_43
             )
-            device_data = self._client.get_device_attributes(
-                self._id,
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_CONFIG + HC_STAGE + HC_SPECIAL_FIRMWARE + HC_43,
-            )
+            _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
+            device_data = self._client.get_device_attributes(self._id, attributes)
             neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
