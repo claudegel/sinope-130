@@ -282,6 +282,7 @@ ACCESSORY = [
     "humOnFan",
     "dehum",
     "airExchanger",
+    "heatAccumulator",
 ]
 
 AIR_EX_MIN_TIME_ON = ["Off", "20 min", "40 min", "Continuous"]
