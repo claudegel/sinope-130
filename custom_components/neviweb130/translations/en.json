@@ -88,7 +88,7 @@
       "scan_interval_error": "Invalid scan interval format. Use seconds or HH:MM:SS.",
       "username_missing": "Username cannot be empty.",
       "password_missing": "Password cannot be empty.",
-      "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id:{id}, Sku:{sku}.",
+      "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id: {id}, Sku: {sku}.",
       "update_restarted": "Warning: Neviweb Device update restarted for {name}, Sku: {sku}.",
       "usr_session": "Warning: Got USRSESSEXP error, Neviweb session expired.\nSet your scan_interval parameter to less than 10 minutes to avoid this...\nReconnecting...",
       "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
