@@ -88,7 +88,7 @@
       "scan_interval_error": "Format d’intervalle invalide. Utilisez des secondes ou HH:MM:SS.",
       "username_missing": "Le nom d’utilisateur ne peut pas être vide.",
       "password_missing": "Le mot de passe ne peut pas être vide.",
-      "update_stopped": "Avertissement: message reçu de Neviweb, appareil déconnecté... Vérifiez votre journal...\nLa mise à jour de Neviweb sera interrompue pendant 20 minutes pour {name}, id:{id}, Sku:{sku}",
+      "update_stopped": "Avertissement: message reçu de Neviweb, appareil déconnecté... Vérifiez votre journal de log...\nLa mise à jour via Neviweb sera interrompue pendant 20 minutes pour {name}, id: {id}, Sku: {sku}",
       "update_restarted": "Avertissement: la mise à jour de l'appareil est redémarrée pour {name}, Sku: {sku}.",
       "usr_session": "Avertissement: erreur USRSESSEXP, la session Neviweb a expiré.\nRéglez votre paramètre scan_interval sur moins de 10 minutes pour éviter cela...\nReconnexion...",
       "maintenance": "Avertissement: Accès Neviweb temporairement bloqué pour maintenance... Réessayez plus tard.",
