@@ -55,7 +55,6 @@ from __future__ import annotations
 import logging
 import time
 from datetime import date, datetime, timezone
-from packaging.version import Version
 from threading import Lock
 from typing import Any, Mapping, override
 
@@ -78,6 +77,7 @@ from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperat
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import call_later
+from packaging.version import Version
 
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
