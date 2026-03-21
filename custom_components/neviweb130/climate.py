@@ -5906,7 +5906,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_lockout_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lockout_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
-                    self._humidifier_type = devive_data[ATTR_HUMIDIFIER_TYPE]
+                    self._humidifier_type = device_data[ATTR_HUMIDIFIER_TYPE]
                     self._humidity_display = device_data[ATTR_HUMIDITY_DISPLAY]
                     self._humidity_setpoint = device_data[ATTR_HUMIDITY_SETPOINT]
                     if ATTR_CYCLE_LENGTH in device_data:
