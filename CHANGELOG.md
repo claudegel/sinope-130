@@ -5,9 +5,19 @@ All modification for this custom_component will be added in this file.
 ## [v4.2.2] - 2026-03-__
 ### Added
 - Add translation into hass.data.
+- Add new attributes for heat output polarity, humidifier type, scheduled peak delay,
+  and scheduled peak status.
+- Updated methods to handle new device models and firmware versions.
+- Add heatAccumulator to Accessory type list.
 
 ### Fix
-- refactor translate_error
+- refactor translate_error.
+- refactor TH6xxxWF code.
+- Fix formatting in update_stopped message for English.
+- Refine update_stopped warning message in French.
+- Fix formatting in update_stopped message.
+- Removed redundant initialization of heat_min_time_off and heat_min_time_on.
+- Updated heat/cool logging to include attributes in debug message.
 
 ### Doc
 

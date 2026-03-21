@@ -77,6 +77,7 @@ from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperat
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import call_later
+from packaging.version import Version
 
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -158,13 +159,16 @@ from .const import (
     ATTR_HEAT_LOCKOUT_TEMP,
     ATTR_HEAT_MIN_TIME_OFF,
     ATTR_HEAT_MIN_TIME_ON,
+    ATTR_HEAT_OUTPUT_POLARITY,
     ATTR_HEAT_PURGE_TIME,
     ATTR_HEAT_SOURCE_TYPE,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+    ATTR_HUMIDIFIER_TYPE,
     ATTR_HUMIDITY_DISPLAY,
     ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
     ATTR_HUMIDITY_SETPOINT_OFFSET,
+    ATTR_HVAC_INPUT_1_FUNCTION,
     ATTR_INTERLOCK_HC_MODE,
     ATTR_INTERLOCK_ID,
     ATTR_INTERLOCK_PARTNER,
@@ -189,6 +193,8 @@ from .const import (
     ATTR_ROOM_TEMP_DISPLAY,
     ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
+    ATTR_SCHEDULED_PEAK_DELAY,
+    ATTR_SCHEDULED_PEAK_STATUS,
     ATTR_SETPOINT,
     ATTR_SETPOINT_MODE,
     ATTR_SOUND_CAP,
@@ -5686,19 +5692,20 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._heat_interstage_min_delay = None
         self._heat_level_source_type = "heating"
         self._heat_min_time_off = None
-        self._heat_min_time_off = None
         self._heat_min_time_on = None
-        self._heat_min_time_on = None
+        self._heat_output_polarity = None
         self._heat_purge_time = 0
         self._heat_source_type = None
         self._heatcool_lock_balance_point_status = None
         self._heatcool_lock_cool_status = None
         self._heatcool_lock_heat_status = None
         self._heatcool_setpoint_delta = 2
+        self._humidifier_type = None
         self._humidity_display = None
         self._humidity_setpoint = None
         self._humidity_setpoint_mode = None
         self._humidity_setpoint_offset = 0
+        self._hvac_input1_function = None
         self._interlock_hc_mode = None
         self._interlock_id = None
         self._interlock_partner = None
@@ -5715,6 +5722,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         }
         self._preset_before = None
         self._room_temp_error = None
+        self._scheduled_peak_delay = None
+        self._scheduled_peak_status = None
         self._temp_display_status = None
         self._temp_offset_heat = None
         for mode in TH6_MODES_VALUES:
@@ -5749,6 +5758,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_HEAT_INSTALLATION_TYPE,
                 ATTR_HEAT_LOCK_TEMP,
                 ATTR_HEAT_SOURCE_TYPE,
+                ATTR_HUMIDIFIER_TYPE,
                 ATTR_HUMIDITY_DISPLAY,
                 ATTR_HUMIDITY_SETPOINT,
                 ATTR_LANGUAGE,
@@ -5761,57 +5771,68 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_WIFI_KEYPAD,
             ]
             """Get specific attributes"""
+            HC_SPECIAL_FIRMWARE = [
+                ATTR_ACCESSORY_TYPE,
+                ATTR_AIR_EX_MIN_TIME_ON,
+                ATTR_AUX_HEAT_MIN_TIME_OFF,
+                ATTR_COOL_PURGE_TIME,
+                ATTR_DRACCESORYCONF,
+                ATTR_DRAUXCONF,
+                ATTR_DRFANCONF,
+                ATTR_HC_LOCK_STATUS,
+                ATTR_HEAT_MIN_TIME_ON,
+                ATTR_HEAT_MIN_TIME_OFF,
+                ATTR_HEAT_PURGE_TIME,
+                ATTR_HUMIDITY_SETPOINT_OFFSET,
+                ATTR_HUMIDITY_SETPOINT_MODE,
+            ]
             if self._device_model == 6727:
                 HC_EXTRA = [
-                    ATTR_HEAT_INTERSTAGE_MIN_DELAY,
-                    ATTR_AUX_INTERSTAGE_MIN_DELAY,
-                    ATTR_HEAT_INTERSTAGE_DELAY,
-                    ATTR_AUX_INTERSTAGE_DELAY,
                     ATTR_COOL_INTERSTAGE_MIN_DELAY,
-                    ATTR_COOL_INTERSTAGE_DELAY,
+                    ATTR_HEAT_INTERSTAGE_MIN_DELAY,
+                    ATTR_HVAC_INPUT_1_FUNCTION,
+                    ATTR_SCHEDULED_PEAK_DELAY,
+                    ATTR_SCHEDULED_PEAK_STATUS,
                 ]
             else:
                 HC_EXTRA = []
-            if self._firmware == "4.2.0" or self._firmware == "4.2.1" or self._firmware == "4.3.0":
-                HC_SPECIAL_FIRMWARE = [
-                    ATTR_HEAT_MIN_TIME_ON,
-                    ATTR_HEAT_MIN_TIME_OFF,
-                    ATTR_ACCESSORY_TYPE,
-                    ATTR_HUMIDITY_SETPOINT_OFFSET,
-                    ATTR_HUMIDITY_SETPOINT_MODE,
-                    ATTR_AIR_EX_MIN_TIME_ON,
-                    ATTR_HC_LOCK_STATUS,
-                    ATTR_DRAUXCONF,
-                    ATTR_DRFANCONF,
-                    ATTR_DRACCESORYCONF,
-                    ATTR_DRAIR_CURT_CONF,
-                    ATTR_HEAT_PURGE_TIME,
-                    ATTR_COOL_PURGE_TIME,
-                    ATTR_AIR_CONFIG,
+            if self._device_model == 6727 or self._device_model == 6731:
+                HC_CONFIG = [
                     ATTR_AIR_ACTIVATION_TEMP,
+                    ATTR_AIR_CONFIG,
                     ATTR_AIR_MAX_POWER_TEMP,
-                    ATTR_AUX_HEAT_MIN_TIME_OFF,
+                    ATTR_DRAIR_CURT_CONF,
+                    ATTR_HEAT_OUTPUT_POLARITY,
                 ]
-                if self._firmware == "4.3.0":
-                    HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
-                else:
-                    HC_43 = []
             else:
-                HC_SPECIAL_FIRMWARE = []
+                HC_CONFIG = []
+            if self._device_model == 6727 or self._device_model == 6730:
+                HC_STAGE = [
+                    ATTR_AUX_INTERSTAGE_DELAY,
+                    ATTR_AUX_INTERSTAGE_MIN_DELAY,
+                    ATTR_COOL_INTERSTAGE_DELAY,
+                    ATTR_HEAT_INTERSTAGE_DELAY,
+                ]
+            else:
+                HC_STAGE = []
+            if Version(self._firmware) >= Version("4.3.0"):
+                HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
+            else:
                 HC_43 = []
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s (firmware %s): %s",
-                self._name,
-                self._firmware,
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_SPECIAL_FIRMWARE + HC_43,
+            attributes = (
+                UPDATE_HEAT_COOL_ATTRIBUTES
+                + HC_ATTRIBUTES
+                + HC_EXTRA
+                + HC_CONFIG
+                + HC_STAGE
+                + HC_SPECIAL_FIRMWARE
+                + HC_43
             )
-            device_data = self._client.get_device_attributes(
-                self._id,
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_SPECIAL_FIRMWARE + HC_43,
-            )
+            _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
+            device_data = self._client.get_device_attributes(self._id, attributes)
             neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5885,6 +5906,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_lockout_temp = device_data[ATTR_HEAT_LOCK_TEMP]
                     self._cool_lockout_temp = device_data[ATTR_COOL_LOCK_TEMP]
                     self._balance_pt = device_data[ATTR_BALANCE_PT]
+                    self._humidifier_type = device_data[ATTR_HUMIDIFIER_TYPE]
                     self._humidity_display = device_data[ATTR_HUMIDITY_DISPLAY]
                     self._humidity_setpoint = device_data[ATTR_HUMIDITY_SETPOINT]
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -5896,46 +5918,52 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._aux_heat_start_delay = device_data[ATTR_AUX_HEAT_START_DELAY]
                     if ATTR_HEAT_INTERSTAGE_MIN_DELAY in device_data:
                         self._heat_interstage_min_delay = device_data[ATTR_HEAT_INTERSTAGE_MIN_DELAY]
-                        self._aux_interstage_min_delay = device_data[ATTR_AUX_INTERSTAGE_MIN_DELAY]
-                        self._heat_interstage_delay = device_data[ATTR_HEAT_INTERSTAGE_DELAY]
-                        self._aux_interstage_delay = device_data[ATTR_AUX_INTERSTAGE_DELAY]
                         self._cool_interstage_min_delay = device_data[ATTR_COOL_INTERSTAGE_MIN_DELAY]
-                        self._cool_interstage_delay = device_data[ATTR_COOL_INTERSTAGE_DELAY]
+                        self._hvac_input1_function = device_data[ATTR_HVAC_INPUT_1_FUNCTION]
+                        self._scheduled_peak_delay = device_data[ATTR_SCHEDULED_PEAK_DELAY]
+                        self._scheduled_peak_status = device_data[ATTR_SCHEDULED_PEAK_STATUS]
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
                     if ATTR_HEAT_INSTALLATION_TYPE in device_data:
                         self._heat_installation_type = device_data[ATTR_HEAT_INSTALLATION_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
-                    if self._firmware == "4.2.0" or self._firmware == "4.2.1" or self._firmware == "4.3.0":
-                        accessory_type = [
-                            str(accessory_type).removesuffix("Standalone")
-                            for accessory_type, value in device_data[ATTR_ACCESSORY_TYPE].items()
-                            if value
-                        ]
-                        self._accessory_type = accessory_type[0] if accessory_type else "none"
-                        self._humidity_setpoint_offset = device_data[ATTR_HUMIDITY_SETPOINT_OFFSET]
-                        self._humidity_setpoint_mode = device_data[ATTR_HUMIDITY_SETPOINT_MODE]
-                        self._air_ex_min_time_on = device_data[ATTR_AIR_EX_MIN_TIME_ON]
-                        self._heatcool_lock_cool_status = device_data[ATTR_HC_LOCK_STATUS]["cool"]
-                        self._heatcool_lock_heat_status = device_data[ATTR_HC_LOCK_STATUS]["heat"]
-                        self._heatcool_lock_balance_point_status = device_data[ATTR_HC_LOCK_STATUS]["balancePoint"]
-                        self._dr_aux_config = device_data[ATTR_DRAUXCONF]
-                        self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
-                        self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
-                        self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
-                        self._heat_purge_time = device_data[ATTR_HEAT_PURGE_TIME]
-                        self._cool_purge_time = device_data[ATTR_COOL_PURGE_TIME]
-                        self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
+                    accessory_type = [
+                        str(accessory_type).removesuffix("Standalone")
+                        for accessory_type, value in device_data[ATTR_ACCESSORY_TYPE].items()
+                        if value
+                    ]
+                    self._accessory_type = accessory_type[0] if accessory_type else "none"
+                    self._humidity_setpoint_offset = device_data[ATTR_HUMIDITY_SETPOINT_OFFSET]
+                    self._humidity_setpoint_mode = device_data[ATTR_HUMIDITY_SETPOINT_MODE]
+                    self._air_ex_min_time_on = device_data[ATTR_AIR_EX_MIN_TIME_ON]
+                    self._heatcool_lock_cool_status = device_data[ATTR_HC_LOCK_STATUS]["cool"]
+                    self._heatcool_lock_heat_status = device_data[ATTR_HC_LOCK_STATUS]["heat"]
+                    self._heatcool_lock_balance_point_status = device_data[ATTR_HC_LOCK_STATUS]["balancePoint"]
+                    self._dr_aux_config = device_data[ATTR_DRAUXCONF]
+                    self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
+                    self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
+                    self._heat_purge_time = device_data[ATTR_HEAT_PURGE_TIME]
+                    self._cool_purge_time = device_data[ATTR_COOL_PURGE_TIME]
+                    self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
+                    self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
+                    self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
+                    if Version(self._firmware) >= Version("4.3.0"):
+                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
+                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
+                    if self._device_model == 6727 or self._device_model == 6731:
                         self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
+                        self._heat_output_polarity = device_data[ATTR_HEAT_OUTPUT_POLARITY]
+                        self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
                         self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
-                        self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
-                        self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
-                        self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
-                        if self._firmware == "4.3.0":
-                            self._interlock_id = device_data[ATTR_INTERLOCK_ID]
-                            self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
-                            self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
+                        self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
+                    if self._device_model == 6727 or self._device_model == 6730:
+                        if ATTR_AUX_INTERSTAGE_DELAY in device_data:
+                            self._aux_interstage_delay = device_data[ATTR_AUX_INTERSTAGE_DELAY]
+                            self._aux_interstage_min_delay = device_data[ATTR_AUX_INTERSTAGE_MIN_DELAY]
+                            self._cool_interstage_delay = device_data[ATTR_COOL_INTERSTAGE_DELAY]
+                            self._heat_interstage_delay = device_data[ATTR_HEAT_INTERSTAGE_DELAY]
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5962,7 +5990,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Return the list of supported features."""
         features = SUPPORT_HC_FLAGS
 
-        if self._accessory_type != "none":
+        if self._accessory_type != "none" and self._accessory_type != "heatAccumulator":
             features |= ClimateEntityFeature.TARGET_HUMIDITY
 
         if self.hvac_mode == HVACMode.HEAT_COOL:
@@ -6403,7 +6431,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._humidity_setpoint = humidity
 
     def set_accessory_type(self, value):
-        """Set accessory (humidifier, dehumidifier, air exchanger) type for TH6500WF."""
+        """Set accessory (humidifier, dehumidifier, air exchanger, heat accumulator) type for TH6500WF."""
         self._client.set_accessory_type(value["id"], value["type"])
         self._accessory_type = value["type"]
 
@@ -6513,6 +6541,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "cycle_length": self._cycle_length,
                 "aux_cycle_length": self._aux_cycle_length,
                 "cool_cycle_length": neviweb_to_ha(self._cool_cycle_length),
+                "humidifier_type": self._humidifier_type,
                 "humidity_display": self._humidity_display,
                 "humidity_setpoint": self._humidity_setpoint,
                 "accessory_type": self._accessory_type,
@@ -6542,41 +6571,54 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "id": self._id,
             }
         )
+        data.update(
+            {
+                "humidity_setpoint_offset": self._humidity_setpoint_offset,
+                "humidity_setpoint_mode": self._humidity_setpoint_mode,
+                "exchanger_min_time_on": self._air_min_time_on,
+                "heatcool_lock_cool_status": self._heatcool_lock_cool_status,
+                "heatcool_lock_heat_status": self._heatcool_lock_heat_status,
+                "heatcool_lock_balancePoint_status": self._heatcool_lock_balance_point_status,
+                "dr_aux_config": self._dr_aux_config,
+                "dr_fan_speed_conf": self._dr_fan_speed_conf,
+                "dr_accessory_conf": self._dr_accessory_conf,
+                "heat_purge_time": self._heat_purge_time,
+                "cool_purge_time": self._cool_purge_time,
+                "aux_heat_min_time_off": self._aux_heat_min_time_off,
+                "heat_min_time_on": self._heat_min_time_on,
+                "heat_min_time_off": self._heat_min_time_off,
+            }
+        )
         if self._device_model == 6727:
             data.update(
                 {
                     "heat_interstage_min_delay": self._aux_interstage_min_delay,
+                    "cool_interstage_min_delay": self._cool_interstage_min_delay,
+                    "hvac_input1_function": self._hvac_input1_function,
+                    "scheduled_peak_status": self._scheduled_peak_status,
+                    "scheduled_peak_delay": self._scheduled_peak_delay,
+                }
+            )
+        if self._device_model == 6727 or self._device_model == 6731:
+            data.update(
+                {
+                    "air_curtain_activation_temp": self._air_curt_activation_temp,
+                    "heat_output_polarity": self._heat_output_polarity,
+                    "air_curtain_conf": self._air_curt_conf,
+                    "air_curtain_max_temp": self._air_curt_max_temp,
+                    "dr_air_curtain_conf": self._dr_air_curt_conf,
+                }
+            )
+        if self._device_model == 6727 or self._device_model == 6730:
+            data.update(
+                {
                     "aux_interstage_min_delay": self._aux_interstage_min_delay,
                     "heat_interstage_delay": self._heat_interstage_delay,
                     "aux_interstage_delay": self._aux_interstage_delay,
-                    "cool_interstage_min_delay": self._cool_interstage_min_delay,
                     "cool_interstage_delay": self._cool_interstage_delay,
                 }
             )
-        if self._firmware == "4.2.1" or self._firmware == "4.3.0":
-            data.update(
-                {
-                    "humidity_setpoint_offset": self._humidity_setpoint_offset,
-                    "humidity_setpoint_mode": self._humidity_setpoint_mode,
-                    "exchanger_min_time_on": self._air_min_time_on,
-                    "heatcool_lock_cool_status": self._heatcool_lock_cool_status,
-                    "heatcool_lock_heat_status": self._heatcool_lock_heat_status,
-                    "heatcool_lock_balancePoint_status": self._heatcool_lock_balance_point_status,
-                    "dr_aux_config": self._dr_aux_config,
-                    "dr_fan_speed_conf": self._dr_fan_speed_conf,
-                    "dr_accessory_conf": self._dr_accessory_conf,
-                    "dr_air_curtain_conf": self._dr_air_curt_conf,
-                    "heat_purge_time": self._heat_purge_time,
-                    "cool_purge_time": self._cool_purge_time,
-                    "air_curtain_conf": self._air_curt_conf,
-                    "air_curtain_activation_temp": self._air_curt_activation_temp,
-                    "air_curtain_max_temp": self._air_curt_max_temp,
-                    "aux_heat_min_time_off": self._aux_heat_min_time_off,
-                    "heat_min_time_on": self._heat_min_time_on,
-                    "heat_min_time_off": self._heat_min_time_off,
-                }
-            )
-        if self._firmware == "4.3.0":
+        if Version(self._firmware) >= Version("4.3.0"):
             data.update(
                 {
                     "interlock_id": self._interlock_id,
