@@ -11,8 +11,8 @@ All modification for this custom_component will be added in this file.
 - Add heatAccumulator to Accessory type list.
 
 ### Fix
-- refactor translate_error.
-- refactor TH6xxxWF code.
+- Refactor translate_error.
+- Refactor TH6xxxWF code.
 - Fix formatting in update_stopped message for English.
 - Refine update_stopped warning message in French.
 - Fix formatting in update_stopped message.
