@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.2] - 2026-03-__
+## [v4.2.2] - 2026-03-23
 ### Added
 - Add translation into hass.data.
 - Add new attributes for heat output polarity, humidifier type, scheduled peak delay,
