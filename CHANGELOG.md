@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.3] - 2026-03-__
+### Added
+
+### Fix
+- Removed interlock-related attributes and references for firmware version 4.3.0 and above.
+
+### Doc
+
 ## [v4.2.2] - 2026-03-23
 ### Added
 - Add translation into hass.data.
