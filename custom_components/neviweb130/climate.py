@@ -5804,15 +5804,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ]
             else:
                 HC_CONFIG = []
-            if self._device_model == 6727 or self._device_model == 6730:
-                HC_STAGE = [
-                    ATTR_AUX_INTERSTAGE_DELAY,
-                    ATTR_AUX_INTERSTAGE_MIN_DELAY,
-                    ATTR_COOL_INTERSTAGE_DELAY,
-                    ATTR_HEAT_INTERSTAGE_DELAY,
-                ]
-            else:
-                HC_STAGE = []
             if Version(self._firmware) >= Version("4.3.0"):
                 HC_43 = [ATTR_INTERLOCK_ID]
             else:
@@ -5825,7 +5816,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 + HC_ATTRIBUTES
                 + HC_EXTRA
                 + HC_CONFIG
-                + HC_STAGE
                 + HC_SPECIAL_FIRMWARE
                 + HC_43
             )
@@ -5954,12 +5944,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
                         self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
                         self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
-                    if self._device_model == 6727 or self._device_model == 6730:
-                        if ATTR_AUX_INTERSTAGE_DELAY in device_data:
-                            self._aux_interstage_delay = device_data[ATTR_AUX_INTERSTAGE_DELAY]
-                            self._aux_interstage_min_delay = device_data[ATTR_AUX_INTERSTAGE_MIN_DELAY]
-                            self._cool_interstage_delay = device_data[ATTR_COOL_INTERSTAGE_DELAY]
-                            self._heat_interstage_delay = device_data[ATTR_HEAT_INTERSTAGE_DELAY]
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -6603,15 +6588,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "air_curtain_conf": self._air_curt_conf,
                     "air_curtain_max_temp": self._air_curt_max_temp,
                     "dr_air_curtain_conf": self._dr_air_curt_conf,
-                }
-            )
-        if self._device_model == 6727 or self._device_model == 6730:
-            data.update(
-                {
-                    "aux_interstage_min_delay": self._aux_interstage_min_delay,
-                    "heat_interstage_delay": self._heat_interstage_delay,
-                    "aux_interstage_delay": self._aux_interstage_delay,
-                    "cool_interstage_delay": self._cool_interstage_delay,
                 }
             )
         if Version(self._firmware) >= Version("4.3.0"):
