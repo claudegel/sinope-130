@@ -5706,9 +5706,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._humidity_setpoint_mode = None
         self._humidity_setpoint_offset = 0
         self._hvac_input1_function = None
-        self._interlock_hc_mode = None
         self._interlock_id = None
-        self._interlock_partner = None
         self._output_connect_state = {
             "Y1": False,
             "Y2": False,
@@ -5816,7 +5814,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             else:
                 HC_STAGE = []
             if Version(self._firmware) >= Version("4.3.0"):
-                HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
+                HC_43 = [ATTR_INTERLOCK_ID]
             else:
                 HC_43 = []
 
@@ -5950,8 +5948,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
                     if Version(self._firmware) >= Version("4.3.0"):
                         self._interlock_id = device_data[ATTR_INTERLOCK_ID]
-                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
-                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
                     if self._device_model == 6727 or self._device_model == 6731:
                         self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
                         self._heat_output_polarity = device_data[ATTR_HEAT_OUTPUT_POLARITY]
@@ -6622,8 +6618,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             data.update(
                 {
                     "interlock_id": self._interlock_id,
-                    "interlock_hc_mode": self._interlock_hc_mode,
-                    "interlock_partner": self._interlock_partner,
                 }
             )
         for mode in TH6_MODES_VALUES:
