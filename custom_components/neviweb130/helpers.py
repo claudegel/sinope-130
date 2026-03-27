@@ -319,3 +319,86 @@ def translate_error(hass, key: str, **placeholders):
     )
 
     return f"[Missing translation: {key}]"
+
+
+# ─────────────────────────────────────────────
+# Testing devices attributes one by one to spot invalid attributes
+# ─────────────────────────────────────────────
+
+
+def safe_get_device_attributes(
+    hass,
+    client,
+    device_id,
+    attributes,
+    logger,
+    device_sku=None,
+    device_model=None,
+    firmware=None,
+    delay=0.4,
+):
+    """Get device attributes safely.
+
+    - Try full request first
+    - If DVCATTRNSPTD occurs, test attributes individually
+    - Insert None for unsupported attributes
+    - Return a complete device_data dict
+    """
+
+    try:
+        return client.get_device_attributes(device_id, attributes)
+
+    except Exception as e:
+        if "DVCATTRNSPTD" not in str(e):
+            raise
+
+        model_info = f"Model: {device_model}" if device_model else "Model: unknown"
+        fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
+        sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
+
+        logger.warning(
+            "Unsupported attribute detected for device %s (Sku: %s, Model: %s, Firmware: %s). "
+            "Testing attributes individually...",
+            device_id,
+            sku_info,
+            model_info,
+            fw_info,
+        )
+
+        notify_ha(
+            hass,
+            (
+                f"Some attributes requested for device {device_id} are not supported.\n"
+                f"Model: {model_info}\n{Firmware: fw_info}\n{Sku: sku_info}\n"
+                "Check your logs to identify which attributes failed and report to maintainer."
+            ),
+            title="Neviweb130: Unsupported attributes detected",
+        )
+
+        device_data = {}
+
+        for attr in attributes:
+            try:
+                logger.debug("Testing attribute '%s' for device %s", attr, device_id)
+                result = client.get_device_attributes(device_id, [attr])
+
+                if isinstance(result, dict):
+                    device_data.update(result)
+
+                logger.debug("Result for '%s': %s", attr, result)
+
+            except Exception as e_attr:
+                logger.warning(
+                    "Attribute '%s' not supported for device %s (Sku: %s, Model: %s, Firmware: %s): %s",
+                    attr,
+                    device_id,
+                    sku_info,
+                    model_info,
+                    fw_info,
+                    e_attr,
+                )
+                device_data[attr] = None
+
+            time.sleep(delay)
+
+        return device_data
