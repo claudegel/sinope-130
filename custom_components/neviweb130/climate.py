@@ -268,7 +268,7 @@ from .const import (
     SERVICE_SET_TIME_FORMAT,
     VERSION,
 )
-from .helpers import file_exists, translate_error
+from .helpers import file_exists, safe_get_device_attributes, translate_error
 from .schema import (
     AUX_HEATING,
     CYCLE_LENGTH_VALUES,
@@ -5820,7 +5820,17 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 + HC_43
             )
             _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
-            device_data = self._client.get_device_attributes(self._id, attributes)
+            device_data = safe_get_device_attributes(
+                self.hass,
+                self._client,
+                self._id,
+                attributes,
+                _LOGGER,
+                device_sku=self._sku,
+                device_model=self._device_model,
+                firmware=self._firmware,
+            )
+            # device_data = self._client.get_device_attributes(self._id, attributes)
             neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
