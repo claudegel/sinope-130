@@ -5819,7 +5819,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 + HC_SPECIAL_FIRMWARE
                 + HC_43
             )
-            _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
+            _LOGGER.debug("4.2.3, attributes updated for %s (firmware %s): %s", self._name, self._firmware, attributes)
             device_data = safe_get_device_attributes(
                 self.hass,
                 self._client,
