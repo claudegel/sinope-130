@@ -345,6 +345,8 @@ def safe_get_device_attributes(
     - Return a complete device_data dict
     """
 
+    logger.warning("Running update helper")
+    
     try:
         return client.get_device_attributes(device_id, attributes)
 
