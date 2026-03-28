@@ -335,16 +335,16 @@ def safe_get_device_attributes(
     device_sku=None,
     device_model=None,
     firmware=None,
-    delay=0.4,
 ):
     logger.warning("Running update helper")
 
     try:
         result = client.get_device_attributes(device_id, attributes)
 
+        logger.debug("client result = %s", result)
         # If Neviweb silently ignore → result == {} or incomplete
         if not result or any(attr not in result for attr in attributes):
-            raise Exception("Silent attribute ignore detected")
+            raise Exception("Silent attribute ignore")
 
         return result
 
@@ -378,25 +378,45 @@ def safe_get_device_attributes(
         device_data = {}
 
         for attr in attributes:
+            logger.debug("Testing attribute %s for %s", attr, model_info)
             try:
                 result = client.get_device_attributes(device_id, [attr])
                 logger.debug("Result for '%s': %s", attr, result)
 
-                if not result or attr not in result:
+                # 1. If Neviweb return value
+                if result and attr in result:
+                    device_data[attr] = result[attr]
+                    continue
+
+                # 2. If Neviweb return {} → Attribute is supported but empty → just ignore
+                if result == {}:
                     logger.warning(
                         "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
+                        attr, device_id, sku_info, model_info, fw_info
                     )
+                    continue
+
+                # 3. If Neviweb return None explicitely we add it to device_data
+                if attr in result and result[attr] is None:
                     device_data[attr] = None
                     continue
 
-                device_data.update(result)
+                # 4. Cas improbable : attr absent → log mais ne rien ajouter
+                logger.warning(
+                    "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
+                    attr, device_id, sku_info, model_info, fw_info
+                )
+                continue
 
             except Exception as e_attr:
+                # 5. if we get DVCATTRNSPTD → this attribute is not supported, add None
+                if "DVCATTRNSPTD" in str(e_attr):
+                    logger.warning(
+                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
+                        attr, device_id, sku_info, model_info, fw_info, e_attr
+                    )
+                    continue
+
                 logger.warning(
                     "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
                     attr,
@@ -407,7 +427,6 @@ def safe_get_device_attributes(
                     e_attr,
                 )
                 device_data[attr] = None
-
-            time.sleep(delay)
-
+        logger.debug("Returned device_data = %s", device_data)
         return device_data
+
