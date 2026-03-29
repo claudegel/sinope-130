@@ -326,6 +326,8 @@ def translate_error(hass, key: str, **placeholders):
 # ─────────────────────────────────────────────
 
 
+UNSUPPORTED_ATTRS = {}
+
 def safe_get_device_attributes(
     hass,
     client,
@@ -338,13 +340,22 @@ def safe_get_device_attributes(
 ):
     logger.warning("Running update helper")
 
+    filtered_attrs = [
+            attr for attr in attributes
+            if attr not in UNSUPPORTED_ATTRS.get(device_id, set())
+        ]
+
     try:
-        result = client.get_device_attributes(device_id, attributes)
+        result = client.get_device_attributes(device_id, filtered_attrs)
 
         logger.debug("client result = %s", result)
         # If Neviweb silently ignore → result == {} or incomplete
-        if not result or any(attr not in result for attr in attributes):
+        if not result or any(attr not in result for attr in filtered_attrs):
             raise Exception("Silent attribute ignore")
+
+        # Inject UNSUPPORTED_ATTRS with None into the result
+        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+            result[attr] = None
 
         return result
 
@@ -377,6 +388,7 @@ def safe_get_device_attributes(
 
         device_data = {}
 
+        # Test each attributes one by one
         for attr in attributes:
             logger.debug("Testing attribute %s for %s", attr, model_info)
             try:
@@ -415,18 +427,27 @@ def safe_get_device_attributes(
                         "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
                         attr, device_id, sku_info, model_info, fw_info, e_attr
                     )
+
+                    logger.warning(
+                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                        e_attr,
+                    )
+                    if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
+                        logger.warning("Blacklisting unsupported attribute '%s' for device %s", attr, device_id)
+
+                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
+                    device_data[attr] = None
                     continue
 
-                logger.warning(
-                    "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
-                    attr,
-                    device_id,
-                    sku_info,
-                    model_info,
-                    fw_info,
-                    e_attr,
-                )
+        # Reinject UNSUPPORTED_ATTRS with None into fallback result
+        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+            if attr not in device_data:
                 device_data[attr] = None
+
         logger.debug("Returned device_data = %s", device_data)
         return device_data
-
