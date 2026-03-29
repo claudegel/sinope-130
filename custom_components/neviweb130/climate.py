@@ -5804,8 +5804,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ]
             else:
                 HC_CONFIG = []
-            if Version(self._firmware) >= Version("4.3.0"):
-                HC_43 = [ATTR_INTERLOCK_ID]
+            if self._firmware == "4.3.0":
+                HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
             else:
                 HC_43 = []
 
@@ -5946,8 +5946,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
                     self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                     self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
-                    if Version(self._firmware) >= Version("4.3.0"):
+                    if self._firmware == "4.3.0":
                         self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
+                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
                     if self._device_model == 6727 or self._device_model == 6731:
                         self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
                         self._heat_output_polarity = device_data[ATTR_HEAT_OUTPUT_POLARITY]
@@ -6600,10 +6602,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "dr_air_curtain_conf": self._dr_air_curt_conf,
                 }
             )
-        if Version(self._firmware) >= Version("4.3.0"):
+        if self._firmware == "4.3.0":
             data.update(
                 {
                     "interlock_id": self._interlock_id,
+                    "interlock_hc_mode": self._interlock_hc_mode,
+                    "interlock_partner": self._interlock_partner,
                 }
             )
         for mode in TH6_MODES_VALUES:
