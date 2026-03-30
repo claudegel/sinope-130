@@ -406,6 +406,8 @@ def safe_get_device_attributes(
                         "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
                         attr, device_id, sku_info, model_info, fw_info
                     )
+                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
+                    device_data[attr] = None
                     continue
 
                 # 3. If Neviweb return None explicitely we add it to device_data
