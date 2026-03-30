@@ -5790,7 +5790,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
                     ATTR_HVAC_INPUT_1_FUNCTION,
                     ATTR_SCHEDULED_PEAK_DELAY,
-                    ATTR_SCHEDULED_PEAK_STATUS,
+                    #  ATTR_SCHEDULED_PEAK_STATUS,
                 ]
             else:
                 HC_EXTRA = []
@@ -5919,7 +5919,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._cool_interstage_min_delay = device_data[ATTR_COOL_INTERSTAGE_MIN_DELAY]
                         self._hvac_input1_function = device_data[ATTR_HVAC_INPUT_1_FUNCTION]
                         self._scheduled_peak_delay = device_data[ATTR_SCHEDULED_PEAK_DELAY]
-                        self._scheduled_peak_status = device_data[ATTR_SCHEDULED_PEAK_STATUS]
+                        #  self._scheduled_peak_status = device_data[ATTR_SCHEDULED_PEAK_STATUS]
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
@@ -6588,7 +6588,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "heat_interstage_min_delay": self._aux_interstage_min_delay,
                     "cool_interstage_min_delay": self._cool_interstage_min_delay,
                     "hvac_input1_function": self._hvac_input1_function,
-                    "scheduled_peak_status": self._scheduled_peak_status,
+                    #  "scheduled_peak_status": self._scheduled_peak_status,
                     "scheduled_peak_delay": self._scheduled_peak_delay,
                 }
             )
