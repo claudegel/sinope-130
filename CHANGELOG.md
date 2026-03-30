@@ -12,6 +12,7 @@ All modification for this custom_component will be added in this file.
 - Removed interlock-related attributes and references for firmware version 4.3.0 and above.
 - Rermove InterstageDelay attributes for TH6500WF and TH6250WF.
 - Remove scheduledPeakStatus attribute for TH6500WF.
+- Remove missing attributes when detected.
 
 ### Doc
 
