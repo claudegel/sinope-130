@@ -16,6 +16,7 @@ All modification for this custom_component will be added in this file.
 - Removed InterstageDelay attributes for TH6500WF and TH6250WF.
 - Removed scheduledPeakStatus attribute for TH6500WF.
 - Removed missing attributes when detected.
+- Refactor error handling with translated messages.
 
 ### Doc
 
