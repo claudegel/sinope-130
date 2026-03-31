@@ -71,7 +71,7 @@ from .const import (
     SERVICE_SET_WATTAGE,
     VERSION,
 )
-from .helpers import translate_error
+from .helpers import translated_or_default
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_KEY_DOUBLE_UP_SCHEMA,
@@ -233,8 +233,14 @@ async def async_setup_platform(
     def get_light(service: ServiceCall) -> Neviweb130Light:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
-            msg = translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
-            raise ServiceValidationError(msg)
+            raise ServiceValidationError(
+                translated_or_default(
+                    hass,
+                    "missing_parameter",
+                    f"Missing required parameter: {ATTR_ENTITY_ID}.",
+                    param=ATTR_ENTITY_ID,
+                )
+            )
 
         nonlocal entity_map
         if entity_map is None:
@@ -243,13 +249,26 @@ async def async_setup_platform(
                     entity_map = {entity.entity_id: entity for entity in entities if entity.entity_id is not None}
                     if len(entity_map) != len(entities):
                         entity_map = None
-                        msg = translate_error(hass, "entities_not_ready")
-                        raise ServiceValidationError(msg)
+                        raise ServiceValidationError(
+                            translated_or_default(
+                                hass,
+                                "entities_not_ready",
+                                "Entities not finished loading, try again shortly.",
+                            )
+                        )
 
         light = entity_map.get(entity_id)
         if light is None:
-            msg = translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="light")
-            raise ServiceValidationError(msg)
+            raise ServiceValidationError(
+                translated_or_default(
+                    hass,
+                    "entity_must_be_domain",
+                    f"Entity {entity_id} must be a {DOMAIN} {'light'}.",
+                    entity=entity_id,
+                    domain=DOMAIN,
+                    platform="light",
+                )
+            )
         return light
 
     def set_light_keypad_lock_service(service: ServiceCall) -> None:
@@ -505,10 +524,37 @@ class Neviweb130Light(LightEntity):
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
+            attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
+            safe_mode = self.hass.data[DOMAIN]["safe_mode"]
+
             if self._is_light:
-                device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+                if safe_mode == self._id:
+                    device_data = safe_get_device_attributes(
+                        self.hass,
+                        self._client,
+                        self._id,
+                        attributes,
+                        _LOGGER,
+                        device_sku=self._sku,
+                        device_model=self._device_model,
+                        firmware=self._firmware,
+                    )
+                else:
+                    device_data = self._client.get_device_attributes(self._id, attributes)
             else:
-                device_data = self._client.get_device_attributes(self._id, ATTR_ONOFF)
+                if safe_mode == self._id:
+                    device_data = safe_get_device_attributes(
+                        self.hass,
+                        self._client,
+                        self._id,
+                        ATTR_ONOFF,
+                        _LOGGER,
+                        device_sku=self._sku,
+                        device_model=self._device_model,
+                        firmware=self._firmware,
+                    )
+                else:
+                    device_data = self._client.get_device_attributes(self._id, ATTR_ONOFF)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -521,16 +567,22 @@ class Neviweb130Light(LightEntity):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
+                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                                self.notify_ha(
+                                    translated_or_default(
+                                        self.hass,
+                                        "error_code",
+                                        (
+                                            f"Warning: Neviweb Device error code detected: {code} for device: \n"
+                                            f"{self._name}, ID: {self._id}, Sku: {self._sku}. {''}"
+                                        ),
+                                        code=code,
+                                        message="",
+                                        name=self._name,
+                                        id=self._id,
+                                        sku=self._sku,
+                                    )
                                 )
-                                self.notify_ha(msg)
                         self._keypad = device_data[ATTR_KEYPAD]
                         self._timer = device_data[ATTR_TIMER]
                         self._rssi = device_data[ATTR_RSSI]
@@ -562,7 +614,15 @@ class Neviweb130Light(LightEntity):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
+                    self.notify_ha(
+                        translated_or_default(
+                            self.hass,
+                            "update_restarted",
+                            f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
+                            name=self._name,
+                            sku=self._sku,
+                        )
+                    )
 
     @property
     def supported_color_modes(self):
@@ -745,8 +805,15 @@ class Neviweb130Light(LightEntity):
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
                 self._month_kwh = 0
-                msg = translate_error(self.hass, "no_stat", param="monthly", name=self._name)
-                _LOGGER.warning(msg)
+                _LOGGER.warning(
+                    translated_or_default(
+                        self.hass,
+                        "no_stat",
+                        f"Got None for device monthly stats for device {self._name}.",
+                        param="monthly",
+                        name=self._name,
+                    )
+                )
             device_daily_stats = self._client.get_device_daily_stats(self._id, False)
             #            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
@@ -768,8 +835,15 @@ class Neviweb130Light(LightEntity):
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
                 self._today_kwh = 0
-                msg = translate_error(self.hass, "no_stat", param="daily", name=self._name)
-                _LOGGER.warning(msg)
+                _LOGGER.warning(
+                    translated_or_default(
+                        self.hass,
+                        "no_stat",
+                        f"Got None for device daily stats for device {self._name}.",
+                        param="daily",
+                        name=self._name,
+                    )
+                )
             device_hourly_stats = self._client.get_device_hourly_stats(self._id, False)
             #            _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
@@ -790,8 +864,15 @@ class Neviweb130Light(LightEntity):
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
                 self._hour_kwh = 0
-                msg = translate_error(self.hass, "no_stat", param="hourly", name=self._name)
-                _LOGGER.warning(msg)
+                _LOGGER.warning(
+                    translated_or_default(
+                        self.hass,
+                        "no_stat",
+                        f"Got None for device hourly stats for device {self._name}.",
+                        param="hourly",
+                        name=self._name,
+                    )
+                )
             if self._total_kwh_count == 0:
                 self._total_kwh_count = round(
                     self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
@@ -813,8 +894,17 @@ class Neviweb130Light(LightEntity):
     def log_error(self, error_data):
         """Send error message to LOG."""
         if error_data == "USRSESSEXP":
-            msg = translate_error(self.hass, "usr_session")
-            _LOGGER.warning(msg)
+            _LOGGER.warning(
+                translated_or_default(
+                    self.hass,
+                    "usr_session",
+                    (
+                        "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
+                        "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
+                        "Reconnecting..."
+                    ),
+                )
+            )
             if NOTIFY == "notification" or NOTIFY == "both":
                 self.notify_ha(msg)
             self._client.reconnect()
@@ -823,14 +913,42 @@ class Neviweb130Light(LightEntity):
         elif error_data == "TimeoutError":
             _LOGGER.warning("Timeout error detected... Retry later")
         elif error_data == "MAINTENANCE":
-            msg = translate_error(self.hass, "maintenance")
-            _LOGGER.warning(msg)
-            self.notify_ha(msg)
+            _LOGGER.warning(
+                translated_or_default(
+                    self.hass,
+                    "maintenance",
+                    "Warning: Neviweb access temporary blocked for maintenance... Retry later."
+                ),
+            )
+            self.notify_ha(
+                translated_or_default(
+                    self.hass,
+                    "maintenance",
+                    "Warning: Neviweb access temporary blocked for maintenance... Retry later."
+                ),
+            )
             self._client.reconnect()
         elif error_data == "ACCSESSEXC":
-            msg = translate_error(self.hass, "access_limit")
-            _LOGGER.warning(msg)
-            self.notify_ha(msg)
+            _LOGGER.warning(
+                translated_or_default(
+                    self.hass,
+                    "access_limit",
+                    (
+                        "Warning: ACCSESSEXC maximum Neviweb session number reached...\n"
+                        "Close other connections and try again."
+                    ),
+                )
+            )
+            self.notify_ha(
+                translated_or_default(
+                    self.hass,
+                    "access_limit",
+                    (
+                        "Warning: ACCSESSEXC maximum Neviweb session number reached...\n"
+                        "Close other connections and try again."
+                    ),
+                )
+            )
             self._client.reconnect()
         elif error_data == "DVCATTRNSPTD":
             _LOGGER.warning(
@@ -848,6 +966,23 @@ class Neviweb130Light(LightEntity):
                 self._sku,
                 str(self._device_model),
             )
+            safe_mode = self.hass.data[DOMAIN]["safe_mode"]
+            if safe_mode == "-":
+                _LOGGER.warning(
+                    translated_or_default(
+                        self.hass,
+                        "safe_mode_enabled",
+                        (
+                            f"Auto-enabling safe mode for device {self._name} (id: {self._id}) "
+                            "due to unsupported action."
+                        ),
+                        name=self._name,
+                        id=self._id,
+                    )
+                )
+
+                self.hass.data[DOMAIN]["safe_mode"] = self._id
+
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout for %s (id: %s)... The device "
@@ -893,21 +1028,38 @@ class Neviweb130Light(LightEntity):
                     self._name,
                 )
             if NOTIFY == "notification" or NOTIFY == "both":
-                msg = translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
-                self.notify_ha(msg)
+                self.notify_ha(
+                    translated_or_default(
+                        self.hass,
+                        "update_stopped",
+                        (
+                            "Warning: Received message from Neviweb, device disconnected... Check your log...\n"
+                            f"Neviweb update will be halted for 20 minutes for {self._name}, id: \n"
+                            f"{self._id}, Sku: {self._sku}."
+                        ),
+                        name=self._name,
+                        id=self._id,
+                        sku=self._sku,
+                    )
+                )
             self._active = False
             self._snooze = time.time()
         else:
-            msg = translate_error(
-                self.hass,
-                "unknown_error",
-                name=self._name,
-                id=self._id,
-                sku=self._sku,
-                model=str(self._device_model),
-                data=error_data,
+            _LOGGER.warning(
+                translated_or_default(
+                    self.hass,
+                    "unknown_error",
+                    (
+                        f"Unknown error for {self._name} (id: {self._id}) (SKU: {self._sku}),\n"
+                        f"(Model: {str(self._device_model)}). Report to maintainer. Data received: {error_data}."
+                    ),
+                    name=self._name,
+                    id=self._id,
+                    sku=self._sku,
+                    model=str(self._device_model),
+                    data=error_data,
+                )
             )
-            _LOGGER.warning(msg)
 
     def notify_ha(self, msg: str, title: str = "Neviweb130 integration " + VERSION):
         """Notify user via HA web frontend."""
@@ -931,10 +1083,37 @@ class Neviweb130Dimmer(Neviweb130Light):
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
+            attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
+            safe_mode = self.hass.data[DOMAIN]["safe_mode"]
+
             if self._is_dimmer:
-                device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+                if safe_mode == self._id:
+                    device_data = safe_get_device_attributes(
+                        self.hass,
+                        self._client,
+                        self._id,
+                        attributes,
+                        _LOGGER,
+                        device_sku=self._sku,
+                        device_model=self._device_model,
+                        firmware=self._firmware,
+                    )
+                else:
+                    device_data = self._client.get_device_attributes(self._id, attributes)
             else:
-                device_data = self._client.get_device_attributes(self._id, ATTR_ONOFF)
+                if safe_mode == self._id:
+                    device_data = safe_get_device_attributes(
+                        self.hass,
+                        self._client,
+                        self._id,
+                        ATTR_ONOFF,
+                        _LOGGER,
+                        device_sku=self._sku,
+                        device_model=self._device_model,
+                        firmware=self._firmware,
+                    )
+                else:
+                    device_data = self._client.get_device_attributes(self._id, ATTR_ONOFF)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -952,16 +1131,23 @@ class Neviweb130Dimmer(Neviweb130Light):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
+                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                                self.notify_ha(
+                                    translated_or_default(
+                                        self.hass,
+                                        "error_code",
+                                        (
+                                            "Warning: Neviweb Device error code detected: "
+                                            f"{code} for device: {self._name},"
+                                            f"ID: {self._id}, Sku: {self._sku}. {''}"
+                                        ),
+                                        code=code,
+                                        message="",
+                                        name=self._name,
+                                        id=self._id,
+                                        sku=self._sku,
+                                    )
                                 )
-                                self.notify_ha(msg)
                         self._keypad = device_data[ATTR_KEYPAD]
                         self._timer = device_data[ATTR_TIMER]
                         self._rssi = device_data[ATTR_RSSI]
@@ -993,7 +1179,16 @@ class Neviweb130Dimmer(Neviweb130Light):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
+                    self.notify_ha(
+                        translated_or_default(
+                            self.hass,
+                            "update_restarted",
+                            f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
+                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                            name=self._name,
+                            sku=self._sku,
+                        )
+                    )
 
     @property
     def extra_state_attributes(self):
@@ -1049,10 +1244,37 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 ATTR_ERROR_CODE_SET1,
             ]
             start = time.time()
+            attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
+            safe_mode = self.hass.data[DOMAIN]["safe_mode"]
+
             if self._is_new_dimmer:
-                device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + WATT_ATTRIBUTE)
+                if safe_mode == self._id:
+                    device_data = safe_get_device_attributes(
+                        self.hass,
+                        self._client,
+                        self._id,
+                        attributes,
+                        _LOGGER,
+                        device_sku=self._sku,
+                        device_model=self._device_model,
+                        firmware=self._firmware,
+                    )
+                else:
+                    device_data = self._client.get_device_attributes(self._id, attributes)
             else:
-                device_data = self._client.get_device_attributes(self._id, ATTR_ONOFF)
+                if safe_mode == self._id:
+                    device_data = safe_get_device_attributes(
+                        self.hass,
+                        self._client,
+                        self._id,
+                        ATTR_ONOFF,
+                        _LOGGER,
+                        device_sku=self._sku,
+                        device_model=self._device_model,
+                        firmware=self._firmware,
+                    )
+                else:
+                    device_data = self._client.get_device_attributes(self._id, ATTR_ONOFF)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1073,16 +1295,22 @@ class Neviweb130NewDimmer(Neviweb130Light):
                         if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                             if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                                 self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
+                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                                self.notify_ha(
+                                    translated_or_default(
+                                        self.hass,
+                                        "error_code",
+                                        (
+                                            f"Warning: Neviweb Device error code detected: {code} for device: "
+                                            f"{self._name}, ID: {self._id}, Sku: {self._sku}. {''}"
+                                        ),
+                                        code=code,
+                                        name=self._name,
+                                        id=self._id,
+                                        sku=self._sku,
+                                        message="",
+                                    )
                                 )
-                                self.notify_ha(msg)
                         self._rssi = device_data[ATTR_RSSI]
                         self._led_on = (
                             str(device_data[ATTR_LED_ON_INTENSITY])
@@ -1112,7 +1340,16 @@ class Neviweb130NewDimmer(Neviweb130Light):
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
-                    self.notify_ha(translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku))
+                    self.notify_ha(
+                        translated_or_default(
+                            self.hass,
+                            "update_restarted",
+                            f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
+                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                            name=self._name,
+                            sku=self._sku,
+                        )
+                    )
 
     @property
     def extra_state_attributes(self):
