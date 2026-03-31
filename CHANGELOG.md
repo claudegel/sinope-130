@@ -8,6 +8,7 @@ All modification for this custom_component will be added in this file.
   handling unsupported attributes and logging warnings.
 - Add blacklisted attributes list to avoid polling them at each update.
 - Add more English and French error tanslations.
+- Add new SAFE_MODE parameter.
 
 ### Fix
 - Removed interlock-related attributes and references for firmware version 4.3.0 and above.
