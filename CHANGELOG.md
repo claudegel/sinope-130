@@ -12,7 +12,7 @@ All modification for this custom_component will be added in this file.
 - Added a new function to return a default message if translation cache is not loaded.
 
 ### Fix
-- Removed interlock-related attributes and references for firmware version 4.3.0 and above.
+- Removed interlock-related attributes and references for firmware version above 4.3.6.
 - Removed InterstageDelay attributes for TH6500WF and TH6250WF.
 - Removed scheduledPeakStatus attribute for TH6500WF.
 - Removed missing attributes when detected.
