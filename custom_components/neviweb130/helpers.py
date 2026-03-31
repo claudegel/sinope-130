@@ -300,10 +300,14 @@ def file_exists(hass, path: str) -> bool:
 
 def translate_error(hass, key: str, **placeholders):
     """Translate an error message using cached translations (sync)."""
+
+    if not hass.data[DOMAIN].get("ready"):
+        return None
+
     cache = hass.data[DOMAIN].get("translation_cache")
 
     if cache is None:
-        return f"[Missing translation: {key}]"
+        return None
 
     full_key = f"component.neviweb130.config.error.{key}"
     msg = cache.get(full_key)
@@ -319,6 +323,12 @@ def translate_error(hass, key: str, **placeholders):
     )
 
     return f"[Missing translation: {key}]"
+
+
+def translated_or_default(hass, key, default, **placeholders):
+    """Return default message in case translation_cache is not loaded."""
+    msg = translate_error(hass, key, **placeholders)
+    return msg or default
 
 
 # ─────────────────────────────────────────────
