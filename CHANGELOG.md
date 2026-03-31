@@ -7,6 +7,7 @@ All modification for this custom_component will be added in this file.
 - Add safe_get_device_attributes function to retrieve device attributes safely,
   handling unsupported attributes and logging warnings.
 - Add blacklisted attributes list to avoid polling them at each update.
+- Add more English and French error tanslations.
 
 ### Fix
 - Removed interlock-related attributes and references for firmware version 4.3.0 and above.
