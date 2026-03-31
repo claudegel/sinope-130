@@ -109,6 +109,7 @@ from .const import (
     CONF_NETWORK3,
     CONF_NOTIFY,
     CONF_PREFIX,
+    CONF_SAFE_MODE,
     CONF_STAT_INTERVAL,
     DOMAIN,
 )
@@ -120,6 +121,7 @@ HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 IGNORE_MIWI = False
 NOTIFY = "both"
+SAFE_MODE = "-"
 
 REVERSING_VALVE_POLARITY = ["cooling", "heating"]
 MIN_TIME = {120, 180, 240, 300, 600}
@@ -322,6 +324,7 @@ CONFIG_SCHEMA = vol.Schema(
                     vol.Coerce(int), vol.Range(min=300, max=1800)
                 ),
                 vol.Optional(CONF_NOTIFY, default=NOTIFY): vol.In(["both", "logging", "nothing", "notification"]),
+                vol.Optional(CONF_SAFE_MODE, default="-"): cv.string,
             }
         )
     },
