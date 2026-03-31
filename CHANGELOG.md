@@ -9,12 +9,13 @@ All modification for this custom_component will be added in this file.
 - Add blacklisted attributes list to avoid polling them at each update.
 - Add more English and French error tanslations.
 - Add new SAFE_MODE parameter.
+- Added a new function to return a default message if translation cache is not loaded.
 
 ### Fix
 - Removed interlock-related attributes and references for firmware version 4.3.0 and above.
-- Rermove InterstageDelay attributes for TH6500WF and TH6250WF.
-- Remove scheduledPeakStatus attribute for TH6500WF.
-- Remove missing attributes when detected.
+- Removed InterstageDelay attributes for TH6500WF and TH6250WF.
+- Removed scheduledPeakStatus attribute for TH6500WF.
+- Removed missing attributes when detected.
 
 ### Doc
 
