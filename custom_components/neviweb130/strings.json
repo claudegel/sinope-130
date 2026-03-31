@@ -31,7 +31,7 @@
       "multiple_heating_level": "Entity {entity} does not support multiple levels of heating with current configuration.",
       "multiple_cooling_level": "Entity {entity} does not support multiple levels of cooling with current configuration.",
       "integer_needed": "Invalid value for {param}, must be an integer.",
-      "float_needed": "Invalid value for {param}, must be a float",
+      "float_needed": "Invalid value for {param}, must be a float.",
       "missing_functionality": "Entity {entity} does not have both a heat pump and an auxiliary heater.",
       "invalid_value": "Invalid value for {param}, must be one of {value}.",
       "cannot_use_entity": "Entity {entity} cannot be used with this service (action).",
@@ -57,7 +57,9 @@
       "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval).",
       "update_successful": "Update to version {version} was installed successfully.\n[See update notes]({url}).",
       "update_fail": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n[See update notes]({url}).",
-      "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}."
+      "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
+      "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
+      "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute."
     }
   }
 }
