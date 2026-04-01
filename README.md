@@ -258,6 +258,7 @@ custom_component which can run along with this custom_component in HA.
 | **notify**        | no       | both                                                                                                               | The method to send notification in case of device error. value option are `nothing`, `logging`, `notification`, `both`.                                                                            
                        |
 | **safe_mode**     | no       | -                                                                                                                  | Safe mode is used to run device update in a way that won't crash in case of bad or missing parameters. If a device receive DVCATTRNSPTD error, safe_mode will fire automatically for that device to detect faulty attribute and allow device update to complete. Default value is "-". If you want to test device attributes put device ID as safe_mode value.
+                       |
 
 If you have a GT125 also connected to Neviweb the network parameter is mandatory, or it is possible that during the 
 setup, the GT125 network will be picked up accidentally. If you have only two GT130/Wi-Fi network, you can omit there 
