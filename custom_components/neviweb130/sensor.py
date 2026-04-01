@@ -293,7 +293,7 @@ async def async_setup_platform(
         if entity_id is None:
             raise ServiceValidationError(
                 translated_or_default(
-                    self.hass,
+                    hass,
                     "missing_parameter",
                     f"Missing required parameter: {ATTR_ENTITY_ID}.",
                     param=ATTR_ENTITY_ID,
