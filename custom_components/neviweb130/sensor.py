@@ -1236,7 +1236,8 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                                     self.hass,
                                     "error_code",
                                     (
-                                        f"Warning: Neviweb Device error code detected: {code} for device: {self._name}, "
+                                        f"Warning: Neviweb Device error code detected: {code} "
+                                        f"for device: {self._name}, "
                                         f"ID: {self._id}, Sku: {self._sku}."
                                     ),
                                     code=code,
