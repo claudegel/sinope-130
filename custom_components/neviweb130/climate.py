@@ -77,7 +77,6 @@ from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperat
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import call_later
-from packaging.version import Version
 
 from . import HOMEKIT_MODE, NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -94,8 +93,6 @@ from .const import (
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
     ATTR_AUX_HEAT_START_DELAY,
-    ATTR_AUX_INTERSTAGE_DELAY,
-    ATTR_AUX_INTERSTAGE_MIN_DELAY,
     ATTR_AUX_OPTIM,
     ATTR_AVAIL_MODE,
     ATTR_BACK_LIGHT,
@@ -106,7 +103,6 @@ from .const import (
     ATTR_BALANCE_PT_TEMP_LOW,
     ATTR_COLD_LOAD_PICKUP,
     ATTR_COOL_CYCLE_LENGTH,
-    ATTR_COOL_INTERSTAGE_DELAY,
     ATTR_COOL_INTERSTAGE_MIN_DELAY,
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_MIN_TIME_OFF,
@@ -153,7 +149,6 @@ from .const import (
     ATTR_HC_LOCK_STATUS,
     ATTR_HEAT_COOL,
     ATTR_HEAT_INSTALLATION_TYPE,
-    ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HEAT_LOCKOUT_TEMP,
@@ -194,7 +189,6 @@ from .const import (
     ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
     ATTR_SCHEDULED_PEAK_DELAY,
-    ATTR_SCHEDULED_PEAK_STATUS,
     ATTR_SETPOINT,
     ATTR_SETPOINT_MODE,
     ATTR_SOUND_CAP,
@@ -3659,7 +3653,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                             f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
                             name=self._name,
                             sku=self._sku,
-                            )
+                        )
                     )
 
     @property
@@ -6451,12 +6445,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             attributes = (
-                UPDATE_HEAT_COOL_ATTRIBUTES
-                + HC_ATTRIBUTES
-                + HC_EXTRA
-                + HC_CONFIG
-                + HC_SPECIAL_FIRMWARE
-                + HC_43
+                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_EXTRA + HC_CONFIG + HC_SPECIAL_FIRMWARE + HC_43
             )
             _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
             safe_mode = self.hass.data[DOMAIN]["safe_mode"]

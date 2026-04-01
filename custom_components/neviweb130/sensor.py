@@ -324,7 +324,7 @@ async def async_setup_platform(
                     f"Entity {entity_id} must be a {DOMAIN} sensor.",
                     entity=entity_id,
                     domain=DOMAIN,
-                    platform="sensor"
+                    platform="sensor",
                 )
             )
 
@@ -336,7 +336,7 @@ async def async_setup_platform(
                     f"Entity {entity_id} must be a {DOMAIN} sensor.",
                     entity=entity_id,
                     domain=DOMAIN,
-                    platform="sensor"
+                    platform="sensor",
                 )
             )
 
@@ -800,8 +800,8 @@ class Neviweb130Sensor(Entity):
                             f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
                             name=self._name,
                             sku=self._sku,
-                       )
-                   )
+                        )
+                    )
 
     @property
     @override
@@ -1724,7 +1724,7 @@ class NeviwebDailyRequestSensor(Entity):
                     f"Warning: {count} requests today. Safety limit: 25000, Daily limit: 30000.",
                     count=count,
                     limit=25000,
-                )
+                ),
             )
 
         # Reset flag when we pass midnight

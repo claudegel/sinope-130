@@ -1256,20 +1256,20 @@ class Neviweb130WifiValve(Neviweb130Valve):
                             self._water_leak_status == "flowMeter"
                             and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0
                         ):
-                            code=device_data[ATTR_WATER_LEAK_STATUS]
+                            code = device_data[ATTR_WATER_LEAK_STATUS]
                             self.notify_ha(
                                 translated_or_default(
                                     self.hass,
                                     "error_code",
                                     (
-                                            f"Warning: Neviweb Device error code detected: {code} for \n"
-                                            f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
-                                        ),
-                                        code=code,
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
+                                        f"Warning: Neviweb Device error code detected: {code} for \n"
+                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
+                                    ),
+                                    code=code,
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
                                 )
                             )
                     if ATTR_MOTOR_TARGET in device_data:
@@ -1487,7 +1487,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
-                        code=device_data[ATTR_WATER_LEAK_STATUS]
+                        code = device_data[ATTR_WATER_LEAK_STATUS]
                         self.notify_ha(
                             translated_or_default(
                                 self.hass,
@@ -1522,7 +1522,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
                         if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
                             self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                             self.notify_ha(
                                 translated_or_default(
                                     self.hass,
@@ -1706,7 +1706,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
-                        code=device_data[ATTR_WATER_LEAK_STATUS]
+                        code = device_data[ATTR_WATER_LEAK_STATUS]
                         self.notify_ha(
                             translated_or_default(
                                 self.hass,

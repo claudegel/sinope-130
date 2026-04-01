@@ -338,6 +338,7 @@ def translated_or_default(hass, key, default, **placeholders):
 
 UNSUPPORTED_ATTRS = {}
 
+
 def safe_get_device_attributes(
     hass,
     client,
@@ -350,10 +351,7 @@ def safe_get_device_attributes(
 ):
     logger.warning("Running update helper")
 
-    filtered_attrs = [
-            attr for attr in attributes
-            if attr not in UNSUPPORTED_ATTRS.get(device_id, set())
-        ]
+    filtered_attrs = [attr for attr in attributes if attr not in UNSUPPORTED_ATTRS.get(device_id, set())]
 
     try:
         result = client.get_device_attributes(device_id, filtered_attrs)
@@ -378,8 +376,7 @@ def safe_get_device_attributes(
         sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
 
         logger.warning(
-            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). "
-            "Testing attributes individually...",
+            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
             device_id,
             sku_info,
             model_info,
@@ -414,7 +411,11 @@ def safe_get_device_attributes(
                 if result == {}:
                     logger.warning(
                         "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
-                        attr, device_id, sku_info, model_info, fw_info
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
                     )
                     UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
                     device_data[attr] = None
@@ -428,7 +429,11 @@ def safe_get_device_attributes(
                 # 4. Cas improbable : attr absent → log mais ne rien ajouter
                 logger.warning(
                     "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
-                    attr, device_id, sku_info, model_info, fw_info
+                    attr,
+                    device_id,
+                    sku_info,
+                    model_info,
+                    fw_info,
                 )
                 continue
 
@@ -437,7 +442,12 @@ def safe_get_device_attributes(
                 if "DVCATTRNSPTD" in str(e_attr):
                     logger.warning(
                         "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
-                        attr, device_id, sku_info, model_info, fw_info, e_attr
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                        e_attr,
                     )
 
                     logger.warning(

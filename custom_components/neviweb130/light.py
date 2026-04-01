@@ -917,14 +917,14 @@ class Neviweb130Light(LightEntity):
                 translated_or_default(
                     self.hass,
                     "maintenance",
-                    "Warning: Neviweb access temporary blocked for maintenance... Retry later."
+                    "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
                 ),
             )
             self.notify_ha(
                 translated_or_default(
                     self.hass,
                     "maintenance",
-                    "Warning: Neviweb access temporary blocked for maintenance... Retry later."
+                    "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
                 ),
             )
             self._client.reconnect()
