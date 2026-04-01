@@ -906,7 +906,17 @@ class Neviweb130Light(LightEntity):
                 )
             )
             if NOTIFY == "notification" or NOTIFY == "both":
-                self.notify_ha(msg)
+                self.notify_ha(
+                    translated_or_default(
+                        self.hass,
+                        "usr_session",
+                        (
+                            "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
+                            "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
+                            "Reconnecting..."
+                        ),
+                    )
+                )
             self._client.reconnect()
         elif error_data == "ACCDAYREQMAX":
             _LOGGER.warning("Maximum daily request reached... Reduce polling frequency")
