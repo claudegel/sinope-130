@@ -232,6 +232,7 @@ neviweb130:
   ignore_miwi: False
   stat_interval: 1800
   notify: "both"
+  safe_mode: "-"
 ```
 Les noms de réseaux sont les noms trouvés en haut de la première page après la connexion à Neviweb. Si vous disposez de plusieurs réseaux, 
 cliquez simplement sur l'icône en haut pour trouver tous les noms de réseaux. Sélectionnez celui utilisé pour les appareils Zigbee GT130 ou Wi-Fi.
@@ -256,6 +257,7 @@ custom_component qui peut s'exécuter avec ce custom_component dans HA.
 | **ignore_miwi**   | non      | False                                                                                                              | Ignorez les appareils Miwi s'ils sont présents au même endroit que les appareils Zigbee et/ou Wi-Fi. Réchauffez-vous si nous définissons un mauvais emplacement Neviweb.                                                                                                   |
 | **stat_interval** | non      | 1800                                                                                                               | Le nombre de secondes entre chaque accès à Neviweb pour la mise à jour des statistiques énergétiques. L'analyse démarrera 5 minutes après le démarrage de HA et sera mise à jour toutes les 300 à 1 800 secondes.                                          |
 | **notify**        | non      | both                                                                                                               | La méthode pour envoyer une notification en cas d'erreur de périphérique. L'option de valeur est `nothing`, `logging`, `notification`, `both`.                                                                                                              |
+| **safe_mode**     | non      | -                  |Le mode sans échec permet d'exécuter la mise à jour de l'appareil sans plantage en cas de paramètres incorrects ou manquants. Si un appareil reçoit une erreur DVCATTRNSPTD durant la mise aà jour, le mode sans échec s'active automatiquement pour détecter l'attribut défectueux et permettre la finalisation de la mise à jour. La valeur par défaut est « - ». Pour tester les attributs du périphérique, indiquez l'ID de l'appareil, « 12345 » comme valeur du mode sans échec. |
 
 Si vous avez un GT125 également connecté à Neviweb, le paramètre réseau est obligatoire, ou il est possible que lors de la 
 configuration, le réseau du GT125 sera capté accidentellement. Si vous ne disposez que de deux réseaux GT130/Wi-Fi, vous pouvez omettre leurs
@@ -296,6 +298,7 @@ neviweb130:
   ignore_miwi: False
   stat_interval: 1800
   notify: "both"
+  safe_mode: "-"
 ```
 Les paramètres sont en anglais. Il ne faut pas les traduire.
 
