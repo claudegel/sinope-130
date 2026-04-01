@@ -3400,6 +3400,23 @@ class Neviweb130Thermostat(ClimateEntity):
                 error_data,
                 self._sku,
             )
+            safe_mode = self.hass.data[DOMAIN]["safe_mode"]
+            if safe_mode == "-":
+                _LOGGER.warning(
+                    translated_or_default(
+                        self.hass,
+                        "safe_mode_enabled",
+                        (
+                            f"Auto-enabling safe mode for device {self._name} (id: {self._id}) "
+                            "due to unsupported action."
+                        ),
+                        name=self._name,
+                        id=self._id,
+                    )
+                )
+
+                self.hass.data[DOMAIN]["safe_mode"] = self._id
+
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
                 "Device action not supported for %s... (id: %s, SKU: %s), (Model: %s). Report to maintainer",
