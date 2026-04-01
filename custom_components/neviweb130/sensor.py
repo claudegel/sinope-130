@@ -727,7 +727,7 @@ class Neviweb130Sensor(Entity):
                     firmware=self._firmware,
                 )
             else:
-                device_data: dict[str, Any] = self._client.get_device_attributes(self._id, attributes)
+                device_data = self._client.get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
