@@ -3147,7 +3147,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         translated_or_default(
                             self.hass,
                             "no_stat",
-                            f"No statistic available for frequence monthly for {self.entity_id}",
+                            f"No statistic available for frequency monthly for {self.entity_id}",
                             param="monthly",
                             name=self._name,
                         )
@@ -3177,7 +3177,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         translated_or_default(
                             self.hass,
                             "no_stat",
-                            f"No statistic available for frequence daily for {self.entity_id}",
+                            f"No statistic available for frequency daily for {self.entity_id}",
                             param="monthly",
                             name=self._name,
                         )
@@ -3212,7 +3212,7 @@ class Neviweb130Thermostat(ClimateEntity):
                         translated_or_default(
                             self.hass,
                             "no_stat",
-                            f"No statistic available for frequence hourly for {self.entity_id}",
+                            f"No statistic available for frequency hourly for {self.entity_id}",
                             param="monthly",
                             name=self._name,
                         )
