@@ -20,7 +20,7 @@ import datetime
 import logging
 import time
 from threading import Lock
-from typing import Any, cast, override
+from typing import cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
