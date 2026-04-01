@@ -421,7 +421,7 @@ def safe_get_device_attributes(
                     device_data[attr] = None
                     continue
 
-                # 3. If Neviweb return None explicitely we add it to device_data
+                # 3. If Neviweb return None explicitly we add it to device_data
                 if attr in result and result[attr] is None:
                     device_data[attr] = None
                     continue
