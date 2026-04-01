@@ -130,7 +130,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
-from .helpers import translated_or_default
+from .helpers import safe_get_device_attributes, translated_or_default
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_CONTROL_ONOFF_SCHEMA,
