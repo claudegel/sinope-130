@@ -3844,7 +3844,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -4061,7 +4061,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -4239,7 +4239,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -4423,7 +4423,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -4630,7 +4630,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -4821,7 +4821,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -5040,7 +5040,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -5271,7 +5271,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -5501,7 +5501,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -5731,7 +5731,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -6015,7 +6015,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
@@ -6626,7 +6626,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 self._active = True
                 if NOTIFY == "notification" or NOTIFY == "both":
                     self.notify_ha(
-                        translated(
+                        translated_or_default(
                             self.hass,
                             "update_restarted",
                             "Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
