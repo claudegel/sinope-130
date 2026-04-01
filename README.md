@@ -296,6 +296,7 @@ neviweb130:
   ignore_miwi: False
   stat_interval: 1800
   notify: "both"
+  safe_mode: "-"
 ```
 
 > **⚠️ Important: Entity Name Conflicts in Multi-Account Setup**
