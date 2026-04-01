@@ -926,8 +926,10 @@ class Neviweb130Client:
                                 self.hass,
                                 "ignore_miwi",
                                 (
-                                    f"The Neviweb location selected for parameter {'«network2»'} contains unsupported\n"
-                                    "MiWi devices. If this location contains only MiWi devices, use the sinope neviweb\n"
+                                    f"The Neviweb location selected for parameter {'«network2»'} "
+                                    "contains unsupported\n"
+                                    "MiWi devices. If this location contains only MiWi devices, "
+                                    "use the sinope neviweb\n"
                                     "integration instead. If mixed devices exist, set ignore_miwi:\n"
                                     "True in your neviweb130 configuration."
                                 ),
@@ -947,8 +949,10 @@ class Neviweb130Client:
                                 self.hass,
                                 "ignore_miwi",
                                 (
-                                    f"The Neviweb location selected for parameter {'«network3»'} contains unsupported\n"
-                                    "MiWi devices. If this location contains only MiWi devices, use the sinope neviweb\n"
+                                    f"The Neviweb location selected for parameter {'«network3»'} "
+                                    "contains unsupported\n"
+                                    "MiWi devices. If this location contains only MiWi devices, "
+                                    "use the sinope neviweb\n"
                                     "integration instead. If mixed devices exist, set ignore_miwi:\n"
                                     "True in your neviweb130 configuration."
                                 ),
