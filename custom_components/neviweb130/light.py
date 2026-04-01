@@ -958,14 +958,6 @@ class Neviweb130Light(LightEntity):
                 error_data,
                 self._sku,
             )
-        elif error_data == "DVCACTNSPTD":
-            _LOGGER.warning(
-                "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
-                self._name,
-                str(self._id),
-                self._sku,
-                str(self._device_model),
-            )
             safe_mode = self.hass.data[DOMAIN]["safe_mode"]
             if safe_mode == "-":
                 _LOGGER.warning(
@@ -983,6 +975,14 @@ class Neviweb130Light(LightEntity):
 
                 self.hass.data[DOMAIN]["safe_mode"] = self._id
 
+        elif error_data == "DVCACTNSPTD":
+            _LOGGER.warning(
+                "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
+                self._name,
+                str(self._id),
+                self._sku,
+                str(self._device_model),
+            )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
                 "Device Communication Timeout for %s (id: %s)... The device "
