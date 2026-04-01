@@ -77,7 +77,7 @@ from .const import (
     STATE_WATER_LEAK,
     VERSION,
 )
-from .helpers import file_exists, get_daily_request_count, notify_ha, translated_or_default
+from .helpers import file_exists, get_daily_request_count, notify_ha, safe_get_device_attributes, translated_or_default
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
