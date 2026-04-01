@@ -71,7 +71,7 @@ from .const import (
     SERVICE_SET_WATTAGE,
     VERSION,
 )
-from .helpers import translated_or_default
+from .helpers import safe_get_device_attributes, translated_or_default
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_KEY_DOUBLE_UP_SCHEMA,
