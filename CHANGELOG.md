@@ -19,7 +19,8 @@ All modification for this custom_component will be added in this file.
 - Refactor error handling with translated messages.
 
 ### Doc
-- Add safe_mode parameter to configuration options in README.MD.
+- Add safe_mode parameter to configuration options in readme.md.
+- Add safe_mode parameter to configuration options in readme_fr.md.
 
 ## [v4.2.2] - 2026-03-23
 ### Added
