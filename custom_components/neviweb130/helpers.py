@@ -336,7 +336,7 @@ def translated_or_default(hass, key, default, **placeholders):
 # ─────────────────────────────────────────────
 
 
-UNSUPPORTED_ATTRS = {}
+UNSUPPORTED_ATTRS: dict[str, set[str]] = {}
 
 
 def safe_get_device_attributes(
