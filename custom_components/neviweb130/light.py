@@ -1194,7 +1194,6 @@ class Neviweb130Dimmer(Neviweb130Light):
                             self.hass,
                             "update_restarted",
                             f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
-                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
                             name=self._name,
                             sku=self._sku,
                         )
@@ -1355,7 +1354,6 @@ class Neviweb130NewDimmer(Neviweb130Light):
                             self.hass,
                             "update_restarted",
                             f"Warning: Neviweb Device update restarted for {self._name}, Sku: {self._sku}.",
-                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
                             name=self._name,
                             sku=self._sku,
                         )
