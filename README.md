@@ -231,6 +231,7 @@ neviweb130:
   ignore_miwi: False
   stat_interval: 1800
   notify: "both"
+  safe_mode: "-"
 ```
 Networks names are the names found on top of first page after logging into Neviweb. If you have more then one network, 
 just click on icon on top to find all networks names. Select the one used for Zigbee GT130 or Wi-Fi devices. Both devices types 
@@ -254,7 +255,8 @@ custom_component which can run along with this custom_component in HA.
 | **homekit_mode**  | no       | False                                                                                                              | Add support for Homekit specific values. Not needed if you don't use homekit.                                                                                                                                                |
 | **ignore_miwi**   | no       | False                                                                                                              | Ignore miwi devices if present in same location then Zigbee and/or Wi-Fi devices. Warm if we set wrong Neviweb location.                                                                                                     |
 | **stat_interval** | no       | 1800                                                                                                               | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.                                          |
-| **notify**        | no       | both                                                                                                               | The method to send notification in case of device error. value option are `nothing`, `logging`, `notification`, `both`.                                                                                                              
+| **notify**        | no       | both                                                                                                               | The method to send notification in case of device error. value option are `nothing`, `logging`, `notification`, `both`.   |                                                                        
+| **safe_mode**     | no       | -                                                                                                                  | Safe mode is used to run device update in a way that won't crash in case of bad or missing parameters. If a device receive DVCATTRNSPTD error, safe_mode will fire automatically for that device to detect faulty attribute and allow device update to complete. Default value is "-". If you want to test device attributes put device ID as safe_mode value as "12345".                                             |
 
 If you have a GT125 also connected to Neviweb the network parameter is mandatory, or it is possible that during the 
 setup, the GT125 network will be picked up accidentally. If you have only two GT130/Wi-Fi network, you can omit there 
@@ -294,6 +296,7 @@ neviweb130:
   ignore_miwi: False
   stat_interval: 1800
   notify: "both"
+  safe_mode: "-"
 ```
 
 > **⚠️ Important: Entity Name Conflicts in Multi-Account Setup**

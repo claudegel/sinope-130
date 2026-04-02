@@ -2,6 +2,26 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.3b0] - 2026-03-__
+### Added
+- Add safe_get_device_attributes function to retrieve device attributes safely,
+  handling unsupported attributes and logging warnings.
+- Add blacklisted attributes list to avoid polling them at each update.
+- Add more English and French error translations.
+- Add new SAFE_MODE parameter.
+- Added a new function to return a default message if translation cache is not loaded.
+
+### Fix
+- Removed interlock-related attributes and references for firmware version above 4.3.6.
+- Removed InterstageDelay attributes for TH6500WF and TH6250WF.
+- Removed scheduledPeakStatus attribute for TH6500WF.
+- Removed missing attributes when detected.
+- Refactor error handling with translated messages.
+
+### Doc
+- Add safe_mode parameter to configuration options in readme.md.
+- Add safe_mode parameter to configuration options in readme_fr.md.
+
 ## [v4.2.2] - 2026-03-23
 ### Added
 - Add translation into hass.data.

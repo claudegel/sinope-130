@@ -31,7 +31,7 @@
       "multiple_heating_level": "L'entité {entity} ne supporte pas des niveaux de chauffe multiples avec la configuration actuelle.",
       "multiple_cooling_level": "L'entité {entity} ne supporte pas des niveaux de climatisation multiples avec la configuration actuelle.",
       "integer_needed": "Valeur invalide pour {param}, un nombre entier est requis.",
-      "float_needed": "Valeur invalide pour {param}, un nombre décimal est requis",
+      "float_needed": "Valeur invalide pour {param}, un nombre décimal est requis.",
       "missing_functionality": "L'entité {entity} n'a pas les fonctionalités pompe à chaleur et chauffage auxiliaire.",
       "invalid_value": "Valeur invalide pour {param}, doit être parmis les valeurs: {value}.",
       "cannot_use_entity": "L'entité {entity} ne peut être utilisée pour ce service (action).",
@@ -57,7 +57,9 @@
       "daily_access": "Nombre de requête quotidienne maximale atteint... Augmenter l'intervalle d'interrogation de Neviweb, (scan_interval).",
       "update_successful": "La mise à jour vers la version {version} a été installée avec succès.\n[Voir les notes de mise à jour]({url}).",
       "update_fail": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été rétablie.\n[Voir les notes de mise à jour]({url}).",
-      "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRestauration ignorée, aucune sauvegarde locale disponible.\n{message}."
+      "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRestauration ignorée, aucune sauvegarde locale disponible.\n{message}.",
+      "error_resolved": "Toutes les erreurs ont été résolues pour l'appareil {name}, ID : {id}, Sku : {sku}.",
+      "safe_mode_enabled": "Activation automatique du mode sans échec pour le périphérique {name} (id : {id}) en raison d'un attribut non pris en charge."
     }
   }
 }

@@ -300,10 +300,14 @@ def file_exists(hass, path: str) -> bool:
 
 def translate_error(hass, key: str, **placeholders):
     """Translate an error message using cached translations (sync)."""
+
+    if not hass.data[DOMAIN].get("ready"):
+        return None
+
     cache = hass.data[DOMAIN].get("translation_cache")
 
     if cache is None:
-        return f"[Missing translation: {key}]"
+        return None
 
     full_key = f"component.neviweb130.config.error.{key}"
     msg = cache.get(full_key)
@@ -319,3 +323,153 @@ def translate_error(hass, key: str, **placeholders):
     )
 
     return f"[Missing translation: {key}]"
+
+
+def translated_or_default(hass, key, default, **placeholders):
+    """Return default message in case translation_cache is not loaded."""
+    msg = translate_error(hass, key, **placeholders)
+    return msg or default
+
+
+# ─────────────────────────────────────────────
+# Testing devices attributes one by one to spot invalid attributes
+# ─────────────────────────────────────────────
+
+
+UNSUPPORTED_ATTRS: dict[str, set[str]] = {}
+
+
+def safe_get_device_attributes(
+    hass,
+    client,
+    device_id,
+    attributes,
+    logger,
+    device_sku=None,
+    device_model=None,
+    firmware=None,
+):
+    logger.warning("Running update helper")
+
+    filtered_attrs = [attr for attr in attributes if attr not in UNSUPPORTED_ATTRS.get(device_id, set())]
+
+    try:
+        result = client.get_device_attributes(device_id, filtered_attrs)
+
+        logger.debug("client result = %s", result)
+        # If Neviweb silently ignore → result == {} or incomplete
+        if not result or any(attr not in result for attr in filtered_attrs):
+            raise Exception("Silent attribute ignore")
+
+        # Inject UNSUPPORTED_ATTRS with None into the result
+        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+            result[attr] = None
+
+        return result
+
+    except Exception as e:
+        if "DVCATTRNSPTD" not in str(e) and "Silent attribute ignore" not in str(e):
+            raise
+
+        model_info = f"Model: {device_model}" if device_model else "Model: unknown"
+        fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
+        sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
+
+        logger.warning(
+            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+            device_id,
+            sku_info,
+            model_info,
+            fw_info,
+        )
+
+        notify_ha(
+            hass,
+            (
+                f"Some attributes requested for device {device_id} are not supported.\n"
+                f"{model_info}\n{fw_info}\n{sku_info}\n"
+                "Check your logs to identify which attributes failed and report to maintainer."
+            ),
+            title="Neviweb130: Unsupported attributes detected",
+        )
+
+        device_data = {}
+
+        # Test each attributes one by one
+        for attr in attributes:
+            logger.debug("Testing attribute %s for %s", attr, model_info)
+            try:
+                result = client.get_device_attributes(device_id, [attr])
+                logger.debug("Result for '%s': %s", attr, result)
+
+                # 1. If Neviweb return value
+                if result and attr in result:
+                    device_data[attr] = result[attr]
+                    continue
+
+                # 2. If Neviweb return {} → Attribute is supported but empty → just ignore
+                if result == {}:
+                    logger.warning(
+                        "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                    )
+                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
+                    device_data[attr] = None
+                    continue
+
+                # 3. If Neviweb return None explicitly we add it to device_data
+                if attr in result and result[attr] is None:
+                    device_data[attr] = None
+                    continue
+
+                # 4. Cas improbable : attr absent → log mais ne rien ajouter
+                logger.warning(
+                    "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
+                    attr,
+                    device_id,
+                    sku_info,
+                    model_info,
+                    fw_info,
+                )
+                continue
+
+            except Exception as e_attr:
+                # 5. if we get DVCATTRNSPTD → this attribute is not supported, add None
+                if "DVCATTRNSPTD" in str(e_attr):
+                    logger.warning(
+                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                        e_attr,
+                    )
+
+                    logger.warning(
+                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                        e_attr,
+                    )
+                    if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
+                        logger.warning("Blacklisting unsupported attribute '%s' for device %s", attr, device_id)
+
+                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
+                    device_data[attr] = None
+                    continue
+
+        # Reinject UNSUPPORTED_ATTRS with None into fallback result
+        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+            if attr not in device_data:
+                device_data[attr] = None
+
+        logger.debug("Returned device_data = %s", device_data)
+        return device_data
