@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.3b0] - 2026-03-__
+## [v4.2.3b0] - 2026-04-01
 ### Added
 - Add safe_get_device_attributes function to retrieve device attributes safely,
   handling unsupported attributes and logging warnings.
