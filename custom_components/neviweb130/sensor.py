@@ -1719,6 +1719,7 @@ class NeviwebDailyRequestSensor(Entity):
         data = self.hass.data[DOMAIN]["request_data"]
         return {
             "date": data["date"],
+            "safety_limit": 25000,
             "limit": 30000,
         }
 
