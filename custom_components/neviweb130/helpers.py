@@ -426,7 +426,7 @@ def safe_get_device_attributes(
                     device_data[attr] = None
                     continue
 
-                # 4. Cas improbable : attr absent → log mais ne rien ajouter
+                # 4. Improbable case : absent attr → log but add nothing
                 logger.warning(
                     "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
                     attr,
