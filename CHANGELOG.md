@@ -8,6 +8,7 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Add state_class, device_class and unit_of_measurement for daily request sensor.
+- Remove duplicated logging in helper.
 
 ### Doc
 
