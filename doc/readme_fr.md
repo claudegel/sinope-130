@@ -674,6 +674,9 @@ automatiquement en fonction de votre configuration HA pour la langue. Désormais
 en charge. N'importe quelle langue peut être ajoutée en traduisant le fichier en.json situé dans le répertoire 
 'translations' vers une autre langue.
 
+Si vous modifiez les fichiers de traduction, vous devrez non seulement recharger HA, mais aussi redémarrer le serveur 
+HA pour forcer HA à recharger correctement les traductions.
+
 ## Statistique pour le capteur de debit Sedna
 Sept attributs sont ajoutés pour suivre la consommation d'eau de la valve Sedna. Ils sont affichés en m³ (mètre cube), ce qui correspond aux 
 data que le module énergie recherche :
