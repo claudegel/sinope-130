@@ -4,6 +4,7 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.2.3] - 2026-04-__
 ### Added
+- Add safety_limit for daily counter.
 
 ### Fix
 - Add state_class, device_class and unit_of_measurement for daily request sensor.
