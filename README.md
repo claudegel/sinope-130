@@ -655,7 +655,10 @@ template:
 ## Localisation
 Neviweb130 is now translated in French for the errors and notifications messages. The translation is done automatically based
 on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
-en.json file located in translations directory into other language. 
+en.json file located in translations directory into other language.
+
+If you modify translations files you will need to not only reload HA but also retart the HA server to force HA to reload 
+translations properly.
 
 ## Statistic for Sedna flow meeter
 Seven attributes are added to track water usage for Sedna valve. They are shown as m³ (cubic meeter) which is what 
