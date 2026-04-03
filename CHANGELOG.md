@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.3] - 2026-04-__
+### Added
+
+### Fix
+- Add state_class, device_class and unit_of_measurement for daily request sensor.
+
+### Doc
+
 ## [v4.2.3b0] - 2026-04-01
 ### Added
 - Add safe_get_device_attributes function to retrieve device attributes safely,
