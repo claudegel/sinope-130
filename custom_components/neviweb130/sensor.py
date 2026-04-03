@@ -1703,6 +1703,18 @@ class NeviwebDailyRequestSensor(Entity):
         return "mdi:counter"
 
     @property
+    def state_class(self):
+        return "total"
+
+    @property
+    def device_class(self):
+        return "measurement"
+
+    @property
+    def unit_of_measurement(self):
+        return "requests"
+
+    @property
     def extra_state_attributes(self):
         data = self.hass.data[DOMAIN]["request_data"]
         return {
