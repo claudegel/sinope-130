@@ -450,15 +450,6 @@ def safe_get_device_attributes(
                         e_attr,
                     )
 
-                    logger.warning(
-                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                        e_attr,
-                    )
                     if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
                         logger.warning("Blacklisting unsupported attribute '%s' for device %s", attr, device_id)
 
