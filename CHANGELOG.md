@@ -11,6 +11,7 @@ All modification for this custom_component will be added in this file.
 - Remove duplicated logging in helper.
 
 ### Doc
+- Add information about how HA reload translations files.
 
 ## [v4.2.3b0] - 2026-04-01
 ### Added
