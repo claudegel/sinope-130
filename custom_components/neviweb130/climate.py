@@ -2182,7 +2182,7 @@ class Neviweb130Thermostat(ClimateEntity):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL
             _LOGGER.debug(
-                "4.2.3, attributes updated for %s: %s",
+                "4.2.3, updated attributes for %s: %s",
                 self._name,
                 attributes,
             )
