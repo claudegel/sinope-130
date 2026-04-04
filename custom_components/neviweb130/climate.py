@@ -57,7 +57,6 @@ import asyncio
 import logging
 import time
 from datetime import date, datetime, timezone
-from packaging.version import Version
 from threading import Lock
 from typing import Any, Mapping, override
 
@@ -97,8 +96,6 @@ from .const import (
     ATTR_AUX_HEAT_MIN_TIME_ON,
     ATTR_AUX_HEAT_SOURCE_TYPE,
     ATTR_AUX_HEAT_START_DELAY,
-    ATTR_AUX_INTERSTAGE_DELAY,
-    ATTR_AUX_INTERSTAGE_MIN_DELAY,
     ATTR_AUX_OPTIM,
     ATTR_AVAIL_MODE,
     ATTR_BACK_LIGHT,
@@ -109,7 +106,6 @@ from .const import (
     ATTR_BALANCE_PT_TEMP_LOW,
     ATTR_COLD_LOAD_PICKUP,
     ATTR_COOL_CYCLE_LENGTH,
-    ATTR_COOL_INTERSTAGE_DELAY,
     ATTR_COOL_INTERSTAGE_MIN_DELAY,
     ATTR_COOL_LOCK_TEMP,
     ATTR_COOL_MIN_TIME_OFF,
@@ -156,7 +152,6 @@ from .const import (
     ATTR_HC_LOCK_STATUS,
     ATTR_HEAT_COOL,
     ATTR_HEAT_INSTALL_TYPE,
-    ATTR_HEAT_INTERSTAGE_DELAY,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HEAT_LOCKOUT_TEMP,
@@ -197,7 +192,6 @@ from .const import (
     ATTR_ROOM_TEMPERATURE,
     ATTR_RSSI,
     ATTR_SCHEDULED_PEAK_DELAY,
-    ATTR_SCHEDULED_PEAK_STATUS,
     ATTR_SETPOINT,
     ATTR_SETPOINT_MODE,
     ATTR_SOUND_CAP,
@@ -277,6 +271,7 @@ from .helpers import (
     async_notify_once_or_update,
     async_notify_throttled,
     async_notify_critical,
+    async_safe_get_device_attributes,
     file_exists,
     generate_runtime_count_attributes,
     init_runtime_attributes,
@@ -1852,6 +1847,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._notify = data["notify"]
         self._prefix = data["prefix"]
         self._ignore_miwi = data["ignore_miwi"]
+        self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
@@ -1991,15 +1987,21 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 FIRMWARE_SPECIAL = [ATTR_ROOM_TEMP_DISPLAY]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,
-            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id,
-                UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL,
-            )
+            attributes = UPDATE_ATTRIBUTES + HEAT_ATTRIBUTES + FIRMWARE_SPECIAL
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -3369,12 +3371,21 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + GEN2_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + GEN2_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + GEN2_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -3540,12 +3551,21 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + FLOOR_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -3738,14 +3758,21 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + LOW_VOLTAGE_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + LOW_VOLTAGE_ATTRIBUTES
-            )
+            attributes = UPDATE_ATTRIBUTES + LOW_VOLTAGE_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -3931,14 +3958,21 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            #            _LOGGER.debug(
-            #                "Updated attributes for %s: %s",
-            #                self._name,
-            #                UPDATE_ATTRIBUTES + DOUBLE_ATTRIBUTES,
-            #            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + DOUBLE_ATTRIBUTES
-            )
+            attributes = UPDATE_ATTRIBUTES + DOUBLE_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -4097,12 +4131,22 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + WIFI_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + WIFI_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + WIFI_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            _LOGGER.debug("Safe mode set to %s", self._safe_mode)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -4281,14 +4325,21 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES
-            )
+            attributes = UPDATE_LITE_ATTRIBUTES + LITE_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -4468,12 +4519,21 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + LITE_ATTRIBUTES,
-            )
-            device_data = self._client.get_device_attributes(self._id, UPDATE_ATTRIBUTES + LITE_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + LITE_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = self._client.get_device_attributes(self._id, attributes)
             neviweb_status = self._client.get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -4654,14 +4714,21 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + LOW_WIFI_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + LOW_WIFI_ATTRIBUTES
-            )
+            attributes = UPDATE_ATTRIBUTES + LOW_WIFI_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -4880,14 +4947,21 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES,
-            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES
-            )
+            attributes = UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5098,8 +5172,21 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            #  _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_ATTRIBUTES + HC_ATTRIBUTES)
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + HC_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + HC_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5317,16 +5404,21 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 NEW_HP_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES,
-            )
-
-            device_data = await self._client.async_get_device_attributes(
-                self._id,
-                UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES,
-            )
+            attributes = UPDATE_HP_ATTRIBUTES + HP_ATTRIBUTES + NEW_HP_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5539,8 +5631,21 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug("Updated attributes for %s: %s", self._name, UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES)
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES)
+            attributes = UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -5900,12 +6005,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._aux_heat_min_time_on = None
         self._aux_heat_source_type = None
         self._aux_heat_start_delay = None
-        self._aux_interstage_delay = None
-        self._aux_interstage_min_delay = None
         self._reversing_valve_polarity = "cooling"
         self._backlight_auto_dim = None
         self._cool_cycle_length = None
-        self._cool_interstage_delay = None
         self._cool_interstage_min_delay = None
         self._cool_max = 36
         self._cool_min = 16
@@ -5922,7 +6024,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._fan_filter_remain = None
         self._heat_cool = None
         self._heat_inst_type = None
-        self._heat_interstage_delay = None
         self._heat_interstage_min_delay = None
         self._heat_level_source_type = "heating"
         self._heat_min_time_off = None
@@ -6025,7 +6126,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
                     ATTR_HVAC_INPUT_1_FUNCTION,
                     ATTR_SCHEDULED_PEAK_DELAY,
-                    ATTR_SCHEDULED_PEAK_STATUS,
                 ]
             else:
                 HC_EXTRA = []
@@ -6039,16 +6139,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ]
             else:
                 HC_CONFIG = []
-            if self._device_model == 6727 or self._device_model == 6730:
-                HC_STAGE = [
-                    ATTR_AUX_INTERSTAGE_DELAY,
-                    ATTR_AUX_INTERSTAGE_MIN_DELAY,
-                    ATTR_COOL_INTERSTAGE_DELAY,
-                    ATTR_HEAT_INTERSTAGE_DELAY,
-                ]
-            else:
-                HC_STAGE = []
-            if Version(self._firmware) >= Version("4.3.0"):
+            if self._firmware == "4.3.6":
                 HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
             else:
                 HC_43 = []
@@ -6058,14 +6149,25 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             attributes = (
                 UPDATE_HEAT_COOL_ATTRIBUTES
                 + HC_ATTRIBUTES
+                + HC_SPECIAL_FIRMWARE
                 + HC_EXTRA
                 + HC_CONFIG
-                + HC_STAGE
-                + HC_SPECIAL_FIRMWARE
                 + HC_43
             )
-            _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
-            device_data = self._client.get_device_attributes(self._id, attributes)
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = self._client.get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
@@ -6158,7 +6260,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._cool_interstage_min_delay = device_data[ATTR_COOL_INTERSTAGE_MIN_DELAY]
                         self._hvac_input1_function = device_data[ATTR_HVAC_INPUT_1_FUNCTION]
                         self._scheduled_peak_delay = device_data[ATTR_SCHEDULED_PEAK_DELAY]
-                        self._scheduled_peak_status = device_data[ATTR_SCHEDULED_PEAK_STATUS]
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
@@ -6189,7 +6290,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
                     self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                     self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
-                    if Version(self._firmware) >= Version("4.3.0"):
+                    if self._firmware == "4.3.6":
                         self._interlock_id = device_data[ATTR_INTERLOCK_ID]
                         self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
                         self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
@@ -6199,12 +6300,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
                         self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
                         self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
-                    if self._device_model == 6727 or self._device_model == 6730:
-                        if ATTR_AUX_INTERSTAGE_DELAY in device_data:
-                            self._aux_interstage_delay = device_data[ATTR_AUX_INTERSTAGE_DELAY]
-                            self._aux_interstage_min_delay = device_data[ATTR_AUX_INTERSTAGE_MIN_DELAY]
-                            self._cool_interstage_delay = device_data[ATTR_COOL_INTERSTAGE_DELAY]
-                            self._heat_interstage_delay = device_data[ATTR_HEAT_INTERSTAGE_DELAY]
+
                     self.async_write_ha_state()
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -6851,10 +6947,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         if self._device_model == 6727:
             data.update(
                 {
-                    "heat_interstage_min_delay": self._aux_interstage_min_delay,
+                    "heat_interstage_min_delay": self._heat_interstage_min_delay,
                     "cool_interstage_min_delay": self._cool_interstage_min_delay,
                     "hvac_input1_function": self._hvac_input1_function,
-                    "scheduled_peak_status": self._scheduled_peak_status,
                     "scheduled_peak_delay": self._scheduled_peak_delay,
                 }
             )
@@ -6868,16 +6963,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "dr_air_curtain_conf": self._dr_air_curt_conf,
                 }
             )
-        if self._device_model == 6727 or self._device_model == 6730:
-            data.update(
-                {
-                    "aux_interstage_min_delay": self._aux_interstage_min_delay,
-                    "heat_interstage_delay": self._heat_interstage_delay,
-                    "aux_interstage_delay": self._aux_interstage_delay,
-                    "cool_interstage_delay": self._cool_interstage_delay,
-                }
-            )
-        if Version(self._firmware) >= Version("4.3.0"):
+        if self._firmware == "4.3.6":
             data.update(
                 {
                     "interlock_id": self._interlock_id,
