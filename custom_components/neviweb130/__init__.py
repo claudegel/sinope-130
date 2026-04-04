@@ -25,6 +25,7 @@ from .const import (
     CONF_NOTIFY,
     CONF_PREFIX,
     CONF_REQUEST_LIMIT,
+    CONF_SAFE_MODE,
     CONF_STAT_INTERVAL,
     DEFAULT_REQUEST_LIMIT,
     DOMAIN,
@@ -48,6 +49,7 @@ from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import PREFIX as DEFAULT_PREFIX
 from .schema import PLATFORMS
+from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 from .session_manager import SessionManager
@@ -237,6 +239,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     sanitized = sanitize_entry_data(entry.data)
     _LOGGER.debug("The entry_id = %s", sanitized)
 
+    # Add safe_mode if not in entry.data
+    if CONF_SAFE_MODE not in entry.data:
+        new_data = {**entry.data, CONF_SAFE_MODE: DEFAULT_SAFE_MODE}
+        hass.config_entries.async_update_entry(entry, data=new_data)
+        _LOGGER.debug("Migrated config entry: added safe_mode=%s", DEFAULT_SAFE_MODE)
+
     # Register the event listener for Home Assistant stop event
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, partial(async_shutdown, hass))
 
@@ -297,6 +305,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     notify = entry.data.get(CONF_NOTIFY, DEFAULT_NOTIFY)
     _LOGGER.debug("Setting notification method to: %s", notify)
 
+    safe_mode = entry.data.get(CONF_SAFE_MODE, DEFAULT_SAFE_MODE)
+    _LOGGER.debug("Setting safe_mode to: %s", safe_mode)
+
     prefix = entry.options.get(CONF_PREFIX, entry.data.get(CONF_PREFIX, DEFAULT_PREFIX))
     _LOGGER.debug("Setting notification method to: %s", prefix)
 
@@ -330,6 +341,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "ignore_miwi": ignore_miwi,
         "stat_interval": stat_interval,
         "notify": notify,
+        "safe_mode": safe_mode,
         "prefix": prefix,
     })
 
