@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Neviweb130: Sinope Zigbee and Wi-Fi devices control",
-        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
+        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval, notifications and safe_mode.\n(* = required), Click on button ? for help and documentation.",
         "data": {
           "prefix": "Neviweb account name, optional for first account.",
           "username": "Neviweb email",
@@ -16,12 +16,13 @@
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
-          "notify": "Optional, get notification in case of device error."
+          "notify": "Optional, Get notification in case of device error.",
+          "safe_mode": "Optional, Put device ID to update in safe mode or '-'."
         }
       },
       "reconfigure": {
         "title": "Neviweb130: reconfigure options",
-        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
+        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval, notifications and safe_mode.\n(* = required), Click on button ? for help and documentation.",
         "data": {
           "prefix": "Neviweb account name, required for all accounts, set to default for first one.",
           "username": "Neviweb email",
@@ -33,21 +34,21 @@
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
-          "notify": "Optional, get notification in case of device error."
+          "notify": "Optional, Get notification in case of device error.",
+          "safe_mode": "Optional, Put device ID to update in safe mode or '-'."
         }
       }
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
       "already_configured_for_this_user": "A configuration already exist for this Neviweb user.",
-      "single_instance_allowed": "Only a single instance of this integration is allowed.",
       "Max_three_instances_allowed": "You cannot add more than three instances of this integration."
     },
     "error": {
-      "cannot_connect": "Test connection to Neviweb failed, check user and password",
-      "invalid_user_email": "Email provided is not valid",
+      "cannot_connect": "Test connection to Neviweb failed, check user and password.",
+      "invalid_user_email": "Email provided is not valid.",
       "bad_data_entry": "Check data entered for errors.",
-      "bad_network_name": "Network name can't contain accented characters",
+      "bad_network_name": "Network name can't contain accented characters.",
       "unknown": "[%key:common::config_flow::error::unknown%]",
       "empty_folder": "Folder cannot be empty.",
       "invalid_characters": "Folder name contains invalid characters.",
@@ -60,7 +61,7 @@
       "bad_credentials": "Invalid Neviweb username and/or password. Check your configuration parameters. Error code: {code}.",
       "unknown_login_error": "Unknown error while logging to Neviweb. Error code: {code}.",
       "account_id_empty": "Account ID is empty, check your username and password to log into Neviweb...",
-      "networks_fetch_failed": "Cannot get Neviweb's networks",
+      "networks_fetch_failed": "Cannot get Neviweb's networks.",
       "gateway_data_failed": "Cannot get gateway data.",
       "gateway_data2_failed": "Cannot get gateway data 2.",
       "gateway_data3_failed": "Cannot get gateway data 3.",
@@ -81,7 +82,7 @@
       "multiple_heating_level": "Entity {entity} does not support multiple levels of heating with current configuration.",
       "multiple_cooling_level": "Entity {entity} does not support multiple levels of cooling with current configuration.",
       "integer_needed": "Invalid value for {param}, must be an integer.",
-      "float_needed": "Invalid value for {param}, must be a float",
+      "float_needed": "Invalid value for {param}, must be a float.",
       "missing_functionality": "Entity {entity} does not have both a heat pump and an auxiliary heater.",
       "invalid_value": "Invalid value for {param}, must be one of {value}.",
       "cannot_use_entity": "Entity {entity} cannot be used with this service (action).",
@@ -93,7 +94,7 @@
       "usr_session": "Warning: Got USRSESSEXP error, Neviweb session expired.\nSet your scan_interval parameter to less than 10 minutes to avoid this...\nReconnecting...",
       "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
       "access_limit": "Warning: ACCSESSEXC, maximum Neviweb session number reached... Close other connections and try again.",
-      "error_code": "Warning: Neviweb Device error code detected: {code} for device: {name}, ID: {id}, Sku: {sku}. {message}",
+      "error_code": "Warning: Neviweb Device error code detected: {code} for device: {name}, ID: {id}, Sku: {sku}. {message}.",
       "temp_error": "Warning: Neviweb Device temperature error code detected: {error} for device: {name}, ID: {id}, Sku: {sku}.",
       "emergency_heat_error": "Warning: Cannot activate BOOST (emergency heat) due to device configuration. Condition not met for {name}, Sku: {sku}.",
       "ignore_miwi": "The Neviweb location selected for parameter {param} contains unsupported MiWi devices.\nIf this location contains only MiWi devices, use the sinope neviweb integration instead.\nIf mixed devices exist, set ignore_miwi: True in your neviweb130 configuration.",
@@ -104,7 +105,7 @@
       "set_attribute": "Cannot set device {id} attributes: {data}.",
       "neviweb_status": "Cannot post Neviweb status for location {location} with data {data}.",
       "no_stat": "Got None for device {param} stats for device {name}.",
-      "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}",
+      "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}.",
       "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
       "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}), (Model: {model}). Report to maintainer. Data received: {data}.",
       "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval).",
@@ -112,9 +113,16 @@
       "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
       "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
       "update_fail": "Rollback could not be completed. Manual intervention required.",
-      "service_failed": "Service {service} failed: {error}",
-      "critical_service_failed": "Critical error while executing service {service}: {error}",
-      "valinvld": "Invalid value {value} for attribute {name}."
+      "service_failed": "Service {service} failed: {error}.",
+      "critical_service_failed": "Critical error while executing service {service}: {error}.",
+      "valinvld": "Invalid value {value} for attribute {name}.",
+      "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
+      "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute.",
+      "neviweb130_reload_error": "Failed to reload integration: {error}.",
+      "neviweb130_migrated": "Neviweb130 device's unique_id have been migrated from integer values to string values.\nMore details in log.",
+      "neviweb130_reloaded": "Integration neviweb130 have been reloaded.",
+      "neviweb130_log_ready": "Download log file: \n<a href='/local/neviweb130.log'  download target='_blank'>click here</a>.\nFile will be deleted after 30 minutes.",
+      "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfuly."
     }
   },
   "options": {
