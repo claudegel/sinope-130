@@ -29,6 +29,7 @@ from .const import (
     CONF_NOTIFY,
     CONF_PREFIX,
     CONF_REQUEST_LIMIT,
+    CONF_SAFE_MODE,
     CONF_STAT_INTERVAL,
     CONF_UPDATE_INTERVAL,
     DEFAULT_REQUEST_LIMIT,
@@ -37,8 +38,23 @@ from .const import (
     STARTUP_MESSAGE,
 )
 from .coordinator import PyNeviweb130Error
-from .helpers import async_notify_critical, async_notify_once_or_update, async_notify_throttled, expose_log_file, normalize_yaml_config
-from .schema import HOMEKIT_MODE, IGNORE_MIWI, NOTIFY, PREFIX, SCAN_INTERVAL, STAT_INTERVAL
+from .helpers import (
+    async_notify_critical,
+    async_notify_once_or_update,
+    async_notify_throttled,
+    expose_log_file,
+    normalize_yaml_config,
+    translate_error,
+)
+from .schema import (
+    HOMEKIT_MODE,
+    IGNORE_MIWI,
+    NOTIFY,
+    PREFIX,
+    SAFE_MODE as DEFAULT_SAFE_MODE,
+    SCAN_INTERVAL,
+    STAT_INTERVAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +74,7 @@ FLOW_SCHEMA = vol.Schema(
         vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,
         vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
         vol.Optional(CONF_NOTIFY, default=NOTIFY): vol.In(["nothing", "logging", "notification", "both"]),
+        vol.Optional(CONF_SAFE_MODE, default="-"): cv.string,
     }
 )
 
@@ -114,6 +131,7 @@ async def async_validate_input(data: dict[str, Any]) -> dict[str, Any]:
     scan = data.get(CONF_SCAN_INTERVAL)
     stat = data.get(CONF_STAT_INTERVAL)
     notif = data.get(CONF_NOTIFY)
+    safe = data.get(CONF_SAFE_MODE)
 
     await async_validate_email(user)
 
@@ -139,6 +157,7 @@ async def async_validate_input(data: dict[str, Any]) -> dict[str, Any]:
         CONF_SCAN_INTERVAL: scan,
         CONF_STAT_INTERVAL: stat,
         CONF_NOTIFY: notif,
+        CONF_SAFE_MODE: safe,
     }
 
 
@@ -167,6 +186,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         self.stat_interval = 1800
         self.notify = "both"
         self.prefix = ""
+        self.safe_mode = "-"
         self._cookies = None
         self._timeout = 30
 
@@ -207,6 +227,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_SCAN_INTERVAL] = info[CONF_SCAN_INTERVAL]
                 user_input[CONF_STAT_INTERVAL] = info[CONF_STAT_INTERVAL]
                 user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
+                user_input[CONF_SAFE_MODE] = info[CONF_SAFE_MODE]
 
             self.data = user_input
             result = await self.async_set_unique_id(user_input[CONF_USERNAME].strip().lower())
@@ -288,15 +309,6 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 entry_data = domain_data.get(reconfigure_entry.entry_id, {})
                 session_manager = entry_data.get("session")
 
-                if session_manager:
-                    _LOGGER.debug("Closing active Neviweb session before restart")
-                    try:
-                        await session_manager.close_session()
-                    except Exception:
-                        _LOGGER.exception("Error while closing Neviweb session")
-
-                await async_shutdown(self.hass)
-
             except InvalidUserEmail:
                 errors["base"] = "Invalid_User_Email"
             except CannotConnect:
@@ -310,6 +322,38 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             if not errors:
                 await self.async_set_unique_id(reconfigure_entry.unique_id)
                 self._abort_if_unique_id_mismatch()
+
+                # Stop coordinator before closing session
+                coordinator = entry_data.get("coordinator")
+                if coordinator:
+                    _LOGGER.debug("Stopping coordinator before closing session")
+                    try:
+                        await coordinator.async_shutdown()
+                    except Exception:
+                        _LOGGER.exception("Error while stopping coordinator")
+
+                # Close active session
+                session_manager = entry_data.get("session")
+                if session_manager:
+                    _LOGGER.debug("Closing active Neviweb session before restart")
+                    try:
+                        await session_manager.close_session()
+                    except Exception:
+                        _LOGGER.exception("Error while closing Neviweb session")
+
+                # Notify user that Neviweb130 has been reloaded
+                msg = await translate_error(self.hass, "configuration_reloaded")
+                self.hass.async_create_task(
+                    self.hass.services.async_call(
+                        "persistent_notification",
+                        "create",
+                        {
+                            "title": "Neviweb130",
+                            "message": msg,
+                            "notification_id": "configuration_reloaded",
+                        },
+                    )
+                )
 
                 return self.async_update_reload_and_abort(
                     self._get_reconfigure_entry(),
@@ -345,6 +389,10 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Optional(CONF_NOTIFY, default=reconfigure_entry.data[CONF_NOTIFY]): vol.In(
                     ["nothing", "logging", "notification", "both"]
                 ),
+                vol.Optional(
+                    CONF_SAFE_MODE,
+                    default=reconfigure_entry.data.get(CONF_SAFE_MODE, DEFAULT_SAFE_MODE),
+                ): cv.string,
             }
         )
 
@@ -392,7 +440,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
                 self._set_log_level(user_input["log_level"])
 
             if user_input.get("download_log"):
-                self._trigger_download_log()
+                await self._trigger_download_log()
 
             if user_input.get("reload"):
                 await self._trigger_reload()
@@ -508,22 +556,19 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
 
         return None
 
-    def _trigger_download_log(self):
+    async def _trigger_download_log(self):
         """Copy neviweb130_log.txt to config/www to allow user to download it."""
-        public_path = expose_log_file(self.hass, LOG_PATH, expire_after=1800)
+        public_path = await expose_log_file(self.hass, LOG_PATH, expire_after=1800)
         if public_path:
             # Create a persistent notification to tell how to download log file and expire after xx seconds
+            msg = await translate_error(self.hass, "neviweb130_log_ready")
             self.hass.async_create_task(
                 self.hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
                         "title": "Log file ready for download",
-                        "message": (
-                            "Download log file: "
-                            + "<a href='/local/neviweb130.log'  download target='_blank'>click here</a>."
-                            + "<br>File will be deleted after 30 minutes"
-                        ),
+                        "message": msg,
                         "notification_id": "neviweb130_log_ready",
                     },
                 )
@@ -543,25 +588,27 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
             _LOGGER.info("Integration has been reloaded")
 
             # Create a persistent notification
+            msg = await translate_error(self.hass, "neviweb130_reloaded")
             self.hass.async_create_task(
                 self.hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
                         "title": "Integration neviweb130 reloaded",
-                        "message": "Integration neviweb130 have been reloaded",
+                        "message": msg,
                         "notification_id": "neviweb130_reloaded",
                     },
                 )
             )
         except Exception as e:
-            _LOGGER.error("Failed to reload integration: %s", e)
+            msg = await translate_error(self.hass, "neviweb130_reload_error", error=str(e))
+            _LOGGER.error("Failed to reload integration: %s", str(e))
             await self.hass.services.async_call(
                 "persistent_notification",
                 "create",
                 {
                     "title": "Reload Failed",
-                    "message": f"Failed to reload integration: {e}",
+                    "message": msg,
                     "notification_id": "neviweb130_reload_error",
                 },
             )
@@ -571,14 +618,14 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
         await async_migrate_unique_ids(self.hass)  # Call the migration function
         _LOGGER.info("Unique_id migration done")
         # Create a persistent notification
+        msg = await translate_error(self.hass, "neviweb130_migrated")
         self.hass.async_create_task(
             self.hass.services.async_call(
                 "persistent_notification",
                 "create",
                 {
                     "title": "Unique_id migrated",
-                    "message": "Neviweb130 device's unique_id have been migrated from integer values to string values. "
-                    "More details in log.",
+                    "message": msg,
                     "notification_id": "neviweb130_migrated",
                 },
             )
