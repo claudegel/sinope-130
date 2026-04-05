@@ -147,6 +147,7 @@ from .helpers import (
     async_notify_once_or_update,
     async_notify_throttled,
     async_notify_critical,
+    async_safe_get_device_attributes,
     create_risky_issue,
     NamingHelper,
     translate_error,
@@ -943,6 +944,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._notify = data["notify"]
         self._prefix = data["prefix"]
         self._stat_interval = data["stat_interval"]
+        self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
@@ -1018,7 +1020,21 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 LOAD_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1615,7 +1631,21 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 LOAD_ATTRIBUTES = []
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1743,7 +1773,21 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1883,7 +1927,21 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -2084,7 +2142,21 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES)
+            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s: %s",self._name, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -2321,9 +2393,21 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES + NAME_ATTRIBUTES
-            )
+            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES + NAME_ATTRIBUTES
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
