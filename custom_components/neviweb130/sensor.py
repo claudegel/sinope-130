@@ -104,6 +104,7 @@ from .helpers import (
     async_notify_critical,
     async_notify_once_or_update,
     async_notify_throttled,
+    async_safe_get_device_attributes,
     file_exists,
     generate_runtime_count_attributes,
     generate_runtime_sensor_descriptions,
@@ -952,6 +953,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
         self._client = data["neviweb130_client"]
         self._notify = data["notify"]
         self._prefix = data["prefix"]
+        self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = device_info["signature"]["model"]
@@ -1036,11 +1038,21 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            device_data: dict[str, Any] = await self._client.async_get_device_attributes(
-                self._id,
-                UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE,
-            )
-            # device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
+            attributes = UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data: dict[str, Any] = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1521,16 +1533,21 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            _LOGGER.debug(
-                "Updated attributes for %s: %s",
-                self._name,
-                UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE,
-            )
-            device_data = await self._client.async_get_device_attributes(
-                self._id,
-                UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE,
-            )
-            #            device_daily_stats = await self._client.async_get_device_daily_stats(self._id)
+            attributes = UPDATE_ATTRIBUTES + LEAK_ATTRIBUTE + NEW_LEAK_ATTRIBUTE
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1671,9 +1688,21 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                     ATTR_TANK_HEIGHT,
                 ]
             start = time.time()
-            device_data = await self._client.async_get_device_attributes(
-                self._id, UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE
-            )
+            attributes = UPDATE_ATTRIBUTES + MONITOR_ATTRIBUTE
+            _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            if self._safe_mode == self._id:
+                device_data = await async_safe_get_device_attributes(
+                    self.hass,
+                    self._client,
+                    self._id,
+                    attributes,
+                    _LOGGER,
+                    device_sku=self._sku,
+                    device_model=self._device_model,
+                    firmware=self._firmware,
+                )
+            else:
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug(
