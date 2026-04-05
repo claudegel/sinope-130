@@ -44,6 +44,7 @@ CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
 CONF_NOTIFY = "notify"
 CONF_PREFIX = "prefix"
+CONF_SAFE_MODE = "safe_mode"
 CONF_STAT_INTERVAL = "stat_interval"
 
 CONF_REQUEST_LIMIT = "request_limit"
