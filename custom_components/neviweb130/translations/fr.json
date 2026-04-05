@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Neviweb130: gestion Sinopé Zigbee et Wi-Fi.",
-        "description": "Entrer les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "description": "Entrer les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats, notifications et safe_mode.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
         "data": {
           "prefix": "Compte Neviweb, optionel pour le premier compte.",
           "username": "Courriel pour Neviweb",
@@ -12,16 +12,17 @@
           "network": "Optionel, Premier emplacement dans Neviweb ou '_' ou vide pour auto détection.",
           "network2": "Optionel, Deuxième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
           "network3": "Optionel, Troisième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
-          "homekit_mode": "Optionel, support Homekit:",
+          "homekit_mode": "Optionel, Support Homekit:",
           "ignore_miwi": "Optionel, Ignorer les appareils miwi:",
           "scan_interval": "Optionel, Intervalle des requêtes sur neviweb, 300 à 600 sec.",
           "stat_interval": "Optionel, Intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
-          "notify": "Optionel, Avis en cas de déconnexion pour un appareil."
+          "notify": "Optionel, Avis en cas de déconnexion pour un appareil.",
+          "safe_mode": "Optionel, Indiquez l’identifiant de l’appareil à mettre à jour en mode sans échec ou '-'."
         }
       },
       "reconfigure":{
         "title": "Neviweb130: reconfiguration.",
-        "description": "Modifier les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats et notifications.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "description": "Modifier les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats, notifications et safe_mode.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
         "data": {
           "prefix": "Compte Neviweb, requis pour tous les comptes, défini comme 'default' pour le premier.",
           "username": "Courriel pour Neviweb",
@@ -29,18 +30,18 @@
           "network": "Optionel, Premier emplacement dans Neviweb ou '_' ou vide pour auto détection.",
           "network2": "Optionel, Deuxième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
           "network3": "Optionel, Troisième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
-          "homekit_mode": "Optionel, support homekit",
-          "ignore_miwi": "Optionel, ignorer les appareils miwi",
-          "scan_interval": "Optionel, intervalle des requêtes sur neviweb, 300 à 600 sec.",
-          "stat_interval": "Optionel, intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
-          "notify": "Optionel, avis en cas de déconnection pour un appareil."
+          "homekit_mode": "Optionel, Support homekit",
+          "ignore_miwi": "Optionel, Ignorer les appareils miwi",
+          "scan_interval": "Optionel, Intervalle des requêtes sur neviweb, 300 à 600 sec.",
+          "stat_interval": "Optionel, Intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
+          "notify": "Optionel, Avis en cas de déconnection pour un appareil.",
+          "safe_mode": "Optionel, Indiquez l’identifiant de l’appareil à mettre à jour en mode sans échec ou '-'."
         }
       }
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
       "already_configured_for_this_user": "Une configuration existe déjà pour ce compte Neviweb.",
-      "single_instance_allowed": "Une seule instance de cette intégration est autorisée.",
       "Max_three_instances_allowed": "Vous ne pouvez pas ajouter plus de trois instances de cette intégration."
     },
     "error": {
@@ -81,19 +82,19 @@
       "multiple_heating_level": "L'entité {entity} ne supporte pas des niveaux de chauffe multiples avec la configuration actuelle.",
       "multiple_cooling_level": "L'entité {entity} ne supporte pas des niveaux de climatisation multiples avec la configuration actuelle.",
       "integer_needed": "Valeur invalide pour {param}, un nombre entier est requis.",
-      "float_needed": "Valeur invalide pour {param}, un nombre décimal est requis",
+      "float_needed": "Valeur invalide pour {param}, un nombre décimal est requis.",
       "missing_functionality": "L'entité {entity} n'a pas les fonctionalités pompe à chaleur et chauffage auxiliaire.",
       "invalid_value": "Valeur invalide pour {param}, doit être parmis les valeurs: {value}.",
       "cannot_use_entity": "L'entité {entity} ne peut être utilisée pour ce service (action).",
       "scan_interval_error": "Format d’intervalle invalide. Utilisez des secondes ou HH:MM:SS.",
       "username_missing": "Le nom d’utilisateur ne peut pas être vide.",
       "password_missing": "Le mot de passe ne peut pas être vide.",
-      "update_stopped": "Avertissement: message reçu de Neviweb, appareil déconnecté... Vérifiez votre journal de log...\nLa mise à jour via Neviweb sera interrompue pendant 20 minutes pour {name}, id: {id}, Sku: {sku}",
+      "update_stopped": "Avertissement: message reçu de Neviweb, appareil déconnecté... Vérifiez votre journal de log...\nLa mise à jour via Neviweb sera interrompue pendant 20 minutes pour {name}, id: {id}, Sku: {sku}.",
       "update_restarted": "Avertissement: la mise à jour de l'appareil est redémarrée pour {name}, Sku: {sku}.",
       "usr_session": "Avertissement: erreur USRSESSEXP, la session Neviweb a expiré.\nRéglez votre paramètre scan_interval sur moins de 10 minutes pour éviter cela...\nReconnexion...",
       "maintenance": "Avertissement: Accès Neviweb temporairement bloqué pour maintenance... Réessayez plus tard.",
       "access_limit": "Avertissement: ACCSESSEXC nombre maximum de sessions Neviweb atteint... Fermez les autres connexions et réessayez.",
-      "error_code": "Avertissement: Code d'erreur de l'appareil Neviweb détecté: {code} pour l'appareil: {name}, ID: {id}, Sku: {sku}. {message}",
+      "error_code": "Avertissement: Code d'erreur de l'appareil Neviweb détecté: {code} pour l'appareil: {name}, ID: {id}, Sku: {sku}. {message}.",
       "temp_error": "Avertissement: Code d'erreur de température de l'appareil Neviweb détecté: {error} pour l'appareil: {name}, ID: {id}, Sku: {sku}.",
       "emergency_heat_error": "Avertissement: Impossible d'activer BOOST (chauffage d'urgence) en raison de la configuration de l'appareil. Condition non remplie pour {name}, Sku: {sku}.",
       "ignore_miwi": "L'emplacement Neviweb sélectionné pour le paramètre {param} contient des appareils MiWi non pris en charge.\nSi cet emplacement contient uniquement des appareils MiWi, utilisez plutôt l'intégration sinope neviweb.\nS'il existe des appareils mixtes, définissez ignore_miwi : True dans votre configuration neviweb130.",
@@ -112,9 +113,16 @@
       "update_rejected": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été restaurée.\n{message}.",
       "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRollback ignoré, aucune sauvegarde locale disponible.\n{message}.",
       "update_fail": "La restauration n'a pas pu être effectuée. Intervention manuelle requise.",
-      "service_failed": "Le service {service} a échoué : {error}",
-      "critical_service_failed": "Erreur critique lors de l'exécution du service {service} : {error}",
-      "valinvld": "Valeur invalide {value} pour l’attribut {name}."
+      "service_failed": "Le service {service} a échoué : {error}.",
+      "critical_service_failed": "Erreur critique lors de l'exécution du service {service} : {error}.",
+      "valinvld": "Valeur invalide {value} pour l’attribut {name}.",
+      "error_resolved": "Toutes les erreurs ont été résolues pour l'appareil {name}, ID : {id}, Sku : {sku}.",
+      "safe_mode_enabled": "Activation automatique du mode sans échec pour le périphérique {name} (id: {id}) en raison d'un attribut non pris en charge.",
+      "neviweb130_reload_error": "Échec du rechargement de l'intégration: {error}.",
+      "neviweb130_migrated": "Les identifiants uniques des appareils Neviweb130 ont été migrés de valeurs entières vers des valeurs de type chaîne de caractères.\nPlus de détails dans le journal.\nVérifiez vos journaux.",
+      "neviweb130_reloaded": "L'intégration neviweb130 a été rechargée.",
+      "neviweb130_log_ready": "Télécharger le fichier journal: \n<a href='/local/neviweb130.log' download target='_blank'>cliquez ici</a>.\nLe fichier sera supprimé après 30 minutes.",
+      "configuration_reloaded": "La configuration a été mise à jour et neviweb130 a redémarré avec succès."
     }
   },
   "options": {
