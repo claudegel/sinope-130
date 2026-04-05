@@ -16,7 +16,7 @@ from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfTime
-from homeassistant.core import CoreState
+from homeassistant.core import CoreState, HomeAssistant
 from homeassistant.helpers.issue_registry import async_create_issue, IssueSeverity
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
@@ -127,20 +127,29 @@ def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, b
     logger.debug("Logger config updated to level %s", level.upper())
 
 
-def expose_log_file(hass, log_path: str, public_name: str = "neviweb130.log", expire_after: int = 1800) -> str | None:
-    """Copy log file to /config/www for browser download with forced filename."""
+async def expose_log_file(
+    hass: HomeAssistant,
+    log_path: str,
+    public_name: str = "neviweb130.log",
+    expire_after: int = 1800,
+) -> str | None:
+    """Copy log file to /config/www asynchronously for browser download."""
+
     www_dir = hass.config.path("www")
     os.makedirs(www_dir, exist_ok=True)
 
     www_path = os.path.join(www_dir, public_name)
 
     try:
-        shutil.copy2(log_path, www_path)
+        # Run blocking file copy in executor
+        await hass.async_add_executor_job(shutil.copy2, log_path, www_path)
         _LOGGER.debug("Log file copied to %s", www_path)
 
-        # Schedule deletion
-        hass.loop.create_task(_delete_file_later(www_path, expire_after))
+        # Schedule deletion asynchronously
+        hass.async_create_task(_delete_file_later(www_path, expire_after))
+
         return www_path
+
     except Exception as e:
         _LOGGER.warning("Cannot expose log file: %s", e)
         return None
@@ -321,6 +330,7 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
             "location2": yaml_config.get("location2"),
             "location3": yaml_config.get("location3"),
             "prefix": "default",
+            "safe_mode": "-",
         }]
 
     # --- Accounts normalization ---
@@ -408,6 +418,7 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
         "ignore_miwi": yaml_config.get("ignore_miwi", False),
         "stat_interval": stat,
         "notify": notify,
+        "safe_mode": "-",
     }
 
     return accounts, global_options, is_legacy
@@ -1139,6 +1150,146 @@ def create_risky_issue(hass, entity_id: str, attribute: str, value):
         value=value,
         doc_url=doc_url,
     )
+
+
+# ─────────────────────────────────────────────
+# Testing devices attributes one by one to spot invalid attributes
+# ─────────────────────────────────────────────
+
+
+UNSUPPORTED_ATTRS: dict[str, set[str]] = {}
+
+
+async def async_safe_get_device_attributes(
+    hass,
+    client,
+    device_id: str,
+    attributes: list[str],
+    logger,
+    device_sku: str | None = None,
+    device_model: str | None = None,
+    firmware: str | None = None,
+):
+    logger.warning("Running async update helper")
+
+    # Filter out blacklisted attributes
+    filtered_attrs = [
+        attr for attr in attributes
+        if attr not in UNSUPPORTED_ATTRS.get(device_id, set())
+    ]
+
+    try:
+        result = await client.async_get_device_attributes(device_id, filtered_attrs)
+
+        logger.debug("client result = %s", result)
+
+        # If Neviweb silently ignore → result == {} or incomplete
+        if not result or any(attr not in result for attr in filtered_attrs):
+            raise Exception("Silent attribute ignore")
+
+        # Inject UNSUPPORTED_ATTRS with None into the result
+        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+            result[attr] = None
+
+        return result
+
+    except Exception as e:
+        if "DVCATTRNSPTD" not in str(e) and "Silent attribute ignore" not in str(e):
+            raise
+
+        model_info = f"Model: {device_model}" if device_model else "Model: unknown"
+        fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
+        sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
+
+        logger.warning(
+            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+            device_id,
+            sku_info,
+            model_info,
+            fw_info,
+        )
+
+        # Notification HA
+        notify_ha(
+            hass,
+            (
+                f"Some attributes requested for device {device_id} are not supported.\n"
+                f"{model_info}\n{fw_info}\n{sku_info}\n"
+                "Check your logs to identify which attributes failed and report to maintainer."
+            ),
+            title="Neviweb130: Unsupported attributes detected",
+        )
+
+        device_data: dict[str, object] = {}
+
+        # Test each attributes one by one
+        for attr in attributes:
+            logger.debug("Testing attribute %s for %s", attr, model_info)
+
+            try:
+                result = await client.async_get_device_attributes(device_id, [attr])
+                logger.debug("Result for '%s': %s", attr, result)
+
+                # 1. If Neviweb return value
+                if result and attr in result:
+                    device_data[attr] = result[attr]
+                    continue
+
+                # 2. If Neviweb return {} → Attribute is supported but empty → just ignore
+                if result == {}:
+                    logger.warning(
+                        "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                    )
+                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
+                    device_data[attr] = None
+                    continue
+
+                # 3. If Neviweb return None explicitly we add it to device_data
+                if attr in result and result[attr] is None:
+                    device_data[attr] = None
+                    continue
+
+                # 4. Improbable case : absent attr → log but add nothing
+                logger.warning(
+                    "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
+                    attr,
+                    device_id,
+                    sku_info,
+                    model_info,
+                    fw_info,
+                )
+
+            except Exception as e_attr:
+                # 5. if we get DVCATTRNSPTD → this attribute is not supported, add None
+                if "DVCATTRNSPTD" in str(e_attr):
+                    logger.warning(
+                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
+                        attr,
+                        device_id,
+                        sku_info,
+                        model_info,
+                        fw_info,
+                        e_attr,
+                    )
+
+                    if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
+                        logger.warning("Blacklisting unsupported attribute '%s' for device %s", attr, device_id)
+
+                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
+                    device_data[attr] = None
+                    continue
+
+        # Reinject UNSUPPORTED_ATTRS with None into fallback result
+        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+            device_data.setdefault(attr, None)
+
+        logger.debug("Returned device_data = %s", device_data)
+        return device_data
 
 
 #await async_notify_throttled(
