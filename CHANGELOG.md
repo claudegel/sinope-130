@@ -2,6 +2,18 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.3] - 2026-04-06
+### Added
+- Add safety_limit for daily counter.
+
+### Fix
+- Add state_class, device_class and unit_of_measurement for daily request sensor.
+- Remove duplicated logging in helper.
+- Cleanup in attributes list for TH65xxxWF.
+
+### Doc
+- Add information about how HA reload translations files.
+
 ## [v4.2.3b0] - 2026-04-01
 ### Added
 - Add safe_get_device_attributes function to retrieve device attributes safely,
