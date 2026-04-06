@@ -657,7 +657,7 @@ Neviweb130 is now translated in French for the errors and notifications messages
 on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
 en.json file located in translations directory into other language.
 
-If you modify translations files you will need to not only reload HA but also retart the HA server to force HA to reload 
+If you modify translations files you will need to not only reload HA but also restart the HA server to force HA to reload 
 translations properly.
 
 ## Statistic for Sedna flow meeter
