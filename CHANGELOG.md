@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.3] - 2026-04-__
+## [v4.2.3] - 2026-04-06
 ### Added
 - Add safety_limit for daily counter.
 
