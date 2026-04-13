@@ -7,7 +7,6 @@ import os
 from datetime import timedelta
 from functools import partial
 
-import aiohttp
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
@@ -35,7 +34,6 @@ from .helpers import (
     DailyRequestCounter,
     check_weather_icons_folder,
     extract_log_options,
-    extract_notes_for_version,
     sanitize_entry_data,
     setup_logger,
     translate_error,
