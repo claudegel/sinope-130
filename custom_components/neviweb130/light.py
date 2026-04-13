@@ -160,7 +160,6 @@ async def async_setup_entry(
         ],
         start=1,
     ):
-        default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
                 if "signature" in device_info and "model" in device_info["signature"]:
