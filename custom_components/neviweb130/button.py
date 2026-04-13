@@ -54,18 +54,20 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "button"
+    platform = __name__.split(".")[-1]  # "button"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
-        default_name = naming.default_name(platform, index)
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
+        naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 

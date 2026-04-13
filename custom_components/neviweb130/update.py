@@ -8,11 +8,10 @@ import re
 import shutil
 import tempfile
 import zipfile
-import markdown
 from datetime import timedelta
-from typing import Any
 
 import aiohttp
+import markdown
 from awesomeversion import AwesomeVersion
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
@@ -21,10 +20,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
-    DOMAIN,
-    VERSION,
     CONF_UPDATE_INTERVAL,
     DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+    VERSION,
 )
 from .helpers import build_update_summary, has_breaking_changes, translate_error
 
@@ -38,6 +37,7 @@ DEFAULTS = {
 }
 
 VALID_ASSET_PATTERN = re.compile(r"^sinope-130-(v[\w\.\-]+)\.(zip|sha256)$")
+
 
 def compute_sha256(file_path: str) -> str:
     sha256 = hashlib.sha256()
@@ -89,7 +89,6 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-
     entity = Neviweb130UpdateEntity(hass, entry)
     async_add_entities([entity])
 
@@ -345,7 +344,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
             },
         )
 
-
         if backup:
             await self._do_backup()
         await self._do_update(version)
@@ -370,10 +368,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
         if isinstance(selected, str):
             selected = [selected]
 
-        folders = [
-            "homeassistant" if x == "config" else x
-            for x in selected
-        ]
+        folders = ["homeassistant" if x == "config" else x for x in selected]
 
         _LOGGER.debug("Backup folder set to %s", folders)
         snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
@@ -454,7 +449,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
             # 2. NETWORK BLOCK (only HTTP here)
             # -----------------------------
             async with aiohttp.ClientSession() as session:
-
                 # 2.1 Get release info
                 async with session.get(api_url) as resp:
                     resp.raise_for_status()
@@ -574,8 +568,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 dst = os.path.join(self._target_dir, item)
 
                 if await self.hass.async_add_executor_job(os.path.isdir, src):
+
                     def _copytree_src_dst() -> None:
                         shutil.copytree(src, dst, dirs_exist_ok=True)
+
                     await self.hass.async_add_executor_job(_copytree_src_dst)
                 else:
                     await self.hass.async_add_executor_job(shutil.copy2, src, dst)

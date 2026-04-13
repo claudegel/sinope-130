@@ -32,8 +32,6 @@ from enum import StrEnum
 from threading import Lock
 from typing import Mapping, cast, override
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveEntityFeature
@@ -99,17 +97,15 @@ from .const import (
 )
 from .devices import save_devices
 from .helpers import (
-    async_notify_once_or_update,
-    async_notify_throttled,
+    NamingHelper,
     async_notify_critical,
+    async_notify_once_or_update,
     async_safe_get_device_attributes,
     file_exists,
-    NamingHelper,
     translate_error,
 )
 from .schema import (
     HA_TO_NEVIWEB_DELAY,
-    HA_TO_NEVIWEB_DURATION,
     SET_ACTIVATION_SCHEMA,
     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
     SET_FLOW_METER_DELAY_SCHEMA,
@@ -174,15 +170,17 @@ async def async_setup_entry(
     entities: list[Neviweb130Valve] = []
     device_registry = dr.async_get(hass)
 
-    platform = __name__.split(".")[-1] # "valve"
+    platform = __name__.split(".")[-1]  # "valve"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
@@ -279,7 +277,9 @@ async def async_setup_entry(
 
         valve = entity_map.get(entity_id)
         if valve is None:
-            msg = await translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="valve")
+            msg = await translate_error(
+                hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="valve"
+            )
             raise ServiceValidationError(msg)
         return valve
 
@@ -304,7 +304,6 @@ async def async_setup_entry(
         await valve.async_set_valve_temp_alert(value)
         valve.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
-
 
     async def set_flow_meter_model_service(service: ServiceCall) -> None:
         """Set the flow meter model connected to water valve."""
@@ -695,7 +694,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -926,7 +925,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1032,7 +1031,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     monthly_kwh_count = 0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += device_monthly_stats[k]["period"]  #/ 1000
+                        monthly_kwh_count += device_monthly_stats[k]["period"]  # / 1000
                         k += 1
                     self._monthly_kwh_count = round(monthly_kwh_count, 2)
                     self._month_kwh = round(device_monthly_stats[n - 1]["period"], 2)
@@ -1057,7 +1056,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                             .month
                             == current_month
                         ):
-                            daily_kwh_count += device_daily_stats[k]["period"]  #/ 1000
+                            daily_kwh_count += device_daily_stats[k]["period"]  # / 1000
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 2)
                     self._today_kwh = round(device_daily_stats[n - 1]["period"], 2)
@@ -1078,7 +1077,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                             datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
                             == current_day
                         ):
-                            hourly_kwh_count += device_hourly_stats[k]["period"]  #/ 1000
+                            hourly_kwh_count += device_hourly_stats[k]["period"]  # / 1000
                         k += 1
                     self._hourly_kwh_count = round(hourly_kwh_count, 2)
                     self._hour_kwh = round(device_hourly_stats[n - 1]["period"], 2)
@@ -1108,7 +1107,9 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 else:
                     if self._marker != self._mark:
                         self._total_kwh_count += round(self._hour_kwh, 3)
-                        await save_data(self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir)
+                        await save_data(
+                            self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir
+                        )
                         self._mark = self._marker
                 _LOGGER.debug("Device dict updated: %s", self._device_dict)
                 self.async_write_ha_state()
@@ -1404,12 +1405,12 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1632,12 +1633,12 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -1828,12 +1829,12 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(

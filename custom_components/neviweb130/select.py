@@ -19,7 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES, RISKY_ATTRIBUTES
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
-from .helpers import create_risky_issue, NamingHelper
+from .helpers import NamingHelper, create_risky_issue
 from .schema import (
     BACKLIGHT_LIST,
     BATT_TYPE_LIST,
@@ -29,7 +29,6 @@ from .schema import (
     FLOW_DURATION,
     FLOW_MODEL,
     FLOW_OPTION,
-    FUEL_LIST,
     GAUGE_LIST,
     HA_TO_NEVIWEB_OPTION,
     HC_DISPLAY_LIST,
@@ -304,18 +303,20 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "select"
+    platform = __name__.split(".")[-1]  # "select"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
-        default_name = naming.default_name(platform, index)
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
+        naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 

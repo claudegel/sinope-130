@@ -71,7 +71,6 @@ from homeassistant.components.climate.const import (
     HVACAction,
     HVACMode,
 )
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -82,7 +81,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-import homeassistant.util.dt as dt_util
 
 from .const import (
     ATTR_ACCESSORY_TYPE,
@@ -268,18 +266,16 @@ from .const import (
 )
 from .devices import save_devices
 from .helpers import (
-    async_notify_once_or_update,
-    async_notify_throttled,
+    NamingHelper,
     async_notify_critical,
+    async_notify_once_or_update,
     async_safe_get_device_attributes,
     file_exists,
     generate_runtime_count_attributes,
     init_runtime_attributes,
-    NeviwebEntityHelper,
-    NamingHelper,
-    update_runtime_stats,
     runtime_attributes_dict,
     translate_error,
+    update_runtime_stats,
 )
 from .schema import (
     AUX_HEATING,
@@ -583,22 +579,24 @@ async def async_setup_entry(
 
     device_registry = dr.async_get(hass)
 
-    platform = __name__.split(".")[-1] # "climate"
+    platform = __name__.split(".")[-1]  # "climate"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     entities: list[Neviweb130Thermostat] = []
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
-#        default_name = build_default_name(
-#            domain=DOMAIN,
-#            platform="climate",
-#            prefix=config_prefix,  # "default" or "other"
-#            index=index,
-#        )
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
+        #        default_name = build_default_name(
+        #            domain=DOMAIN,
+        #            platform="climate",
+        #            prefix=config_prefix,  # "default" or "other"
+        #            index=index,
+        #        )
         default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
@@ -608,9 +606,7 @@ async def async_setup_entry(
                         device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
                         location_id = device_info["location$id"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        )
+                        device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
                         # Ensure the device is registered in the device registry
                         device_entry = device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
@@ -1098,7 +1094,7 @@ async def async_setup_entry(
         """Set maximum outside temperature limit to allow heating device operation."""
         # Work differently for G2 thermostats
         thermostat = await get_thermostat(service)
-        temp = ( service.data.get(ATTR_HEAT_LOCK_TEMP) or service.data.get(ATTR_HEAT_LOCKOUT_TEMP) )
+        temp = service.data.get(ATTR_HEAT_LOCK_TEMP) or service.data.get(ATTR_HEAT_LOCKOUT_TEMP)
         value = {"id": thermostat.unique_id, "temp": temp}
         await thermostat.async_set_heat_lockout_temperature(value)
         thermostat.async_schedule_update_ha_state(True)
@@ -2072,7 +2068,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -2303,7 +2299,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -2373,7 +2369,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         demand = self.pi_heating_demand or 0
 
         thresholds = [
-            (1,  "-0"),
+            (1, "-0"),
             (21, "-1"),
             (41, "-2"),
             (61, "-3"),
@@ -2475,7 +2471,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         elif self._operation_mode == HVACMode.FAN_ONLY:
             return HVACMode.FAN_ONLY
         elif self._operation_mode == MODE_EM_HEAT:
-                return MODE_EM_HEAT
+            return MODE_EM_HEAT
         else:
             return HVACMode.HEAT
 
@@ -2803,9 +2799,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_hvac_dr_options(self, value):
         """Set thermostat DR options for Eco Sinope."""
-        await self._client.async_set_hvac_dr_options(
-            value["id"], value["dractive"], value["optout"], value["setpoint"]
-        )
+        await self._client.async_set_hvac_dr_options(value["id"], value["dractive"], value["optout"], value["setpoint"])
         self._drstatus_active = value["dractive"]
         self._drstatus_optout = value["optout"]
         self._drstatus_setpoint = value["setpoint"]
@@ -3020,10 +3014,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         icon = weather.get("icon")
 
         if temperature is None or icon is None:
-            _LOGGER.warning(
-                "Neviweb weather data incomplete: %s (missing temperature or icon)",
-                weather
-            )
+            _LOGGER.warning("Neviweb weather data incomplete: %s (missing temperature or icon)", weather)
             return
 
         # Update weather data
@@ -3128,12 +3119,16 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                         self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
                         3,
                     )
-                    await async_add_data(self._conf_dir, self._device_dict, self._id, self._total_kwh_count, self._marker)
+                    await async_add_data(
+                        self._conf_dir, self._device_dict, self._id, self._total_kwh_count, self._marker
+                    )
                     self._mark = self._marker
                 else:
                     if self._marker != self._mark:
                         self._total_kwh_count += round(self._hour_kwh, 3)
-                        await save_data(self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir)
+                        await save_data(
+                            self._id, self._device_dict, self._total_kwh_count, self._marker, self._conf_dir
+                        )
                         self._mark = self._marker
                 _LOGGER.debug("Device dict updated: %s", self._device_dict)
                 self._energy_stat_time = time.time()
@@ -3175,7 +3170,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     self.hass,
                     f"All errors resolved for device {self._name}, ID: {self._id}, Sku: {self._sku}",
                     title=f"Neviweb130 integration {VERSION}",
-                    notification_id=f"neviweb130_error_resolved",
+                    notification_id="neviweb130_error_resolved",
                 )
                 _LOGGER.info("All errors resolved: %s", self._active_errors)
                 self._active_errors.clear()
@@ -3191,7 +3186,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 self.hass,
                 "error_code",
                 code=raw_code,
-                message="("+error_message+")",
+                message="(" + error_message + ")",
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
@@ -3459,12 +3454,12 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3655,12 +3650,12 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -3869,12 +3864,12 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4044,12 +4039,12 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4226,12 +4221,12 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4425,12 +4420,12 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -4607,7 +4602,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -4823,7 +4818,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -5051,7 +5046,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -5278,7 +5273,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -5510,7 +5505,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -5673,7 +5668,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             self.hass,
                             msg,
                             title=f"Neviweb130 integration {VERSION}",
-                            notification_id=f"neviweb130_sensor_error",
+                            notification_id="neviweb130_sensor_error",
                         )
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     try:
@@ -5767,7 +5762,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -6147,12 +6142,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             attributes = (
-                UPDATE_HEAT_COOL_ATTRIBUTES
-                + HC_ATTRIBUTES
-                + HC_SPECIAL_FIRMWARE
-                + HC_EXTRA
-                + HC_CONFIG
-                + HC_43
+                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_SPECIAL_FIRMWARE + HC_EXTRA + HC_CONFIG + HC_43
             )
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             if self._safe_mode == self._id:
@@ -6196,7 +6186,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             self.hass,
                             msg,
                             title=f"Neviweb130 integration {VERSION}",
-                            notification_id=f"neviweb130_sensor_error",
+                            notification_id="neviweb130_sensor_error",
                         )
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
                     self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
@@ -6325,7 +6315,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -6854,7 +6844,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(

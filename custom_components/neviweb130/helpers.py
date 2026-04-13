@@ -10,6 +10,7 @@ import re
 import shutil
 import time
 from dataclasses import dataclass
+from logging.handlers import RotatingFileHandler
 from typing import Any, Callable
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -17,11 +18,11 @@ from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfTime
 from homeassistant.core import CoreState, HomeAssistant
-from homeassistant.helpers.issue_registry import async_create_issue, IssueSeverity
+from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
-from logging.handlers import RotatingFileHandler
+
 from .const import RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def setup_logger(
     level: str = "INFO",
     max_bytes: int = 2 * 1024 * 1024,
     backup_count: int = 2,
-    reset_on_start: bool = True
+    reset_on_start: bool = True,
 ):
     if reset_on_start and os.path.exists(log_path):
         clear_log_file(log_path)
@@ -55,23 +56,16 @@ def setup_logger(
     numeric_level = getattr(logging, level.upper(), logging.WARNING)
     logger.setLevel(numeric_level)
 
-    handler = RotatingFileHandler(
-        log_path,
-        maxBytes=max_bytes,
-        backupCount=backup_count,
-        encoding="utf-8"
-    )
+    handler = RotatingFileHandler(log_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8")
     handler.setLevel(numeric_level)
     formatter = logging.Formatter(
-        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
 
     # Delete hold handlers on same file
     logger.handlers = [
-        h for h in logger.handlers
-        if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
+        h for h in logger.handlers if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
     ]
     logger.addHandler(handler)
     logger.propagate = False
@@ -165,6 +159,7 @@ async def _delete_file_later(path: str, delay: int):
     except Exception as e:
         _LOGGER.warning("Error during log file delete process : %s", e)
 
+
 # ─────────────────────────────────────────────
 # Clean entry section
 # ─────────────────────────────────────────────
@@ -177,10 +172,8 @@ def sanitize_entry_data(data: dict, hidden_keys: tuple = ("username", "password"
             return name[:2] + "***@" + domain
         return "***"
 
-    return {
-        k: (mask(v) if k in hidden_keys else v)
-        for k, v in data.items()
-    }
+    return {k: (mask(v) if k in hidden_keys else v) for k, v in data.items()}
+
 
 # ─────────────────────────────────────────────
 # Debug coordinator section
@@ -231,6 +224,7 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
             device_id,
             device_name,
         )
+
 
 # ─────────────────────────────────────────────
 # Update section
@@ -320,18 +314,20 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
     else:
         # Compatibility legacy → convert to V2
         is_legacy = True
-        raw_accounts = [{
-            "username": yaml_config.get("username"),
-            "password": yaml_config.get("password"),
-            "network": yaml_config.get("network"),
-            "network2": yaml_config.get("network2"),
-            "network3": yaml_config.get("network3"),
-            "location": yaml_config.get("location"),
-            "location2": yaml_config.get("location2"),
-            "location3": yaml_config.get("location3"),
-            "prefix": "default",
-            "safe_mode": "-",
-        }]
+        raw_accounts = [
+            {
+                "username": yaml_config.get("username"),
+                "password": yaml_config.get("password"),
+                "network": yaml_config.get("network"),
+                "network2": yaml_config.get("network2"),
+                "network3": yaml_config.get("network3"),
+                "location": yaml_config.get("location"),
+                "location2": yaml_config.get("location2"),
+                "location3": yaml_config.get("location3"),
+                "prefix": "default",
+                "safe_mode": "-",
+            }
+        ]
 
     # --- Accounts normalization ---
     accounts = []
@@ -339,7 +335,6 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
     seen_credentials = set()
 
     for idx, acc in enumerate(raw_accounts):
-
         username = acc.get("username")
         password = acc.get("password")
 
@@ -347,19 +342,17 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
         if not username or not password:
             raise HomeAssistantError(
                 f"Neviweb130 YAML import error: username and password are required "
-                f"for account index {idx} (prefix={acc.get('prefix','?')})."
+                f"for account index {idx} (prefix={acc.get('prefix', '?')})."
             )
 
         # Automatic prefix
         prefix = acc.get("prefix")
         if not prefix:
-            prefix = "default" if idx == 0 else f"default{idx+1}"
+            prefix = "default" if idx == 0 else f"default{idx + 1}"
 
         # Validate prefix are different
         if prefix in seen_prefixes:
-            raise HomeAssistantError(
-                f"Neviweb130 YAML import error: duplicate prefix '{prefix}' detected."
-            )
+            raise HomeAssistantError(f"Neviweb130 YAML import error: duplicate prefix '{prefix}' detected.")
         seen_prefixes.add(prefix)
 
         # Validate credential are different
@@ -375,14 +368,16 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
         network2 = acc.get("network2") or acc.get("location2") or ""
         network3 = acc.get("network3") or acc.get("location3") or ""
 
-        accounts.append({
-            "username": username,
-            "password": password,
-            "prefix": prefix,
-            "network": network,
-            "network2": network2,
-            "network3": network3,
-        })
+        accounts.append(
+            {
+                "username": username,
+                "password": password,
+                "prefix": prefix,
+                "network": network,
+                "network2": network2,
+                "network3": network3,
+            }
+        )
 
     # --- Global options ---
     scan = yaml_config.get("scan_interval", 420)
@@ -407,10 +402,8 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
 
     if notify not in valid_notify_values:
         raise HomeAssistantError(
-            f"Neviweb130 YAML import error: notify must be one of "
-            f"{', '.join(valid_notify_values)} (got '{notify}')."
+            f"Neviweb130 YAML import error: notify must be one of {', '.join(valid_notify_values)} (got '{notify}')."
         )
-
 
     global_options = {
         "scan_interval": scan,
@@ -480,8 +473,9 @@ async def async_notify_ha(hass, msg: str, title: str = None, notification_id: st
         blocking=False,
     )
 
+
 async def async_notify_once_or_update(hass, msg: str, title: str = None, notification_id: str = None):
-    """ Send a persistent notification only once, or update it if it already exists.
+    """Send a persistent notification only once, or update it if it already exists.
 
     - If the notification does not exist → create it
     - If it exists → update it with the new message/title
@@ -595,27 +589,27 @@ class NamingHelper:
 
     def default_name(self, platform: str, index: int) -> str:
         """
-        Build default_name for each bridge, for given platform.
+            Build default_name for each bridge, for given platform.
 
-    - If prefix == "default":
-        Keep legacy logic :
-            DEFAULT_NAME = f"{DOMAIN} climate"
-            DEFAULT_NAME_2 = f"{DOMAIN} climate 2"
-            DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
-    - If prefix != "default":
-        V2 logic applied :
-            DEFAULT_NAME = f"{DOMAIN} {prefix} {network}"
-            DEFAULT_NAME_2 = f"{DOMAIN} {prefix} {network2}"
-            DEFAULT_NAME_3 = f"{DOMAIN} {prefix} {network3}"
+        - If prefix == "default":
+            Keep legacy logic :
+                DEFAULT_NAME = f"{DOMAIN} climate"
+                DEFAULT_NAME_2 = f"{DOMAIN} climate 2"
+                DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
+        - If prefix != "default":
+            V2 logic applied :
+                DEFAULT_NAME = f"{DOMAIN} {prefix} {network}"
+                DEFAULT_NAME_2 = f"{DOMAIN} {prefix} {network2}"
+                DEFAULT_NAME_3 = f"{DOMAIN} {prefix} {network3}"
 
-    Args:
-        domain (str): DOMAIN name.
-        platform (str): climate, light, switch, etc.
-        prefix (str): Prefix defined in config (default or other).
-        index (int): 1, 2 or 3 ,bridge number.
+        Args:
+            domain (str): DOMAIN name.
+            platform (str): climate, light, switch, etc.
+            prefix (str): Prefix defined in config (default or other).
+            index (int): 1, 2 or 3 ,bridge number.
 
-    Returns:
-        str: default_name built.
+        Returns:
+            str: default_name built.
         """
         network = NETWORK_MAP[index]
 
@@ -766,9 +760,9 @@ def update_runtime_stats(obj, device_stats: dict, modes: dict[str, str], prefix:
             prev_value = prev_entry["value"]
 
             # Convert timestamp UTC → local
-            ts_utc = datetime.datetime.strptime(
-                last_entry["timestamp"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=datetime.timezone.utc)
+            ts_utc = datetime.datetime.strptime(last_entry["timestamp"], "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=datetime.timezone.utc
+            )
             ts_local = dt_util.as_local(ts_utc)
 
             # Update only if timestamp changed
@@ -876,6 +870,7 @@ async def _t(hass, key: str) -> str:
 
     return translations.get(full_key, key)
 
+
 async def notify_after_startup(hass, coro_factory):
     """Schedule a coroutine to run safely after HA is fully started."""
 
@@ -904,7 +899,7 @@ async def check_weather_icons_folder(hass):
                 message,
                 title="Neviweb130 – weather icon",
                 notification_id="neviweb130_missing_folder",
-            )
+            ),
         )
         return
 
@@ -918,7 +913,7 @@ async def check_weather_icons_folder(hass):
                 message,
                 title="Neviweb130 – weather icon",
                 notification_id="neviweb130_empty_folder",
-            )
+            ),
         )
 
 
@@ -928,6 +923,7 @@ async def check_weather_icons_folder(hass):
 
 
 _translation_cache = None
+
 
 async def translate_error(hass, key: str, **placeholders):
     """Translate an error message using HA translation system."""
@@ -1101,23 +1097,18 @@ def create_issue(
 
 BASE_DOC_URL = "https://github.com/claudegel/sinope-130/wiki"
 
+
 def get_doc_url(attribute: str) -> str:
     """Return documentation URL for a risky attribute."""
     if attribute in RISKY_ATTRIBUTES:
         return f"{BASE_DOC_URL}/{attribute}"
     return f"{BASE_DOC_URL}/Risky-Attributes"
 
+
 def _sanitize(text: str) -> str:
     """Sanitize text for use in issue_id."""
-    return (
-        str(text)
-        .lower()
-        .replace(" ", "_")
-        .replace("-", "_")
-        .replace(":", "_")
-        .replace(".", "_")
-        .replace("/", "_")
-    )
+    return str(text).lower().replace(" ", "_").replace("-", "_").replace(":", "_").replace(".", "_").replace("/", "_")
+
 
 def create_risky_issue(hass, entity_id: str, attribute: str, value):
     """Create a risky attribute issue with a safe issue_id."""
@@ -1173,10 +1164,7 @@ async def async_safe_get_device_attributes(
     logger.warning("Running async update helper")
 
     # Filter out blacklisted attributes
-    filtered_attrs = [
-        attr for attr in attributes
-        if attr not in UNSUPPORTED_ATTRS.get(device_id, set())
-    ]
+    filtered_attrs = [attr for attr in attributes if attr not in UNSUPPORTED_ATTRS.get(device_id, set())]
 
     try:
         result = await client.async_get_device_attributes(device_id, filtered_attrs)
@@ -1292,24 +1280,24 @@ async def async_safe_get_device_attributes(
         return device_data
 
 
-#await async_notify_throttled(
+# await async_notify_throttled(
 #    self.hass,
 #    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
 #    title="Neviweb130",
 #    notification_id=f"neviweb130_comm_error_{self._prefix}",
 #    min_interval=1800,  # max 1 notification par 30 minutes
-#)
+# )
 
-#await async_notify_once_or_update(
+# await async_notify_once_or_update(
 #    self.hass,
 #    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
 #    title=f"Neviweb130 integration {VERSION}",
 #    notification_id=f"neviweb130_comm_error_{self._prefix}",
-#)
+# )
 
-#await async_notify_critical(
+# await async_notify_critical(
 #    self.hass,
 #    "Neviweb130: Impossible de se connecter depuis 10 minutes.",  # Message
 #    "Neviweb130 - Erreur critique",  # Title
 #    "neviweb130_connection_error"  # id
-#)
+# )

@@ -7,7 +7,6 @@ from typing import Any, Mapping, Union
 import aiohttp
 from aiohttp import ClientSession
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -27,7 +26,6 @@ from .const import (
     ATTR_BATT_ALERT,
     ATTR_BATTERY_TYPE,
     ATTR_COLD_LOAD_PICKUP_REMAIN_TIME,
-    ATTR_CONF_CLOSURE,
     ATTR_CONTROLLED_DEVICE,
     ATTR_COOL_CYCLE_LENGTH,
     ATTR_COOL_INTERSTAGE_DELAY,
@@ -79,7 +77,6 @@ from .const import (
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEAT_PURGE_TIME,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
-    ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
     ATTR_HUMIDITY_SETPOINT_OFFSET,
     ATTR_INPUT_1_OFF_DELAY,
@@ -91,7 +88,6 @@ from .const import (
     ATTR_KEY_DOUBLE_UP,
     ATTR_KEYPAD,
     ATTR_LANGUAGE,
-    ATTR_LEAK_ALERT,
     ATTR_LED_OFF_COLOR,
     ATTR_LED_OFF_INTENSITY,
     ATTR_LED_ON_COLOR,
@@ -139,10 +135,8 @@ from .const import (
     VERSION,
 )
 from .helpers import (
-    async_notify_once_or_update,
-    async_notify_throttled,
     async_notify_critical,
-    DailyRequestCounter,
+    async_notify_once_or_update,
     translate_error,
 )
 from .schema import (
@@ -252,6 +246,7 @@ def ha_to_neviweb_level(value: str | None) -> int:
         _LOGGER.warning("Unknown HA value for gauge type: %s, fallback to %s", value, result)
     return result
 
+
 def ha_to_neviweb_mode(mode) -> str:
     # For HC thermostat
     if mode == MODE_EM_HEAT:
@@ -261,6 +256,7 @@ def ha_to_neviweb_mode(mode) -> str:
     if mode not in HA_TO_NEVIWEB_MODE and mode is not None:
         _LOGGER.warning("Unknown HA value for heatCoolMode: %s, fallback to %s", mode, result)
     return result
+
 
 def ha_to_neviweb_supply(value: str | None) -> str:
     result = HA_TO_NEVIWEB_SUPPLY.get(value or "unknown", "-")
@@ -467,7 +463,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw_res = await response.json()
                 networks = raw_res
 
@@ -506,16 +501,13 @@ class Neviweb130Client:
                                 self._gateway_id = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
-                                _LOGGER.info(
-                                    "Selecting %s network among: %s", name, networks)
+                                _LOGGER.info("Selecting %s network among: %s", name, networks)
                                 continue
                             if name.lower() == self._network_name.lower():
                                 self._gateway_id = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
-                                _LOGGER.warning(
-                                    "Case mismatch for network1 name. Using %s", name
-                                )
+                                _LOGGER.warning("Case mismatch for network1 name. Using %s", name)
                                 continue
 
                         # Network 2
@@ -531,9 +523,7 @@ class Neviweb130Client:
                                 self._gateway_id2 = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
-                                _LOGGER.warning(
-                                    "Case mismatch for network2 name. Using %s", name
-                                )
+                                _LOGGER.warning("Case mismatch for network2 name. Using %s", name)
                                 continue
 
                         # network 3
@@ -549,17 +539,11 @@ class Neviweb130Client:
                                 self._gateway_id3 = network["id"]
                                 self._occupancyMode = network["mode"]
                                 self._code = network["postalCode"]
-                                _LOGGER.warning(
-                                    "Case mismatch for network3 name. Using %s", name
-                                )
+                                _LOGGER.warning("Case mismatch for network3 name. Using %s", name)
                                 continue
 
                     # If nothing matched
-                    if (
-                        self._gateway_id is None
-                        and self._gateway_id2 is None
-                        and self._gateway_id3 is None
-                    ):
+                    if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
                         _LOGGER.error(
                             "None of the configured network names match discovered networks. "
                             "Please check your configuration."
@@ -580,11 +564,7 @@ class Neviweb130Client:
         await self._increment()
         session = await self.session
 
-        if (
-            self._gateway_id is None
-            and self._gateway_id2 is None
-            and self._gateway_id3 is None
-        ):
+        if self._gateway_id is None and self._gateway_id2 is None and self._gateway_id3 is None:
             msg = await translate_error(self.hass, "no_gateway_defined")
             await async_notify_critical(
                 self.hass,
@@ -603,7 +583,6 @@ class Neviweb130Client:
                     cookies=self._cookies,
                     timeout=self._timeout,
                 ) as response:
-
                     raw = await response.json()
                     _LOGGER.debug("Received gateway data: %s", raw)
 
@@ -686,13 +665,7 @@ class Neviweb130Client:
         await self._increment()
         session = await self.session
 
-
-        url = (
-            DEVICE_DATA_URL
-            + str(device_id)
-            + "/attribute?attributes="
-            + ",".join(attributes)
-        )
+        url = DEVICE_DATA_URL + str(device_id) + "/attribute?attributes=" + ",".join(attributes)
         _LOGGER.debug("Fetching attributes for device %s with URL: %s", device_id, url)
 
         try:
@@ -702,7 +675,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
                 # _LOGGER.debug("Received devices data: %s", raw_res)
 
@@ -720,7 +692,7 @@ class Neviweb130Client:
 
                     return raw
 
-#                _LOGGER.debug("Attributes for device %s: %s", device_id, raw)
+                #                _LOGGER.debug("Attributes for device %s: %s", device_id, raw)
                 missing = [a for a in attributes if a not in raw]
                 if missing:
                     _LOGGER.warning(
@@ -733,9 +705,7 @@ class Neviweb130Client:
                 return raw
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get device attributes for device {device_id}"
-            ) from e
+            raise PyNeviweb130Error(f"Cannot get device attributes for device {device_id}") from e
 
     async def async_get_device_status(self, device_id: str):
         """Get device status for the GT130."""
@@ -752,16 +722,13 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
 
                 # Update cookies
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get device status for device {device_id}"
-            ) from e
+            raise PyNeviweb130Error(f"Cannot get device status for device {device_id}") from e
 
         # Handle error
         if "error" in raw:
@@ -791,7 +758,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
 
                 # Update cookies
@@ -828,7 +794,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
 
                 # Update cookies
@@ -868,7 +833,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
                 _LOGGER.debug("Raw monthly stats response for device %s: %s", device_id, raw)
 
@@ -926,7 +890,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
                 _LOGGER.debug("Raw daily stats response for device %s: %s", device_id, raw)
 
@@ -1039,7 +1002,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
                 _LOGGER.debug("Raw weather data response from Neviweb for code %s: %s", self._code, raw)
 
@@ -1080,7 +1042,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 raw = await response.json()
                 _LOGGER.debug("Raw sensor error response for device %s: %s", device_id, raw)
 
@@ -1088,9 +1049,7 @@ class Neviweb130Client:
                 self._cookies.update(response.cookies)
 
         except aiohttp.ClientError as e:
-            raise PyNeviweb130Error(
-                f"Cannot get device error code status for device {device_id}"
-            ) from e
+            raise PyNeviweb130Error(f"Cannot get device error code status for device {device_id}") from e
 
         # Handle error
         if "error" in raw:
@@ -1525,9 +1484,7 @@ class Neviweb130Client:
         """Set floor, low voltage, Wi-Fi floor and low voltage Wi-Fi thermostats auxiliary heat slave/off or on/off."""
         length = ha_to_neviweb(sec)
         if low == "voltage":
-            data: dict[str, dict[str, str | int]] = {
-                ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}
-            }
+            data: dict[str, dict[str, str | int]] = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}}
         elif low == "wifi":
             data: dict[str, int] = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
@@ -1790,7 +1747,7 @@ class Neviweb130Client:
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_hvac_dr_options(
-        self, device_id: str, *,dr=None, optout=None, setpoint=None, aux_conf=None, fan_speed_conf=None
+        self, device_id: str, *, dr=None, optout=None, setpoint=None, aux_conf=None, fan_speed_conf=None
     ) -> bool:
         """Set load controller Eco Sinope attributes."""
         data: dict[str, Any]
@@ -1850,7 +1807,7 @@ class Neviweb130Client:
         """Set auxiliary heating source for TH6500WF and TH6250WF."""
         data: dict[str, Any] = {ATTR_AUX_HEAT_SOURCE_TYPE: equip}
         _LOGGER.debug("aux_heating_source.data = %s", data)
-        return  await self.async_set_device_attributes(device_id, data)
+        return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_low_fuel_alert(self, device_id: str, alert: str | None) -> bool:
         """Set low fuel alert limit for LM4110-ZB sensor."""
@@ -1894,7 +1851,9 @@ class Neviweb130Client:
         _LOGGER.debug("power_supply.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_on_off_input_delay(self, device_id: str, delay: str | None, onoff: str, input_number: int) -> bool:
+    async def async_set_on_off_input_delay(
+        self, device_id: str, delay: str | None, onoff: str, input_number: int
+    ) -> bool:
         """Set input 1 or 2 on/off delay in seconds."""
         data: dict[str, Any]
         length = ha_to_neviweb_delay(delay)
@@ -2148,7 +2107,6 @@ class Neviweb130Client:
                     cookies=self._cookies,
                     timeout=self._timeout,
                 ) as response:
-
                     resp = await response.json()
                     _LOGGER.debug("Data = %s", data)
                     _LOGGER.debug("Request response = %s", response.status)
@@ -2202,7 +2160,6 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             ) as response:
-
                 resp = await response.json()
                 _LOGGER.debug("Data = %s", data)
                 _LOGGER.debug("Requests response = %s", response.status)
@@ -2236,6 +2193,7 @@ class Neviweb130Client:
         # All failed
         _LOGGER.debug("Failed to update Neviweb status for location %s.", location)
         return False
+
 
 # create_session = Neviweb130Client.create_session
 

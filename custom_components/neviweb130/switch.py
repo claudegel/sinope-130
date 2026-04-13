@@ -34,9 +34,8 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from threading import Lock
-from typing import Any, Callable, Mapping, Union, override
+from typing import Any, Callable, Mapping, override
 
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, SwitchEntityDescription
@@ -143,13 +142,12 @@ from .const import (
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import save_devices
 from .helpers import (
+    NamingHelper,
     async_apply_device_update,
-    async_notify_once_or_update,
-    async_notify_throttled,
     async_notify_critical,
+    async_notify_once_or_update,
     async_safe_get_device_attributes,
     create_risky_issue,
-    NamingHelper,
     translate_error,
 )
 from .schema import (
@@ -294,15 +292,15 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     #  Common attributes
-#    Neviweb130SwitchEntityDescription(
-#        key="activation",
-#        name="activation",
-#        device_class=SwitchDeviceClass.SWITCH,
-#        translation_key="activation",
-#        signal=SIGNAL_EVENTS_CHANGED,
-#        icon="mdi:alarm",
-#        entity_category=EntityCategory.DIAGNOSTIC,
-#    ),
+    #    Neviweb130SwitchEntityDescription(
+    #        key="activation",
+    #        name="activation",
+    #        device_class=SwitchDeviceClass.SWITCH,
+    #        translation_key="activation",
+    #        signal=SIGNAL_EVENTS_CHANGED,
+    #        icon="mdi:alarm",
+    #        entity_category=EntityCategory.DIAGNOSTIC,
+    #    ),
 )
 
 
@@ -321,7 +319,7 @@ IMPLEMENTED_WATER_HEATER_LOAD_MODEL = [2151]
 IMPLEMENTED_ZB_DEVICE_CONTROL = [2180]
 IMPLEMENTED_SED_DEVICE_CONTROL = [2181]
 IMPLEMENTED_WALL_DEVICES = [2600, 2610]
-IMPLEMENTED_SED_WALL_DEVICES =[26002, 26102]
+IMPLEMENTED_SED_WALL_DEVICES = [26002, 26102]
 IMPLEMENTED_LOAD_DEVICES = [2506]
 IMPLEMENTED_SED_LOAD_DEVICES = [25062]
 IMPLEMENTED_WIFI_LOAD_DEVICES = [346]
@@ -372,15 +370,17 @@ def create_physical_switch(data, entry, coordinator):
     entities: list[Neviweb130Switch] = []
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "switch"
+    platform = __name__.split(".")[-1]  # "switch"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
@@ -416,15 +416,17 @@ def create_attribute_switch(hass, entry, data, coordinator, device_registry):
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "switch"
+    platform = __name__.split(".")[-1]  # "switch"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
@@ -878,7 +880,7 @@ def lock_to_ha(lock):
     return None
 
 
-def format_remaining_time(time_val: int) -> Union[str, int]:
+def format_remaining_time(time_val: int) -> str | int:
     """Convert countdown value for RM3500ZB. Returns 'off' if OFF_TIMER value is detected."""
     return "off" if time_val == OFF_TIMER else time_val
 
@@ -1064,7 +1066,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -1124,7 +1126,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     @property
     def switch_keypad(self):
-        """"Locked, unlocked and partiallyLocked for RM32xxZB and RM32xxWF devices."""
+        """ "Locked, unlocked and partiallyLocked for RM32xxZB and RM32xxWF devices."""
         return self._keypad
 
     @property
@@ -1239,7 +1241,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update({"onOff": self._onoff})
@@ -1352,7 +1354,9 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     async def async_set_on_off_input_delay(self, value):
         """Set input 1 or 2 on/off delay in seconds."""
-        await self._client.async_set_on_off_input_delay(value["id"], value["delay"], value["onoff"], value["input_number"])
+        await self._client.async_set_on_off_input_delay(
+            value["id"], value["delay"], value["onoff"], value["input_number"]
+        )
         if value["input_number"] == 1:
             match value["onoff"]:
                 case "on":
@@ -1656,7 +1660,9 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     if not self._is_sedna_load:
                         self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                         self._wattage = device_data[ATTR_WATTAGE]
-                        self._keypad = STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
+                        self._keypad = (
+                            STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
+                        )
                         self._power_timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
                         if ATTR_DRSTATUS in device_data:
                             self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
@@ -1702,12 +1708,12 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update({"onOff": self._onoff})
@@ -1845,12 +1851,12 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -2036,12 +2042,12 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -2143,7 +2149,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
-            _LOGGER.debug("Updated attributes for %s: %s",self._name, attributes)
+            _LOGGER.debug("Updated attributes for %s: %s", self._name, attributes)
             if self._safe_mode == self._id:
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
@@ -2254,12 +2260,12 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -2469,7 +2475,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -2490,7 +2496,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
         data.update(
@@ -2548,7 +2554,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
 class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], SwitchEntity):
     """Representation of a specific Neviweb130 device attribute switch."""
 
-#    _attr_has_entity_name = True
+    #    _attr_has_entity_name = True
     _attr_should_poll = True
 
     _ATTRIBUTE_METHODS = {
@@ -2563,7 +2569,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         "temp_alert": lambda self, state: self._client.async_set_sensor_temp_alert(self._id, state),
         "valve_alert": lambda self, state: self._client.async_set_valve_alert(
             self._id, state, self.is_zb_valve, self.is_zb_mesh_valve
-        )
+        ),
         # ...
     }
 
@@ -2652,7 +2658,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
             else:
                 _LOGGER.warning("Failed to set '%s' to %s", self._attribute, state)
         except Exception as e:
-           _LOGGER.exception("Error while setting '%s' to %s: %s", self._attribute, state, e)
+            _LOGGER.exception("Error while setting '%s' to %s: %s", self._attribute, state, e)
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch device on."""

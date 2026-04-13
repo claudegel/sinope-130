@@ -7,17 +7,15 @@ import logging
 import os
 from typing import Any, cast
 
-import aiofiles
 import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries, exceptions
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import selector
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers import selector
 
 from . import LOG_PATH, async_migrate_unique_ids, async_shutdown
 from .const import (
@@ -40,7 +38,6 @@ from .const import (
 from .coordinator import PyNeviweb130Error
 from .helpers import (
     async_notify_critical,
-    async_notify_once_or_update,
     async_notify_throttled,
     expose_log_file,
     normalize_yaml_config,
@@ -51,7 +48,9 @@ from .schema import (
     IGNORE_MIWI,
     NOTIFY,
     PREFIX,
-    SAFE_MODE as DEFAULT_SAFE_MODE,
+)
+from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
+from .schema import (
     SCAN_INTERVAL,
     STAT_INTERVAL,
 )
@@ -110,7 +109,7 @@ async def async_test_connect(user: str | None, passwd: str | None) -> None:
                 cookies=None,
                 allow_redirects=False,
                 timeout=timeout,
-           ) as response:
+            ) as response:
                 _LOGGER.debug("Validate login status: %s", response.status)
                 if response.status != 200:
                     raise CannotConnect("Cannot log in to Neviweb")
@@ -237,7 +236,6 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
 
-
     async def async_step_import(self, user_input=None):
         """Import neviweb130 config from configuration.yaml."""
 
@@ -247,10 +245,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             accounts, global_options, is_legacy = normalize_yaml_config(yaml_config)
         except HomeAssistantError as exc:
             await async_notify_critical(
-                self.hass,
-                str(exc),
-                "Neviweb130 - Import YAML invalide",
-                "neviweb130_yaml_error"
+                self.hass, str(exc), "Neviweb130 - Import YAML invalide", "neviweb130_yaml_error"
             )
             # Stop the flow
             return self.async_abort(reason="yaml_invalid")
@@ -268,12 +263,8 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
         # Create one entry per account
         for acc in accounts:
-
             # Check if an entry already exist for that prefix
-            existing = [
-                entry for entry in self._async_current_entries()
-                if entry.data.get("prefix") == acc["prefix"]
-            ]
+            existing = [entry for entry in self._async_current_entries() if entry.data.get("prefix") == acc["prefix"]]
             if existing:
                 continue
 
@@ -288,7 +279,6 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             )
 
         return self.async_abort(reason="imported")
-
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> FlowResult[Any]:
         """Add reconfigure step to allow to reconfigure a config entry."""
@@ -462,11 +452,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
                         step_id="options",
                         data_schema=self._get_options_schema(),
                         errors={"backup_folders": key},
-                        description_placeholders={
-                            **placeholders,
-                            "help": "Enter a folder relative to /config"
-                        },
-
+                        description_placeholders={**placeholders, "help": "Enter a folder relative to /config"},
                     )
 
             new_options = {
@@ -487,9 +473,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
         log_levels = ["debug", "info", "warning", "error", "critical"]
 
         current_prefix = (
-            self._config_entry.options.get(CONF_PREFIX)
-            or self._config_entry.data.get(CONF_PREFIX)
-            or PREFIX
+            self._config_entry.options.get(CONF_PREFIX) or self._config_entry.data.get(CONF_PREFIX) or PREFIX
         )
 
         return vol.Schema(
@@ -506,19 +490,13 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_REQUEST_LIMIT, default=options.get(CONF_REQUEST_LIMIT, DEFAULT_REQUEST_LIMIT)): int,
                 # New option for update
                 vol.Optional(
-                    CONF_UPDATE_INTERVAL,
-                    default=options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+                    CONF_UPDATE_INTERVAL, default=options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
                 ): vol.In(["1h", "3h", "6h", "12h", "24h"]),
                 # New options for backup
                 vol.Optional("backup_mode", default=options.get("backup_mode", "full")): vol.In(["full", "partial"]),
-                vol.Optional(
-                    "backup_folders",
-                    default="config"
-                ): selector.TextSelector(
-                    selector.TextSelectorConfig(
-                        multiline=False
-                    )
-                )
+                vol.Optional("backup_folders", default="config"): selector.TextSelector(
+                    selector.TextSelectorConfig(multiline=False)
+                ),
             }
         )
 
@@ -642,7 +620,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
             if not folder:
                 return "empty_folder", {}
 
-            if any(c in folder for c in ['*', '?', '<', '>', '|']):
+            if any(c in folder for c in ["*", "?", "<", ">", "|"]):
                 return "invalid_characters", {}
 
             full_path = os.path.join(self.hass.config.path(), folder)

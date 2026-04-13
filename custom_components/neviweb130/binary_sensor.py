@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Callable, Final, Optional
+from typing import Callable, Final
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -41,7 +41,7 @@ class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
     icon_fn: Callable[[bool, dict | None, str | None], str] | None = None
     on_icon: str = "mdi:checkbox-marked"
     off_icon: str = "mdi:checkbox-blank-outline"
-    signal: Optional[str] = None
+    signal: str | None = None
 
 
 BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] = (
@@ -186,18 +186,20 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "binary_sensor"
+    platform = __name__.split(".")[-1]  # "binary_sensor"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
-        default_name = naming.default_name(platform, index)
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
+        naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 

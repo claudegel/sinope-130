@@ -18,23 +18,19 @@ from __future__ import annotations
 
 import datetime
 import logging
-import os
 import time
-from dataclasses import dataclass
 from threading import Lock
 from typing import Any, Mapping, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
-    CONF_NAME,
-    EntityCategory,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    EntityCategory,
     UnitOfEnergy,
     UnitOfTemperature,
     UnitOfVolume,
@@ -75,7 +71,6 @@ from .const import (
     ATTR_TANK_TYPE,
     ATTR_TEMP_ALERT,
     ATTR_WATER_LEAK_STATUS,
-    CONF_PREFIX,
     DOMAIN,
     FULL_MODEL,
     MODEL_ATTRIBUTES,
@@ -101,22 +96,20 @@ from .const import (
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .helpers import (
+    NamingHelper,
+    Neviweb130SensorEntityDescription,
     async_notify_critical,
     async_notify_once_or_update,
-    async_notify_throttled,
     async_safe_get_device_attributes,
     file_exists,
     generate_runtime_count_attributes,
     generate_runtime_sensor_descriptions,
-    NamingHelper,
-    Neviweb130SensorEntityDescription,
     translate_error,
 )
 from .schema import (
     HA_TO_NEVIWEB_GAUGE,
     HA_TO_NEVIWEB_HEIGHT,
     HA_TO_NEVIWEB_LEVEL,
-    PREFIX,
     SET_ACTIVATION_SCHEMA,
     SET_BATTERY_ALERT_SCHEMA,
     SET_BATTERY_TYPE_SCHEMA,
@@ -437,24 +430,24 @@ for model in RUNTIME_COMPATIBLE_MODELS["TH6"]:
     if model in MODEL_ATTRIBUTES:
         for prefix in RUNTIME_PREFIXES:
             attrs = generate_runtime_count_attributes(TH6_MODES_VALUES, prefix)
-            MODEL_ATTRIBUTES[model]["sensor"].extend(
-                a for a in attrs if a not in MODEL_ATTRIBUTES[model]["sensor"]
-            )
+            MODEL_ATTRIBUTES[model]["sensor"].extend(a for a in attrs if a not in MODEL_ATTRIBUTES[model]["sensor"])
 
 
 def create_physical_sensors(data, entry, coordinator):
     entities: list[Neviweb130Sensor] = []
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "sensor"
+    platform = __name__.split(".")[-1]  # "sensor"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
@@ -503,15 +496,17 @@ async def create_attribute_sensors(hass, entry, data, coordinator, device_regist
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "sensor"
+    platform = __name__.split(".")[-1]  # "sensor"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
@@ -702,7 +697,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id,"low": service.data[ATTR_FUEL_PERCENT_ALERT]}
+        value = {"id": sensor.unique_id, "low": service.data[ATTR_FUEL_PERCENT_ALERT]}
         await sensor.async_set_low_fuel_alert(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1131,7 +1126,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -1234,13 +1229,11 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
             return None
 
         batt = (
-            voltage_to_percentage(self._battery_voltage, "lithium")
-            if self._is_monitor
-            else self._batt_percent_normal
+            voltage_to_percentage(self._battery_voltage, "lithium") if self._is_monitor else self._batt_percent_normal
         )
 
         if batt is None:
-            return f"/local/neviweb130/battery-unknown.png"
+            return "/local/neviweb130/battery-unknown.png"
 
         level = min(batt // 20 + 1, 5)
         return f"/local/neviweb130/battery-{level}.png"
@@ -1294,7 +1287,7 @@ class Neviweb130Sensor(CoordinatorEntity, SensorEntity):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -1568,7 +1561,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             await async_notify_critical(
                                 self.hass,
                                 msg,
-                                notification_id=f"neviweb130_sensor_error",
+                                notification_id="neviweb130_sensor_error",
                             )
                             self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                         else:
@@ -1607,12 +1600,12 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -1727,7 +1720,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                             self.hass,
                             msg,
                             title=f"Neviweb130 integration {VERSION}",
-                            notification_id=f"neviweb130_sensor_error",
+                            notification_id="neviweb130_sensor_error",
                         )
                     self._sampling = device_data[ATTR_ANGLE][ATTR_SAMPLING]
                     self._tank_percent = device_data[ATTR_TANK_PERCENT]
@@ -1779,7 +1772,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -1809,7 +1802,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
         demand = self._tank_percent or 0
 
         thresholds = [
-            (1,  "-0"),
+            (1, "-0"),
             (11, "-1"),
             (21, "-2"),
             (31, "-3"),
@@ -1878,7 +1871,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -2022,7 +2015,7 @@ class Neviweb130GatewaySensor(Neviweb130Sensor):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update(
@@ -2091,7 +2084,7 @@ class Neviweb130DailyRequestSensor(SensorEntity):
                 self.hass,
                 msg,
                 title=f"Neviweb130 integration {VERSION}",
-                notification_id=f"neviweb130_requests_limit",
+                notification_id="neviweb130_requests_limit",
             )
 
         # Reset notification flag if day changed

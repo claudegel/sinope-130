@@ -25,7 +25,6 @@ from threading import Lock
 from typing import Any, Mapping, override
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -73,12 +72,10 @@ from .const import (
 )
 from .devices import save_devices
 from .helpers import (
-    async_notify_once_or_update,
-    async_notify_throttled,
-    async_notify_critical,
-    async_safe_get_device_attributes,
-    NeviwebEntityHelper,
     NamingHelper,
+    async_notify_critical,
+    async_notify_once_or_update,
+    async_safe_get_device_attributes,
     translate_error,
 )
 from .schema import (
@@ -129,6 +126,7 @@ IMPLEMENTED_DEVICE_MODEL = (
     + DEVICE_MODEL_SED_NEW_DIMMER
 )
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -150,16 +148,18 @@ async def async_setup_entry(
 
     device_registry = dr.async_get(hass)
 
-    platform = __name__.split(".")[-1] # "light"
+    platform = __name__.split(".")[-1]  # "light"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     entities: list[Neviweb130Light] = []
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
@@ -168,9 +168,7 @@ async def async_setup_entry(
                     if model in IMPLEMENTED_DEVICE_MODEL:
                         device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(
-                            **device_info["signature"]["softVersion"]
-                        )
+                        device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
                         # Ensure the device is registered in the device registry
                         device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
@@ -249,7 +247,9 @@ async def async_setup_entry(
 
         light = entity_map.get(entity_id)
         if light is None:
-            msg = await translate_error(hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="light")
+            msg = await translate_error(
+                hass, "entity_must_be_domain", entity=entity_id, domain=DOMAIN, platform="light"
+            )
             raise ServiceValidationError(msg)
         return light
 
@@ -689,7 +689,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -814,7 +814,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update({"onOff": self._onoff})
@@ -899,7 +899,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._timer = value[ATTR_TIME]
 
     async def async_set_led_indicator(self, value):
-        """Set led indicator color, 
+        """Set led indicator color,
         base on RGB red, green, blue color (0-255) for on and off state."""
         color = color_to_rgb(value["color"])
         await self._client.async_set_led_indicator(value["id"], value["state"], color)
@@ -1261,12 +1261,12 @@ class Neviweb130Dimmer(Neviweb130Light):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update({"onOff": self._onoff})
@@ -1425,7 +1425,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                         self.hass,
                         msg,
                         title=f"Neviweb130 integration {VERSION}",
-                        notification_id=f"neviweb130_update_restarted",
+                        notification_id="neviweb130_update_restarted",
                     )
 
     @property
@@ -1435,33 +1435,33 @@ class Neviweb130NewDimmer(Neviweb130Light):
 
     @property
     @override
-    def extra_state_attributes(self)  -> Mapping[str, Any]:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
         data.update({"onOff": self._onoff})
         if self._is_new_dimmer:
             data.update(
                 {
-                ATTR_BRIGHTNESS_PCT: self._brightness_pct,
-                "minimum_intensity": self._intensity_min,
-                "error_code": self._error_code,
-                "phase_control": self._phase_control,
-                "double_up_Action": self._double_up,
-                "wattage": self._wattage,
-                "keypad": self._keypad,
-                "timer": self._timer,
-                "led_on_color": self._led_on_color,
-                "led_off_color": self._led_off_color,
-                "led_on_intensity": self._led_on_intensity,
-                "led_off_intensity": self._led_off_intensity,
-                "total_kwh_count": self._total_kwh_count,
-                "monthly_kwh_count": self._monthly_kwh_count,
-                "daily_kwh_count": self._daily_kwh_count,
-                "hourly_kwh_count": self._hourly_kwh_count,
-                "hourly_kwh": self._hour_kwh,
-                "daily_kwh": self._today_kwh,
-                "monthly_kwh": self._month_kwh,
-                "last_energy_stat_update": self._mark,
+                    ATTR_BRIGHTNESS_PCT: self._brightness_pct,
+                    "minimum_intensity": self._intensity_min,
+                    "error_code": self._error_code,
+                    "phase_control": self._phase_control,
+                    "double_up_Action": self._double_up,
+                    "wattage": self._wattage,
+                    "keypad": self._keypad,
+                    "timer": self._timer,
+                    "led_on_color": self._led_on_color,
+                    "led_off_color": self._led_off_color,
+                    "led_on_intensity": self._led_on_intensity,
+                    "led_off_intensity": self._led_off_intensity,
+                    "total_kwh_count": self._total_kwh_count,
+                    "monthly_kwh_count": self._monthly_kwh_count,
+                    "daily_kwh_count": self._daily_kwh_count,
+                    "hourly_kwh_count": self._hourly_kwh_count,
+                    "hourly_kwh": self._hour_kwh,
+                    "daily_kwh": self._today_kwh,
+                    "monthly_kwh": self._month_kwh,
+                    "last_energy_stat_update": self._mark,
                 }
             )
         data.update(

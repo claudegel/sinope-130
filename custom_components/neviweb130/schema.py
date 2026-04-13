@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-
 import voluptuous as vol
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
@@ -294,10 +292,7 @@ BACKLIGHT_LIST = ["auto", "on", "bedroom"]
 BATT_TYPE_LIST = ["alkaline", "lithium"]
 COLOR_LIST = ["lime", "amber", "fuchsia", "perle", "blue", "red", "orange", "green"]
 CONTROLLED_VALUE = list(HA_TO_NEVIWEB_CONTROLLED.keys())
-DELAY = [
-    label for label, seconds in HA_TO_NEVIWEB_DELAY.items()
-    if seconds <= 10800
-]
+DELAY = [label for label, seconds in HA_TO_NEVIWEB_DELAY.items() if seconds <= 10800]
 DISPLAY_CAPABILITY = ["enable", "disable"]
 DISPLAY_LIST = ["exteriorTemperature", "setpoint", "default"]
 FAN_CAPABILITY = ["low", "med", "high", "auto"]
@@ -377,10 +372,7 @@ TANK_HEIGHT = list(HA_TO_NEVIWEB_HEIGHT.keys())
 TANK_VALUE = list(HA_TO_NEVIWEB_SIZE.keys())
 TEMP_LIST = ["celsius", "fahrenheit"]
 TIME_LIST = ["24h", "12h"]
-TIMER_LIST = [
-    label for label, seconds in HA_TO_NEVIWEB_TIMER.items()
-    if seconds <= 10800
-]
+TIMER_LIST = [label for label, seconds in HA_TO_NEVIWEB_TIMER.items() if seconds <= 10800]
 TRUE_LIST = [True, False]
 WATER_TEMP = list(HA_TO_NEVIWEB_TEMPERATURE.keys())
 WEATHER_ICON_MAP = {
@@ -509,485 +501,660 @@ CONFIG_SCHEMA = vol.Schema(
 
 """Climate schema."""
 
-SET_SECOND_DISPLAY_SCHEMA = vol.Schema({
+SET_SECOND_DISPLAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_DISPLAY2): vol.In(DISPLAY_LIST),
-    })
+    }
+)
 
-SET_BACKLIGHT_SCHEMA = vol.Schema({
+SET_BACKLIGHT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BACKLIGHT): vol.In(BACKLIGHT_LIST),
-    })
+    }
+)
 
-SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema({
+SET_CLIMATE_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEYPAD): vol.In(LOCK_LIST),
-    })
+    }
+)
 
-SET_EM_HEAT_SCHEMA = vol.Schema({
+SET_EM_HEAT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_VALUE): vol.In(ON_OFF),
-    })
+    }
+)
 
-SET_TIME_FORMAT_SCHEMA = vol.Schema({
+SET_TIME_FORMAT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIME_FORMAT): vol.In(TIME_LIST),
-    })
+    }
+)
 
-SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema({
+SET_TEMPERATURE_FORMAT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TEMP): vol.In(TEMP_LIST),
-    })
+    }
+)
 
-SET_SETPOINT_MAX_SCHEMA = vol.Schema({
+SET_SETPOINT_MAX_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_ROOM_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=6, max=30)),
-    })
+    }
+)
 
-SET_SETPOINT_MIN_SCHEMA = vol.Schema({
+SET_SETPOINT_MIN_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_ROOM_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=5, max=29)),
-    })
+    }
+)
 
-SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema({
+SET_FLOOR_AIR_LIMIT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_AIR_LIMIT): vol.All(vol.Coerce(float), vol.Range(min=0, max=36)),
-    })
+    }
+)
 
-SET_EARLY_START_SCHEMA = vol.Schema({
+SET_EARLY_START_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_EARLY_START): vol.In(ON_OFF),
-    })
+    }
+)
 
-SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema({
+SET_AIR_FLOOR_MODE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MODE): vol.In(FLOOR_MODE),
-    })
+    }
+)
 
-SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema({
+SET_HVAC_DR_OPTIONS_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_DRACTIVE): vol.In(ON_OFF),
         vol.Required(ATTR_OPTOUT): vol.In(ON_OFF),
         vol.Required(ATTR_SETPOINT): vol.In(ON_OFF),
         vol.Optional(ATTR_AUX_OPTIM): vol.In(ON_OFF),
         vol.Optional(ATTR_FAN_SPEED_OPTIM): vol.In(ON_OFF),
-    })
+    }
+)
 
-SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema({
+SET_HVAC_DR_SETPOINT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(ON_OFF),
         vol.Required(ATTR_VALUE): vol.All(vol.Coerce(float), vol.Range(min=-10, max=10)),
-    })
+    }
+)
 
-SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema({
+SET_COOL_SETPOINT_MAX_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_SETPOINT_MAX): vol.All(vol.Coerce(float), vol.Range(min=16, max=36)),
-    })
+    }
+)
 
-SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema({
+SET_COOL_SETPOINT_MIN_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_SETPOINT_MIN): vol.All(vol.Coerce(float), vol.Range(min=15, max=35)),
-    })
+    }
+)
 
-SET_ROOM_SETPOINT_AWAY_SCHEMA = vol.Schema({
+SET_ROOM_SETPOINT_AWAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_ROOM_SETPOINT_AWAY): vol.All(vol.Coerce(float), vol.Range(min=10, max=30)),
-    })
+    }
+)
 
-SET_COOL_SETPOINT_AWAY_SCHEMA = vol.Schema({
+SET_COOL_SETPOINT_AWAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_SETPOINT_AWAY): vol.All(vol.Coerce(float), vol.Range(min=15, max=35)),
-    })
+    }
+)
 
-SET_AUXILIARY_LOAD_SCHEMA = vol.Schema({
+SET_AUXILIARY_LOAD_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(ON_OFF),
         vol.Required(ATTR_VALUE): vol.All(vol.Coerce(int), vol.Range(min=0, max=4000)),
-    })
+    }
+)
 
-SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema({
+SET_AUX_CYCLE_OUTPUT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_VALUE): vol.In(PERIOD_VALUE),
-    })
+    }
+)
 
-SET_CYCLE_OUTPUT_SCHEMA = vol.Schema({
+SET_CYCLE_OUTPUT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_VALUE): vol.In(PERIOD_VALUE),
-    })
+    }
+)
 
-SET_PUMP_PROTECTION_SCHEMA = vol.Schema({
+SET_PUMP_PROTECTION_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(ON_OFF),
-    })
+    }
+)
 
-SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema({
+SET_FLOOR_LIMIT_LOW_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MIN): vol.All(vol.Coerce(float), vol.Range(min=0, max=34)),
-    })
+    }
+)
 
-SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema({
+SET_FLOOR_LIMIT_HIGH_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_MAX): vol.All(vol.Coerce(float), vol.Range(min=0, max=36)),
-    })
+    }
+)
 
-SET_ACTIVATION_SCHEMA = vol.Schema({
+SET_ACTIVATION_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_ACTIVE): vol.In(TRUE_LIST),
-    })
+    }
+)
 
-SET_SENSOR_TYPE_SCHEMA = vol.Schema({
+SET_SENSOR_TYPE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOOR_SENSOR): vol.In(SENSOR_LIST),
-    })
+    }
+)
 
-SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema({
+SET_HEAT_PUMP_OPERATION_LIMIT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BALANCE_PT): vol.All(vol.Coerce(int), vol.Range(min=-30, max=0)),
-    })
+    }
+)
 
-SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema({
+SET_COOL_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COOL_LOCK_TEMP): vol.All(
             lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=0, max=30))
         ),
-    })
+    }
+)
 
-SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema({
+SET_HEAT_LOCKOUT_TEMPERATURE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(vol.Any(ATTR_HEAT_LOCK_TEMP, ATTR_HEAT_LOCKOUT_TEMP)): vol.All(
-            lambda v: int(v) if v != "off" else None,
-            vol.Any(None, vol.Range(min=10, max=30))
+            lambda v: int(v) if v != "off" else None, vol.Any(None, vol.Range(min=10, max=30))
         ),
-    })
+    }
+)
 
-SET_DISPLAY_CONFIG_SCHEMA = vol.Schema({
+SET_DISPLAY_CONFIG_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_DISPLAY_CONF): vol.In(DISPLAY_CAPABILITY),
-    })
+    }
+)
 
-SET_SOUND_CONFIG_SCHEMA = vol.Schema({
+SET_SOUND_CONFIG_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SOUND_CONF): vol.In(SOUND_CAPABILITY),
-    })
+    }
+)
 
-SET_HC_SECOND_DISPLAY_SCHEMA = vol.Schema({
+SET_HC_SECOND_DISPLAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_DISPLAY2): vol.In(HC_DISPLAY_LIST),
-    })
+    }
+)
 
-SET_LANGUAGE_SCHEMA = vol.Schema({
+SET_LANGUAGE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LANGUAGE): vol.In(LANGUAGE_LIST),
-    })
+    }
+)
 
-SET_REVERSING_VALVE_POLARITY_SCHEMA = vol.Schema({
+SET_REVERSING_VALVE_POLARITY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_POLARITY): vol.In(REVERSING_VALVE_POLARITY),
-    })
+    }
+)
 
-SET_MIN_TIME_ON_SCHEMA = vol.Schema({
+SET_MIN_TIME_ON_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Optional(ATTR_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
         vol.Optional(ATTR_AUX_HEAT_MIN_TIME_ON): vol.In(MIN_TIME),
         vol.Optional(ATTR_COOL_MIN_TIME_ON): vol.In(MIN_TIME),
         vol.Optional(ATTR_AIR_EX_MIN_TIME_ON): vol.In(AIR_EX_MIN_TIME_ON),
-    })
+    }
+)
 
-SET_MIN_TIME_OFF_SCHEMA = vol.Schema({
+SET_MIN_TIME_OFF_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Optional(ATTR_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
         vol.Optional(ATTR_AUX_HEAT_MIN_TIME_OFF): vol.In(MIN_TIME),
         vol.Optional(ATTR_COOL_MIN_TIME_OFF): vol.In(MIN_TIME),
-    })
+    }
+)
 
-SET_HEAT_INTERSTAGE_DELAY_SCHEMA = vol.Schema({
+SET_HEAT_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIME): vol.Range(min=1, max=60),
-    })
+    }
+)
 
-SET_COOL_INTERSTAGE_DELAY_SCHEMA = vol.Schema({
+SET_COOL_INTERSTAGE_DELAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIME): vol.Range(min=1, max=60),
-    })
+    }
+)
 
-SET_ACCESSORY_TYPE_SCHEMA = vol.Schema({
+SET_ACCESSORY_TYPE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_ACCESSORY_TYPE): vol.In(ACCESSORY),
-    })
+    }
+)
 
-SET_SCHEDULE_MODE_SCHEMA = vol.Schema({
+SET_SCHEDULE_MODE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_SETPOINT_MODE): vol.In(SCHEDULE_LIST),
-    })
+    }
+)
 
-SET_HEATCOOL_SETPOINT_DELTA_SCHEMA = vol.Schema({
+SET_HEATCOOL_SETPOINT_DELTA_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HEATCOOL_SETPOINT_MIN_DELTA): vol.All(vol.Coerce(int), vol.Range(min=1, max=5)),
-    })
+    }
+)
 
-SET_FAN_FILTER_REMINDER_SCHEMA = vol.Schema({
+SET_FAN_FILTER_REMINDER_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FAN_FILTER_REMAIN): vol.All(vol.Coerce(int), vol.Range(min=1, max=12)),
-    })
+    }
+)
 
-SET_TEMPERATURE_OFFSET_SCHEMA = vol.Schema({
+SET_TEMPERATURE_OFFSET_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TEMP_OFFSET_HEAT): vol.All(vol.Coerce(int), vol.Range(min=-2, max=2)),
-    })
+    }
+)
 
-SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema({
+SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_AUX_HEAT_SOURCE_TYPE): vol.In(AUX_HEATING.keys()),
-    })
+    }
+)
 
-SET_FAN_SPEED_SCHEMA = vol.Schema({
+SET_FAN_SPEED_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FAN_SPEED): vol.In(["On", "Auto"]),
-    })
+    }
+)
 
-SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema({
+SET_HUMIDITY_SETPOINT_MODE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_HUMIDITY_SETPOINT_MODE): vol.In(["defog", "manual"]),
-    })
+    }
+)
 
-SET_HEAT_DISSIPATION_TIME_SCHEMA = vol.Schema({
+SET_HEAT_DISSIPATION_TIME_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIME): vol.Range(min=0, max=5),
-    })
+    }
+)
 
-SET_COOL_DISSIPATION_TIME_SCHEMA = vol.Schema({
+SET_COOL_DISSIPATION_TIME_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIME): vol.Range(min=0, max=5),
-    })
+    }
+)
 
-SET_CLIMATE_NEVIWEB_STATUS_SCHEMA = vol.Schema({
+SET_CLIMATE_NEVIWEB_STATUS_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_MODE): vol.In(OCCUPANCY_LIST),
-    })
+    }
+)
 
 """light schema."""
 
-SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema({
+SET_LIGHT_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEYPAD): vol.In(LOCK_LIST),
-    })
+    }
+)
 
-SET_LIGHT_TIMER_SCHEMA = vol.Schema({
+SET_LIGHT_TIMER_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER): vol.In(TIMER_LIST),
-    })
+    }
+)
 
-SET_LED_INDICATOR_SCHEMA = vol.Schema({
+SET_LED_INDICATOR_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATE): vol.All(vol.Coerce(int), vol.Range(min=0, max=1)),
         vol.Required(ATTR_COLOR): vol.In(COLOR_LIST),
-    })
+    }
+)
 
-SET_LED_ON_INTENSITY_SCHEMA = vol.Schema({
+SET_LED_ON_INTENSITY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LED_ON_INTENSITY): vol.All(vol.Coerce(int), vol.Range(min=0, max=100)),
-    })
+    }
+)
 
-SET_LED_OFF_INTENSITY_SCHEMA = vol.Schema({
+SET_LED_OFF_INTENSITY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LED_OFF_INTENSITY): vol.All(vol.Coerce(int), vol.Range(min=0, max=100)),
-    })
+    }
+)
 
-SET_LIGHT_MIN_INTENSITY_SCHEMA = vol.Schema({
+SET_LIGHT_MIN_INTENSITY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_INTENSITY_MIN): vol.All(vol.Coerce(int), vol.Range(min=10, max=3000)),
-    })
+    }
+)
 
-SET_WATTAGE_SCHEMA = vol.Schema({
+SET_WATTAGE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LIGHT_WATTAGE): vol.All(vol.Coerce(int), vol.Range(min=0, max=1800)),
-    })
+    }
+)
 
-SET_PHASE_CONTROL_SCHEMA = vol.Schema({
+SET_PHASE_CONTROL_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_PHASE_CONTROL): vol.In(PHASE_LIST),
-    })
+    }
+)
 
-SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema({
+SET_KEY_DOUBLE_UP_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEY_DOUBLE_UP): vol.In(ON_OFF),
-    })
+    }
+)
 
 """"Switch schema."""
 
-SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema({
+SET_SWITCH_KEYPAD_LOCK_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_KEYPAD): vol.In(LOCK_LIST),
-    })
+    }
+)
 
-SET_SWITCH_TIMER_SCHEMA = vol.Schema({
+SET_SWITCH_TIMER_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER): vol.In(TIMER_LIST),
-    })
+    }
+)
 
-SET_SWITCH_TIMER_2_SCHEMA = vol.Schema({
+SET_SWITCH_TIMER_2_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER2): vol.In(TIMER_LIST),
-    })
+    }
+)
 
-SET_SWITCH_POWER_TIMER_SCHEMA = vol.Schema({
+SET_SWITCH_POWER_TIMER_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TIMER): vol.In(POWER_TIMER_LIST),
-    })
+    }
+)
 
-SET_SWITCH_TEMP_ALERT_SCHEMA = vol.Schema({
+SET_SWITCH_TEMP_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TEMP_ALERT): vol.In(ALERT_LIST),
-    })
+    }
+)
 
-SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema({
+SET_LOAD_DR_OPTIONS_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_DRACTIVE): vol.In(ON_OFF),
         vol.Required(ATTR_OPTOUT): vol.In(ON_OFF),
         vol.Required(ATTR_ONOFF): vol.In(ON_OFF),
-    })
+    }
+)
 
-SET_CONTROL_ONOFF_SCHEMA = vol.Schema({
+SET_CONTROL_ONOFF_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_STATUS): vol.In(ON_OFF),
         vol.Required(ATTR_ONOFF_NUM): vol.All(vol.Coerce(int), vol.Range(min=1, max=2)),
-    })
+    }
+)
 
-SET_TANK_SIZE_SCHEMA = vol.Schema({
+SET_TANK_SIZE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_VALUE): vol.In(TANK_VALUE),
-    })
+    }
+)
 
-SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema({
+SET_CONTROLLED_DEVICE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_VALUE): vol.In(CONTROLLED_VALUE),
-    })
+    }
+)
 
-SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema({
+SET_LOW_TEMP_PROTECTION_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_WATER_TEMP_MIN): vol.In(WATER_TEMP),
-    })
+    }
+)
 
-SET_INPUT_OUTPUT_NAMES_SCHEMA = vol.Schema({
+SET_INPUT_OUTPUT_NAMES_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Optional(ATTR_NAME_1, default=None): vol.All(str, vol.Length(min=0, max=10)),
         vol.Optional(ATTR_NAME_2, default=None): vol.All(str, vol.Length(min=0, max=10)),
         vol.Optional(ATTR_OUTPUT_NAME_1, default=None): vol.All(str, vol.Length(min=0, max=10)),
         vol.Optional(ATTR_OUTPUT_NAME_2, default=None): vol.All(str, vol.Length(min=0, max=10)),
-    })
+    }
+)
 
-SET_REMAINING_TIME_SCHEMA = vol.Schema({
+SET_REMAINING_TIME_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_COLD_LOAD_PICKUP_REMAIN_TIME): vol.All(
-            vol.Coerce(int),
-            vol.Range(min=0, max=65535),
-            is_valid_remaining_time
-        )
-    })
+            vol.Coerce(int), vol.Range(min=0, max=65535), is_valid_remaining_time
+        ),
+    }
+)
 
-SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema({
+SET_ON_OFF_INPUT_DELAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required("input_number"): vol.In([1, 2]),
         vol.Required("onoff"): vol.In(ON_OFF),
         vol.Required("delay"): vol.In(DELAY),
-    })
+    }
+)
 
 """Sensor schema."""
 
-SET_SENSOR_CLOSURE_ACTION_SCHEMA = vol.Schema({
+SET_SENSOR_CLOSURE_ACTION_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_CONF_CLOSURE): vol.In(ON_OFF),
-    })
+    }
+)
 
-SET_SENSOR_LEAK_ALERT_SCHEMA = vol.Schema({
+SET_SENSOR_LEAK_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_LEAK_ALERT): cv.boolean,
-    })
+    }
+)
 
-SET_SENSOR_TEMP_ALERT_SCHEMA = vol.Schema({
+SET_SENSOR_TEMP_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TEMP_ALERT): cv.boolean,
-    })
+    }
+)
 
-SET_BATTERY_TYPE_SCHEMA = vol.Schema({
+SET_BATTERY_TYPE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BATTERY_TYPE): vol.In(BATT_TYPE_LIST),
-    })
+    }
+)
 
-SET_TANK_TYPE_SCHEMA = vol.Schema({
+SET_TANK_TYPE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TANK_TYPE): vol.In(FUEL_LIST),
-    })
+    }
+)
 
-SET_GAUGE_TYPE_SCHEMA = vol.Schema({
+SET_GAUGE_TYPE_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_GAUGE_TYPE): vol.In(GAUGE_LIST),
-    })
+    }
+)
 
-SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema({
+SET_LOW_FUEL_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FUEL_PERCENT_ALERT): vol.In(LOW_FUEL_LEVEL),
-    })
+    }
+)
 
-SET_REFUEL_ALERT_SCHEMA = vol.Schema({
+SET_REFUEL_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_REFUEL): vol.In(TRUE_LIST),
-    })
+    }
+)
 
-SET_TANK_HEIGHT_SCHEMA = vol.Schema({
+SET_TANK_HEIGHT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TANK_HEIGHT): vol.In(TANK_HEIGHT),
-    })
+    }
+)
 
-SET_FUEL_ALERT_SCHEMA = vol.Schema({
+SET_FUEL_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FUEL_ALERT): vol.In(TRUE_LIST),
-    })
+    }
+)
 
-SET_BATTERY_ALERT_SCHEMA = vol.Schema({
+SET_BATTERY_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BATT_ALERT): vol.In(TRUE_LIST),
-    })
+    }
+)
 
-SET_NEVIWEB_STATUS_SCHEMA = vol.Schema({
+SET_NEVIWEB_STATUS_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_MODE): vol.In(OCCUPANCY_LIST),
-    })
+    }
+)
 
 """Valve schema."""
 
-SET_POWER_SUPPLY_SCHEMA = vol.Schema({
+SET_POWER_SUPPLY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_POWER_SUPPLY): vol.In(SUPPLY_LIST),
-    })
+    }
+)
 
-SET_FLOW_METER_MODEL_SCHEMA = vol.Schema({
+SET_FLOW_METER_MODEL_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOW_MODEL_CONFIG): vol.In(FLOW_MODEL),
-    })
+    }
+)
 
-SET_FLOW_METER_DELAY_SCHEMA = vol.Schema({
+SET_FLOW_METER_DELAY_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOW_ALARM1_PERIOD): vol.In(FLOW_DURATION),
-    })
+    }
+)
 
-SET_FLOW_METER_OPTIONS_SCHEMA = vol.Schema({
+SET_FLOW_METER_OPTIONS_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TRIGGER_ALARM): cv.boolean,
         vol.Required(ATTR_CLOSE_VALVE): cv.boolean,
-    })
+    }
+)
 
-SET_VALVE_ALERT_SCHEMA = vol.Schema({
+SET_VALVE_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_BATT_ALERT): cv.boolean,
-    })
+    }
+)
 
-SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema({
+SET_VALVE_TEMP_ALERT_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_TEMP_ALERT): cv.boolean,
-    })
+    }
+)
 
-SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA = vol.Schema({
+SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA = vol.Schema(
+    {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
         vol.Required(ATTR_FLOW_ALARM_TIMER): vol.In(FLOW_DURATION),
-    })
+    }
+)

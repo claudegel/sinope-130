@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import aiohttp
-import asyncio
 import logging
 import os
-
 from datetime import timedelta
 from functools import partial
 
+import aiohttp
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
@@ -34,21 +32,21 @@ from .const import (
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import load_devices, save_devices
 from .helpers import (
-    check_weather_icons_folder,
     DailyRequestCounter,
+    check_weather_icons_folder,
     extract_log_options,
     extract_notes_for_version,
-    update_logger_config,
-    update_logger_level,
     sanitize_entry_data,
     setup_logger,
     translate_error,
+    update_logger_config,
+    update_logger_level,
 )
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
-from .schema import PREFIX as DEFAULT_PREFIX
 from .schema import PLATFORMS
+from .schema import PREFIX as DEFAULT_PREFIX
 from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
@@ -62,7 +60,7 @@ setup_logger(
     level="DEBUG",
     max_bytes=2 * 1024 * 1024,
     backup_count=2,
-    reset_on_start=True
+    reset_on_start=True,
 )
 
 SCAN_INTERVAL = DEFAULT_SCAN_INTERVAL
@@ -233,7 +231,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         log_path=LOG_PATH,
         level=log_options["log_level"],
         max_bytes=log_options["log_max_bytes"],
-        backup_count=log_options["log_backup_count"]
+        backup_count=log_options["log_backup_count"],
     )
 
     sanitized = sanitize_entry_data(entry.data)
@@ -315,10 +313,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id]["request_limit"] = request_limit
 
     session_manager = SessionManager()
-    hass.data[DOMAIN][entry.entry_id].update({
-        "counter": counter,
-        "session": session_manager,
-    })
+    hass.data[DOMAIN][entry.entry_id].update(
+        {
+            "counter": counter,
+            "session": session_manager,
+        }
+    )
 
     client = Neviweb130Client(
         hass,
@@ -333,17 +333,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     initialized_coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
 
-    hass.data[DOMAIN][entry.entry_id].update({
-        "coordinator": initialized_coordinator,
-        "neviweb130_client": initialized_coordinator.client,
-        "scan_interval": SCAN_INTERVAL,
-        "homekit_mode": homekit_mode,
-        "ignore_miwi": ignore_miwi,
-        "stat_interval": stat_interval,
-        "notify": notify,
-        "safe_mode": safe_mode,
-        "prefix": prefix,
-    })
+    hass.data[DOMAIN][entry.entry_id].update(
+        {
+            "coordinator": initialized_coordinator,
+            "neviweb130_client": initialized_coordinator.client,
+            "scan_interval": SCAN_INTERVAL,
+            "homekit_mode": homekit_mode,
+            "ignore_miwi": ignore_miwi,
+            "stat_interval": stat_interval,
+            "notify": notify,
+            "safe_mode": safe_mode,
+            "prefix": prefix,
+        }
+    )
 
     # Check weather and customization icons availability
     hass.async_create_task(check_weather_icons_folder(hass))

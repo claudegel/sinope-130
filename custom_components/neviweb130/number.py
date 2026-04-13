@@ -20,7 +20,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES, RISKY_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
-from .helpers import create_risky_issue, NamingHelper
+from .helpers import NamingHelper, create_risky_issue
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -225,18 +225,20 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1] # "number"
+    platform = __name__.split(".")[-1]  # "number"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
-    for index, gateway_data in enumerate([
-        data["neviweb130_client"].gateway_data,
-        data["neviweb130_client"].gateway_data2,
-        data["neviweb130_client"].gateway_data3,
-    ], start=1):
-
-        default_name = naming.default_name(platform, index)
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
+        naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
