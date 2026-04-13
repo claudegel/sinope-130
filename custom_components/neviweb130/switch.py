@@ -381,7 +381,6 @@ def create_physical_switch(data, entry, coordinator):
         ],
         start=1,
     ):
-        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -427,7 +426,6 @@ def create_attribute_switch(hass, entry, data, coordinator, device_registry):
         ],
         start=1,
     ):
-        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -1126,7 +1124,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     @property
     def switch_keypad(self):
-        """ "Locked, unlocked and partiallyLocked for RM32xxZB and RM32xxWF devices."""
+        """Locked, unlocked and partiallyLocked for RM32xxZB and RM32xxWF devices."""
         return self._keypad
 
     @property
