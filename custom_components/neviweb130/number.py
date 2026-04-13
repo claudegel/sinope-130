@@ -238,7 +238,6 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
         ],
         start=1,
     ):
-        naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
