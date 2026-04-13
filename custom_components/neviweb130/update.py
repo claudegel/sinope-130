@@ -449,7 +449,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
             # 2. NETWORK BLOCK (only HTTP here)
             # -----------------------------
             async with aiohttp.ClientSession() as session:
-
                 # 2.1 Get release info
                 async with session.get(api_url) as resp:
                     resp.raise_for_status()
