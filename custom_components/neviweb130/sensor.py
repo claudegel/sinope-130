@@ -448,7 +448,6 @@ def create_physical_sensors(data, entry, coordinator):
         ],
         start=1,
     ):
-        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -507,7 +506,6 @@ async def create_attribute_sensors(hass, entry, data, coordinator, device_regist
         ],
         start=1,
     ):
-        default_name = naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
