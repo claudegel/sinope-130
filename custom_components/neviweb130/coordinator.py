@@ -8,7 +8,7 @@ import aiohttp
 from aiohttp import ClientSession
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryError
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
@@ -77,6 +77,7 @@ from .const import (
     ATTR_HEAT_MIN_TIME_ON,
     ATTR_HEAT_PURGE_TIME,
     ATTR_HEATCOOL_SETPOINT_MIN_DELTA,
+    ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
     ATTR_HUMIDITY_SETPOINT_OFFSET,
     ATTR_INPUT_1_OFF_DELAY,
@@ -1162,7 +1163,7 @@ class Neviweb130Client:
 
     async def async_set_humidity(self, device_id: str, humidity) -> bool:
         """Set device humidity target."""
-        data = {ATTR_HUMID_SETPOINT: humidity}
+        data = {ATTR_HUMIDITY_SETPOINT: humidity}
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_accessory_type(self, device_id: str, accessory_type) -> bool:
@@ -1427,21 +1428,23 @@ class Neviweb130Client:
     async def async_set_aux_cycle_output(self, device_id: str, val: str | None, wifi: bool) -> bool:
         """Set low voltage thermostat aux cycle status and length."""
         length = ha_to_neviweb(val)
+        data: dict[str, Any] = {}
         if wifi:
-            data: dict[str, Any] = {ATTR_AUX_CYCLE_LENGTH: length}
+            data = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
-            data: dict[str, Any] = {ATTR_CYCLE_OUTPUT2: {"status": "on" if length > 0 else "off", "value": length}}
+            data = {ATTR_CYCLE_OUTPUT2: {"status": "on" if length > 0 else "off", "value": length}}
         _LOGGER.debug("auxCycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cycle_output(self, device_id: str, val: str | None, is_hc: bool) -> bool:
         """Set low voltage thermostat main cycle length."""
         length = ha_to_neviweb(val)
+        data: dict[str, Any] = {}
         if is_hc:
-            datadict[str, Any] = {ATTR_COOL_CYCLE_LENGTH: val}
+            data = {ATTR_COOL_CYCLE_LENGTH: length}
             _LOGGER.debug("coolCycleLength.data = %s", data)
         else:
-            data: dict[str, Any] = {ATTR_CYCLE_LENGTH: length}
+            data = {ATTR_CYCLE_LENGTH: length}
             _LOGGER.debug("Cycleoutput.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
