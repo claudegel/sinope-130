@@ -149,7 +149,7 @@ from .const import (
     ATTR_HC_DEV,
     ATTR_HC_LOCK_STATUS,
     ATTR_HEAT_COOL,
-    ATTR_HEAT_INSTALL_TYPE,
+    ATTR_HEAT_INSTALLATION_TYPE,
     ATTR_HEAT_INTERSTAGE_MIN_DELAY,
     ATTR_HEAT_LOCK_TEMP,
     ATTR_HEAT_LOCKOUT_TEMP,
@@ -591,13 +591,6 @@ async def async_setup_entry(
         ],
         start=1,
     ):
-        #        default_name = build_default_name(
-        #            domain=DOMAIN,
-        #            platform="climate",
-        #            prefix=config_prefix,  # "default" or "other"
-        #            index=index,
-        #        )
-        default_name = naming.default_name(platform, index)
         if gateway_data is not None and gateway_data != "_":
             for device_info in gateway_data:
                 if "signature" in device_info and "model" in device_info["signature"]:
@@ -2446,11 +2439,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def outdoor_temp(self) -> float:
         return self._temperature
-
-    @property
-    def temperature_unit(self):
-        """Return the unit of measurement."""
-        return UnitOfTemperature.CELSIUS
 
     @property
     def weather_icon(self) -> int:
@@ -4596,7 +4584,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
-                if NOTIFY == "notification" or NOTIFY == "both":
+                if self._notify == "notification" or self._notify == "both":
                     msg = await translate_error(self.hass, "update_restarted", name=self._name, sku=self._sku)
                     await async_notify_once_or_update(
                         self.hass,
@@ -6253,8 +6241,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
-                    if ATTR_HEAT_INSTALL_TYPE in device_data:
-                        self._heat_inst_type = device_data[ATTR_HEAT_INSTALL_TYPE]
+                    if ATTR_HEAT_INSTALLATION_TYPE in device_data:
+                        self._heat_inst_type = device_data[ATTR_HEAT_INSTALLATION_TYPE]
                     self._output_connect_state = device_data[ATTR_OUTPUT_CONNECT_STATE]
                     accessory_type = [
                         str(accessory_type).removesuffix("Standalone")
@@ -6263,7 +6251,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     ]
                     self._accessory_type = accessory_type[0] if accessory_type else "none"
                     self._humidity_setpoint_offset = device_data[ATTR_HUMIDITY_SETPOINT_OFFSET]
-                    self._humidity_setpoint_mode = device_data[ATTR_HUMID_SETPOINT_MODE]
+                    self._humidity_setpoint_mode = device_data[ATTR_HUMIDITY_SETPOINT_MODE]
                     self._air_ex_min_time_on = device_data[ATTR_AIR_EX_MIN_TIME_ON]
                     self._heatcool_lock_cool_status = device_data[ATTR_HC_LOCK_STATUS]["cool"]
                     self._heatcool_lock_heat_status = device_data[ATTR_HC_LOCK_STATUS]["heat"]
