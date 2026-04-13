@@ -199,7 +199,6 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
         ],
         start=1,
     ):
-        naming.default_name(platform, index)
         if not gateway_data or gateway_data == "_":
             continue
 
