@@ -432,7 +432,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         """Change the selected number value."""
         attribute = self._attribute
 
-        # Fire an issue if attribut is risky
+        # Fire an issue if attribute is risky
         if attribute in RISKY_ATTRIBUTES:
             create_risky_issue(self.hass, self.entity_id, attribute, value)
 
