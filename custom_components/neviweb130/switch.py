@@ -1352,8 +1352,10 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     async def async_set_on_off_input_delay(self, value):
         """Set input 1 or 2 on/off delay in seconds."""
+        val = value["delay"]
+        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
         await self._client.async_set_on_off_input_delay(
-            value["id"], value["delay"], value["onoff"], value["input_number"]
+            value["id"], delay, value["onoff"], value["input_number"]
         )
         if value["input_number"] == 1:
             match value["onoff"]:
@@ -1461,7 +1463,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             else:
                 self._hour_kwh = 0
                 msg = await translate_error(self.hass, "energy_stat", param="hourly", id=self._name)
-                _LOGGER.warning(name)
+                _LOGGER.warning(msg)
             if self._total_kwh_count == 0:
                 self._total_kwh_count = round(
                     self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
@@ -2125,7 +2127,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             LOAD_ATTRIBUTES = [
                 ATTR_WATER_LEAK_ALARM_STATUS,
                 ATTR_WATER_TEMPERATURE,
-                ATTR_WATER_LEAK_DISCONECTED_STATUS,
+                ATTR_WATER_LEAK_DISCONNECTED_STATUS,
                 ATTR_ERROR_CODE_SET1,
                 ATTR_WIFI_WATTAGE,
                 ATTR_WIFI_WATT_NOW,
