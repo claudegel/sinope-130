@@ -601,7 +601,7 @@ async def async_setup_entry(
                         location_id = device_info["location$id"]
                         device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
                         # Ensure the device is registered in the device registry
-                        device_entry = device_registry.async_get_or_create(
+                        device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
                             identifiers={(DOMAIN, str(device_info["id"]))},
                             name=device_name,
@@ -666,7 +666,6 @@ async def async_setup_entry(
                                 entry,
                             )
                         elif device_info["signature"]["model"] in DEVICE_MODEL_WIFI:
-                            _LOGGER.debug("Device id = %s", device_entry.id)
                             device = Neviweb130WifiThermostat(
                                 data,
                                 device_info,
