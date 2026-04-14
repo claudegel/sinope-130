@@ -1844,7 +1844,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     @property
     def low_fuel_alert(self) -> int:
-        """Return low fule alert level."""
+        """Return low fuel alert level."""
         return self._fuel_percent_alert
 
     @property
@@ -1854,7 +1854,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
     @property
     def gauge_error(self) -> int | None:
-        """Return gauge angle, -2 = disconected, other values = connected."""
+        """Return gauge angle, -2 = disconnected, other values = connected."""
         return self._angle
 
     @property
