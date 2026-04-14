@@ -89,7 +89,7 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
     ),
     Neviweb130BinarySensorEntityDescription(
         key="gauge_error",
-        name="Gauge disconected",
+        name="Gauge disconnected",
         device_class=BinarySensorDeviceClass.PROBLEM,
         translation_key="gauge_error",
         is_on_fn=lambda data, attr: data.get(attr) == -2,
@@ -317,7 +317,7 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
             except Exception as exc:
                 _LOGGER.warning("icon_fn error for %s: %s", self._attr_unique_id, exc)
 
-        # Falback to Get icons from entity description
+        # Fallback to Get icons from entity description
         on_icon = getattr(self.entity_description, "on_icon", None)
         off_icon = getattr(self.entity_description, "off_icon", None)
 
