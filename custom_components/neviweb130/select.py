@@ -520,7 +520,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         """Change the selected select option if Neviweb accepts it."""
         attribute = self._attribute
 
-        # Fire an issue if attribut is risky
+        # Fire an issue if attribute is risky
         if attribute in RISKY_ATTRIBUTES:
             create_risky_issue(self.hass, self.entity_id, attribute, option)
 
