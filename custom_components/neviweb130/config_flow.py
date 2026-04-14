@@ -247,7 +247,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             accounts, global_options, is_legacy = normalize_yaml_config(yaml_config)
         except HomeAssistantError as exc:
             await async_notify_critical(
-                self.hass, str(exc), "Neviweb130 - Import YAML invalide", "neviweb130_yaml_error"
+                self.hass, str(exc), "Neviweb130 - Invalid YAML import", "neviweb130_yaml_error"
             )
             # Stop the flow
             return self.async_abort(reason="yaml_invalid")
@@ -511,7 +511,7 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
         logger = logging.getLogger("custom_components.neviweb130")
         logger.setLevel(level)
 
-        # Optionnal : confirmation log
+        # Optional : confirmation log
         logger.warning("neviweb130 log level set to %s", log_level)
 
     def _validate_prefix(self, prefix: str) -> str | None:
