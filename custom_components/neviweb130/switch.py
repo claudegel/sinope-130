@@ -1354,9 +1354,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         """Set input 1 or 2 on/off delay in seconds."""
         val = value["delay"]
         delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
-        await self._client.async_set_on_off_input_delay(
-            value["id"], delay, value["onoff"], value["input_number"]
-        )
+        await self._client.async_set_on_off_input_delay(value["id"], delay, value["onoff"], value["input_number"])
         if value["input_number"] == 1:
             match value["onoff"]:
                 case "on":
