@@ -24,7 +24,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 
-from .const import RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
+from .const import DOMAIN, RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -534,7 +534,7 @@ async def async_notify_throttled(
         raise ValueError("async_notify_throttled requires a notification_id")
 
     # Internal storage for throtteling
-    throttles = hass.data.setdefault(NEVIWEB_DOMAIN, {}).setdefault("notify_throttle", {})
+    throttles: dict[str, Any] = hass.data.setdefault(DOMAIN, {}).setdefault("notify_throttle", {})
 
     now = time.time()
     last_time = throttles.get(notification_id, 0)
@@ -1199,7 +1199,7 @@ async def async_safe_get_device_attributes(
         )
 
         # Notification HA
-        notify_ha(
+        await async_notify_ha(
             hass,
             (
                 f"Some attributes requested for device {device_id} are not supported.\n"
@@ -1207,6 +1207,7 @@ async def async_safe_get_device_attributes(
                 "Check your logs to identify which attributes failed and report to maintainer."
             ),
             title="Neviweb130: Unsupported attributes detected",
+            notification_id="Attr_not_supported",
         )
 
         device_data: dict[str, object] = {}
