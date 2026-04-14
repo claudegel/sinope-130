@@ -1212,7 +1212,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     @property
     def tank_size(self):
-        """Set water tank sise."""
+        """Set water tank size."""
         return self._tank_size
 
     @property
@@ -2662,7 +2662,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         """Turn the switch device on."""
         attribute = self._attribute
 
-        # Fire an issue if attribut is risky
+        # Fire an issue if attribute is risky
         if attribute in RISKY_ATTRIBUTES:
             create_risky_issue(self.hass, self.entity_id, attribute, True)
 
@@ -2672,7 +2672,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         """Turn the switch device off."""
         attribute = self._attribute
 
-        # Fire an issue if attribut is risky
+        # Fire an issue if attribute is risky
         if attribute in RISKY_ATTRIBUTES:
             create_risky_issue(self.hass, self.entity_id, attribute, False)
 
