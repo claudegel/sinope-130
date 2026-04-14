@@ -201,7 +201,7 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
     for dev_id, dev_obj in coordinator.data.items():
         _LOGGER.debug("[%s] %s", dev_id, getattr(dev_obj, "name", "??"))
 
-    # Targetted inspection
+    # Targeted inspection
     target_device = None
     _LOGGER.debug("device_id  = %s", device_id)
     _LOGGER.debug("device_name  = %s", device_name)
@@ -215,7 +215,7 @@ def debug_coordinator(coordinator, device_id=None, device_name=None):
 
     if target_device:
         _LOGGER.debug(
-            "Targetted device (%s):\n%s",
+            "Targeted device (%s):\n%s",
             getattr(target_device, "name", "inconnu"),
             pprint.pformat(vars(target_device)),
         )
@@ -638,7 +638,7 @@ class NamingHelper:
 
 
 # ─────────────────────────────────────────────
-# Devive methode refresh
+# Device method refresh
 # ─────────────────────────────────────────────
 
 
