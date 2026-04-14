@@ -910,12 +910,12 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     @property
     def valve_alert(self) -> bool:
-        """Set valve battery alert action, True or Flase."""
+        """Set valve battery alert action, True or False."""
         return self._battery_alert
 
     @property
     def temperature_alert(self) -> bool:
-        """Set valve battery alert action, 1=True or 0=Flase."""
+        """Set valve battery alert action, 1=True or 0=False."""
         return self._temp_alert
 
     @property
@@ -996,15 +996,15 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     async def async_set_flow_meter_options(self, value):
         """Set water valve flow meter options when leak detected."""
-        if not value[alarm] and not value[action]:
+        if not value["alarm"] and not value["action"]:
             length = 0
             threshold = 0
         else:
             length = 60
             threshold = 1
-        await self._client.async_set_flow_meter_options(value["id"], value[action], value[alarm])
-        self._flowmeter_opt_alarm = value[alarm]
-        self._flowmeter_opt_action = value[action]
+        await self._client.async_set_flow_meter_options(value["id"], value["action"], value["alarm"])
+        self._flowmeter_opt_alarm = value["alarm"]
+        self._flowmeter_opt_action = value["action"]
         self._flowmeter_threshold = threshold
         self._flowmeter_alarm_length = length
 
