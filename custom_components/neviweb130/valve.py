@@ -30,7 +30,7 @@ import time
 from datetime import date, datetime, timezone
 from enum import StrEnum
 from threading import Lock
-from typing import Mapping, cast, override
+from typing import Any, Mapping, cast, override
 
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass
@@ -106,6 +106,7 @@ from .helpers import (
 )
 from .schema import (
     HA_TO_NEVIWEB_DELAY,
+    HA_TO_NEVIWEB_DURATION,
     SET_ACTIVATION_SCHEMA,
     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
     SET_FLOW_METER_DELAY_SCHEMA,
@@ -190,7 +191,7 @@ async def async_setup_entry(
                         device_sku = device_info["sku"]
                         device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
                         # Ensure the device is registered in the device registry
-                        device_entry = device_registry.async_get_or_create(
+                        device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
                             identifiers={(DOMAIN, str(device_info["id"]))},
                             name=device_name,
@@ -464,7 +465,7 @@ def neviweb_to_ha_delay(value):
 
 def neviweb_to_ha_duration(value):
     """Convert Neviweb values to HA values."""
-    keys = [k for k, v in HA_TO_NEVIWEB_DU.items() if v == value]
+    keys = [k for k, v in HA_TO_NEVIWEB_DURATION.items() if v == value]
     if keys:
         return keys[0]
     return None
@@ -908,19 +909,14 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return self._is_zb_mesh_valve
 
     @property
-    def valve_alert(sel) -> bool:
+    def valve_alert(self) -> bool:
         """Set valve battery alert action, True or Flase."""
         return self._battery_alert
 
     @property
-    def temperature_alert(sel) -> bool:
+    def temperature_alert(self) -> bool:
         """Set valve battery alert action, 1=True or 0=Flase."""
         return self._temp_alert
-
-    @property
-    def flowmeter_timer(self):
-        """Set diable timer for flowmeter alarm action."""
-        return self._flowmeter_timer
 
     @property
     @override
@@ -963,7 +959,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     async def async_set_valve_alert(self, value):
         """Set valve battery alert action."""
         await self._client.async_set_valve_alert(value["id"], value["batt"], self._is_zb_valve, self._is_zb_mesh_valve)
-        self._battery_alert = batt
+        self._battery_alert = value["batt"]
 
     async def async_set_valve_temp_alert(self, value):
         """Set valve temperature alert action."""
