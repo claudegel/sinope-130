@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Neviweb130: Sinope Zigbee and Wi-Fi devices control",
-        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
+        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to block detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
           "prefix": "Neviweb account name, optional for first account.",
           "username": "Neviweb email",
@@ -22,7 +22,7 @@
       },
       "reconfigure": {
         "title": "Neviweb130: reconfigure options",
-        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to bloc detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
+        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to block detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
           "prefix": "Neviweb account name, required for all accounts, set to default for first one.",
           "username": "Neviweb email",
@@ -122,7 +122,7 @@
       "neviweb130_migrated": "Neviweb130 device's unique_id have been migrated from integer values to string values.\nMore details in log.",
       "neviweb130_reloaded": "Integration neviweb130 have been reloaded.",
       "neviweb130_log_ready": "Download log file: \n<a href='/local/neviweb130.log'  download target='_blank'>click here</a>.\nFile will be deleted after 30 minutes.",
-      "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfuly."
+      "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfully."
     }
   },
   "options": {
@@ -206,14 +206,14 @@
         }
       },
       "input1_status": {
-        "name": "Imput 1 status",
+        "name": "Input 1 status",
         "state": {
           "on": "Active",
           "off": "Inactive"
         }
       },
       "input2_status": {
-        "name": "Imput 2 status",
+        "name": "Input 2 status",
         "state": {
           "on": "Active",
           "off": "Inactive"
@@ -1148,7 +1148,7 @@
   "issues": {
     "dangerous_attribute_change": {
       "title": "Risky attribute change",
-      "description": "Changing attribute {attribute}\non entity {entity}\nmay cause unexpected or unsafe device behavior.\nValue attempted: {value}.\n\nFor more informations, consult : {doc_url}"
+      "description": "Changing attribute {attribute}\non entity {entity}\nmay cause unexpected or unsafe device behavior.\nValue attempted: {value}.\n\nFor more information, consult : {doc_url}"
     }
   },
   "notifications": {
