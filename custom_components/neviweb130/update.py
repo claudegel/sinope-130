@@ -9,9 +9,10 @@ import shutil
 import tempfile
 import zipfile
 from datetime import timedelta
+from typing import Any
 
 import aiohttp
-import markdown
+import markdown  # type: ignore[import-untyped]
 from awesomeversion import AwesomeVersion
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.config_entries import ConfigEntry
@@ -154,8 +155,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
         self._attr_requires_restart = True
 
         # Load versions
-        self._installed_version = normalize_version(get_entry_data(entry, "current_version"))
-        self._latest_version = normalize_version(get_entry_data(entry, "available_version"))
+        self._installed_version = normalize_version(get_entry_data(entry, "current_version")) or ""
+        self._latest_version = normalize_version(get_entry_data(entry, "available_version")) or ""
         self._release_title = get_entry_data(entry, "release_title")
         self._release_notes = get_entry_data(entry, "release_notes")
         self._attr_installed_version = self._installed_version
@@ -184,7 +185,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
         return self._installed_version
 
     @property
-    def latest_version(self) -> str | None:
+    def latest_version(self) -> str:
         return self._latest_version
 
     @property
@@ -235,7 +236,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     @property
     def extra_state_attributes(self):
-        attrs = {}
+        attrs: dict[str, Any] = {}
+
         if self._last_check:
             attrs["last_check"] = self._last_check
         if self._next_check:
@@ -246,6 +248,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             attrs["update_status"] = self._update_status
         if self._rollback_status:
             attrs["rollback_status"] = self._rollback_status
+
         attrs["update_available"] = self._installed_version != self._latest_version
         # Expose interval
         attrs["check_interval"] = self.entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
@@ -632,11 +635,13 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             try:
                 if self._local_backup_dir:
+                    backup_dir = self._local_backup_dir  # now typed as str inside this block
+
                     if os.path.exists(self._target_dir):
                         await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
 
                     def _restore() -> None:
-                        shutil.copytree(self._local_backup_dir, self._target_dir, dirs_exist_ok=True)
+                        shutil.copytree(backup_dir, self._target_dir, dirs_exist_ok=True)
 
                     await self.hass.async_add_executor_job(_restore)
 
