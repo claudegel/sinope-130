@@ -22,7 +22,7 @@ import time
 from threading import Lock
 from typing import Any, Mapping, override
 
-from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorDeviceClass
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -1835,7 +1835,6 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                 return f"/local/neviweb130/{base}{suffix}.png"
 
         return f"/local/neviweb130/{base}-8.png"
-
 
     @property
     def level_status(self):
