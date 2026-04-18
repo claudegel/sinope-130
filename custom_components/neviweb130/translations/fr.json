@@ -122,11 +122,12 @@
       "neviweb130_migrated": "Les identifiants uniques des appareils Neviweb130 ont été migrés de valeurs entières vers des valeurs de type chaîne de caractères.\nPlus de détails dans le journal.\nVérifiez vos journaux.",
       "neviweb130_reloaded": "L'intégration neviweb130 a été rechargée.",
       "neviweb130_log_ready": "Télécharger le fichier journal: \n<a href='/local/neviweb130.log' download target='_blank'>cliquez ici</a>.\nLe fichier sera supprimé après 30 minutes.",
-      "configuration_reloaded": "La configuration a été mise à jour et neviweb130 a redémarré avec succès."
+      "configuration_reloaded": "La configuration a été mise à jour et neviweb130 a redémarré avec succès.",
+      "weather_icons_folder_missing": "Le dossier /local/neviweb130/weather est manquant. Les icônes météo ne seront pas affichées. Voir la documentation pour de l'aide.",
+      "weather_icons_folder_empty": "Le dossier /local/neviweb130/weather est vide. Aucune icône météo ne sera affichée. Voir la documentation pour de l'aide."
     }
   },
   "options": {
-    "label": "Options",
     "step": {
       "options": {
         "title": "Gestion Neviweb130",
@@ -1150,9 +1151,5 @@
       "title": "Modification d’attribut risquée",
       "description": "La modification de l’attribut {attribute}\npour l’entité {entity}\npeut entraîner un comportement imprévisible ou risqué de l’appareil.\nValeur tentée : {value}.\n\nPour plus d’informations, consultez : {doc_url}"
     }
-  },
-  "notifications": {
-    "weather_icons_folder_missing": "Le dossier /local/neviweb130/weather est manquant. Les icônes météo ne seront pas affichées. Voir la documentation pour de l'aide.",
-    "weather_icons_folder_empty": "Le dossier /local/neviweb130/weather est vide. Aucune icône météo ne sera affichée. Voir la documentation pour de l'aide."
   }
 }
