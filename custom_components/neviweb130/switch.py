@@ -34,7 +34,7 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from threading import Lock
-from typing import Any, Callable, Mapping, override
+from typing import Any, Callable, Mapping, cast, override
 
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
@@ -512,7 +512,7 @@ async def async_setup_entry(
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
-    entity_map: dict[str, Neviweb130Switch] | None = None
+    entity_map: dict[str, SwitchEntity] | None = None
     _entity_map_lock = Lock()
 
     async def get_switch(service: ServiceCall) -> SwitchEntity:
@@ -532,7 +532,8 @@ async def async_setup_entry(
         switch = entity_map.get(entity_id)
         if switch is None:
             raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} switch")
-        return switch
+        typed_switch = cast(Neviweb130Switch, switch)
+        return typed_switch
 
     async def set_switch_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
