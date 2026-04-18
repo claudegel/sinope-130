@@ -108,7 +108,7 @@ from .const import (
 
 """Default parameters values."""
 
-SCAN_INTERVAL = 420  # seconds
+SCAN_INTERVAL_SCHEMA = 420  # seconds
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 IGNORE_MIWI = False
@@ -222,9 +222,9 @@ HA_TO_NEVIWEB_MODE = {
 }
 
 HA_TO_NEVIWEB_OPTION: dict[str, tuple[bool, bool]] = {
-    "fermer la valve et envoyer une alerte": (True, True),
-    "alerte seulement": (False, True),
-    "aucune action": (False, False),
+    "close valve and send alert": (True, True),
+    "alert only": (False, True),
+    "no action": (False, False),
 }
 
 HA_TO_NEVIWEB_PERIOD = {
@@ -241,7 +241,7 @@ HA_TO_NEVIWEB_PERIOD = {
 
 HA_TO_NEVIWEB_SIZE = {"40 gal": 40, "50 gal": 50, "60 gal": 60, "80 gal": 80}
 
-HA_TO_NEVIWEB_SUPPLY = {"Battery": "batt", "ACUPS-01": "power", "Battery and ACUPS-01": "both"}
+HA_TO_NEVIWEB_SUPPLY = {"battery": "batt", "acups_01": "power", "battery_acups_01": "both"}
 
 HA_TO_NEVIWEB_TEMPERATURE = {
     "off": 0,
