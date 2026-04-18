@@ -309,6 +309,9 @@ class Neviweb130Client:
         self._code: str | None = None
         self._ignore_miwi = ignore_miwi
 
+        # Device storage
+        self._devices: dict[str, dict[str, Any]] = {}
+
         # Gateway info
         self._gateway_id = None
         self._gateway_id2 = None
@@ -1973,6 +1976,8 @@ class Neviweb130Client:
 
         if speed is None:
             return False
+
+        speed_val: int | str
 
         if model == 6813 or model == 6814:
             speed_val = ha_to_neviweb_fan_speed(speed, model)
