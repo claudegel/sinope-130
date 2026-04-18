@@ -1427,7 +1427,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     )
 
     @property
-    @override
     def native_unit_of_measurement(self) -> str | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
@@ -1661,7 +1660,6 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     )
 
     @property
-    @override
     def native_unit_of_measurement(self) -> str | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
@@ -1863,7 +1861,6 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                     )
 
     @property
-    @override
     def native_unit_of_measurement(self) -> str | None:
         return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
