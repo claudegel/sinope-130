@@ -403,8 +403,10 @@ def create_physical_switch(data, entry, coordinator):
                 )
 
                 _LOGGER.warning("Device registered = %s", device_info["id"])
-                entities.append(device)
-                coordinator.register_device(device)
+
+                if device is not None:
+                    entities.append(device)
+                    coordinator.register_device(device)
 
     return entities
 
@@ -493,7 +495,7 @@ async def async_setup_entry(
 
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    entities: list[Neviweb130Switch] = []
+    entities: list[SwitchEntity] = []
     device_registry = dr.async_get(hass)
 
     # Add switch
@@ -991,6 +993,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._output_name_2 = "Not set"
         self._power_timer: str | None = None
         self._room_temp = None
+        self._rssi = None
         self._snooze: float = 0.0
         self._tank_size = None
         self._temp_alert: int | None = None
@@ -1074,7 +1077,6 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         return f"{self._entry.entry_id}_{self._id}"
 
     @property
-    @override
     def id(self) -> str:
         """Alias pour DataUpdateCoordinator."""
         return self._id
@@ -1228,16 +1230,6 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         return None
 
     @property
-    def low_temp_status(self):
-        if self._low_temp_status:
-            return True
-        return False
-
-    @property
-    def room_humidity(self):
-        return self._humidity
-
-    @property
     @override
     def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
@@ -1289,12 +1281,31 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             self._onoff2 = value["status"]
 
     async def async_set_keypad_lock(self, value):
-        """Lock or unlock device's keypad, lock = locked, unlock = unlocked, partiallyLocked - partial lock."""
-        if self._is_wifi_load or self._is_wifi_tank_load:
-            await self._client.async_set_keypad_lock(value["id"], value["lock"], True)
-        else:
-            await self._client.async_set_keypad_lock(value["id"], value["lock"], False)
-        self._keypad = value["lock"]
+        """Lock or unlock device's keypad."""
+
+        lock = value["lock"]
+
+        # Déterminer si l’appareil est Wi-Fi
+        wifi = self._is_wifi_load or self._is_wifi_tank_load
+
+        # Call client
+        success = await self._client.async_set_keypad_lock(
+            value["id"],
+            lock,
+            wifi,
+        )
+
+        if not success:
+            _LOGGER.warning(
+                "Keypad lock command ignored for %s (lock=%s)",
+                self._name,
+                lock,
+            )
+            return False
+
+        # Mise à jour locale seulement si succès
+        self._keypad = lock
+        return True
 
     async def async_set_timer(self, value):
         """Set device timer, 0 = off, 1 to 10800 sec = timer length.
@@ -1358,15 +1369,15 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         if value["input_number"] == 1:
             match value["onoff"]:
                 case "on":
-                    self._input_1_on_delay = delay
+                    self._input_1_on_delay = value["delay"]
                 case _:
-                    self._input_1_off_delay = delay
+                    self._input_1_off_delay = value["delay"]
         else:
             match value["onoff"]:
                 case "on":
-                    self._input_2_on_delay = delay
+                    self._input_2_on_delay = value["delay"]
                 case _:
-                    self._input_2_off_delay = delay
+                    self._input_2_off_delay = value["delay"]
 
     async def async_set_input_output_names(self, value):
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
@@ -1612,7 +1623,6 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
         self._error_code = None
-        self._rssi = None
         self._wattage = 0
 
     @override
@@ -1853,6 +1863,12 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                     )
 
     @property
+    def wifirssi(self):
+        if self._wifirssi is not None:
+            return self._wifirssi
+        return None
+
+    @property
     @override
     def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
@@ -1900,7 +1916,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._consumption_time = None
         self._drstatus_optout_reason = "off"
         self._error_code = None
-        self._rssi = None
         self._temperature = None
         self._water_leak_status = None
         self._water_temp = None
@@ -2064,7 +2079,11 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "water_leak_status": self._water_leak_status,
                 "water_temperature": self._water_temp,
                 "cold_load_pickup_status": self._cold_load_status,
-                "cold_load_remaining_time": format_remaining_time(self._cold_load_remaining_time),
+                "cold_load_remaining_time": (
+                    format_remaining_time(self._cold_load_remaining_time)
+                    if self._cold_load_remaining_time is not None
+                    else None
+                ),
                 "tank_size": neviweb_to_ha(self._tank_size),
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
@@ -2092,7 +2111,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb Wi-Fi power controller switch, RM3500WF."""
+    """Implementation of a Neviweb Wi-Fi power controller switch, RM3500WF and RM3510WF."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
         """Initialize."""
@@ -2109,7 +2128,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._leg_status_over_time = None
         self._leg_status_temp = None
         self._mode = None
-        self._rssi = None
         self._water_leak_closure_conf = None
         self._water_leak_disconnected_status = None
         self._water_leak_status = None
@@ -2284,7 +2302,11 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "water_leak_closure_config": self._water_leak_closure_conf,
                 "water_temperature": self._water_temp,
                 "cold_load_pickup_status": self._cold_load_status,
-                "cold_load_remaining_time": format_remaining_time(self._cold_load_remaining_time),
+                "cold_load_remaining_time": (
+                    format_remaining_time(self._cold_load_remaining_time)
+                    if self._cold_load_remaining_time is not None
+                    else None
+                ),
                 "cold_load_temperature": self._cold_load_temp,
                 "tank_size": neviweb_to_ha(self._tank_size),
                 "eco_status": self._drstatus_active,
@@ -2332,7 +2354,6 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
         self._input2_status = None
         self._input_status = None
         self._low_temp_status: bool | None = None
-        self._rssi = None
 
     @override
     async def async_update(self) -> None:
@@ -2477,20 +2498,30 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                     )
 
     @property
-    def input1_status(self) -> str:
+    def input1_status(self) -> str | None:
         return self._input_status
 
     @property
-    def input2_status(self) -> str:
+    def input2_status(self) -> str | None:
         return self._input2_status
 
     @property
-    def room_temperature(self) -> float:
+    def room_temperature(self) -> float | None:
         return self._room_temp
 
     @property
-    def extern_temperature(self) -> float:
+    def extern_temperature(self) -> float | None:
         return self._ext_temp
+
+    @property
+    def low_temp_status(self):
+        if self._low_temp_status:
+            return True
+        return False
+
+    @property
+    def room_humidity(self):
+        return self._humidity
 
     @property
     @override
