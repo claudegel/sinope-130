@@ -219,8 +219,10 @@ async def async_setup_entry(
                             )
 
                         _LOGGER.warning("Device registered = %s", device_info["id"])
-                        entities.append(device)
-                        coordinator.register_device(device)
+
+                        if device is not None:
+                            entities.append(device)
+                            coordinator.register_device(device)
 
     async_add_entities(entities, True)
     hass.async_create_task(coordinator.async_request_refresh())
@@ -544,6 +546,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._is_sedna_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_SED_DIMMER
         self._is_new_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_NEW_DIMMER
         self._is_sedna_new_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_SED_NEW_DIMMER
+        self._is_wifi: bool = False
         self._active: bool = True
         self._brightness_pct = 0
         self._daily_kwh_count = 0
@@ -591,6 +594,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 ATTR_ERROR_CODE_SET1,
             ]
             start = time.time()
+            device_data: dict[str, Any]
             if self._is_light:
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
@@ -613,14 +617,14 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                         self.hass,
                         self._client,
                         self._id,
-                        ATTR_ONOFF,
+                        [ATTR_ONOFF],
                         _LOGGER,
                         device_sku=self._sku,
                         device_model=self._device_model,
                         firmware=self._firmware,
                     )
                 else:
-                    device_data = await self._client.async_get_device_attributes(self._id, ATTR_ONOFF)
+                    device_data = await self._client.async_get_device_attributes(self._id, [ATTR_ONOFF])
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -643,7 +647,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                                     id=self._id,
                                     sku=self._sku,
                                 )
-                                await self.async_notify_critical(
+                                await async_notify_critical(
                                     self.hass,
                                     msg,
                                     title=f"Neviweb130 integration {VERSION}",
@@ -712,7 +716,6 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         return f"{self._entry.entry_id}_{self._id}"
 
     @property
-    @override
     def id(self) -> str:
         """Alias for DataUpdateCoordinator."""
         return self._id
@@ -889,8 +892,24 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     async def async_set_keypad_lock(self, value):
         """Lock, unlock or partially lock device's keypad,
         lock = locked, unlock = unlocked, partiallyLocked = partial lock."""
-        await self._client.async_set_keypad_lock(value["id"], value["lock"], False)
-        self._keypad = value["lock"]
+        lock = value["lock"]
+
+        success = await self._client.async_set_keypad_lock(
+            value["id"],
+            lock,
+            self._is_wifi,
+        )
+
+        if not success:
+            _LOGGER.warning(
+                "Keypad lock command ignored for %s (lock=%s)",
+                self._name,
+                lock,
+            )
+            return False
+
+        self._keypad = lock
+        return True
 
     async def async_set_timer(self, value):
         """Set device timer, 0 = off, 1 min up to 3 hrs = timer length converted in seconds."""
@@ -1158,6 +1177,7 @@ class Neviweb130Dimmer(Neviweb130Light):
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
             start = time.time()
+            device_data: dict[str, Any]
             if self._is_dimmer:
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
@@ -1180,14 +1200,14 @@ class Neviweb130Dimmer(Neviweb130Light):
                         self.hass,
                         self._client,
                         self._id,
-                        ATTR_ONOFF,
+                        [ATTR_ONOFF],
                         _LOGGER,
                         device_sku=self._sku,
                         device_model=self._device_model,
                         firmware=self._firmware,
                     )
                 else:
-                    device_data = await self._client.async_get_device_attributes(self._id, ATTR_ONOFF)
+                    device_data = await self._client.async_get_device_attributes(self._id, [ATTR_ONOFF])
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1321,6 +1341,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 ATTR_ERROR_CODE_SET1,
             ]
             start = time.time()
+            device_data: dict[str, Any]
             if self._is_new_dimmer:
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
@@ -1343,14 +1364,14 @@ class Neviweb130NewDimmer(Neviweb130Light):
                         self.hass,
                         self._client,
                         self._id,
-                        ATTR_ONOFF,
+                        [ATTR_ONOFF],
                         _LOGGER,
                         device_sku=self._sku,
                         device_model=self._device_model,
                         firmware=self._firmware,
                     )
                 else:
-                    device_data = await self._client.async_get_device_attributes(self._id, ATTR_ONOFF)
+                    device_data = await self._client.async_get_device_attributes(self._id, [ATTR_ONOFF])
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -1381,7 +1402,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                                     id=self._id,
                                     sku=self._sku,
                                 )
-                                await self.async_notify_critical(
+                                await async_notify_critical(
                                     self.hass,
                                     msg,
                                     title=f"Neviweb130 integration {VERSION}",
