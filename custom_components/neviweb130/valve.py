@@ -126,7 +126,13 @@ SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
 UPDATE_ATTRIBUTES = [ATTR_ONOFF]
 
 VALVE_TYPES: dict[str, tuple[str, StrEnum, str | None, str | None, StatisticMeanType | None]] = {
-    "flow": ("mdi:pipe-valve", SensorDeviceClass.WATER, None, "volume_flow_rate", StatisticMeanType.ARITHMETIC),
+    "flow": (
+        "mdi:pipe-valve",
+        SensorDeviceClass.VOLUME_FLOW_RATE,
+        None,
+        "volume_flow_rate",
+        StatisticMeanType.ARITHMETIC
+    ),
     "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER, None, None, None),
 }
 
@@ -250,8 +256,10 @@ async def async_setup_entry(
                             )
 
                         _LOGGER.warning("Device registered = %s", device_info["id"])
-                        entities.append(device)
-                        coordinator.register_device(device)
+
+                        if device is not None:
+                            entities.append(device)
+                            coordinator.register_device(device)
 
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
@@ -576,7 +584,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         self._active: bool = True
         self._batt_percent_normal = None
         self._batt_status_normal = None
-        self._battery_alert = 0
+        self._battery_alert: bool = False
         self._battery_status = None
         self._battery_voltage = 0
         self._daily_kwh_count: float = 0
@@ -600,7 +608,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         self._reports_position = False
         self._rssi = None
         self._snooze: float = 0.0
-        self._temp_alert: bool | None = None
+        self._temp_alert: bool = False
         self._today_kwh = None
         self._total_kwh_count: float | None = None
         self._valve_status: str | None = None
@@ -631,6 +639,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            device_data: dict[str, Any]
             if self._safe_mode == self._id:
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
@@ -667,9 +676,9 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
                     self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     if device_alert is not None and ATTR_BATT_ALERT in device_alert:
-                        self._battery_alert = device_alert[ATTR_BATT_ALERT]
+                        self._battery_alert = bool(device_alert[ATTR_BATT_ALERT])
                     if device_alert is not None and ATTR_TEMP_ALERT in device_alert:
-                        self._temp_alert = device_alert[ATTR_TEMP_ALERT]
+                        self._temp_alert = bool(device_alert[ATTR_TEMP_ALERT])
                     if ATTR_RSSI in device_data:
                         self._rssi = device_data[ATTR_RSSI]
                     if ATTR_BATT_PERCENT_NORMAL in device_data:
@@ -704,7 +713,6 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return f"{self._entry.entry_id}_{self._id}"
 
     @property
-    @override
     def id(self) -> str:
         """Alias pour DataUpdateCoordinator."""
         return self._id
@@ -745,11 +753,6 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
             return None
 
         return cast(ValveDeviceClass, device_type[1])
-
-    @property
-    @override
-    def unit_of_measurement(self) -> str | None:
-        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
     @property
     def unit_class(self) -> str | None:
@@ -915,7 +918,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     @property
     def temperature_alert(self) -> bool:
-        """Set valve battery alert action, 1=True or 0=False."""
+        """Set valve temperature alert action, 1=True or 0=False."""
         return self._temp_alert
 
     @property
@@ -958,8 +961,27 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     async def async_set_valve_alert(self, value):
         """Set valve battery alert action."""
-        await self._client.async_set_valve_alert(value["id"], value["batt"], self._is_zb_valve, self._is_zb_mesh_valve)
-        self._battery_alert = value["batt"]
+
+        batt = value["batt"]
+
+        success = await self._client.async_set_valve_alert(
+            value["id"],
+            batt,
+            self._is_zb_valve,
+            self._is_zb_mesh_valve,
+        )
+
+        if not success:
+            _LOGGER.warning(
+                "Valve alert command ignored for %s (batt=%s)",
+                self._name,
+                batt,
+            )
+            return False
+
+        # Update only if success
+        self._battery_alert = batt
+        return True
 
     async def async_set_valve_temp_alert(self, value):
         """Set valve temperature alert action."""
@@ -1288,6 +1310,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            device_data: dict[str, Any]
             if self._safe_mode == self._id:
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
@@ -1405,6 +1428,11 @@ class Neviweb130WifiValve(Neviweb130Valve):
 
     @property
     @override
+    def native_unit_of_measurement(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
+
+    @property
+    @override
     def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
@@ -1506,6 +1534,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            device_data: dict[str, Any]
             if self._safe_mode == self._id:
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
@@ -1633,6 +1662,11 @@ class Neviweb130MeshValve(Neviweb130Valve):
 
     @property
     @override
+    def native_unit_of_measurement(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
+
+    @property
+    @override
     def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the extra state attributes."""
         data = {}
@@ -1732,6 +1766,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
+            device_data: dict[str, Any]
             if self._safe_mode == self._id:
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
@@ -1826,6 +1861,11 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                         title=f"Neviweb130 integration {VERSION}",
                         notification_id="neviweb130_update_restarted",
                     )
+
+    @property
+    @override
+    def native_unit_of_measurement(self) -> str | None:
+        return VALVE_TYPES.get(self._device_type, (None, None, None, None, None))[2]
 
     @property
     @override
