@@ -483,7 +483,12 @@ async def async_notify_ha(
     )
 
 
-async def async_notify_once_or_update(hass, msg: str, title: str = None, notification_id: str = None):
+async def async_notify_once_or_update(
+    hass: HomeAssistant,
+    msg: str,
+    title: str | None = None,
+    notification_id: str | None = None
+) -> None:
     """Send a persistent notification only once, or update it if it already exists.
 
     - If the notification does not exist → create it
@@ -504,7 +509,7 @@ async def async_notify_once_or_update(hass, msg: str, title: str = None, notific
             title=title,
             notification_id=notification_id,
         )
-        return "updated"
+        return
 
     # Or → we create it
     await async_notify_ha(
@@ -513,11 +518,11 @@ async def async_notify_once_or_update(hass, msg: str, title: str = None, notific
         title=title,
         notification_id=notification_id,
     )
-    return "created"
+    return
 
 
 async def async_notify_throttled(
-    hass,
+    hass: HomeAssistant,
     msg: str,
     *,
     title: str | None = None,
@@ -549,7 +554,7 @@ async def async_notify_throttled(
 
     # Too soon → just ignore
     if now - last_time < min_interval:
-        return "throttled"
+        return
 
     # Or → we send and update timestamp
     throttles[notification_id] = now
@@ -561,10 +566,10 @@ async def async_notify_throttled(
         notification_id=notification_id,
     )
 
-    return "sent"
+    return
 
 
-async def async_notify_critical(hass, msg: str, title: str, notification_id: str):
+async def async_notify_critical(hass: HomeAssistant, msg: str, title: str, notification_id: str) -> None:
     """Thread-safe critical notification."""
 
     msg = str(msg)
