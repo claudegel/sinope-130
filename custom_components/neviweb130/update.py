@@ -293,7 +293,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             _LOGGER.info("New Neviweb130 version detected: %s", latest)
 
-            self._latest_version = normalize_version(latest)
+            self._latest_version = normalize_version(latest) or ""
             self._release_notes = notes
             self._release_title = title
 
