@@ -2656,7 +2656,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Return True if device must be managed as HC."""
         return self._is_HC or self._is_WHP
 
-    async def async_set_fan_mode(self, speed: str) -> bool:
+    async def async_set_fan_mode(self, speed: str | None) -> None:
         """Set new fan mode."""
         if speed is None:
             return
@@ -2666,7 +2666,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if success:
             self._fan_speed = speed
 
-        return success
+        return
 
     async def async_set_swing_mode(self, swing: str) -> None:
         """Set new vertical swing mode."""
@@ -6817,68 +6817,68 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return success
 
 
-async def async_set_heat_interstage_delay(self, value: dict[str, Any]) -> bool:
-    try:
-        time_val = int(value[ATTR_TIME])
-    except KeyError:
-        msg = await translate_error(self.hass, "missing_parameter", param=ATTR_TIME)
-        raise ServiceValidationError(msg)
-    except ValueError:
-        msg = await translate_error(self.hass, "integer_needed", param=ATTR_TIME)
-        raise ServiceValidationError(msg)
+    async def async_set_heat_interstage_delay(self, value: dict[str, Any]) -> bool:
+        try:
+            time_val = int(value[ATTR_TIME])
+        except KeyError:
+            msg = await translate_error(self.hass, "missing_parameter", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
+        except ValueError:
+            msg = await translate_error(self.hass, "integer_needed", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
 
-    success = False
+        success = False
 
-    outputs = self._output_connect_state
-    hp_can_heat = self._reversing_valve_polarity == "cooling" or outputs["OB"]
-    has_multiple_hp_heat_stages = outputs["Y1"] and outputs["Y2"] and hp_can_heat
-    has_multiple_aux_stages = outputs["W"] and outputs["W2"]
+        outputs = self._output_connect_state
+        hp_can_heat = self._reversing_valve_polarity == "cooling" or outputs["OB"]
+        has_multiple_hp_heat_stages = outputs["Y1"] and outputs["Y2"] and hp_can_heat
+        has_multiple_aux_stages = outputs["W"] and outputs["W2"]
 
-    if not has_multiple_hp_heat_stages and not has_multiple_aux_stages:
-        msg = await translate_error(self.hass, "multiple_heating_level", entity=self.entity_id)
-        raise ServiceValidationError(msg)
+        if not has_multiple_hp_heat_stages and not has_multiple_aux_stages:
+            msg = await translate_error(self.hass, "multiple_heating_level", entity=self.entity_id)
+            raise ServiceValidationError(msg)
 
-    if has_multiple_hp_heat_stages:
-        success = await self._client.async_set_heat_interstage_min_delay(self.unique_id, time_val * 60)
+        if has_multiple_hp_heat_stages:
+            success = await self._client.async_set_heat_interstage_min_delay(self.unique_id, time_val * 60)
+            if success:
+                success = await self._client.async_set_heat_interstage_delay(self.unique_id, time_val * 120)
+
+        if has_multiple_aux_stages:
+            success = await self._client.async_set_aux_interstage_min_delay(self.unique_id, time_val * 60)
+            if success:
+                success = await self._client.async_set_aux_interstage_delay(self.unique_id, time_val * 120)
+
+        return success
+
+
+    async def async_set_cool_interstage_delay(self, value: dict[str, Any]) -> bool:
+        try:
+            time_val = int(value[ATTR_TIME])
+        except KeyError:
+            msg = await translate_error(self.hass, "missing_parameter", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
+        except ValueError:
+            msg = await translate_error(self.hass, "integer_needed", param=ATTR_TIME)
+            raise ServiceValidationError(msg)
+
+        success = False
+
+        outputs = self._output_connect_state
+        hp_can_cool = self._reversing_valve_polarity == "heating" or outputs["OB"]
+        has_multiple_cooling_stages = outputs["Y1"] and outputs["Y2"] and hp_can_cool
+
+        if not has_multiple_cooling_stages:
+            msg = await translate_error(self.hass, "multiple_cooling_level", entity=self.entity_id)
+            raise ServiceValidationError(msg)
+
+        # First command: min delay
+        success = await self._client.async_set_cool_interstage_min_delay(self.unique_id, time_val * 60)
+
+        # Only send second command if the first succeeded
         if success:
-            success = await self._client.async_set_heat_interstage_delay(self.unique_id, time_val * 120)
+            success = await self._client.async_set_cool_interstage_delay(self.unique_id, time_val * 120)
 
-    if has_multiple_aux_stages:
-        success = await self._client.async_set_aux_interstage_min_delay(self.unique_id, time_val * 60)
-        if success:
-            success = await self._client.async_set_aux_interstage_delay(self.unique_id, time_val * 120)
-
-    return success
-
-
-async def async_set_cool_interstage_delay(self, value: dict[str, Any]) -> bool:
-    try:
-        time_val = int(value[ATTR_TIME])
-    except KeyError:
-        msg = await translate_error(self.hass, "missing_parameter", param=ATTR_TIME)
-        raise ServiceValidationError(msg)
-    except ValueError:
-        msg = await translate_error(self.hass, "integer_needed", param=ATTR_TIME)
-        raise ServiceValidationError(msg)
-
-    success = False
-
-    outputs = self._output_connect_state
-    hp_can_cool = self._reversing_valve_polarity == "heating" or outputs["OB"]
-    has_multiple_cooling_stages = outputs["Y1"] and outputs["Y2"] and hp_can_cool
-
-    if not has_multiple_cooling_stages:
-        msg = await translate_error(self.hass, "multiple_cooling_level", entity=self.entity_id)
-        raise ServiceValidationError(msg)
-
-    # First command: min delay
-    success = await self._client.async_set_cool_interstage_min_delay(self.unique_id, time_val * 60)
-
-    # Only send second command if the first succeeded
-    if success:
-        success = await self._client.async_set_cool_interstage_delay(self.unique_id, time_val * 120)
-
-    return success
+        return success
 
     async def async_set_aux_heating_source(self, value: dict[str, Any]) -> bool:
         """Set auxiliary heating device."""
