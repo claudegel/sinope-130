@@ -2518,7 +2518,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         # temp est toujours un float
         temp = self._target_cool if self._target_cool is not None else 21.5
 
-        # valeurs min/max garanties float
+        # valeurs min/max guarantees float
         cool_min = self._cool_min if self._cool_min is not None else 15.0
         cool_max = self._cool_max if self._cool_max is not None else 36.0
 
@@ -5894,7 +5894,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Return current HVAC mode."""
         raw = self._heat_cool
 
-        # If None retrun HEAT
+        # If None return HEAT
         if raw is None:
             return HVACMode.HEAT
 
