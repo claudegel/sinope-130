@@ -6906,7 +6906,6 @@ async def async_set_cool_interstage_delay(self, value: dict[str, Any]) -> bool:
 
         return success
 
-    @override
     async def async_set_humidity(self, humidity: int | None = None, **kwargs: Any) -> None:
         """Set new target humidity %."""
         if humidity is None:
