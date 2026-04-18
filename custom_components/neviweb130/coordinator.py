@@ -323,7 +323,7 @@ class Neviweb130Client:
 
         self._headers: Mapping[str, str] = {}
         self._account: str | None = None
-        self._cookies: SimpleCookie | None = None
+        self._cookies: SimpleCookie = SimpleCookie()
         self._timeout = timeout
         self._occupancyMode = None
         self.user = None
@@ -1127,7 +1127,7 @@ class Neviweb130Client:
             if mode in [PRESET_AWAY, PRESET_HOME]:
                 data = {ATTR_OCCUPANCY: mode}
             else:
-                return None
+                return False
         else:
             data = {ATTR_SYSTEM_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
@@ -1323,6 +1323,9 @@ class Neviweb130Client:
 
     async def async_set_keypad_lock(self, device_id: str, lock: str | None, wifi: bool) -> bool:
         """Set device keyboard locked/unlocked."""
+        device = self._devices[device_id]
+        model = device["signature"]["model"]
+
         if wifi:
             match lock:
                 case "locked":
@@ -1332,13 +1335,16 @@ class Neviweb130Client:
                 case "partiallyLocked":
                     lock = "partialLock"
                 case _:
-                    msg = await translate_error(self.hass, "invalid_lock_value", lock=lock, model=self._model)
+                    msg = await translate_error(self.hass, "invalid_lock_value", lock=lock, model=model)
                     raise ValueError(msg)
             data = {ATTR_WIFI_KEYPAD: lock}
         else:
             match lock:
                 case "tamper protection":
                     lock = "partiallyLocked"
+                case None:
+                    return False
+
             data = {ATTR_KEYPAD: lock}
         _LOGGER.debug("lock.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
@@ -1485,13 +1491,17 @@ class Neviweb130Client:
 
     async def async_set_em_heat(self, device_id: str, heat: str, low: str, sec: str | None) -> bool:
         """Set floor, low voltage, Wi-Fi floor and low voltage Wi-Fi thermostats auxiliary heat slave/off or on/off."""
+
         length = ha_to_neviweb(sec)
+
+        data: dict[str, object]
+
         if low == "voltage":
-            data: dict[str, dict[str, str | int]] = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}}
+            data = {ATTR_CYCLE_OUTPUT2: {"status": heat, "value": length}}
         elif low == "wifi":
-            data: dict[str, int] = {ATTR_AUX_CYCLE_LENGTH: length}
+            data = {ATTR_AUX_CYCLE_LENGTH: length}
         else:
-            data: dict[str, str] = {ATTR_FLOOR_AUX: heat}
+            data = {ATTR_FLOOR_AUX: heat}
         _LOGGER.debug("em_heat.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1538,6 +1548,9 @@ class Neviweb130Client:
     async def async_set_pump_protection(self, device_id: str, status: str, wifi: bool) -> bool:
         """Set low voltage thermostat pump protection status."""
         """Work differently for Wi-Fi and Zigbee devices."""
+
+        data: dict[str, object]
+
         if wifi:
             data = {ATTR_PUMP_PROTEC: status}
         else:
@@ -1677,13 +1690,19 @@ class Neviweb130Client:
 
     async def async_set_valve_alert(self, device_id: str, batt: bool | None, ZB_valve: bool, mesh: bool) -> bool:
         """Set Sedna valve battery alert on/off."""
+
+        data: dict[str, Any]
+
+        if batt is None:
+            return False
+
         if ZB_valve or mesh:
             if batt:
-                data: dict[str, Any] = {ATTR_BATT_ALERT: 1}
+                data = {ATTR_BATT_ALERT: 1}
             else:
-                data: dict[str, Any] = {ATTR_BATT_ALERT: 0}
+                data = {ATTR_BATT_ALERT: 0}
         else:
-            data: dict[str, Any] = {ATTR_BATT_ALERT: batt}
+            data = {ATTR_BATT_ALERT: batt}
         _LOGGER.debug("valve.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1754,6 +1773,7 @@ class Neviweb130Client:
     ) -> bool:
         """Set load controller Eco Sinope attributes."""
         data: dict[str, Any]
+
         if dr is not None and optout is not None and setpoint is not None:
             data = {
                 ATTR_DRSTATUS: {
@@ -1777,6 +1797,9 @@ class Neviweb130Client:
             }
             _LOGGER.debug("hvac.DR.options = %s", data)
             return await self.async_set_device_attributes(device_id, data)
+
+        # No valid parameter
+        return False
 
     async def async_set_hvac_dr_setpoint(self, device_id: str, status, val) -> bool:
         """Set load controller Eco Sinope attributes."""
@@ -1905,10 +1928,13 @@ class Neviweb130Client:
 
     async def async_set_heat_lockout(self, device_id: str, temp: int, G2: bool) -> bool:
         """Set maximum outside temperature limit to allow heating device operation."""
+        data: dict[str, Any]
+
         if G2:
             data = {ATTR_HEAT_LOCKOUT_TEMP: temp}
         else:
-            data: dict[str, Any] = {ATTR_HEAT_LOCK_TEMP: temp}
+            data = {ATTR_HEAT_LOCK_TEMP: temp}
+
         _LOGGER.debug("Heat lockout limit value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1944,6 +1970,9 @@ class Neviweb130Client:
 
     async def async_set_fan_mode(self, device_id: str, speed: str | None, model: int) -> bool:
         """Set fan speed (mode) for heat pump."""
+
+        if speed is None:
+            return False
 
         if model == 6813 or model == 6814:
             speed_val = ha_to_neviweb_fan_speed(speed, model)
