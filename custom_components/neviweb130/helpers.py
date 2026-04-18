@@ -22,7 +22,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
@@ -800,6 +799,7 @@ def _runtime_icon_for_mode(mode: str) -> str:
 def _make_value_fn(key: str):
     def _value_fn(data: dict[str, Any]) -> Any:
         return data.get(key)
+
     return _value_fn
 
 
