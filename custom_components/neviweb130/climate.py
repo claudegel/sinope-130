@@ -6816,7 +6816,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 self._aux_heat_min_time_off = aux_heat_min_time_off
         return success
 
-
     async def async_set_heat_interstage_delay(self, value: dict[str, Any]) -> bool:
         try:
             time_val = int(value[ATTR_TIME])
@@ -6849,7 +6848,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 success = await self._client.async_set_aux_interstage_delay(self.unique_id, time_val * 120)
 
         return success
-
 
     async def async_set_cool_interstage_delay(self, value: dict[str, Any]) -> bool:
         try:
