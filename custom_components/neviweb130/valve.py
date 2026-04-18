@@ -131,7 +131,7 @@ VALVE_TYPES: dict[str, tuple[str, StrEnum, str | None, str | None, StatisticMean
         SensorDeviceClass.VOLUME_FLOW_RATE,
         None,
         "volume_flow_rate",
-        StatisticMeanType.ARITHMETIC
+        StatisticMeanType.ARITHMETIC,
     ),
     "valve": ("mdi:pipe-valve", ValveDeviceClass.WATER, None, None, None),
 }
