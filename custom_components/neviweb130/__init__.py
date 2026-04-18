@@ -46,7 +46,7 @@ from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import PLATFORMS
 from .schema import PREFIX as DEFAULT_PREFIX
 from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
-from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
+from .schema import SCAN_INTERVAL_SCHEMA as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 from .session_manager import SessionManager
 
@@ -61,7 +61,7 @@ setup_logger(
     reset_on_start=True,
 )
 
-SCAN_INTERVAL = DEFAULT_SCAN_INTERVAL
+SCAN_INTERVAL: timedelta = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _LOGGER = logging.getLogger(__name__)
