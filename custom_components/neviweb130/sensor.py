@@ -438,7 +438,7 @@ for model in RUNTIME_COMPATIBLE_MODELS["TH6"]:
 
 
 def create_physical_sensors(data, entry, coordinator):
-    entities: list[Neviweb130Sensor] = []
+    entities: list[SensorEntity] = []
 
     config_prefix = data["prefix"]
     platform = __name__.split(".")[-1]  # "sensor"
@@ -496,7 +496,7 @@ def create_physical_sensors(data, entry, coordinator):
 
 
 async def create_attribute_sensors(hass, entry, data, coordinator, device_registry):
-    entities: list[Neviweb130Sensor] = []
+    entities: list[SensorEntity] = []
 
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
@@ -601,7 +601,7 @@ async def async_setup_entry(
     entity_map: dict[str, Neviweb130Sensor] | None = None
     _entity_map_lock = Lock()
 
-    async def get_sensor(service: ServiceCall) -> Neviweb130Sensor:
+    async def get_sensor(service: ServiceCall) -> SensorEntity:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
             msg = await translate_error(hass, "missing_parameter", param=ATTR_ENTITY_ID)
@@ -1444,7 +1444,6 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
         return BinarySensorDeviceClass.MOISTURE
 
     @property
-    @override
     def native_value(self) -> str:
         """Return the state of the sensor."""
         return self._leak_status
@@ -1610,7 +1609,6 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
         return BinarySensorDeviceClass.MOISTURE
 
     @property
-    @override
     def native_value(self) -> str:
         """Return the state of the sensor."""
         return self._leak_status
@@ -1786,24 +1784,22 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                     )
 
     @property
-    def device_class(self):
-        """Return the device class of this entity."""
-        return SensorDeviceClass.MEASUREMENT
+    def device_class(self) -> SensorDeviceClass | None:
+        return None
 
     @property
     def native_unit_of_measurement(self) -> str | None:
-        """Return the unit of measurement of this entity, if any."""
         return PERCENTAGE
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        return SensorStateClass.MEASUREMENT
 
     @property
     @override
     def native_value(self) -> float | None:
         """Return the state of the tank sensor."""
         return float(self._tank_percent) if self._tank_percent is not None else None
-
-    @property
-    def state_class(self):
-        return SensorStateClass.MEASUREMENT
 
     @property
     @override
@@ -1837,12 +1833,15 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
         return f"/local/neviweb130/{base}-8.png"
 
     @property
-    def level_status(self):
+    def level_status(self) -> str | None:
         """Return current sensor fuel level status."""
-        if self._tank_percent > self._fuel_percent_alert:
-            return "OK"
-        else:
-            return "Low"
+        tank = self._tank_percent
+        alert = self._fuel_percent_alert
+
+        if tank is None or alert is None:
+            return None
+
+        return "OK" if tank > alert else "Low"
 
     @property
     def refuel_status(self):
@@ -2016,7 +2015,6 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
         return self._gateway_status if self._gateway_status is not None else None
 
     @property
-    @override
     def native_value(self) -> str | None:
         """Return the state of the gateway."""
         return self._gateway_status
