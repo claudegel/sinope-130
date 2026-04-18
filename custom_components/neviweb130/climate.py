@@ -2528,7 +2528,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             return cool_max
         return temp
 
-
     @property
     @override
     def preset_mode(self):
@@ -6817,6 +6816,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 self._aux_heat_min_time_off = aux_heat_min_time_off
         return success
 
+
 async def async_set_heat_interstage_delay(self, value: dict[str, Any]) -> bool:
     try:
         time_val = int(value[ATTR_TIME])
@@ -6990,7 +6990,9 @@ async def async_set_cool_interstage_delay(self, value: dict[str, Any]) -> bool:
             param = f"{ATTR_AUX_OPTIM} or {ATTR_FAN_SPEED_OPTIM}"
             msg = await translate_error(self.hass, "missing_parameter", param=param)
             raise ServiceValidationError(msg)
-        success = await self._client.async_set_hvac_dr_options(value["id"], aux_conf=aux_conf, fan_speed_conf=fan_speed_config)
+        success = await self._client.async_set_hvac_dr_options(
+            value["id"], aux_conf=aux_conf, fan_speed_conf=fan_speed_config
+        )
         if success:
             if aux_conf is not None:
                 self._dr_aux_config = "activated" if aux_conf == "on" else "deactivated"
