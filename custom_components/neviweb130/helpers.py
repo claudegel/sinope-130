@@ -11,7 +11,7 @@ import shutil
 import time
 from dataclasses import dataclass
 from logging.handlers import RotatingFileHandler
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
@@ -22,6 +22,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
@@ -166,8 +167,11 @@ async def _delete_file_later(path: str, delay: int):
 # ─────────────────────────────────────────────
 
 
-def sanitize_entry_data(data: dict, hidden_keys: tuple = ("username", "password")) -> dict:
-    def mask(value):
+def sanitize_entry_data(
+    data: Mapping[str, Any],
+    hidden_keys: tuple[str, ...] = ("username", "password"),
+) -> dict[str, Any]:
+    def mask(value: Any) -> str:
         if isinstance(value, str) and "@" in value:
             name, domain = value.split("@", 1)
             return name[:2] + "***@" + domain
@@ -454,7 +458,12 @@ def build_import_summary(accounts: list[dict], global_options: dict, is_legacy: 
 # ─────────────────────────────────────────────
 
 
-async def async_notify_ha(hass, msg: str, title: str = None, notification_id: str = None):
+async def async_notify_ha(
+    hass: HomeAssistant,
+    msg: str,
+    title: str | None = None,
+    notification_id: str | None = None,
+) -> None:
     """Send a persistent notification to the HA frontend."""
 
     if title is None:
@@ -512,10 +521,10 @@ async def async_notify_throttled(
     hass,
     msg: str,
     *,
-    title: str = None,
-    notification_id: str,
+    title: str | None = None,
+    notification_id: str | None = None,
     min_interval: int = 3600,
-):
+) -> None:
     """
     Send a persistent notification, but throttled.
 
@@ -642,57 +651,51 @@ class NamingHelper:
 # ─────────────────────────────────────────────
 
 
-class NeviwebEntityHelper:
-    async def apply_and_refresh(self, update_coro, **local_updates):
-        """
-        Execute a client update coroutine, update local attributes,
-        write HA state, and refresh the coordinator.
-        """
-        success = await update_coro
-
-        if success:
-            # Mise à jour locale
-            for attr, value in local_updates.items():
-                setattr(self, attr, value)
-
-            # Mise à jour immédiate dans Home Assistant
-            self.async_write_ha_state()
-
-            # Rafraîchissement global via le coordinator
-            await self.coordinator.async_request_refresh()
-
-        return success
-
-
 class DailyRequestCounter:
+    """Track daily request count with safe typing."""
+
     def __init__(self, hass):
         self.hass = hass
         self.store: Store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
-        self.data: dict[str, int | str] = {
+
+        # Types stricts : date = str, count = int
+        self.data: dict[str, str | int] = {
             "date": datetime.date.today().isoformat(),
             "count": 0,
         }
 
-    async def async_load(self):
+    async def async_load(self) -> None:
+        """Load stored data and normalize types."""
         stored = await self.store.async_load()
+
         if stored:
-            self.data = stored
+            # Normalisation stricte
+            date = stored.get("date", datetime.date.today().isoformat())
+            count = stored.get("count", 0)
+
+            self.data = {
+                "date": str(date),
+                "count": int(count),
+            }
         else:
             await self.store.async_save(self.data)
 
     async def async_increment(self) -> int:
+        """Increment the counter and return the new value."""
         today = datetime.date.today().isoformat()
 
         if self.data["date"] != today:
             self.data["date"] = today
             self.data["count"] = 0
 
-        self.data["count"] += 1
+        self.data["count"] = int(self.data["count"]) + 1
+
         await self.store.async_save(self.data)
-        return self.data["count"]
+        return int(self.data["count"])
 
     def get_count(self) -> int:
-        return self.data["count"]
+        """Return the current count as an int."""
+        return int(self.data["count"])
 
 
 # ─────────────────────────────────────────────
@@ -723,9 +726,9 @@ def init_runtime_attributes(obj, modes: dict[str, str], prefix: str) -> None:
         setattr(obj, f"_{mode}_{prefix}_last_timestamp_local", None)
 
 
-def runtime_attributes_dict(obj, modes: dict[str, str], prefix: str) -> dict[str, any]:
+def runtime_attributes_dict(obj, modes: dict[str, str], prefix: str) -> dict[str, Any]:
     """Return a dict of runtime attributes for extra_state_attributes."""
-    data = {}
+    data: dict[str, Any] = {}
     for mode in modes:
         data[f"{mode}_{prefix}_total_count"] = getattr(obj, f"_{mode}_{prefix}_total_count")
         data[f"{mode}_{prefix}_count"] = getattr(obj, f"_{mode}_{prefix}_count")
@@ -794,6 +797,12 @@ def _runtime_icon_for_mode(mode: str) -> str:
     return "mdi:counter"
 
 
+def _make_value_fn(key: str):
+    def _value_fn(data: dict[str, Any]) -> Any:
+        return data.get(key)
+    return _value_fn
+
+
 def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
     descriptions = []
 
@@ -808,7 +817,7 @@ def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
                 device_class=SensorDeviceClass.DURATION,
                 state_class=SensorStateClass.TOTAL_INCREASING,
                 translation_key=key_total,
-                value_fn=lambda data, k=key_total: data.get(k),
+                value_fn=_make_value_fn(key_total),
                 signal=SIGNAL_EVENTS_CHANGED,
                 native_unit_of_measurement=UnitOfTime.MINUTES,
                 unit_class="duration",
@@ -825,7 +834,7 @@ def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
                 device_class=SensorDeviceClass.DURATION,
                 state_class=SensorStateClass.MEASUREMENT,
                 translation_key=key_delta,
-                value_fn=lambda data, k=key_delta: data.get(k),
+                value_fn=_make_value_fn(key_delta),
                 signal=SIGNAL_EVENTS_CHANGED,
                 native_unit_of_measurement=UnitOfTime.MINUTES,
                 unit_class="duration",
