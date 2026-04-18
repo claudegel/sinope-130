@@ -53,7 +53,7 @@ from .schema import (
 )
 from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
 from .schema import (
-    SCAN_INTERVAL,
+    SCAN_INTERVAL_SCHEMA,
     STAT_INTERVAL,
 )
 
@@ -70,7 +70,7 @@ FLOW_SCHEMA = vol.Schema(
         vol.Optional(CONF_NETWORK, default=""): cv.string,
         vol.Optional(CONF_NETWORK2, default=""): cv.string,
         vol.Optional(CONF_NETWORK3, default=""): cv.string,
-        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=300, max=600)),
+        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL_SCHEMA): vol.All(vol.Coerce(int), vol.Range(min=300, max=600)),
         vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
         vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,
         vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
@@ -275,7 +275,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 **global_options,
             }
 
-            await self.async_create_entry(
+            self.async_create_entry(
                 title=f"Neviweb130 ({acc['prefix']})",
                 data=data,
             )
