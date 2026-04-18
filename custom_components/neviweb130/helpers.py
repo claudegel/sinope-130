@@ -484,10 +484,7 @@ async def async_notify_ha(
 
 
 async def async_notify_once_or_update(
-    hass: HomeAssistant,
-    msg: str,
-    title: str | None = None,
-    notification_id: str | None = None
+    hass: HomeAssistant, msg: str, title: str | None = None, notification_id: str | None = None
 ) -> None:
     """Send a persistent notification only once, or update it if it already exists.
 
