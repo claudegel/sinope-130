@@ -367,7 +367,7 @@ def get_switch_class(model):
 
 
 def create_physical_switch(data, entry, coordinator):
-    entities: list[Neviweb130Switch] = []
+    entities: list[SwitchEntity] = []
 
     config_prefix = data["prefix"]
     platform = __name__.split(".")[-1]  # "switch"
@@ -412,7 +412,7 @@ def create_physical_switch(data, entry, coordinator):
 
 
 def create_attribute_switch(hass, entry, data, coordinator, device_registry):
-    entities: list[Neviweb130Switch] = []
+    entities: list[SwitchEntity] = []
 
     _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
 
@@ -515,7 +515,7 @@ async def async_setup_entry(
     entity_map: dict[str, Neviweb130Switch] | None = None
     _entity_map_lock = Lock()
 
-    async def get_switch(service: ServiceCall) -> Neviweb130Switch:
+    async def get_switch(service: ServiceCall) -> SwitchEntity:
         entity_id = service.data.get(ATTR_ENTITY_ID)
         if entity_id is None:
             raise ServiceValidationError(f"Missing required parameter: {ATTR_ENTITY_ID}")
