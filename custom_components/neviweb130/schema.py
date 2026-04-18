@@ -478,7 +478,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_NETWORK, default="_"): cv.string,
                 vol.Optional(CONF_NETWORK2, default="_"): cv.string,
                 vol.Optional(CONF_NETWORK3, default="_"): cv.string,
-                vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): selector.NumberSelector(
+                vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL_SCHEMA): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=300,
                         max=600,
