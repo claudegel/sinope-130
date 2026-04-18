@@ -1279,6 +1279,7 @@ MODEL_ATTRIBUTES = {
             "monthly_kwh_count",
             "total_kwh_count",
             "wattage",
+            "wifirssi",
         ],
         "number": [],
         "select": ["switch_keypad"],
@@ -1823,6 +1824,7 @@ EXPOSED_ATTRIBUTES = [
     "weather_icon",
     "wifi_aux_cycle_length",
     "wifi_cycle",
+    "wifirssi",
     # Constants
     "is_color_wifi",
     "is_gen2",
