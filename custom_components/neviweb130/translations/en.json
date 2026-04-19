@@ -4,88 +4,249 @@
     "step": {
       "user": {
         "title": "Neviweb130: Sinope Zigbee and Wi-Fi devices control",
-        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields network, network2 and network3 if you have multiple locations, or leave all 3 empty to auto-detect), scan interval, Homekit support, stat interval and notifications.",
+        "description": "Enter your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to block detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
+          "prefix": "Neviweb account name, optional for first account.",
           "username": "Neviweb email",
-          "password": "Neviweb password",
-          "network": "Optional, First Neviweb location name",
-          "network2": "Optional, Second Neviweb location name",
-          "network3": "Optional, Third Neviweb location name",
+          "password": "[%key:common::config_flow::data::password%]",
+          "network": "Optional, First Neviweb location name or '_' or nothing for auto detection.",
+          "network2": "Optional, Second Neviweb location name or '_' or nothing for auto detection.",
+          "network3": "Optional, Third Neviweb location name or '_' or nothing for auto detection.",
           "homekit_mode": "Optional, Homekit support True/False",
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
-          "notify": "Optional, get notification in case of device error."
+          "notify": "Optional, Get notification in case of device error.",
+          "safe_mode": "Optional, Put device ID to update in safe mode or '-'."
         }
       },
       "reconfigure": {
         "title": "Neviweb130: reconfigure options",
-        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields network, network2 and network3 if you have multiple locations, or leave all 3 empty to auto-detect), scan_interval, homekit_support, stat_interval and notifications.",
+        "description": "Update your Neviweb credentials and options: login (email), password, locations (use fields location, location 2 and location 3 if you have multiple locations, or leave all 3 empty to auto-detect), (set to _ to block detection), scan_interval, homekit_support, stat_interval and notifications.\n(* = required), Click on button ? for help and documentation.",
         "data": {
+          "prefix": "Neviweb account name, required for all accounts, set to default for first one.",
           "username": "Neviweb email",
-          "password": "Neviweb password",
-          "network": "Optional, First Neviweb location name",
-          "network2": "Optional, Second Neviweb location name",
-          "network3": "Optional, Third Neviweb location name",
+          "password": "[%key:common::config_flow::data::password%]",
+          "network": "Optional, First Neviweb location name or '_' or nothing for auto detection.",
+          "network2": "Optional, Second Neviweb location name or '_' or nothing for auto detection.",
+          "network3": "Optional, Third Neviweb location name or '_' or nothing for auto detection.",
           "homekit_mode": "Optional, Homekit support True/False",
           "ignore_miwi": "Optional, Ignore miwi devices",
           "scan_interval": "Optional, Neviweb polling interval, 300 to 600 sec.",
           "stat_interval": "Optional, Devices energy statistic polling interval, 300 to 1800 sec.",
-          "notify": "Optional, get notification in case of device error."
+          "notify": "Optional, Get notification in case of device error.",
+          "safe_mode": "Optional, Put device ID to update in safe mode or '-'."
         }
       }
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
+      "already_configured_for_this_user": "A configuration already exist for this Neviweb user.",
+      "Max_three_instances_allowed": "You cannot add more than three instances of this integration."
     },
     "error": {
-      "cannot_connect": "Test connection to Neviweb failed, check user and password",
-      "invalid_user_email": "Email provided is not valid",
+      "cannot_connect": "Test connection to Neviweb failed, check user and password.",
+      "invalid_user_email": "Email provided is not valid.",
       "bad_data_entry": "Check data entered for errors.",
-      "bad_network_name": "Network name can't contain accented characters",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "bad_network_name": "Network name can't contain accented characters.",
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "empty_folder": "Folder cannot be empty.",
+      "invalid_characters": "Folder name contains invalid characters.",
+      "folder_not_found": "Folder {folder} does not exist.",
+      "not_a_directory": "This path {folder} is not a folder.",
+      "not_writable": "Home Assistant cannot write in {folder}.",
+      "login_submit_failed": "Cannot submit login form... Check your network or firewall.",
+      "login_failed": "Cannot log in to Neviweb. {code}.",
+      "too_many_sessions": "Too many active sessions ({count}).\nClose all Neviweb sessions opened on other platforms.\nIf the error persists, disable this integration (or stop Home Assistant), wait a few minutes, then re-enable it (or restart Home Assistant).",
+      "bad_credentials": "Invalid Neviweb username and/or password. Check your configuration parameters. Error code: {code}.",
+      "unknown_login_error": "Unknown error while logging to Neviweb. Error code: {code}.",
+      "account_id_empty": "Account ID is empty, check your username and password to log into Neviweb...",
+      "networks_fetch_failed": "Cannot get Neviweb's networks.",
+      "gateway_data_failed": "Cannot get gateway data.",
+      "gateway_data2_failed": "Cannot get gateway data 2.",
+      "gateway_data3_failed": "Cannot get gateway data 3.",
+      "no_gateway_defined": "All Gateway ID are None.\nNetwork selection failed. Check that your configuration network names match one of the networks in your Neviweb account.\nAvailable networks were logged during network selection. Check your log.",
+      "notification_title": "Notice from neviweb130",
+      "heat_cool_warning": "Warning: Service {code} is only for TH6500WF or TH6250WF thermostats.",
+      "service_warning": "Service warning...",
+      "entities_not_ready": "Entities not finished loading, try again shortly.",
+      "entity_must_be_domain": "Entity {entity} must be a {domain} {platform}.",
+      "missing_parameter": "Missing required parameter: {param}.",
+      "does_not_support": "Entity {entity} is {domain} {model} thermostat and does not support time format.",
+      "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool thermostat.",
+      "fan_model_not_supported": "Fan speed is not supported for model {model}.",
+      "unknown_mode": "Unknown heat-cool mode for {model}: {mode}.",
+      "fan_mode_not_supported": "Fan mode {mode} is not supported for model {model}.",
+      "invalid_lock_value": "Lock value {lock} is not supported for model {model}.",
+      "no_off_value": "Entity {entity} does not support value off.",
+      "multiple_heating_level": "Entity {entity} does not support multiple levels of heating with current configuration.",
+      "multiple_cooling_level": "Entity {entity} does not support multiple levels of cooling with current configuration.",
+      "integer_needed": "Invalid value for {param}, must be an integer.",
+      "float_needed": "Invalid value for {param}, must be a float.",
+      "missing_functionality": "Entity {entity} does not have both a heat pump and an auxiliary heater.",
+      "invalid_value": "Invalid value for {param}, must be one of {value}.",
+      "cannot_use_entity": "Entity {entity} cannot be used with this service (action).",
+      "scan_interval_error": "Invalid scan interval format. Use seconds or HH:MM:SS.",
+      "username_missing": "Username cannot be empty.",
+      "password_missing": "Password cannot be empty.",
+      "update_stopped": "Warning: Received message from Neviweb, device disconnected... Check your log...\nNeviweb update will be halted for 20 minutes for {name}, id: {id}, Sku: {sku}.",
+      "update_restarted": "Warning: Neviweb Device update restarted for {name}, Sku: {sku}.",
+      "usr_session": "Warning: Got USRSESSEXP error, Neviweb session expired.\nSet your scan_interval parameter to less than 10 minutes to avoid this...\nReconnecting...",
+      "maintenance": "Warning: Neviweb access temporary blocked for maintenance... Retry later.",
+      "access_limit": "Warning: ACCSESSEXC, maximum Neviweb session number reached... Close other connections and try again.",
+      "error_code": "Warning: Neviweb Device error code detected: {code} for device: {name}, ID: {id}, Sku: {sku}. {message}.",
+      "temp_error": "Warning: Neviweb Device temperature error code detected: {error} for device: {name}, ID: {id}, Sku: {sku}.",
+      "emergency_heat_error": "Warning: Cannot activate BOOST (emergency heat) due to device configuration. Condition not met for {name}, Sku: {sku}.",
+      "ignore_miwi": "The Neviweb location selected for parameter {param} contains unsupported MiWi devices.\nIf this location contains only MiWi devices, use the sinope neviweb integration instead.\nIf mixed devices exist, set ignore_miwi: True in your neviweb130 configuration.",
+      "location_status": "Session expired while fetching Neviweb status for location {param}. Set scan_interval < 10 minutes to avoid session expiration.",
+      "device_alert": "Cannot get device alert for device {id}.",
+      "energy_stat": "Cannot get {param} stats for device {id}.",
+      "weather_data": "Cannot get Neviweb weather and icon for code {code}.",
+      "set_attribute": "Cannot set device {id} attributes: {data}.",
+      "neviweb_status": "Cannot post Neviweb status for location {location} with data {data}.",
+      "no_stat": "Got None for device {param} stats for device {name}.",
+      "gauge_disconnected": "Warning: Tank monitor gauge disconnected: for device: {name} id: {id}, Sku: {sku}.",
+      "request_count": "Warning: {count} requests today. Safety limit: {limit}, Daily limit: 30000.",
+      "unknown_error": "Unknown error for {name} (id: {id}) (SKU: {sku}), (Model: {model}). Report to maintainer. Data received: {data}.",
+      "daily_access": "Maximum daily request reached... Increase interval polling frequency on Neviweb, (scan_interval).",
+      "update_message": "Update to version {version} was installed successfully.",
+      "update_rejected": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n{message}.",
+      "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
+      "update_fail": "Rollback could not be completed. Manual intervention required.",
+      "service_failed": "Service {service} failed: {error}.",
+      "critical_service_failed": "Critical error while executing service {service}: {error}.",
+      "valinvld": "Invalid value {value} for attribute {name}.",
+      "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
+      "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute.",
+      "neviweb130_reload_error": "Failed to reload integration: {error}.",
+      "neviweb130_migrated": "Neviweb130 device's unique_id have been migrated from integer values to string values.\nMore details in log.",
+      "neviweb130_reloaded": "Integration neviweb130 have been reloaded.",
+      "neviweb130_log_ready": "Download log file: \n<a href='/local/neviweb130.log'  download target='_blank'>click here</a>.\nFile will be deleted after 30 minutes.",
+      "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfully.",
+      "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather icons png files won't be displayed. Read documentation for help.",
+      "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help."
     }
   },
   "options": {
     "step": {
-      "init": {
+      "options": {
         "title": "Neviweb130 Management",
-        "description": "Configure additional options for Neviweb130.",
+        "description": "Configure each option of Neviweb130 according to your needs.\nClick on button ? for help and documentation.",
         "data": {
-          "scan_interval": "Scan Interval",
-          "stat_interval": "Stat Interval",
-          "notify": "Notify",
-          "homekit_mode": "HomeKit Mode",
-          "ignore_miwi": "Ignore miwi devices",
-          "reload": "Reload Integration",
+          "prefix": "Neviweb account name",
+          "log_level": "Log Level",
+          "log_max_bytes": "Log Max Size",
+          "log_backup_count": "Backucp Files Number",
+          "log_reset_on_start": "Log Reset on Start",
           "download_log": "Download log",
-          "migrate": "Migrate numeric unique_id"
+          "reload": "Reload Integration",
+          "migrate": "Migrate numeric unique_id",
+          "request_limit": "Neviweb request counter safety limit",
+          "update_check_interval": "Update check interval",
+          "backup_mode": "Backup mode, full or partial",
+          "backup_folders": "Backup root folder"
         }
       }
+    },
+    "error": {
+      "empty_prefix": "Prefix cannot be empty.",
+      "space_not_allowed": "Spaces are not allowed.",
+      "non_ascii_prefix": "Prefix must contain only ASCII characters.",
+      "duplicate_prefix": "This prefix is already used by another Neviweb account."
     }
   },
   "entity": {
     "binary_sensor": {
       "activation": {
-        "name": "Active"
+        "name": "Active",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
+        }
       },
       "battery_status": {
-        "name": "Battery Status"
+        "name": "Battery Status",
+        "state": {
+          "on": "OK",
+          "off": "Low"
+        }
+      },
+      "em_heating": {
+        "name": "Emergency heating",
+        "state": {
+          "on": "Heating",
+          "off": "Idle"
+        }
+      },
+      "emergency_heat_allowed": {
+        "name": "Emergency heating allowed",
+        "state": {
+          "on": "Allowed",
+          "off": "Prohibited"
+        }
+      },
+      "gateway_status": {
+        "name": "Gateway status",
+        "state": {
+          "on": "Present",
+          "off": "Disconnected"
+        }
+      },
+      "gauge_error": {
+        "name": "Gauge disconnected",
+        "state": {
+          "on": "Disconnected",
+          "off": "Connected"
+        }
       },
       "heating": {
-        "name": "Heating"
+        "name": "Heating",
+        "state": {
+          "on": "Heating",
+          "off": "Idle"
+        }
+      },
+      "input1_status": {
+        "name": "Input 1 status",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
+        }
+      },
+      "input2_status": {
+        "name": "Input 2 status",
+        "state": {
+          "on": "Active",
+          "off": "Inactive"
+        }
       },
       "leak_status": {
-        "name": "Leak Status"
+        "name": "Leak Status",
+        "state": {
+          "on": "Water",
+          "off": "OK"
+        }
       },
       "level_status": {
-        "name": "Level Status"
+        "name": "Level Status",
+        "state": {
+          "on": "Low",
+          "off": "OK"
+        }
       },
       "refuel_status": {
-        "name": "Refuel Status"
+        "name": "Refuel Status",
+        "state": {
+          "on": "Refueled",
+          "off": "No change"
+        }
       },
-      "temp_alert": {
-        "name": "Temp Alert"
+      "valve_temp_alert": {
+        "name": "Temperature Alert",
+        "state": {
+          "on": "Low temperature",
+          "off": "Normal"
+        }
       }
     },
     "button": {
@@ -133,11 +294,11 @@
       "setpoint_away": {
         "name": "Setpoint Away"
       },
-      "timer": {
-        "name": "Timer"
-      },
-      "timer2": {
-        "name": "Timer 2"
+      "water_remaining_time": {
+        "name": "remaining_time",
+        "state": {
+          "measurement": "Remaining time"
+        }
       }
     },
     "select": {
@@ -152,31 +313,89 @@
           "bedroom": "Bedroom"
         }
       },
+      "battery_type": {
+        "name": "Battery Type",
+        "state": {
+          "alkaline": "Alkaline",
+          "lithium": "Lithium"
+        }
+      },
       "cycle_length": {
         "name": "Cycle Length"
       },
       "early_start": {
-        "name": "Early Start"
+        "name": "Early Start",
+        "state": {
+          "off": "Inactive",
+          "on": "Active"
+        }
+      },
+      "flow_duration": {
+        "name": "Flow Duration"
+      },
+      "flowmeter_timer": {
+        "name": "Flow meter Timer"
+      },
+      "flow_meter": {
+        "name": "Flow Meter"
+      },
+      "fuel_alert": {
+        "name": "Fuel Alert"
+      },
+      "gauge_type": {
+        "name": "Gauge Model"
       },
       "hc_second_display": {
-        "name": "Second Display"
+        "name": "Second Display",
+        "state": {
+          "exteriorTemperature": "Exterior temperature",
+          "setpoint": "Setpoint",
+          "none": "None"
+        }
       },
       "keypad_lock": {
         "name": "Lock Keypad",
         "state": {
+          "lock": "Locked",
           "locked": "Locked",
+          "unlock": "Unlocked",
           "unlocked": "Unlocked",
-          "tamper_protection": "Tamper Protection"
+          "partialLock": "Tamper Protection",
+          "partiallyLocked": "Tamper Protection"
         }
       },
       "language": {
-        "name": "Language"
+        "name": "Language",
+        "state": {
+          "en": "English",
+          "fr": "French"
+        }
       },
       "led_off_color": {
-        "name": "Led Off Color"
+        "name": "Led Off Color",
+        "state": {
+          "lime": "Lime",
+          "amber": "Amber",
+          "fuchsia": "Fuchsia",
+          "perle": "Perle",
+          "blue": "Blue",
+          "red": "Red",
+          "orange": "Orange",
+          "green": "Green"
+        }
       },
       "led_on_color": {
-        "name": "Led On Color"
+        "name": "Led On Color",
+        "state": {
+          "lime": "Lime",
+          "amber": "Amber",
+          "fuchsia": "Fuchsia",
+          "perle": "Perle",
+          "blue": "Blue",
+          "red": "Red",
+          "orange": "Orange",
+          "green": "Green"
+        }
       },
       "occupancy_mode": {
         "name": "Global Occupancy Mode",
@@ -185,28 +404,144 @@
           "away": "Away"
         }
       },
+      "phase": {
+        "name": "Phase",
+        "state": {
+          "forward": "Forward",
+          "reverse": "Reverse"
+        }
+      },
+      "power_supply": {
+        "name": "Power Supply",
+        "state": {
+          "ACUPS-01": "ACUPS-01",
+          "Battery": "Battery",
+          "Battery and ACUPS-01": "Both"
+        }
+      },
       "second_display": {
-        "name": "Second Display"
+        "name": "Second Display",
+        "state": {
+          "default": "Default",
+          "exteriorTemperature": "Exterior temperature",
+          "setpoint": "Setpoint"
+        }
       },
       "sensor_mode": {
         "name": "Sensor Mode"
       },
+      "tank_height": {
+        "name": "Tank Height",
+        "state": {
+          "none": "Unknown",
+          "23_inch": "23 inches",
+          "24_inch": "24 inches",
+          "35_inch": "35 inches",
+          "38_inch": "38 inches",
+          "47_inch": "47 inches",
+          "48_inch": "48 inches",
+          "50_inch": "50 inches"
+        }
+      },
       "tank_size": {
         "name": "Tank Size"
       },
+      "tank_type": {
+        "name": "Tank Type",
+        "state": {
+          "propane": "Propane",
+          "oil": "Oil"
+        }
+      },
       "temp_format": {
-        "name": "temp_format"
+        "name": "temperature format",
+        "state": {
+          "celsius": "Celsius",
+          "fahrenheit": "Fahrenheit"
+        }
+      },
+      "temp_protection": {
+        "name": "Temperature Protection"
       },
       "time_format": {
         "name": "Time Format"
+      },
+      "timer": {
+        "name": "Timer"
+      },
+      "timer2": {
+        "name": "Timer 2"
       }
     },
     "sensor": {
+      "aux_heat_stage1_hourly_count": {
+        "name": "AuxHeatStage1 hourly count"
+      },
+      "aux_heat_stage2_hourly_count": {
+        "name": "AuxHeatStage2 hourly count"
+      },
+      "aux_heat_stage1_hourly_total_count": {
+        "name": "AuxHeatStage1 hourly total count"
+      },
+      "aux_heat_stage2_hourly_total_count": {
+        "name": "AuxHeatStage2 hourly total count"
+      },
+      "battery_level": {
+        "name": "Battery level"
+      },
+      "cool_stage1_hourly_count": {
+        "name": "CoolStage1 hourly count"
+      },
+      "cool_stage2_hourly_count": {
+        "name": "CoolStage2 hourly count"
+      },
+      "cool_stage1_hourly_total_count": {
+        "name": "CoolStage1 hourly total count"
+      },
+      "cool_stage2_hourly_total_count": {
+        "name": "CoolStage2 hourly total count"
+      },
       "daily_flow_count": {
-        "name": "Daily Flow"
+        "name": "Daily Flow",
+        "state": {
+          "total": "Total"
+        }
       },
       "daily_kwh_count": {
-        "name": "Daily Energy"
+        "name": "Daily Energy",
+        "state": {
+          "total": "Total"
+        }
+      },
+      "emergency_heat_hourly_count": {
+        "name": "EmergencyHeat hourly count"
+      },
+      "emergency_heat_hourly_total_count": {
+        "name": "EmergencyHeat hourly total count"
+      },
+      "extern_temperature": {
+        "name": "External temperature"
+      },
+      "fan_hourly_count": {
+        "name": "Fan hourly count"
+      },
+      "fan_hourly_total_count": {
+        "name": "Fan hourly total count"
+      },
+      "gauge_angle": {
+        "name": "Gauge Angle"
+      },
+      "heat_stage1_hourly_count": {
+        "name": "HeatStage1 hourly count"
+      },
+      "heat_stage2_hourly_count": {
+        "name": "HeatStage2 hourly count"
+      },
+      "heat_stage1_hourly_total_count": {
+        "name": "HeatStage1 hourly total count"
+      },
+      "heat_stage2_hourly_total_count": {
+        "name": "HeatStage2 hourly tota count"
       },
       "hourly_flow_count": {
         "name": "Hourly Flow"
@@ -214,14 +549,23 @@
       "hourly_kwh_count": {
         "name": "Hourly Energy"
       },
+      "humidity": {
+        "name": "Humidity"
+      },
       "monthly_flow_count": {
         "name": "Monthly Flow"
       },
       "monthly_kwh_count": {
         "name": "Monthly Energy"
       },
+      "outdoor_temp": {
+        "name": "Outdoor temperature"
+      },
       "pi_heating_demand": {
         "name": "Heating Demand"
+      },
+      "room_temperature": {
+        "name": "Room temperature"
       },
       "rssi": {
         "name": "Signal Strength"
@@ -234,12 +578,578 @@
       },
       "wattage": {
         "name": "Wattage"
+      },
+      "weather_icon": {
+        "name": "Weather icon"
       }
     },
     "switch": {
+      "batt_alert": {
+        "name": "Battery Alert"
+      },
+      "close_valve": {
+        "name": "Close valve"
+      },
+      "fuel_alert": {
+        "name": "Fuel Alert"
+      },
+      "leak_alert": {
+        "name": "Leak Alert"
+      },
       "onoff2": {
         "name": "Onoff2"
+      },
+      "temperature_alert": {
+        "name": "Temperature Alert"
+      },
+      "refuel_alert": {
+        "name": "Refuel Alert"
+      },
+      "temp_alert": {
+        "name": "Low Temperature Alert"
       }
+    }
+  },
+  "device": {},
+  "services": {
+    "set_climate_keypad_lock": {
+      "name": "Set climate keypad lock",
+      "description": "Lock or unlock the Zigbee climate device keypad.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 climate device to lock or unlock the keypad."
+        },
+        "lockKeypad": {
+          "name": "Keypad lock mode",
+          "description": "LockKeypad status to set: \"locked\" = Locked, \"unlocked\" = Unlocked, \"partiallyLocked\" = Tamper protection. For HP6000ZB-xx devices, \"partiallyLocked\" is not available."
+        }
+      }
+    },
+
+    "set_light_keypad_lock": {
+      "name": "Set light keypad lock",
+      "description": "Lock or unlock the keypad of a light or dimmer device.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 light device to lock or unlock the keypad."
+        },
+        "lockKeypad": {
+          "name": "Keypad lock mode",
+          "description": "LockKeypad status to set: \"locked\", \"unlocked\", or \"partiallyLocked\"."
+        }
+      }
+    },
+
+    "set_switch_keypad_lock": {
+      "name": "Set switch keypad lock",
+      "description": "Lock or unlock the keypad of a switch device.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to lock or unlock the keypad."
+        },
+        "lockKeypad": {
+          "name": "Keypad lock mode",
+          "description": "LockKeypad status to set: \"locked\", \"unlocked\", or \"partiallyLocked\"."
+        }
+      }
+    },
+
+    "set_light_timer": {
+      "name": "Set light timer",
+      "description": "Set a timer for a light device. Device will turn off after the selected delay.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 light device to set the timer."
+        },
+        "powerTimer": {
+          "name": "Timer value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_timer": {
+      "name": "Set switch timer",
+      "description": "Set a timer for a switch device. Device will turn off after the selected delay.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to set the timer."
+        },
+        "powerTimer": {
+          "name": "Timer value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_timer2": {
+      "name": "Set switch timer 2",
+      "description": "Set the secondary timer (timer2) for multi-controller switch devices.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to set timer2."
+        },
+        "powerTimer2": {
+          "name": "Timer 2 value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_power_timer": {
+      "name": "Set switch power timer",
+      "description": "Set a timer for RM3250ZB power switch devices. Device will turn off after the selected delay.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 switch device to set the timer."
+        },
+        "powerTimer": {
+          "name": "Timer value",
+          "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\", \"6 hrs\", \"12 hrs\", \"24 hrs\"."
+        }
+      }
+    },
+
+    "set_switch_temp_alert": {
+      "name": "Set switch temperature alert",
+      "description": "Configure low temperature alert threshold for MC3100ZB switch.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name of the MC3100ZB switch entity."
+        },
+        "alertLowTemp": {
+          "name": "Low temperature threshold",
+          "description": "Set to 0 to disable the alert, or a temperature value (e.g., 5°C)."
+        }
+      }
+    },
+
+    "set_time_format": {
+      "name": "Set time format",
+      "description": "Set device time format to 12h or 24h.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the time format."
+        },
+        "timeFormat": {
+          "name": "Time format",
+          "description": "Time format to set: 12 or 24."
+        }
+      }
+    },
+
+    "set_temperature_format": {
+      "name": "Set temperature format",
+      "description": "Set device temperature format to Celsius or Fahrenheit.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the temperature format."
+        },
+        "temperatureFormat": {
+          "name": "Temperature format",
+          "description": "Temperature format to set: \"celsius\" or \"fahrenheit\"."
+        }
+      }
+    },
+
+    "set_led_indicator": {
+      "name": "Set LED indicator color",
+      "description": "Set LED indicator color for each light state (on/off).",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the LED indicator color."
+        },
+        "state": {
+          "name": "Light state",
+          "description": "0 = when light is off, 1 = when light is on."
+        },
+        "color": {
+          "name": "LED color",
+          "description": "Color to set: \"lime\", \"amber\", \"fushia\", \"perle\", \"blue\", \"red\", \"orange\", \"green\"."
+        }
+      }
+    },
+
+    "set_led_on_intensity": {
+      "name": "Set LED on intensity",
+      "description": "Set LED indicator intensity when the light is on.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the LED intensity."
+        },
+        "statusLedOnIntensity": {
+          "name": "Intensity",
+          "description": "Intensity from 0 to 100%."
+        }
+      }
+    },
+
+    "set_led_off_intensity": {
+      "name": "Set LED off intensity",
+      "description": "Set LED indicator intensity when the light is off.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the LED intensity."
+        },
+        "statusLedOnIntensity": {
+          "name": "Intensity",
+          "description": "Intensity from 0 to 100%."
+        }
+      }
+    },
+
+    "set_light_min_intensity": {
+      "name": "Set minimum light intensity",
+      "description": "Set dimmer minimum intensity.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the minimum intensity."
+        },
+        "intensityMin": {
+          "name": "Minimum intensity",
+          "description": "Value from 1 to 3000."
+        }
+      }
+    },
+
+    "set_second_display": {
+      "name": "Set second display",
+      "description": "Configure thermostat secondary display (setpoint or outside temperature).",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the second display."
+        },
+        "config2ndDisplay": {
+          "name": "Second display mode",
+          "description": "\"exteriorTemperature\", \"setpoint\", or \"default\"."
+        }
+      }
+    },
+
+    "set_backlight": {
+      "name": "Set backlight",
+      "description": "Set backlight intensity or mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device to set the backlight."
+        },
+        "backlightAdaptive": {
+          "name": "Backlight mode",
+          "description": "\"auto\", \"on\", or \"bedroom\"."
+        }
+      }
+    },
+
+    "set_reversing_valve_polarity": {
+      "name": "Set reversing valve polarity",
+      "description": "Set the polarity of the heat pump reversing valve. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of neviweb130 device."
+        },
+        "polarity": {
+          "name": "Polarity",
+          "description": "Possible values: \"cooling\" (cool when valve is on, heat when off) or \"heating\" (heat when on, cool when off)."
+        }
+      }
+    },
+
+    "set_min_time_on": {
+      "name": "Set minimum ON time",
+      "description": "Set minimum ON duration before the device can turn off again. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "heatMinTimeOn": {
+          "name": "Heat minimum ON time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "auxHeatMinTimeOn": {
+          "name": "Aux heat minimum ON time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "coolMinTimeOn": {
+          "name": "Cool minimum ON time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "airExchangerMinTimeOn": {
+          "name": "Air exchanger minimum ON time",
+          "description": "Possible values: \"Off\", \"20 min\", \"40 min\", \"Continuous\"."
+        }
+      }
+    },
+
+    "set_min_time_off": {
+      "name": "Set minimum OFF time",
+      "description": "Set minimum OFF duration before the device can turn on again. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "heatMinTimeOff": {
+          "name": "Heat minimum OFF time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "auxHeatMinTimeOff": {
+          "name": "Aux heat minimum OFF time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        },
+        "coolMinTimeOff": {
+          "name": "Cool minimum OFF time",
+          "description": "Possible values: 120, 180, 240, 300, 600 seconds."
+        }
+      }
+    },
+
+    "set_heat_interstage_delay": {
+      "name": "Set heat interstage delay",
+      "description": "Set minimum heating time before increasing heating stage. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "time": {
+          "name": "Delay time",
+          "description": "Possible values: 1 to 60 minutes."
+        }
+      }
+    },
+
+    "set_cool_interstage_delay": {
+      "name": "Set cool interstage delay",
+      "description": "Set minimum cooling time before increasing cooling stage. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "time": {
+          "name": "Delay time",
+          "description": "Possible values: 1 to 60 minutes."
+        }
+      }
+    },
+
+    "set_neviweb_status": {
+      "name": "Set Neviweb status",
+      "description": "Set global Neviweb occupancy status (home or away) via GT130.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name of GT130 gateway device."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Possible values: \"home\" or \"away\"."
+        }
+      }
+    },
+
+    "set_climate_neviweb_status": {
+      "name": "Set climate Neviweb status",
+      "description": "Set global Neviweb occupancy status (home or away) via thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name of thermostat device."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Possible values: \"home\" or \"away\"."
+        }
+      }
+    },
+
+    "set_accessory_type": {
+      "name": "Set accessory type",
+      "description": "Set accessory type (humidifier, dehumidifier, air-exchanger). Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "accessoryType": {
+          "name": "Accessory type",
+          "description": "Possible values: \"none\", \"humOnHeat\", \"humOnFan\", \"dehum\", \"airExchanger\"."
+        }
+      }
+    },
+
+    "set_schedule_mode": {
+      "name": "Set schedule mode",
+      "description": "Set thermostat schedule mode (manual or auto).",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF device."
+        },
+        "setpointMode": {
+          "name": "Schedule mode",
+          "description": "Possible values: \"manual\", \"auto\"."
+        }
+      }
+    },
+
+    "set_flow_alarm_disable_timer": {
+      "name": "Set flow alarm disable timer",
+      "description": "Set a timer to disable flowmeter alarm action for Sedna 2nd gen valves.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of Sedna 2nd gen device."
+        },
+        "flowMeterAlarmDisableTimer": {
+          "name": "Disable timer",
+          "description": "Value in seconds from 0 to 86400 (24 hours). 0 = disabled."
+        }
+      }
+    },
+
+    "set_heatcool_setpoint_delta": {
+      "name": "Set heat/cool setpoint delta",
+      "description": "Set delta temperature between heating and cooling setpoints in auto mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "heatCoolSetpointMinDelta": {
+          "name": "Delta",
+          "description": "Values from 1°C to 5°C."
+        }
+      }
+    },
+
+    "set_fan_filter_reminder": {
+      "name": "Set fan filter reminder",
+      "description": "Set fan filter reminder period.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "fanFilterReminderPeriod": {
+          "name": "Reminder period",
+          "description": "Values from 1 to 12 months."
+        }
+      }
+    },
+
+    "set_temperature_offset": {
+      "name": "Set temperature offset",
+      "description": "Set thermostat temperature offset.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "temperatureOffsetHeat": {
+          "name": "Temperature offset",
+          "description": "Values from -2 to 2°C with 0.5°C increments."
+        }
+      }
+    },
+
+    "set_aux_heating_source": {
+      "name": "Set auxiliary heating source",
+      "description": "Set auxiliary heating source type. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "auxHeatSourceType": {
+          "name": "Aux heat source",
+          "description": "Possible values: \"Electric\" or \"Fossil\"."
+        }
+      }
+    },
+
+    "set_fan_speed": {
+      "name": "Set fan speed",
+      "description": "Set thermostat fan speed.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "fanSpeed": {
+          "name": "Fan speed",
+          "description": "Possible values: \"On\", \"Auto\" for TH6xxxWF; or 0, 20, 40, 60, 80, 100, 128 for HP6000WF-xx."
+        }
+      }
+    },
+
+    "set_humidity_mode": {
+      "name": "Set humidity mode",
+      "description": "Set humidity setpoint mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of TH6500WF or TH6250WF thermostats."
+        },
+        "humiditySetpointMode": {
+          "name": "Humidity mode",
+          "description": "Possible values: \"defog\", \"manual\"."
+        }
+      }
+    },
+
+    "set_heat_dissipation_time": {
+      "name": "Set heat dissipation time",
+      "description": "Set heating purge time. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of thermostat device."
+        },
+        "time": {
+          "name": "Dissipation time",
+          "description": "Possible values: 0 to 5 minutes. 0 = off."
+        }
+      }
+    },
+
+    "set_cool_dissipation_time": {
+      "name": "Set cool dissipation time",
+      "description": "Set cooling purge time. Equipment configuration should be performed by a professional.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Name(s) of thermostat device."
+        },
+        "time": {
+          "name": "Dissipation time",
+          "description": "Possible values: 0 to 5 minutes. 0 = off."
+        }
+      }
+    }
+  },
+  "issues": {
+    "dangerous_attribute_change": {
+      "title": "Risky attribute change",
+      "description": "Changing attribute {attribute}\non entity {entity}\nmay cause unexpected or unsafe device behavior.\nValue attempted: {value}.\n\nFor more information, consult : {doc_url}"
     }
   }
 }

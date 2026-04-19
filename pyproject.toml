@@ -59,6 +59,14 @@ target-version = "py313"
 py313plus = true
 
 [tool.codespell]
-skip = "Contributors.md,custom_components/neviweb130/translations/*.json"
+skip = """
+Contributors.md,
+README_FR.md,
+custom_components/neviweb130/translations/*.json,
+doc/doc_index.md,
+doc/new_bridge.md,
+doc/options.md,
+doc/reconfigure.md
+"""
 ignore-words-list = "hass"
 quiet-level = 2

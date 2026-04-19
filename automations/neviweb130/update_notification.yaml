@@ -1,0 +1,23 @@
+blueprint:
+  name: Neviweb130 – Notification de mise à jour
+  description: Envoie une notification lorsqu’une nouvelle version est disponible.
+  domain: automation
+  input:
+    update_entity:
+      name: Entité Update
+      selector:
+        entity:
+          domain: update
+
+trigger:
+  - platform: state
+    entity_id: !input update_entity
+    to: "on"
+
+action:
+  - service: notify.notify
+    data:
+      title: "Mise à jour Neviweb130 disponible"
+      message: >
+        Une nouvelle version de Neviweb130 est disponible :
+        {{ state_attr(!input update_entity, 'latest_version') }}.
