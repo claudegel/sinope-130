@@ -627,39 +627,42 @@ async def async_setup_entry(
                 platform="sensor",
             )
             raise ServiceValidationError(msg)
-        typed_sensor = cast(Neviweb130BaseSensor, sensor)
-        return typed_sensor
+        return sensor
 
     async def set_sensor_leak_alert_service(service: ServiceCall) -> None:
         """Set water leak sensor leak alert action."""
         sensor = await get_sensor(service)
-        value = {"id": sensor.unique_id, "leak": service.data[ATTR_LEAK_ALERT]}
-        await sensor.async_set_sensor_leak_alert(value)
-        sensor.async_schedule_update_ha_state(True)
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
+        value = {"id": typed_sensor.unique_id, "leak": service.data[ATTR_LEAK_ALERT]}
+        await typed_sensor.async_set_sensor_leak_alert(value)
+        typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_sensor_temp_alert_service(service: ServiceCall) -> None:
         """Set water leak sensor low temperature alert action."""
         sensor = await get_sensor(service)
-        value = {"id": sensor.unique_id, "temp": service.data[ATTR_TEMP_ALERT]}
-        await sensor.async_set_sensor_temp_alert(value)
-        sensor.async_schedule_update_ha_state(True)
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
+        value = {"id": typed_sensor.unique_id, "temp": service.data[ATTR_TEMP_ALERT]}
+        await typed_sensor.async_set_sensor_temp_alert(value)
+        typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_sensor_closure_action_service(service: ServiceCall) -> None:
         """Set water leak sensor connected to Sedna valve closure action in case of leak alert."""
         sensor = await get_sensor(service)
-        value = {"id": sensor.unique_id, "close": service.data[ATTR_CONF_CLOSURE]}
-        await sensor.async_set_sensor_closure_action(value)
-        sensor.async_schedule_update_ha_state(True)
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
+        value = {"id": typed_sensor.unique_id, "close": service.data[ATTR_CONF_CLOSURE]}
+        await typed_sensor.async_set_sensor_closure_action(value)
+        typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_battery_type_service(service: ServiceCall) -> None:
         """Set battery type for water leak sensor."""
         sensor = await get_sensor(service)
-        value = {"id": sensor.unique_id, "type": service.data[ATTR_BATTERY_TYPE]}
-        await sensor.async_set_battery_type(value)
-        sensor.async_schedule_update_ha_state(True)
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
+        value = {"id": typed_sensor.unique_id, "type": service.data[ATTR_BATTERY_TYPE]}
+        await typed_sensor.async_set_battery_type(value)
+        typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_tank_type_service(service: ServiceCall) -> None:
@@ -778,9 +781,10 @@ async def async_setup_entry(
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         sensor = await get_sensor(service)
-        value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
-        await sensor.async_set_activation(value)
-        sensor.async_schedule_update_ha_state(True)
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
+        value = {"id": typed_sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
+        await typed_sensor.async_set_activation(value)
+        typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_neviweb_status_service(service: ServiceCall) -> None:
