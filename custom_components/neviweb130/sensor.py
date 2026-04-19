@@ -20,7 +20,7 @@ import datetime
 import logging
 import time
 from threading import Lock
-from typing import Any, Mapping, override
+from typing import Any, Mapping, cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.components.recorder.models import StatisticMeanType
@@ -598,7 +598,7 @@ async def async_setup_entry(
     async_add_entities(entities)
     hass.async_create_task(coordinator.async_request_refresh())
 
-    entity_map: dict[str, Neviweb130Sensor] | None = None
+    entity_map: dict[str, SensorEntity] | None = None
     _entity_map_lock = Lock()
 
     async def get_sensor(service: ServiceCall) -> SensorEntity:
@@ -627,7 +627,8 @@ async def async_setup_entry(
                 platform="sensor",
             )
             raise ServiceValidationError(msg)
-        return sensor
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
+        return typed_sensor
 
     async def set_sensor_leak_alert_service(service: ServiceCall) -> None:
         """Set water leak sensor leak alert action."""
