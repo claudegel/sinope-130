@@ -474,31 +474,31 @@
       }
     },
     "sensor": {
-      "auxHeatStage1_hourly_count": {
+      "aux_heat_stage1_hourly_count": {
         "name": "Chauffage aux. étape 1 décompte horaire"
       },
-      "auxHeatStage2_hourly_count": {
+      "aux_heat_stage2_hourly_count": {
         "name": "Chauffage aux. étape 2 décompte horaire"
       },
-      "auxHeatStage1_hourly_total_count": {
+      "aux_heat_stage1_hourly_total_count": {
         "name": "Chauffage aux. étape 1 décompte horaire total"
       },
-      "auxHeatStage2_hourly_total_count": {
+      "aux_heat_stage2_hourly_total_count": {
         "name": "Chauffage aux. étape 2 décompte horaire total"
       },
       "battery_level": {
         "name": "Niveau de la batterie"
       },
-      "coolStage1_hourly_count": {
+      "cool_stage1_hourly_count": {
         "name": "Refroidissement étape 1 décompte horaire"
       },
-      "coolStage2_hourly_count": {
+      "cool_stage2_hourly_count": {
         "name": "Refroidissement étape 2 décompte horaire"
       },
-      "coolStage1_hourly_total_count": {
+      "cool_stage1_hourly_total_count": {
         "name": "Refroidissement étape 1 décompte horaire total"
       },
-      "coolStage2_hourly_total_count": {
+      "cool_stage2_hourly_total_count": {
         "name": "refroidissement étape 2 décompte horaire total"
       },
       "daily_flow_count": {
@@ -513,10 +513,10 @@
           "total": "Total"
         }
       },
-      "emergencyHeat_hourly_count": {
+      "emergency_heat_hourly_count": {
         "name": "Chauffage d'urgence décompte horaire"
       },
-      "emergencyHeat_hourly_total_count": {
+      "emergency_heat_hourly_total_count": {
         "name": "Chauffage d'urgence décompte horaire total"
       },
       "extern_temperature": {
@@ -531,16 +531,16 @@
       "gauge_angle": {
         "name": "Angle de jauge"
       },
-      "heatStage1_hourly_count": {
+      "heat_stage1_hourly_count": {
         "name": "Chaufage Étape 1 décompte horaire"
       },
-      "heatStage2_hourly_count": {
+      "heat_stage2_hourly_count": {
         "name": "Chaufage Étape 2 décompte horaire"
       },
-      "heatStage1_hourly_total_count": {
+      "heat_stage1_hourly_total_count": {
         "name": "Chaufage Étape 1 décompte horaire total"
       },
-      "heatStage2_hourly_total_count": {
+      "heat_stage2_hourly_total_count": {
         "name": "Chaufage Étape 2 décompte horaire total"
       },
       "hourly_flow_count": {
