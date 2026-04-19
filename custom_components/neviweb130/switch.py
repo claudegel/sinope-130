@@ -532,142 +532,155 @@ async def async_setup_entry(
         switch = entity_map.get(entity_id)
         if switch is None:
             raise ServiceValidationError(f"Entity {entity_id} must be a {DOMAIN} switch")
-        typed_switch = cast(Neviweb130Switch, switch)
-        return typed_switch
+        return switch
 
     async def set_switch_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
-        await switch.async_set_keypad_lock(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        await typed_switch.async_set_keypad_lock(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_switch_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
-        await switch.async_set_timer(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "time": service.data[ATTR_TIMER]}
+        await typed_switch.async_set_timer(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_switch_timer2_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER2]}
-        await switch.async_set_timer2(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "time": service.data[ATTR_TIMER2]}
+        await typed_switch.async_set_timer2(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_switch_power_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "time": service.data[ATTR_TIMER]}
-        await switch.async_set_timer(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "time": service.data[ATTR_TIMER]}
+        await typed_switch.async_set_timer(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_switch_temp_alert_service(service: ServiceCall) -> None:
         """Set temperature alert for switch device MC3100ZB."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
-        await switch.async_set_temp_alert(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
+        await typed_switch.async_set_temp_alert(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_load_dr_options_service(service: ServiceCall) -> None:
         """Set dr mode options for load controller."""
         switch = await get_switch(service)
+        typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": switch.unique_id,
+            "id": typed_switch.unique_id,
             "dractive": service.data[ATTR_DRACTIVE],
             "droptout": service.data[ATTR_OPTOUT],
             "onoff": service.data[ATTR_ONOFF],
         }
-        await switch.async_set_load_dr_options(value)
-        switch.async_schedule_update_ha_state(True)
+        await typed_switch.async_set_load_dr_options(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_control_onoff_service(service: ServiceCall) -> None:
         """Set status of both onoff controller."""
         switch = await get_switch(service)
+        typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": switch.unique_id,
+            "id": typed_switch.unique_id,
             "onoff_num": service.data[ATTR_ONOFF_NUM],
             "status": service.data[ATTR_STATUS],
         }
-        await switch.async_set_control_onoff(value)
-        switch.async_schedule_update_ha_state(True)
+        await typed_switch.async_set_control_onoff(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_tank_size_service(service: ServiceCall) -> None:
         """Set water tank size for RM3500ZB."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
-        await switch.async_set_tank_size(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        await typed_switch.async_set_tank_size(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_controlled_device_service(service: ServiceCall) -> None:
         """Set controlled device type for RM3250ZB."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
-        await switch.async_set_controlled_device(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        await typed_switch.async_set_controlled_device(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_low_temp_protection_service(service: ServiceCall) -> None:
         """Set water tank temperature protection for RM3500ZB."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_WATER_TEMP_MIN]}
-        await switch.async_set_low_temp_protection(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "val": service.data[ATTR_WATER_TEMP_MIN]}
+        await typed_switch.async_set_low_temp_protection(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_input_output_names_service(service: ServiceCall) -> None:
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         switch = await get_switch(service)
+        typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": switch.unique_id,
+            "id": typed_switch.unique_id,
             "input1": service.data[ATTR_NAME_1],
             "input2": service.data[ATTR_NAME_2],
             "output1": service.data[ATTR_OUTPUT_NAME_1],
             "output2": service.data[ATTR_OUTPUT_NAME_2],
         }
-        await switch.async_set_input_output_names(value)
-        switch.async_schedule_update_ha_state(True)
+        await typed_switch.async_set_input_output_names(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         switch = await get_switch(service)
-        value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
-        await switch.async_set_activation(value)
-        switch.async_schedule_update_ha_state(True)
+        typed_switch = cast(Neviweb130Switch, switch)
+        value = {"id": typed_switch.unique_id, "active": service.data[ATTR_ACTIVE]}
+        await typed_switch.async_set_activation(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_remaining_time_service(service: ServiceCall) -> None:
         """Set coldLoadPickupRemainingTime value."""
         switch = await get_switch(service)
+        typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": switch.unique_id,
+            "id": typed_switch.unique_id,
             "time": service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
         }
-        await switch.async_set_remaining_time(value)
-        switch.async_schedule_update_ha_state(True)
+        await typed_switch.async_set_remaining_time(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_on_off_input_delay_service(service: ServiceCall) -> None:
         """Set input 1 or 2 on/off delay for MC3100ZB device."""
         switch = await get_switch(service)
+        typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": switch.unique_id,
+            "id": typed_switch.unique_id,
             "input_number": service.data[ATTR_INPUT_NUMBER],
             "onoff": service.data[ATTR_ONOFF],
             "delay": service.data[ATTR_DELAY][0],
         }
-        await switch.async_set_on_off_input_delay(value)
-        switch.async_schedule_update_ha_state(True)
+        await typed_switch.async_set_on_off_input_delay(value)
+        typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
     hass.services.async_register(
