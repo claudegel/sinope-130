@@ -492,31 +492,31 @@
       }
     },
     "sensor": {
-      "auxHeatStage1_hourly_count": {
+      "aux_heat_stage1_hourly_count": {
         "name": "AuxHeatStage1 hourly count"
       },
-      "auxHeatStage2_hourly_count": {
+      "aux_heat_stage2_hourly_count": {
         "name": "AuxHeatStage2 hourly count"
       },
-      "auxHeatStage1_hourly_total_count": {
+      "aux_heat_stage1_hourly_total_count": {
         "name": "AuxHeatStage1 hourly total count"
       },
-      "auxHeatStage2_hourly_total_count": {
+      "aux_heat_stage2_hourly_total_count": {
         "name": "AuxHeatStage2 hourly total count"
       },
       "battery_level": {
         "name": "Battery level"
       },
-      "coolStage1_hourly_count": {
+      "cool_stage1_hourly_count": {
         "name": "CoolStage1 hourly count"
       },
-      "coolStage2_hourly_count": {
+      "cool_stage2_hourly_count": {
         "name": "CoolStage2 hourly count"
       },
-      "coolStage1_hourly_total_count": {
+      "cool_stage1_hourly_total_count": {
         "name": "CoolStage1 hourly total count"
       },
-      "coolStage2_hourly_total_count": {
+      "cool_stage2_hourly_total_count": {
         "name": "CoolStage2 hourly total count"
       },
       "daily_flow_count": {
@@ -531,10 +531,10 @@
           "total": "Total"
         }
       },
-      "emergencyHeat_hourly_count": {
+      "emergency_heat_hourly_count": {
         "name": "EmergencyHeat hourly count"
       },
-      "emergencyHeat_hourly_total_count": {
+      "emergency_heat_hourly_total_count": {
         "name": "EmergencyHeat hourly total count"
       },
       "extern_temperature": {
@@ -552,16 +552,16 @@
       "gauge_angle": {
         "name": "Gauge Angle"
       },
-      "heatStage1_hourly_count": {
+      "heat_stage1_hourly_count": {
         "name": "HeatStage1 hourly count"
       },
-      "heatStage2_hourly_count": {
+      "heat_stage2_hourly_count": {
         "name": "HeatStage2 hourly count"
       },
-      "heatStage1_hourly_total_count": {
+      "heat_stage1_hourly_total_count": {
         "name": "HeatStage1 hourly total count"
       },
-      "heatStage2_hourly_total_count": {
+      "heat_stage2_hourly_total_count": {
         "name": "HeatStage2 hourly total count"
       },
       "hourly_flow_count": {
