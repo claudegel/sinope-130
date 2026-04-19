@@ -6941,8 +6941,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     async def async_set_cool_setpoint_away(self, value: dict[str, Any]) -> bool:
         """Set device away cooling setpoint."""
-        await self._client.async_set_cool_setpoint_away(value["id"], value["temp"], self._is_HC)
-        self._cool_target_temp_away = value["temp"]
+        success = await self._client.async_set_cool_setpoint_away(value["id"], value["temp"], self._is_HC)
+        if success:
+            self._cool_target_temp_away = value["temp"]
+        return success
 
     async def async_set_cool_dissipation_time(self, value):
         """Set device cool dissipation time."""
