@@ -427,14 +427,14 @@ ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
 FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
 
 TH6_MODES_VALUES: dict[str, str] = {
-    "heatStage1": "heatStage1RuntimeAndTimestamp",
-    "heatStage2": "heatStage2RuntimeAndTimestamp",
-    "coolStage1": "coolStage1RuntimeAndTimestamp",
-    "coolStage2": "coolStage2RuntimeAndTimestamp",
-    "auxHeatStage1": "auxHeatStage1RuntimeAndTimestamp",
-    "auxHeatStage2": "auxHeatStage2RuntimeAndTimestamp",
+    "heat_stage1": "heatStage1RuntimeAndTimestamp",
+    "heat_stage2": "heatStage2RuntimeAndTimestamp",
+    "cool_stage1": "coolStage1RuntimeAndTimestamp",
+    "cool_stage2": "coolStage2RuntimeAndTimestamp",
+    "aux_heat_stage1": "auxHeatStage1RuntimeAndTimestamp",
+    "aux_heat_stage2": "auxHeatStage2RuntimeAndTimestamp",
     "fan": "fanRuntimeAndTimestamp",
-    "emergencyHeat": "emergencyHeatRuntimeAndTimestamp",
+    "emergency_heat": "emergencyHeatRuntimeAndTimestamp",
 }
 
 RUNTIME_COMPATIBLE_MODELS = {
