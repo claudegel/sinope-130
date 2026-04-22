@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.4] - 2026-04-__
+### Added
+
+### Fix
+- Fix self._occupancy_mode when Neviweb do not respond for thermostats.
+
+### Doc
+
 ## [v4.2.3] - 2026-04-06
 ### Added
 - Add safety_limit for daily counter.
