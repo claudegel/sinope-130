@@ -2,6 +2,18 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.4] - 2026-04-__
+### Added
+- Add support for HP6000WF-TCL for Runtru/Ameristar heat pump.
+- Add support for GT4220WF gateway for mesh valves.
+- Add support for TH1145WF thermostat two wires color screen.
+
+### Fix
+- Fix self._occupancy_mode when Neviweb do not respond for thermostats.
+
+### Doc
+- Add description for HP6000WF-TCL and GT4220WF in readme.
+
 ## [v4.2.3] - 2026-04-06
 ### Added
 - Add safety_limit for daily counter.
