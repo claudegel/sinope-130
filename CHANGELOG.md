@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.4] - 2026-04-__
+## [v4.2.4] - 2026-04-28
 ### Added
 - Add support for HP6000WF-TCL for Runtru/Ameristar heat pump.
 - Add support for GT4220WF gateway for mesh valves.
