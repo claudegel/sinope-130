@@ -12,7 +12,7 @@ All modification for this custom_component will be added in this file.
 - Fix self._occupancy_mode when Neviweb do not respond for thermostats.
 
 ### Doc
-- Add description for HP6000WF-TCL and GT4220WF in readme.
+- Add description for HP6000WF-TCL, TH1145WF and GT4220WF in readme.
 
 ## [v4.2.3] - 2026-04-06
 ### Added
