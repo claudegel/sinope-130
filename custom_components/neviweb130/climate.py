@@ -23,6 +23,7 @@ model 348 = thermostat TH1134CR Sinopé Evo 4000W (Wi-Fi lite)
 model 343 = thermostat THEWF01 (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
+model 350 = thermostat TH1145WF ?  (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (sku: PS120_240WF)
     (wifi floor), no energy stat for True Comfort
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
@@ -43,7 +44,8 @@ model 6812 = HP6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 
 Support for Wi-Fi heat pump interfaces
 model 6813 = HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
-model 6814 = HP6000WF-XX for Hisense, Haxxair and Zephyr heat pump
+model 6814 = HP6000WF-TCL for Runtru/Ameristar heat pump
+model xxxx = HP6000WF-XX for Hisense, Haxxair and Zephyr heat pump
 model xxxx = HP6000WF-XX for Ouellet heat pump with Gree connector
 
 For more details about this platform, please refer to the documentation at
