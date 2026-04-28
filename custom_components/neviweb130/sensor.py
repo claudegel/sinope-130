@@ -1595,7 +1595,7 @@ class Neviweb130TankSensor(Neviweb130Sensor):
 
 
 class Neviweb130GatewaySensor(Neviweb130Sensor):
-    """Implementation of a Neviweb gateway sensor."""
+    """Implementation of a Neviweb gateway sensor, GT130, GT4220WF."""
 
     def __init__(self, device_info, name, device_type, sku, firmware, location, client):
         """Initialize."""
