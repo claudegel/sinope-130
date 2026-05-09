@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.5] - 2026-04-__
+### Added
+
+### Fix
+- Removed device_class property from climate entity.
+
+### Doc
+
 ## [v4.2.4] - 2026-04-28
 ### Added
 - Add support for HP6000WF-TCL for Runtru/Ameristar heat pump.
