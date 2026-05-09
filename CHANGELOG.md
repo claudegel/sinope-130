@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.5] - 2026-04-__
+## [v4.2.5] - 2026-04-09
 ### Added
 
 ### Fix
