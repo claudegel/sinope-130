@@ -74,7 +74,7 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -2314,12 +2314,6 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the unit of measurement of this entity, if any."""
         # Will always send Celsius values even if it's configured to display in Fahrenheit
         return UnitOfTemperature.CELSIUS
-
-    @property
-    @override
-    def device_class(self) -> SensorDeviceClass:
-        """Return the device class of this entity."""
-        return SensorDeviceClass.TEMPERATURE
 
     @property
     @override
