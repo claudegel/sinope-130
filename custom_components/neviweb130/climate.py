@@ -72,7 +72,7 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.components.recorder.models import StatisticMeanType
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -2112,12 +2112,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return temp_format_to_ha(self._temperature_format)
-
-    @property
-    @override
-    def device_class(self):
-        """Return the device class of this entity."""
-        return SensorDeviceClass.TEMPERATURE
 
     @property
     def location(self):
