@@ -821,16 +821,16 @@ class Neviweb130Light(LightEntity):
                 daily_kwh_count = 0
                 k = 0
                 while k < n:
-                    if (
-                        datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
-                        .astimezone(timezone.utc)
-                        .month
-                        == current_month
-                    ):
-                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
+#                    if (
+#                        datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
+#                        .astimezone(timezone.utc)
+#                        .month
+#                        == current_month
+#                    ):
+#                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
                     k += 1
                 self._daily_kwh_count = round(daily_kwh_count, 3)
-                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+#                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
                 dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
