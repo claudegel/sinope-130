@@ -4,6 +4,7 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.2.6] - 2026-05-04
 ### Added
+- Add safe_number() method to validate statistic data received from Neviweb.
 
 ### Fix
 - Add protection for bad stat data received from Neviweb for thermostats.
