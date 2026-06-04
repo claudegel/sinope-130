@@ -2,6 +2,17 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.6] - 2026-05-04
+### Added
+
+### Fix
+- Add protection for bad stat data received from Neviweb for thermostats.
+- Add protection for bad stat data received from Neviweb for light.
+- Add protection for bad stat data received from Neviweb for switch.
+- Add protection for bad stat data received from Neviweb for valves.
+
+### Doc
+
 ## [v4.2.5] - 2026-04-09
 ### Added
 
