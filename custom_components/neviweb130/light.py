@@ -71,7 +71,7 @@ from .const import (
     SERVICE_SET_WATTAGE,
     VERSION,
 )
-from .helpers import safe_get_device_attributes, translated_or_default
+from .helpers import safe_get_device_attributes, safe_number, translated_or_default
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_KEY_DOUBLE_UP_SCHEMA,
@@ -795,10 +795,10 @@ class Neviweb130Light(LightEntity):
                 monthly_kwh_count = 0
                 k = 0
                 while k < n:
-                    monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                    monthly_kwh_count += safe_number(device_monthly_stats[k]["period"]) / 1000
                     k += 1
                 self._monthly_kwh_count = round(monthly_kwh_count, 3)
-                self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
+                self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]) / 1000, 3)
                 dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
                     timezone.utc
                 )
@@ -821,16 +821,16 @@ class Neviweb130Light(LightEntity):
                 daily_kwh_count = 0
                 k = 0
                 while k < n:
-#                    if (
-#                        datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
-#                        .astimezone(timezone.utc)
-#                        .month
-#                        == current_month
-#                    ):
-#                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                    if (
+                        datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
+                        .astimezone(timezone.utc)
+                        .month
+                        == current_month
+                    ):
+                        daily_kwh_count += safe_number(device_daily_stats[k]["period"]) / 1000
                     k += 1
                 self._daily_kwh_count = round(daily_kwh_count, 3)
-#                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+                self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]) / 1000, 3)
                 dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
@@ -855,10 +855,10 @@ class Neviweb130Light(LightEntity):
                         datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
                         == current_day
                     ):
-                        hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                        hourly_kwh_count += safe_number(device_hourly_stats[k]["period"]) / 1000
                     k += 1
                 self._hourly_kwh_count = round(hourly_kwh_count, 3)
-                self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
+                self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]) / 1000, 3)
                 self._marker = device_hourly_stats[n - 1]["date"]
                 dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
