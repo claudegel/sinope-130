@@ -94,7 +94,7 @@ from .const import (
     STATE_VALVE_STATUS,
     VERSION,
 )
-from .helpers import file_exists, safe_get_device_attributes, translated_or_default
+from .helpers import file_exists, safe_get_device_attributes, safe_number, translated_or_default
 from .schema import (
     SET_ACTIVATION_SCHEMA,
     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
@@ -561,7 +561,7 @@ class Neviweb130Valve(ValveEntity):
         self._battery_alert = 0
         self._battery_status = None
         self._battery_voltage = 0
-        self._daily_kwh_count = 0
+        self._daily_kwh_count: float = 0.0
         self._energy_stat_time = time.time() - 1500
         self._flowmeter_alarm_length = 0
         self._flowmeter_alert_delay = 0
@@ -571,20 +571,20 @@ class Neviweb130Valve(ValveEntity):
         self._flowmeter_opt_alarm = None
         self._flowmeter_threshold = 1
         self._flowmeter_timer = 0
-        self._hour_kwh = 0
-        self._hourly_kwh_count = 0
-        self._mark = None
-        self._marker = None
-        self._month_kwh = 0
-        self._monthly_kwh_count = 0
+        self._hour_kwh: float = 0.0
+        self._hourly_kwh_count: float = 0.0
+        self._mark: str | float | None = None
+        self._marker: str | float | None = None
+        self._month_kwh: float = 0.0
+        self._monthly_kwh_count: float = 0.0
         self._onoff = None
         self._power_supply = None
         self._reports_position = False
         self._rssi = None
         self._snooze = 0.0
         self._temp_alert = None
-        self._today_kwh = 0
-        self._total_kwh_count = 0
+        self._today_kwh: float = 0.0
+        self._total_kwh_count: float = 0.0
         self._valve_status: str | None = None
         self._water_leak_status: str | None = None
 
@@ -907,19 +907,19 @@ class Neviweb130Valve(ValveEntity):
                 _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     n = len(device_monthly_stats)
-                    monthly_kwh_count = 0
+                    monthly_kwh_count = 0.0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += device_monthly_stats[k]["period"]  # / 1000
+                        monthly_kwh_count += safe_number(device_monthly_stats[k]["period"])  # / 1000
                         k += 1
                     self._monthly_kwh_count = round(monthly_kwh_count, 2)
-                    self._month_kwh = round(device_monthly_stats[n - 1]["period"], 2)
+                    self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]), 2)
                     dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
                         timezone.utc
                     )
                     _LOGGER.debug("stat month = %s", dt_month.month)
                 else:
-                    self._month_kwh = 0
+                    self._month_kwh = 0.0
                     _LOGGER.warning(
                         translated_or_default(
                             self.hass,
@@ -933,7 +933,7 @@ class Neviweb130Valve(ValveEntity):
                 _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     n = len(device_daily_stats)
-                    daily_kwh_count = 0
+                    daily_kwh_count = 0.0
                     k = 0
                     while k < n:
                         if (
@@ -942,14 +942,14 @@ class Neviweb130Valve(ValveEntity):
                             .month
                             == current_month
                         ):
-                            daily_kwh_count += device_daily_stats[k]["period"]  # / 1000
+                            daily_kwh_count += safe_number(device_daily_stats[k]["period"])  # / 1000
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 2)
-                    self._today_kwh = round(device_daily_stats[n - 1]["period"], 2)
+                    self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]), 2)
                     dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
-                    self._today_kwh = 0
+                    self._today_kwh = 0.0
                     _LOGGER.warning(
                         translated_or_default(
                             self.hass,
@@ -963,22 +963,22 @@ class Neviweb130Valve(ValveEntity):
                 _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     n = len(device_hourly_stats)
-                    hourly_kwh_count = 0
+                    hourly_kwh_count = 0.0
                     k = 0
                     while k < n:
                         if (
                             datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
                             == current_day
                         ):
-                            hourly_kwh_count += device_hourly_stats[k]["period"]  # / 1000
+                            hourly_kwh_count += safe_number(device_hourly_stats[k]["period"])  # / 1000
                         k += 1
                     self._hourly_kwh_count = round(hourly_kwh_count, 2)
-                    self._hour_kwh = round(device_hourly_stats[n - 1]["period"], 2)
+                    self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]), 2)
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
                 else:
-                    self._hour_kwh = 0
+                    self._hour_kwh = 0.0
                     _LOGGER.warning(
                         translated_or_default(
                             self.hass,
@@ -988,7 +988,7 @@ class Neviweb130Valve(ValveEntity):
                             name=self._name,
                         )
                     )
-                if self._total_kwh_count == 0:
+                if self._total_kwh_count == 0.0:
                     self._total_kwh_count = round(
                         self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
                         3,
@@ -1005,9 +1005,9 @@ class Neviweb130Valve(ValveEntity):
             if self._energy_stat_time == 0:
                 self._energy_stat_time = start
         else:
-            self._hour_kwh = 0
-            self._today_kwh = 0
-            self._month_kwh = 0
+            self._hour_kwh = 0.0
+            self._today_kwh = 0.0
+            self._month_kwh = 0.0
 
     def log_error(self, error_data):
         """Send error message to LOG."""

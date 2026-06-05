@@ -464,3 +464,18 @@ def safe_get_device_attributes(
 
         logger.debug("Returned device_data = %s", device_data)
         return device_data
+
+
+# ─────────────────────────────────────────────
+# Add stat validation value received in case of None value
+# ─────────────────────────────────────────────
+
+
+def safe_number(value) -> float:
+    """Return a safe numeric value even if Neviweb sends None or invalid data."""
+    if value is None:
+        return 0.0
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
