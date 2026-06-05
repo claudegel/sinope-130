@@ -493,29 +493,29 @@ class Neviweb130Light(LightEntity):
         self._is_sedna_new_dimmer = device_info["signature"]["model"] in DEVICE_MODEL_SED_NEW_DIMMER
         self._active = True
         self._brightness_pct = 0
-        self._daily_kwh_count = 0
+        self._daily_kwh_count: float = 0.0
         self._double_up = None
         self._energy_stat_time = time.time() - 1500
         self._error_code = None
-        self._hour_kwh = 0
-        self._hourly_kwh_count = 0
+        self._hour_kwh: float = 0.0
+        self._hourly_kwh_count: float = 0.0
         self._intensity_min = 600
         self._keypad = "Unlocked"
         self._led_off = "0,0,0,0"
         self._led_off_intensity = None
         self._led_on = "0,0,0,0"
         self._led_on_intensity = None
-        self._mark = None
-        self._marker = None
-        self._month_kwh = 0
-        self._monthly_kwh_count = 0
+        self._mark: str | float | None = None
+        self._marker: str | float | None = None
+        self._month_kwh: float = 0.0
+        self._monthly_kwh_count: float = 0.0
         self._onoff = None
         self._phase_control = None
         self._rssi = None
         self._snooze = 0.0
         self._timer = 0
-        self._today_kwh = 0
-        self._total_kwh_count = 0
+        self._today_kwh: float = 0.0
+        self._total_kwh_count: float = 0.0
         self._wattage = 0
         self._wattage_status = None
 
@@ -792,7 +792,7 @@ class Neviweb130Light(LightEntity):
             #            _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
-                monthly_kwh_count = 0
+                monthly_kwh_count = 0.0
                 k = 0
                 while k < n:
                     monthly_kwh_count += safe_number(device_monthly_stats[k]["period"]) / 1000
@@ -804,7 +804,7 @@ class Neviweb130Light(LightEntity):
                 )
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
-                self._month_kwh = 0
+                self._month_kwh = 0.0
                 _LOGGER.warning(
                     translated_or_default(
                         self.hass,
@@ -818,7 +818,7 @@ class Neviweb130Light(LightEntity):
             #            _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
-                daily_kwh_count = 0
+                daily_kwh_count = 0.0
                 k = 0
                 while k < n:
                     if (
@@ -834,7 +834,7 @@ class Neviweb130Light(LightEntity):
                 dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
-                self._today_kwh = 0
+                self._today_kwh = 0.0
                 _LOGGER.warning(
                     translated_or_default(
                         self.hass,
@@ -848,7 +848,7 @@ class Neviweb130Light(LightEntity):
             #            _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
-                hourly_kwh_count = 0
+                hourly_kwh_count = 0.0
                 k = 0
                 while k < n:
                     if (
@@ -863,7 +863,7 @@ class Neviweb130Light(LightEntity):
                 dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
-                self._hour_kwh = 0
+                self._hour_kwh = 0.0
                 _LOGGER.warning(
                     translated_or_default(
                         self.hass,
@@ -873,13 +873,11 @@ class Neviweb130Light(LightEntity):
                         name=self._name,
                     )
                 )
-            if self._total_kwh_count == 0:
+            if self._total_kwh_count == 0.0:
                 self._total_kwh_count = round(
                     self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
                     3,
                 )
-                # async_add_data(self._id, self._total_kwh_count, self._marker)
-                # self.async_write_ha_state()
                 self._mark = self._marker
             else:
                 if self._marker != self._mark:
