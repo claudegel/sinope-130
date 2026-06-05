@@ -783,7 +783,7 @@ class Neviweb130Switch(SwitchEntity):
         self._controlled_device = None
         self._cur_temp = None
         self._current_power_w = 0
-        self._daily_kwh_count:float = 0.0
+        self._daily_kwh_count: float = 0.0
         self._drstatus_active = "off"
         self._drstatus_onoff = "off"
         self._drstatus_optout = "off"
