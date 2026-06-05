@@ -2102,7 +2102,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._cycle_length = 0
         self._cycle_length_output2_status = "off"
         self._cycle_length_output2_value = 0
-        self._daily_kwh_count = 0
+        self._daily_kwh_count: float = 0.0
         self._display2 = None
         self._display_conf = None
         self._drsetpoint_status = "off"
@@ -2132,18 +2132,18 @@ class Neviweb130Thermostat(ClimateEntity):
         self._floor_sensor_type = None
         self._heat_level = 0
         self._heat_lockout_temp = None
-        self._hour_kwh = 0
-        self._hourly_kwh_count = 0
+        self._hour_kwh: float = 0.0
+        self._hourly_kwh_count: float = 0.0
         self._keypad = "unlocked"
         self._language = None
         self._load2 = None
         self._load2_status = None
-        self._mark = None
-        self._marker = None
+        self._mark: str | float | None = None
+        self._marker: str | float | None = None
         self._max_temp = 30
         self._min_temp = 5
-        self._month_kwh = 0
-        self._monthly_kwh_count = 0
+        self._month_kwh: float = 0.0
+        self._monthly_kwh_count: float = 0.0
         self._occupancy = "home"
         self._occupancy_mode = "home"
         self._operation_mode = None
@@ -2160,8 +2160,8 @@ class Neviweb130Thermostat(ClimateEntity):
         self._temperature: float = 20.0
         self._temperature_format = "celsius"
         self._time_format = "24h"
-        self._today_kwh = 0
-        self._total_kwh_count = 0
+        self._today_kwh: float = 0.0
+        self._total_kwh_count: float = 0.0
         self._wattage = 0
         self._weather_icon = 0
 
@@ -3128,7 +3128,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
                 if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                     n = len(device_monthly_stats)
-                    monthly_kwh_count = 0
+                    monthly_kwh_count = 0.0
                     k = 0
                     while k < n:
                         monthly_kwh_count += safe_number(device_monthly_stats[k]["period"]) / 1000
@@ -3140,7 +3140,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     )
                     _LOGGER.debug("stat month = %s", dt_month.month)
                 else:
-                    self._month_kwh = 0
+                    self._month_kwh = 0.0
                     _LOGGER.warning(
                         translated_or_default(
                             self.hass,
@@ -3154,7 +3154,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
                 if device_daily_stats is not None and len(device_daily_stats) > 1:
                     n = len(device_daily_stats)
-                    daily_kwh_count = 0
+                    daily_kwh_count = 0.0
                     k = 0
                     while k < n:
                         if (
@@ -3170,7 +3170,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
-                    self._today_kwh = 0
+                    self._today_kwh = 0.0
                     _LOGGER.warning(
                         translated_or_default(
                             self.hass,
@@ -3190,7 +3190,7 @@ class Neviweb130Thermostat(ClimateEntity):
                 )
                 if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                     n = len(device_hourly_stats)
-                    hourly_kwh_count = 0
+                    hourly_kwh_count = 0.0
                     k = 0
                     while k < n:
                         if (
@@ -3205,7 +3205,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
                 else:
-                    self._hour_kwh = 0
+                    self._hour_kwh = 0.0
                     _LOGGER.warning(
                         translated_or_default(
                             self.hass,
@@ -3215,7 +3215,7 @@ class Neviweb130Thermostat(ClimateEntity):
                             name=self._name,
                         )
                     )
-                if self._total_kwh_count == 0:
+                if self._total_kwh_count == 0.0:
                     self._total_kwh_count = round(
                         self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
                         3,
@@ -3275,8 +3275,8 @@ class Neviweb130Thermostat(ClimateEntity):
 
                     else:
                         # Unsupported modes for this thermostat
-                        setattr(self, total_attr, 0)
-                        setattr(self, hourly_attr, 0)
+                        setattr(self, total_attr, 0.0)
+                        setattr(self, hourly_attr, 0.0)
 
         if self._energy_stat_time == 0:
             self._energy_stat_time = start
