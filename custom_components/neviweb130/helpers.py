@@ -1293,6 +1293,21 @@ async def async_safe_get_device_attributes(
         return device_data
 
 
+# ─────────────────────────────────────────────
+# Add stat validation value received in case of None value
+# ─────────────────────────────────────────────
+
+
+def safe_number(value) -> float:
+    """Return a safe numeric value even if Neviweb sends None or invalid data."""
+    if value is None:
+        return 0.0
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 # await async_notify_throttled(
 #    self.hass,
 #    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
