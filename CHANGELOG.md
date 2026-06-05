@@ -11,6 +11,7 @@ All modification for this custom_component will be added in this file.
 - Add protection for bad stat data received from Neviweb for light.
 - Add protection for bad stat data received from Neviweb for switch.
 - Add protection for bad stat data received from Neviweb for valves.
+- Reformat statistic data to float.
 
 ### Doc
 
