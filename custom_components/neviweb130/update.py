@@ -360,7 +360,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             "persistent_notification",
             "create",
             {
-                "title": "Neviweb130 – Sauvegarde",
+                "title": "Neviweb130 – Backup",
                 "message": "Backup before update…",
                 "notification_id": "neviweb130_update_progress",
             },
@@ -371,9 +371,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
         if isinstance(selected, str):
             selected = [selected]
 
-        folders = ["homeassistant" if x == "config" else x for x in selected]
-
-        _LOGGER.debug("Backup folder set to %s", folders)
         snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
         try:
@@ -385,14 +382,28 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     blocking=True,
                 )
                 _LOGGER.info("Full backup '%s' triggered successfully", snapshot_name)
+
             else:
+                # New logic for futur proofing
                 payload = {
                     "name": snapshot_name,
-                    "folders": folders,
                     "addons": [],
                     "homeassistant_exclude_database": False,
                     "compressed": True,
                 }
+
+                # If user choose "config", we activate homeassistant=True
+                if "config" in selected or "homeassistant" in selected:
+                    payload["homeassistant"] = True
+
+                # Filter prohibited folder
+                folders = [
+                    x for x in selected
+                    if x not in ("config", "homeassistant")
+                ]
+
+                if folders:
+                    payload["folders"] = folders
 
                 await self.hass.services.async_call(
                     "hassio",
