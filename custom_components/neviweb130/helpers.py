@@ -779,7 +779,7 @@ def update_runtime_stats(obj, device_stats: dict, modes: dict[str, str], prefix:
 
         else:
             # Unsupported mode → reset values
-            setattr(obj, total_attr, 0)
+            setattr(obj, total_attr, 0.0)
             setattr(obj, time_attr, 0)
 
 
