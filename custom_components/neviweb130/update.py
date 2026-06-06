@@ -397,10 +397,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     payload["homeassistant"] = True
 
                 # Filter prohibited folder
-                folders = [
-                    x for x in selected
-                    if x not in ("config", "homeassistant")
-                ]
+                folders = [x for x in selected if x not in ("config", "homeassistant")]
 
                 if folders:
                     payload["folders"] = folders
