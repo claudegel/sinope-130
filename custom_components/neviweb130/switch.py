@@ -148,6 +148,7 @@ from .helpers import (
     async_notify_once_or_update,
     async_safe_get_device_attributes,
     create_risky_issue,
+    safe_number,
     translate_error,
 )
 from .schema import (
@@ -899,20 +900,16 @@ def format_remaining_time(time_val: int) -> str | int:
     return "off" if time_val == OFF_TIMER else time_val
 
 
-def retrieve_data(id, device_dict, data):
+def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        if data == 1:
-            return device_data[1]
-        else:
-            return device_data[2]
+        _LOGGER.debug("Retrieve data for %s = $s", id, device_data)
+        return device_data[data]  # 1 ou 2
     else:
         # Set defaults if device not found
-        if data == 1:
-            return 0
-        else:
-            return None
+        _LOGGER.debug("Retrieve data for %s not found", id)
+        return 0 if data == 1 else None
 
 
 async def save_data(id, device_dict, data, mark, conf_dir):
@@ -983,13 +980,13 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._controlled_device: str | None = None
         self._cur_temp = None
         self._current_power_w = 0
-        self._daily_kwh_count = 0
+        self._daily_kwh_count: float = 0.0
         self._drstatus_active = "off"
         self._drstatus_onoff = "off"
         self._drstatus_optout = "off"
         self._energy_stat_time = time.time() - 1500
-        self._hour_kwh = 0
-        self._hourly_kwh_count = 0
+        self._hour_kwh: float = 0.0
+        self._hourly_kwh_count: float = 0.0
         self._input_1_off_delay: str | None = None
         self._input_1_on_delay: str | None = None
         self._input_2_off_delay: str | None = None
@@ -997,10 +994,11 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._input_name_1 = "Not set"
         self._input_name_2 = "Not set"
         self._keypad = None
-        self._mark = retrieve_data(self._id, self._device_dict, 2)
-        self._marker = None
-        self._month_kwh = 0
-        self._monthly_kwh_count = 0
+        raw_mark = retrieve_data(self._id, self._device_dict, 2)
+        self._mark: str | float | int | None = raw_mark
+        self._marker: str | float | None = None
+        self._month_kwh: float = 0.0
+        self._monthly_kwh_count: float = 0.0
         self._onoff = None
         self._onoff2 = None
         self._output_name_1 = "Not set"
@@ -1013,8 +1011,8 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._temp_alert: int | None = None
         self._timer: str | None = None
         self._timer2: str | None = None
-        self._today_kwh = 0
-        self._total_kwh_count = retrieve_data(self._id, self._device_dict, 1)
+        self._today_kwh: float = 0.0
+        self._total_kwh_count: float = float(retrieve_data(self._id, self._device_dict, 1) or 0.0)
         self._water_leak_status = None
         self._water_temp_min: str | None = None
 
@@ -1427,26 +1425,26 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             # _LOGGER.debug("%s device_monthly_stats = %s", self._name, device_monthly_stats)
             if device_monthly_stats is not None and len(device_monthly_stats) > 1:
                 n = len(device_monthly_stats)
-                monthly_kwh_count = 0
+                monthly_kwh_count = 0.0
                 k = 0
                 while k < n:
-                    monthly_kwh_count += device_monthly_stats[k]["period"] / 1000
+                    monthly_kwh_count += safe_number(device_monthly_stats[k]["period"]) / 1000
                     k += 1
                 self._monthly_kwh_count = round(monthly_kwh_count, 3)
-                self._month_kwh = round(device_monthly_stats[n - 1]["period"] / 1000, 3)
+                self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]) / 1000, 3)
                 dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
                     timezone.utc
                 )
                 _LOGGER.debug("stat month = %s", dt_month.month)
             else:
-                self._month_kwh = 0
+                self._month_kwh = 0.0
                 msg = await translate_error(self.hass, "energy_stat", param="monthly", id=self._name)
                 _LOGGER.warning(msg)
             device_daily_stats = await self._client.async_get_device_daily_stats(self._id, False)
             # _LOGGER.debug("%s device_daily_stats = %s", self._name, device_daily_stats)
             if device_daily_stats is not None and len(device_daily_stats) > 1:
                 n = len(device_daily_stats)
-                daily_kwh_count = 0
+                daily_kwh_count = 0.0
                 k = 0
                 while k < n:
                     if (
@@ -1455,39 +1453,39 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                         .month
                         == current_month
                     ):
-                        daily_kwh_count += device_daily_stats[k]["period"] / 1000
+                        daily_kwh_count += safe_number(device_daily_stats[k]["period"]) / 1000
                     k += 1
                 self._daily_kwh_count = round(daily_kwh_count, 3)
-                self._today_kwh = round(device_daily_stats[n - 1]["period"] / 1000, 3)
+                self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]) / 1000, 3)
                 dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
                 _LOGGER.debug("stat day = %s", dt_day.day)
             else:
-                self._today_kwh = 0
+                self._today_kwh = 0.0
                 msg = await translate_error(self.hass, "energy_stat", param="daily", id=self._name)
                 _LOGGER.warning(msg)
             device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, False)
             # _LOGGER.debug("%s device_hourly_stats = %s", self._name, device_hourly_stats)
             if device_hourly_stats is not None and len(device_hourly_stats) > 1:
                 n = len(device_hourly_stats)
-                hourly_kwh_count = 0
+                hourly_kwh_count = 0.0
                 k = 0
                 while k < n:
                     if (
                         datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
                         == current_day
                     ):
-                        hourly_kwh_count += device_hourly_stats[k]["period"] / 1000
+                        hourly_kwh_count += safe_number(device_hourly_stats[k]["period"]) / 1000
                     k += 1
                 self._hourly_kwh_count = round(hourly_kwh_count, 3)
-                self._hour_kwh = round(device_hourly_stats[n - 1]["period"] / 1000, 3)
+                self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]) / 1000, 3)
                 self._marker = device_hourly_stats[n - 1]["date"]
                 dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
                 _LOGGER.debug("stat hour = %s", dt_hour.hour)
             else:
-                self._hour_kwh = 0
+                self._hour_kwh = 0.0
                 msg = await translate_error(self.hass, "energy_stat", param="hourly", id=self._name)
                 _LOGGER.warning(msg)
-            if self._total_kwh_count == 0:
+            if self._total_kwh_count == 0.0:
                 self._total_kwh_count = round(
                     self._monthly_kwh_count + self._daily_kwh_count + self._hourly_kwh_count,
                     3,
