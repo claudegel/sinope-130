@@ -13,6 +13,8 @@ All modification for this custom_component will be added in this file.
 - Change energy stat data format from integer to float for switch.
 - Change energy stat data format from integer to float for valve.
 - change updater payload to comply with new HA local folder naming.
+- Improve HP6000ZB-XX support.
+- Fix set_temperature for HVACMode.COOL for HP6000ZB-XX.
 
 ### Doc
 
