@@ -15,6 +15,7 @@ All modification for this custom_component will be added in this file.
 - change updater payload to comply with new HA local folder naming.
 - Improve HP6000ZB-XX support.
 - Fix set_temperature for HVACMode.COOL for HP6000ZB-XX.
+- Fix HP6000ZB to convert HVACMode.FAN_ONLY to "fanOnly" when sending command to Neviweb.
 
 ### Doc
 
