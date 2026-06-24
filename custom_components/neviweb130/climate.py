@@ -5876,6 +5876,8 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     @override
     def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new hvac mode."""
+        if hvac_mode == HVACMode.FAN_ONLY:
+            hvac_mode = "fanOnly"
         self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HP)
 
         self._delayed_refresh()
