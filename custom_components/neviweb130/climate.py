@@ -39,6 +39,7 @@ model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
 
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
+model 6810 = HP6000ZB-GE-RS485 for Tosot heat pump with Gree connector
 model 6811 = HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
 model 6812 = HP6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 
@@ -5139,7 +5140,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF, SRM40 and True Comfort thermostat."""
+    """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF, SRM40, True Comfort thermostat and FLP55."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -5601,7 +5602,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130HPThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb HP6000ZB-GE, HP6000ZB-MA and HP6000ZB-HS heat pump interfaces thermostats."""
+    """Implementation of Neviweb HP6000ZB-GE, HP6000ZB-GE-RS485, HP6000ZB-MA and HP6000ZB-HS heat pump interfaces thermostats."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -5759,6 +5760,158 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                             sku=self._sku,
                         )
                     )
+
+    @property
+    @override
+    def is_on(self) -> bool:
+        """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
+        return (
+            self._operation_mode == HVACMode.HEAT
+            or self._operation_mode == HVACMode.COOL
+            or self._operation_mode == HVACMode.DRY
+            or self._operation_mode == HVACMode.FAN_ONLY
+        )
+
+    @property
+    @override
+    def hvac_action(self) -> HVACAction | None:
+        """Return current HVAC action."""
+        mode = self.hvac_mode
+        temp = self.current_temperature
+
+        if temp is None:
+            return HVACAction.IDLE
+
+        if mode == HVACMode.OFF:
+            return HVACAction.OFF
+        if mode == HVACMode.COOL:
+            if temp > self.target_temperature_high:
+                return HVACAction.COOLING
+            return HVACAction.IDLE
+        if mode == HVACMode.HEAT:
+            if temp < self.target_temperature_low:
+                return HVACAction.HEATING
+            return HVACAction.IDLE
+        if mode == HVACMode.DRY:
+            return HVACAction.DRYING
+        if mode == HVACMode.FAN_ONLY:
+            return HVACAction.FAN
+
+        return HVACAction.IDLE
+
+    @property
+    @override
+    def min_temp(self) -> float:
+        """Return the minimum temperature."""
+        if self.hvac_mode == HVACMode.COOL:
+            return self._cool_min
+        else:
+            return self._min_temp
+
+    @property
+    @override
+    def max_temp(self) -> float:
+        """Return the maximum temperature."""
+        if self.hvac_mode == HVACMode.COOL:
+            return self._cool_max
+        else:
+            return self._max_temp
+
+    @property
+    @override
+    def target_temperature(self) -> float | None:
+        """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
+
+        # Default temp
+        temp = self._target_temp
+
+        # If HVACMode.heat, apply target_temperature_low
+        if self.hvac_mode == HVACMode.HEAT and self._target_temp is not None:
+            temp = self.target_temperature_low
+
+        # If HVACMode.cool, apply target_temperature_high
+        elif self.hvac_mode == HVACMode.COOL:
+            temp = self.target_temperature_high
+
+        # Other modes
+        else:
+            temp = self._target_temp
+
+        # if temp is None → return None
+        if temp is None:
+            return None
+
+        # Apply limit
+        if temp < self._min_temp:
+            return self._min_temp
+        if temp > self._max_temp:
+            return self._max_temp
+
+        return temp
+
+    @property
+    @override
+    def target_temperature_low(self) -> float:
+        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        return self._target_temp + self._drsetpoint_value
+
+    @property
+    @override
+    def target_temperature_high(self) -> float:
+        """Return the cooling temperature we try to reach."""
+        return self._target_cool
+
+    @override
+    def turn_on(self) -> None:
+        """Turn the thermostat to HVACMode.HEAT."""
+        self._operation_mode = HVACMode.HEAT
+        self._client.set_setpoint_mode(self._id, self._operation_mode, self._is_wifi, self._is_HP)
+
+    @override
+    def turn_off(self) -> None:
+        """Turn the thermostat to HVACMode.OFF."""
+        self._operation_mode = HVACMode.OFF
+        self._client.set_setpoint_mode(self._id, self._operation_mode, self._is_wifi, self._is_HP)
+
+    @override
+    def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+        """Set new hvac mode."""
+        self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HP)
+
+        self._delayed_refresh()
+
+    @override
+    def set_temperature(self, **kwargs: Any) -> None:
+        """Set new target temperature, routing to coolSetpoint or roomSetpoint based on mode."""
+        temperature_low = None
+        temperature_high = None
+
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        if temperature is None:
+            return
+
+        if self.hvac_mode == HVACMode.COOL:
+            temperature_high = temperature
+        else:
+            temperature_low = temperature
+
+        if temperature_low is not None:
+            temperature_low = max(temperature_low, self._min_temp)
+            temperature_low = min(temperature_low, self._max_temp)
+
+            if self._target_temp != temperature_low:
+                self._client.set_temperature(self._id, temperature_low)
+                self._target_temp = temperature_low
+
+        if temperature_high is not None:
+            temperature_high = min(temperature_high, self._cool_max)
+            temperature_high = max(temperature_high, self._cool_min)
+
+            if self._target_cool != temperature_high:
+                self._client.set_cool_temperature(self._id, temperature_high)
+                self._target_cool = temperature_high
+
+        self._delayed_refresh()
 
     @property
     @override
