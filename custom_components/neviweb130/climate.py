@@ -5682,7 +5682,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE] is not None
                         else self._cur_temp_before
                     )
-                    self._operation_mode = device_data[ATTR_SYSTEM_MODE]
+                    self._operation_mode = neviweb_to_ha_mode(device_data[ATTR_SYSTEM_MODE])
                     self._target_temp = (
                         float(device_data[ATTR_COOL_SETPOINT])
                         if self._operation_mode == "cool"
