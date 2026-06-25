@@ -16,6 +16,7 @@ All modification for this custom_component will be added in this file.
 - Improve HP6000ZB-XX support.
 - Fix set_temperature for HVACMode.COOL for HP6000ZB-XX.
 - Fix HP6000ZB to convert HVACMode.FAN_ONLY to "fanOnly" when sending command to Neviweb.
+- Translate Neviweb systemMode to Ha HVACMode for HP6000ZB thermostats.
 
 ### Doc
 
