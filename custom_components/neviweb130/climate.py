@@ -5602,7 +5602,8 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130HPThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb HP6000ZB-GE, HP6000ZB-GE-RS485, HP6000ZB-MA and HP6000ZB-HS heat pump interfaces thermostats."""
+     """Implementation of Neviweb heat pump interface thermostats:
+     HP6000ZB-GE, HP6000ZB-GE-RS485, HP6000ZB-MA and HP6000ZB-HS."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
