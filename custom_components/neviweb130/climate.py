@@ -5669,7 +5669,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature(self) -> float | None:
+    def target_temperature(self) -> float:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
 
         # Default temp
@@ -5686,10 +5686,6 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         # Other modes
         else:
             temp = self._target_temp
-
-        # if temp is None → return None
-        if temp is None:
-            return None
 
         # Apply limit
         if temp < self._min_temp:
