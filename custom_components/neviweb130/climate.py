@@ -5712,29 +5712,29 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
         return self._target_cool
 
     @override
-    def turn_on(self) -> None:
+    async def async_turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT."""
         self._operation_mode = HVACMode.HEAT
-        self._client.set_setpoint_mode(self._id, self._operation_mode, self._is_wifi, self._is_HP)
+        await self._client.async_set_setpoint_mode(self._id, self._operation_mode, self._is_wifi, self._is_HP)
 
     @override
-    def turn_off(self) -> None:
+    async def async_turn_off(self) -> None:
         """Turn the thermostat to HVACMode.OFF."""
         self._operation_mode = HVACMode.OFF
-        self._client.set_setpoint_mode(self._id, self._operation_mode, self._is_wifi, self._is_HP)
+        await self._client.async_set_setpoint_mode(self._id, self._operation_mode, self._is_wifi, self._is_HP)
 
     @override
-    def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new hvac mode."""
         mode_to_send: str | HVACMode = hvac_mode
         if hvac_mode == HVACMode.FAN_ONLY:
             mode_to_send = "fanOnly"
-        self._client.set_setpoint_mode(self._id, mode_to_send, self._is_wifi, self._is_HP)
+        await self._client.async_set_setpoint_mode(self._id, mode_to_send, self._is_wifi, self._is_HP)
 
-        self._delayed_refresh()
+        await self._delayed_refresh()
 
     @override
-    def set_temperature(self, **kwargs: Any) -> None:
+    async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature, routing to coolSetpoint or roomSetpoint based on mode."""
         temperature_low = None
         temperature_high = None
@@ -5753,7 +5753,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             temperature_low = min(temperature_low, self._max_temp)
 
             if self._target_temp != temperature_low:
-                self._client.set_temperature(self._id, temperature_low)
+                await self._client.async_set_temperature(self._id, temperature_low)
                 self._target_temp = temperature_low
 
         if temperature_high is not None:
@@ -5761,10 +5761,10 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             temperature_high = max(temperature_high, self._cool_min)
 
             if self._target_cool != temperature_high:
-                self._client.set_cool_temperature(self._id, temperature_high)
+                await self._client.async_set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
 
-        self._delayed_refresh()
+        await self._delayed_refresh()
 
     @property
     @override
