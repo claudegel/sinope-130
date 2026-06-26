@@ -2,6 +2,24 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.7] - 2026-06-__
+### Added
+- Add support for HP6000ZB-GE-RS485 thermostats.
+- Add stat data validation in case of None values received from Neviweb.
+
+### Fix
+- Change energy stat data format from integer to float for thermostats.
+- Change energy stat data format from integer to float for light.
+- Change energy stat data format from integer to float for switch.
+- Change energy stat data format from integer to float for valve.
+- change updater payload to comply with new HA local folder naming.
+- Improve HP6000ZB-XX support.
+- Fix set_temperature for HVACMode.COOL for HP6000ZB-XX.
+- Fix HP6000ZB to convert HVACMode.FAN_ONLY to "fanOnly" when sending command to Neviweb.
+- Translate Neviweb systemMode to Ha HVACMode for HP6000ZB thermostats.
+
+### Doc
+
 ## [v4.2.6] - 2026-05-04
 ### Added
 - Add safe_number() method to validate statistic data received from Neviweb.

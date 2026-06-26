@@ -297,12 +297,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
         """Backup before update."""
         snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
-        folders = ["homeassistant"]
-
         try:
             payload = {
                 "name": snapshot_name,
-                "folders": folders,
+                "homeassistant": True,
                 "addons": [],
                 "homeassistant_exclude_database": False,
                 "compressed": True,

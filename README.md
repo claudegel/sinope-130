@@ -88,6 +88,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - SRM40 floor thermostat
 - **Heatpump controller**:
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
+  - Sinopé HP6000ZB-GE-RS485 for Tosot heat pump with Gree connector
   - Sinopé HP6000ZB-MA for Ouellet Convectair heat pump with Midea connector
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - **Wi-Fi Heatpump controller**:
