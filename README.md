@@ -3,7 +3,7 @@
 > 💛 **Enjoying this integration?**  
 > If you'd like to support its ongoing development, you can contribute here:
 > [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/) or 
-> [![Donate via Interac](https://img.shields.io/badge/Interac-Don-orange?style=for-the-badge)](DONATIONS.md)
+> [![Donate via Interac](https://img.shields.io/badge/Interac-Don-orange?style=for-the-badge)](Donations.md)
 
 > (no secret question needed).
 
