@@ -3,7 +3,8 @@
 > 💛 **Enjoying this integration?**  
 > If you'd like to support its ongoing development, you can contribute here:
 > [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/) or 
-> [![Faire un don via Interac](https://img.shields.io/badge/Interac-Donner-orange?style=for-the-badge)](mailto:claude@phyto.qc.ca?subject=Donation%20Neviweb130)
+> [![Donate via Interac](https://img.shields.io/badge/Interac-Don-orange?style=for-the-badge)](DONATIONS.md)
+
 > (no secret question needed).
 
 
