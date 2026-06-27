@@ -396,7 +396,7 @@ def create_physical_switch(data, entry, coordinator, device_registry):
 
             device_id = str(device_info["id"])
 
-            device_entry = device_registry.async_get_or_create(
+            device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
                 name=device_name,
@@ -457,7 +457,7 @@ def create_attribute_switch(hass, entry, data, coordinator, device_registry):
                 _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
 
             device_name = naming.device_name(platform, index, device_info)
-            device_registry.async_get_or_create(
+            device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, str(device_info["id"]))},
                 name=device_name,
