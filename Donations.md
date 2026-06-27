@@ -1,4 +1,4 @@
-# Faire un don via Interac Donate via Interac
+# Faire un don via Interac / Donate via Interac
 
 Merci de soutenir le développement de Neviweb130 !
 Tank you for your support to Neviweb130 development !
