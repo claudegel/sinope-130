@@ -437,7 +437,11 @@ for model in RUNTIME_COMPATIBLE_MODELS["TH6"]:
             MODEL_ATTRIBUTES[model]["sensor"].extend(a for a in attrs if a not in MODEL_ATTRIBUTES[model]["sensor"])
 
 
-def create_physical_sensors(data, entry, coordinator):
+def get_firmware(device_info):
+    return "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
+
+
+def create_physical_sensors(data, entry, coordinator, device_registry):
     entities: list[SensorEntity] = []
 
     config_prefix = data["prefix"]
@@ -460,6 +464,17 @@ def create_physical_sensors(data, entry, coordinator):
             device_name = naming.device_name(platform, index, device_info)
             device_type = determine_device_type(model)
 
+            device_id = str(device_info["id"])
+
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device_id)},
+                name=device_name,
+                manufacturer="claudegel",
+                model=str(model),
+                sw_version=get_firmware(device_info),
+            )
+
             device_class = get_sensor_class(model)
             if device_class:
                 if device_class == Neviweb130GatewaySensor:
@@ -469,7 +484,7 @@ def create_physical_sensors(data, entry, coordinator):
                         device_name,
                         device_type,
                         device_info["sku"],
-                        "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                        get_firmware(device_info),
                         device_info["location$id"],
                         coordinator,
                         entry,
@@ -481,7 +496,7 @@ def create_physical_sensors(data, entry, coordinator):
                         device_name,
                         device_type,
                         device_info["sku"],
-                        "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                        get_firmware(device_info),
                         coordinator,
                         entry,
                     )
@@ -531,7 +546,7 @@ async def create_attribute_sensors(hass, entry, data, coordinator, device_regist
                 name=device_name,
                 manufacturer="claudegel",
                 model=str(model),
-                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                sw_version=get_firmware(device_info),
             )
 
             attributes_name = get_attributes_for_model(model)
@@ -581,7 +596,7 @@ async def async_setup_entry(
     entities: list[SensorEntity] = []
 
     #  Add sensors
-    entities += create_physical_sensors(data, entry, coordinator)
+    entities += create_physical_sensors(data, entry, coordinator, device_registry)
     await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.data:
