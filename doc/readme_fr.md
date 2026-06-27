@@ -23,7 +23,8 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [Prérequis](#prerequis)
 - [Installation](#installation)
 - [Configuration](#configuration-1er-generation)
-- [Multi_comptes](#configuration-multi-comptes)
+- [Configuration Multi_comptes](#configuration-multi-comptes)
+- [Configuration V2](#configuration-v2)
 - [Valve Sedna](#valve-sedna)
 - [GT130](#passerelle-gt130)
 - [Mise à jour](#systeme-de-mise-a-jour)
@@ -367,6 +368,13 @@ Les paramètres sont en anglais. Il ne faut pas les traduire.
 - **Configuration multi-comptes (`comptes :`)**:
   - Avec préfixe + localisation → `climate.neviweb130_parents_chalet_climate_living_room`
   - Avec localisation uniquement (pas de préfixe) → `climate.neviweb130_chalet_climate_living_room`
+
+## Configuration V2
+
+Neviweb130 V2 est la version v5.0.0 de Neviweb130 actuel. Aussitôt terminé les dernier test de compatibilité pour le transfert de Neviweb130 
+à Neviweb130-V2 une mise à jour sera proposée. La version V2 a été conçue pour rencontrer les derniers standards de Home Assistant. 
+La configuration dans **configuration.yaml** est maintenant obsolete.
+
 
 ## Valve Sedna
 Pour les valves Sedna, il existe deux façons de les connecter à Neviweb :
