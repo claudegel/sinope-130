@@ -40,6 +40,10 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [TO DO](#a-faire)
 
 ## Annonce
+### Neviweb130-V2 est presque prête
+
+neviweb130 v5.0.0b0 est prête pour tester. Il ne me reste qu'à ajouter la documentation sur une branche séparée pour la durée des tests.
+
 ### Gros changements pour les valves Sedna
 
 Depuis la version de neviweb130 2.6.2, les valves sont pris en charge en tant que nouvelles entités de valve dans HA. Ils ne sont plus pris 
