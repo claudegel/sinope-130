@@ -447,7 +447,7 @@ def create_attribute_switch(hass, entry, data, coordinator, device_registry):
                 identifiers={(DOMAIN, str(device_info["id"]))},
                 name=device_name,
                 manufacturer="claudegel",
-                model=model,
+                model=str(model),
                 sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
