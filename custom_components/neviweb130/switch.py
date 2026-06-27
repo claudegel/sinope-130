@@ -367,7 +367,11 @@ def get_switch_class(model):
     return None
 
 
-def create_physical_switch(data, entry, coordinator):
+def get_firmware(device_info):
+    return "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
+
+
+def create_physical_switch(data, entry, coordinator, device_registry):
     entities: list[SwitchEntity] = []
 
     config_prefix = data["prefix"]
@@ -390,6 +394,17 @@ def create_physical_switch(data, entry, coordinator):
             device_name = naming.device_name(platform, index, device_info)
             device_type = determine_device_type(model)
 
+            device_id = str(device_info["id"])
+
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device_id)},
+                name=device_name,
+                manufacturer="claudegel",
+                model=str(model),
+                sw_version=get_firmware(device_info),
+            )
+
             device_class = get_switch_class(model)
             if device_class:
                 device = device_class(
@@ -397,7 +412,7 @@ def create_physical_switch(data, entry, coordinator):
                     device_info,
                     device_name,
                     device_info["sku"],
-                    "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                    get_firmware(device_info),
                     device_type,
                     coordinator,
                     entry,
@@ -448,7 +463,7 @@ def create_attribute_switch(hass, entry, data, coordinator, device_registry):
                 name=device_name,
                 manufacturer="claudegel",
                 model=str(model),
-                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+                sw_version=get_firmware(device_info),
             )
 
             attributes_name = get_attributes_for_model(model)
@@ -500,7 +515,7 @@ async def async_setup_entry(
     device_registry = dr.async_get(hass)
 
     # Add switch
-    entities += create_physical_switch(data, entry, coordinator)
+    entities += create_physical_switch(data, entry, coordinator, device_registry)
     await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.data:
