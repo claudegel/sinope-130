@@ -175,7 +175,7 @@ async def async_setup_entry(
                             identifiers={(DOMAIN, str(device_info["id"]))},
                             name=device_name,
                             manufacturer="claudegel",
-                            model=device_info["signature"]["model"],
+                            model=str(device_info["signature"]["model"]),
                             sw_version=device_firmware,
                         )
                         device = None
