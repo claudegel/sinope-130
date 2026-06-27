@@ -85,7 +85,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
                 identifiers={(DOMAIN, device_id)},
                 manufacturer="claudegel",
                 name=device_name,
-                model=model,
+                model=str(model),
                 sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
