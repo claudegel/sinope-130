@@ -596,7 +596,10 @@ async def async_notify_critical(hass: HomeAssistant, msg: str, title: str, notif
 class NamingHelper:
     def __init__(self, domain: str, prefix: str):
         self.domain = domain
-        self.prefix = prefix
+        if prefix == "default":
+            self.prefix = ""
+        else:
+            self.prefix = prefix or ""
 
     def default_name(self, platform: str, index: int) -> str:
         """
@@ -624,7 +627,7 @@ class NamingHelper:
         """
         network = NETWORK_MAP[index]
 
-        if self.prefix == "default":
+        if self.prefix in ("default", ""):
             # Legacy logic applied
             suffix = "" if index == 1 else f" {index}"
             return f"{self.domain} {platform}{suffix}"
