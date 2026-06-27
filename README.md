@@ -3,7 +3,7 @@
 > 💛 **Enjoying this integration?**  
 > If you'd like to support its ongoing development, you can contribute here:
 > [![Support via PayPal](https://cdn.rawgit.com/twolfson/paypal-github-button/1.0.0/dist/button.svg)](https://www.paypal.me/phytoressources/) or 
-> [![Donate via Interac](https://img.shields.io/badge/Interac-Don-orange?style=for-the-badge)](Donations.md)
+> [![Donate via Interac](https://img.shields.io/badge/Interac-Don-orange?style=for-the-badge)](doc/Donations.md)
 
 Custom components to support [Neviweb](https://neviweb.com/) devices in [Home Assistant](http://www.home-assistant.io) (HA). 
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
