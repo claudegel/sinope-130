@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -179,6 +180,30 @@ async def async_migrate_unique_ids(hass):
             registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
 
 
+async def async_migrate_device_models(hass):
+    """Migrate numeric device model to string in the device registry."""
+    device_registry = dr.async_get(hass)
+
+    for device_id, device in device_registry.devices.items():
+        if DOMAIN not in device.identifiers:
+            continue
+
+        # device.model may be int → must become str
+        if isinstance(device.model, int):
+            new_model = str(device.model)
+            _LOGGER.info(
+                "Migrating device model for %s from %s to %s",
+                device_id,
+                device.model,
+                new_model,
+            )
+
+            device_registry.async_update_device(
+                device_id,
+                model=new_model,
+            )
+
+
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -262,9 +287,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN]["device_dict"] = device_dict
     _LOGGER.debug("device_dict = %s", device_dict)
 
-    # Call async_migrate_unique_ids before setting up devices
-    _LOGGER.info("Migrating neviweb130 unique_id to string...")
+    # Call async_migrate_unique_ids and async_migrate_device_models before setting up devices
+    _LOGGER.info("Migrating neviweb130 unique_id and models to string...")
     await async_migrate_unique_ids(hass)
+    await async_migrate_device_models(hass)
 
     username: str | None = entry.data.get("username")
     password: str | None = entry.data.get("password")
