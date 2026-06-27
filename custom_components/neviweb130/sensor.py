@@ -466,7 +466,7 @@ def create_physical_sensors(data, entry, coordinator, device_registry):
 
             device_id = str(device_info["id"])
 
-            device_entry = device_registry.async_get_or_create(
+            device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
                 name=device_name,
