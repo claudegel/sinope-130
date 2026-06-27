@@ -128,6 +128,10 @@ IMPLEMENTED_DEVICE_MODEL = (
 )
 
 
+def get_firmware(device_info):
+    return "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -168,7 +172,7 @@ async def async_setup_entry(
                     if model in IMPLEMENTED_DEVICE_MODEL:
                         device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
-                        device_firmware = "{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"])
+                        device_firmware = get_firmware(device_info)
                         # Ensure the device is registered in the device registry
                         device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
