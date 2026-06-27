@@ -40,6 +40,11 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 - [TO DO](#to-do)
 
 ## Announcement
+
+### Neviweb130-V2 is almost there
+
+neviweb130 v5.0.0b0 is ready for testing. I just need to add documentation on separate branch for those who are interested
+
 ### Big changes for Sedna valve devices
 
 Since version 2.6.2, valves devices are supported as new HA valve entities. They are no longer supported as switch. This 
