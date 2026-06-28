@@ -458,7 +458,7 @@ La configuration dans **configuration.yaml** est maintenant obsolète.
 - **Via une installation vierge**:
 
   Pour une installation vierge, on install Neviweb130-V2 via HACS (Sinopé neviweb130), Version minimum v5.0.0. Allez ensuite dans Paramètres /
-  Appareils et services. Au bas de la page clicquez sur **Ajouter une intégration** et recherchez Sinope Neviweb130.
+  Appareils et services. Au bas de la page clicquez sur **Ajouter une intégration** et recherchez **Sinope Neviweb130**.
   Une fenêtre de configuration apparait à l'écran pour entrer les paramètres de connection à Neviweb.
 
   ![nouvelle configuration](../www/nouveau_pont.jpg)
@@ -495,6 +495,9 @@ Pour tous les appareils, neviweb130-V2 cré des entités d'attributs automatique
 - bouton (button), pour modifier ou réinitialiser la valeur d'un attribut de type on/off ou alarme.
 - nombre (number), pour changer la valeur numérique d'un attribut, température minimum, maximum, en absence etc
 - commutateur (switch), pour activer / désactiver un attribut.
+- selecteur (select), pour les attributs avec un choix d'options. Toutes les options sont traduites et il n'est plus nécessaire de mettre
+  des chiffres pour les intervalles comme 15 secondes, 15 minutes etc. Neviweb130-V2 fait la convertion automatiquement pour envoyer les
+  valeurs à Neviweb .
 
 On peut retrouver tous ces entités d'attribut dans la page de chaque appareil. (Paramètres / Appareils et services / Neviweb130).
 Elles sont mises à jour en temps réel par HA. Ces entités peuvent être utilisées directement dans vos automations ou pour le module énergie.
