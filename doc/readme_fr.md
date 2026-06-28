@@ -443,7 +443,7 @@ La configuration dans **configuration.yaml** est maintenant obsolète.
     compte Neviweb. Il faut demander la permission à Sinopé pour activer le troisième emplacement.
 
   Il n'est plus nécessaire de redémarrer HA après avoir changé des paramètres. Neviweb130-V2 est rechargé automatiquement.
-  Un gestionnaire de connection (Session_manager) se charge de terminer les connections à neviweb et d'en recréer de nouvelles au besoin.
+  Un gestionnaire de connection (Session_manager) se charge de terminer les connections à Neviweb et d'en recréer de nouvelles au besoin.
   Ceci élimine les erreurs ACCSESSEXC qu'on reçois de Neviweb quand on redémarre trop souvent HA.
 
   *Options de configuration disponibles*:
@@ -457,9 +457,9 @@ La configuration dans **configuration.yaml** est maintenant obsolète.
 
 - **Via une installation vierge**:
 
-  Pour une installation vierge, on install Neviweb130-V2 via HACS (Sinopé neviweb130), Version minimum v5.0.0. Allez ensuite dans Paramètres /
-  Appareils et services. Au bas de la page clicquez sur **Ajouter une intégration** et recherchez **Sinope Neviweb130**.
-  Une fenêtre de configuration apparait à l'écran pour entrer les paramètres de connection à Neviweb.
+  Pour une installation vierge, on installe Neviweb130-V2 via HACS (Sinopé neviweb130), Version minimum v5.0.0. Allez ensuite dans Paramètres /
+  Appareils et services. Au bas de la page clicquez sur **Ajouter une intégration** et recherchez **Sinopé Neviweb130**.
+  Une fenêtre de configuration apparait à l'écran pour entrer les paramètres de connections à Neviweb.
 
   ![nouvelle configuration](../www/nouveau_pont.jpg)
 
@@ -477,12 +477,12 @@ Les paramètres sont:
 - Scan_interval, par défaut 360 secondes.
 - Support Homekit, optionnel
 - Ignorer les appareils Miwi, optionnel
-- Stat_interval, par default 1800 secondes
-- Avis en cas de déconnection d'appareils, 4 options:
+- Stat_interval, par défaut 1800 secondes
+- Avis en cas de déconnections d'appareils, 4 options:
   - nothing, aucun avis
   - logging, seulement dans les log
-  - Notification, on reçois une notification en cas de déconnection d'appareil
-  - Both, Notification plus logging
+  - Notification, on reçois une notification en cas de déconnections d'appareil
+  - Both, "Notification" plus "logging"
 - ID d'appareil à mettre à jour en mode sans échec. Pour les appareils problématiques (Wi-FI ?)
 
 Ensuite Neviweb130-V2 est rechargé et commencera à récupérer les appareils de Neviweb. 
@@ -490,21 +490,21 @@ Ensuite Neviweb130-V2 est rechargé et commencera à récupérer les appareils d
 La grosse différence entre V1 et V2 c'est qu'il n'est plus nécessaire de créer des capteurs pour suivre certains attributs de vos appareils.
 Pour tous les appareils, neviweb130-V2 cré des entités d'attributs automatiquement.
 
-- capteur (sensors), pour les attributs numériques à suivre comme la température, le voltage et les stats énergie.
+- capteur (sensors), pour les attributs numériques à suivre comme la température, le voltage et les statistiques d'énergie.
 - capteur_binaire (binary_sensors), pour les attributs binaires comme les capteurs de fuite.
 - bouton (button), pour modifier ou réinitialiser la valeur d'un attribut de type on/off ou alarme.
 - nombre (number), pour changer la valeur numérique d'un attribut, température minimum, maximum, en absence etc
 - commutateur (switch), pour activer / désactiver un attribut.
-- selecteur (select), pour les attributs avec un choix d'options. Toutes les options sont traduites et il n'est plus nécessaire de mettre
-  des chiffres pour les intervalles comme 15 secondes, 15 minutes etc. Neviweb130-V2 fait la convertion automatiquement pour envoyer les
-  valeurs à Neviweb .
+- sélecteur (select), pour les attributs avec un choix d'options. Toutes les options sont traduites et il n'est plus nécessaire de mettre
+  des chiffres pour les intervalles comme 15 secondes, 15 minutes etc. Neviweb130-V2 fait la conversion automatiquement pour envoyer les
+  valeurs à Neviweb et la réception des valeurs de Neviweb.
 
 On peut retrouver tous ces entités d'attribut dans la page de chaque appareil. (Paramètres / Appareils et services / Neviweb130).
 Elles sont mises à jour en temps réel par HA. Ces entités peuvent être utilisées directement dans vos automations ou pour le module énergie.
 Si vous installez neviweb130-V2 via une mise à jour, il faudra revalider vos automations. Celles-ci demeureront fonctionnelles mais
-en utilisant les nouvelles entités d'attributs vous pourrez vous débarasser de tous vos capteurs et ça va simplifier vos automations.
+en utilisant les nouvelles entités d'attributs vous pourrez vous débarrasser de tous vos capteurs et ça va simplifier vos automations.
 
-Il est possible qu'il manque quelques entités d'attributs. Ils seront facilement ajoutés dès que j'en serai nottifié.
+Il est possible qu'il manque quelques entités d'attributs. Ils seront facilement ajoutés dès que j'en serai notifié.
 
 Voici une page d'appareil type:
 ![Page appareil](../www/page_appareil.jpg)
