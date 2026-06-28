@@ -44,7 +44,7 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 ## Annonce
 ### Neviweb130-V2 est presque prête
 
-neviweb130 v5.0.0b0 est prête pour tester. Il ne me reste qu'à ajouter la documentation sur une branche séparée pour la durée des tests.
+Neviweb130 v5.0.0b0 est prête pour tester. Il ne me reste qu'à ajouter la documentation sur une branche séparée pour la durée des tests.
 
 ## Appareils pris en charge
 Voici une liste des appareils actuellement pris en charge. En gros, c'est tout ce qui peut être ajouté dans Neviweb.
@@ -265,7 +265,7 @@ Il existe deux méthodes pour installer ce composant personnalisé :
     Au premier démarrage de HA, Neviweb130-V2 effectuera les opérations suivantes:
     - importer la configuration V1 de configuration.yaml vers le config_flow qui est la méthode moderne de configuration de HA.
     - transférer les unique_id vers un format alphanumérique (int vers str)
-    - transférer les numéros de model des appareils vers un format alphanumérique (int vers str)
+    - transférer les numéros de modèle des appareils vers un format alphanumérique (int vers str)
   Ces changement sont requis par HA. Aucune action n'est nécessaire de la part des utilisateurs.
   
 ## Configuration 1er generation
