@@ -46,12 +46,6 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 
 neviweb130 v5.0.0b0 est prête pour tester. Il ne me reste qu'à ajouter la documentation sur une branche séparée pour la durée des tests.
 
-### Gros changements pour les valves Sedna
-
-Depuis la version de neviweb130 2.6.2, les valves sont pris en charge en tant que nouvelles entités de valve dans HA. Ils ne sont plus pris 
-en charge en tant que commutateur (switch). Ceci entraîne le remplacement de toutes vos entités `switch.neviweb130_switch_sedna_valve` par 
-des entités `valve.neviweb130_valve_sedna_valve`. Vous devrez réviser vos automatismes et vos cartes pour récupérer vos entités valves.
-
 ## Appareils pris en charge
 Voici une liste des appareils actuellement pris en charge. En gros, c'est tout ce qui peut être ajouté dans Neviweb.
 - **thermostats Zigbee**:
@@ -94,6 +88,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - SRM40, thermostat de sol
 - **Contrôleur de pompe à chaleur**:
   - Sinopé HP6000ZB-GE, pour les thermopompes Ouellet avec connecteur Gree
+  - Sinopé HP6000ZB-GE-RS485 pour les thermopompes Tosot avec connecteur Gree
   - Sinopé HP6000ZB-MA, pour les thermopompes Ouellet, Convectair avec connecteur Midea
   - Sinopé PH6000ZB-HS, pour les thermopompes Hisense, Haxxair et Zephyr
 - **Contrôleur de pompe à chaleur Wi-Fi**:
@@ -167,17 +162,19 @@ interagir avec eux dans Home Assistant. Pour les appareils Wi-Fi vous devez les 
 appareils Zigbee peuvent être connectés à une valve Sedna connectée directement à Neviweb et agissant comme une passerelle.
 Veuillez vous référer au manuel d'instructions de votre appareil ou visiter [Assistance Neviweb](https://support.sinopetech.com/)
 
-Les appareils Wi-Fi peuvent être connectés au même réseau (emplacement) que les appareils GT130 Zigbee ou dans un réseau séparé.
-**Neviweb130** supporte jusqu'à trois réseaux dans Neviweb.
+Les appareils Wi-Fi peuvent être connectés au même emplacement (location) que les appareils GT130 Zigbee ou dans un emplacement séparé.
+**Neviweb130** supporte jusqu'à trois emplacements dans Neviweb. Il faut demander à Sinopé pour avoir le troisième emplacement.
 
 Il existe quatre composants personnalisés vous donnant le choix de gérer vos appareils via le portail Neviweb ou directement en local. 
 
-- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb) permettant de gérer vos appareils via le portail Neviweb.
-- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS : Sinope GT125) permettant de gérer vos appareils directement via
-  votre passerelle web GT125.
+- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb) permettant de gérer vos appareils
+  Miwi via le portail Neviweb.
+- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS : Sinope GT125) permettant de gérer vos appareils
+  Miwi directement via votre passerelle web GT125.
 
 **Passerelle Zigbee**:
-- [**neviweb130**](https://github.com/claudegel/sinope-130) ce composant personnalisé, pour gérer vos appareils via le portail Neviweb.
+- [**neviweb130**](https://github.com/claudegel/sinope-130), ce composant personnalisé, pour gérer vos appareils Zigbee et Wi-Fi
+  via le portail Neviweb.
 - [**sinope-zha**](https://github.com/claudegel/sinope-zha) où je mets tous les gestionnaires d’adaptations Zigbee (quirks) des nouveaux
   appareils Sinopé avant qu'ils ne soient fusionnés dans les gestionnaires de périphériques ZHA. Achetez une passerelle Zigbee
   comme la clé USB **Dresden ConBee II** et gérez votre appareil Zigbee localement via le composant ZHA. J'ajoute le support des
@@ -193,7 +190,9 @@ ZHA doivent être supprimées de Neviweb car elles ne peuvent pas être sur deux
 Il existe deux méthodes pour installer ce composant personnalisé :
 - **Via le composant HACS** (Home Assistant Community Store):
   - Neviweb130 est compatible avec [HACS](https://community.home-assistant.io/t/custom-component-hacs/121727).
-  - Après avoir installé HACS, installez « Sinope neviweb-130 » (neviweb130) depuis le magasin et utilisez l'exemple configuration.yaml ci-dessous.
+  - Après avoir installé HACS, installez « Sinope neviweb-130 » (neviweb130) depuis le magasin et utilisez l'exemple configuration.yaml
+    ci-dessous.
+    
 - **Manuellement via téléchargement direct**:
   - Téléchargez le fichier zip de ce référentiel en utilisant le bouton de téléchargement vert en haut à droite.
   - Extrayez le fichier zip sur votre ordinateur, puis copiez l'intégralité du dossier « custom_components » dans votre Home Assistant 
@@ -222,6 +221,53 @@ Il existe deux méthodes pour installer ce composant personnalisé :
           update.py
           valve.py
     ```
+
+- **Installation Neviweb130-V2**
+  la version V2 sera installé via une simple mise à jour de Neviweb130 vers la version v5.0.0.  Il faut faire un backup avant car V2
+  change complètement la méthode de fonctionnement de Neviweb130. Le module de mise à jour de Neviweb130 permet de faire un backup avant
+  la mise à jour.
+
+  Pour ceux qui veulent tester la nouvelle version V2, il est possible de copier les fichiers de la version V2 de la branche
+  **Neviweb130-V2**. Il y a beaucoup plus de fichiers car le fonctionnement de Neviweb130-V2 est complètement différent de la version V1.
+  Vous pouvez copier tous les fichiers V2  dans le répertoire V1 ou les installer sur un machine de test indépendante.
+
+  Votre repertoire V2 ressemblera a ceci:
+  ```
+    config/
+      configuration.yaml
+      custom_components/
+        neviweb130/
+          translations/
+            en.json
+            fr.json
+          __init__.py
+          binary_sensor.py
+          button.py
+          climate.py
+          config_flow.py
+          const.py
+          coordinator.py
+          devices.py
+          helpers.py
+          light.py
+          manifest.json
+          number.py
+          schema.py
+          select.py
+          sensor.py
+          services.yaml
+          session_manager.py
+          strings.json
+          switch.py
+          update.py
+          valve.py
+    ```
+    Au premier démarrage de HA, Neviweb130-V2 effectuera les opérations suivantes:
+    - importer la configuration V1 de configuration.yaml vers le config_flow qui est la méthode moderne de configuration de HA.
+    - transférer les unique_id vers un format alphanumérique (int vers str)
+    - transférer les numéros de model des appareils vers un format alphanumérique (int vers str)
+  Ces changement sont requis par HA. Aucune action n'est nécessaire de la part des utilisateurs.
+  
 ## Configuration 1er generation
 
 Pour activer la gestion Neviweb130 dans votre installation, ajoutez ce qui suit à votre fichier `configuration.yaml`, puis redémarrez 
@@ -274,7 +320,7 @@ assurez-vous qu'ils soient écrits « exactement » comme dans Neviweb. (premi
 car Home Assistant les supprimera et le nom de l'emplacement ne correspondra pas, empêchant le chargement de custom_component.
 
 ## Configuration multi-comptes
-(nouveau dans la version 3.1.0)
+(nouveau depuis la version 3.1.0)
 
 Si vous devez contrôler des appareils à partir de **plusieurs comptes Neviweb** (par exemple, votre maison et celle d'un voisin), vous pouvez 
 désormais utiliser le nouveau format de configuration multi-comptes. Cela élimine le besoin de dupliquer le dossier des composants personnalisés.
@@ -370,11 +416,96 @@ Les paramètres sont en anglais. Il ne faut pas les traduire.
   - Avec localisation uniquement (pas de préfixe) → `climate.neviweb130_chalet_climate_living_room`
 
 ## Configuration V2
+(nouveau depuis la version 5.0.0)
 
-Neviweb130 V2 est la version v5.0.0 de Neviweb130 actuel. Aussitôt terminé les dernier test de compatibilité pour le transfert de Neviweb130 
+Neviweb130 V2 est la version v5.0.0 de Neviweb130 actuel. Aussitôt terminé les derniers tests de compatibilité pour le transfert de Neviweb130 
 à Neviweb130-V2 une mise à jour sera proposée. La version V2 a été conçue pour rencontrer les derniers standards de Home Assistant. 
-La configuration dans **configuration.yaml** est maintenant obsolete.
+La configuration dans **configuration.yaml** est maintenant obsolète.
 
+- **Via la mise à jour de neviweb130**:
+
+  La configuration de configuration.yaml est transférée vers le config_flow qui est la méthode moderne de HA. Les options dans configuration.yaml
+  peuvent être enlevés ou commentés sans risque. Les noms d'appareils sont conservés. Les attributs sont toujours accessibles.
+  On peut retrouver la configuration dans Paramètres / Appareils et services / Neviweb130. On y retrouve tous les appareils et chacun d'eux a
+  maintenant une page de configuration graphique dédiée.
+  Neviweb130-V2 est maintenant en français ou en anglais selon votre configuration de HA. Les services. les entités, les attributs, tout est traduit
+  automatiquement.
+
+  La configuration de Neviweb130-V2 se retrouve ici:
+  
+  ![options](../www/options.jpg)
+
+  Ici on peut dans l'ordre:
+  
+  - Ajouter un nouveau compte Neviweb (pont). Jusqu'à 3 comptes peuvent être gérés.
+  - Modifier certaines options de neviweb130, (voir ci dessous).
+  - Modifier la configuration de neviweb130-V2, (voir ci-dessous). Jusqu'à trois emplacements (locations) peuvent être supportés pour chaque
+    compte Neviweb. Il faut demander la permission à Sinopé pour activer le troisième emplacement.
+
+  Il n'est plus nécessaire de redémarrer HA après avoir changé des paramètres. Neviweb130-V2 est rechargé automatiquement.
+  Un gestionnaire de connection (Session_manager) se charge de terminer les connections à neviweb et d'en recréer de nouvelles au besoin.
+  Ceci élimine les erreurs ACCSESSEXC qu'on reçois de Neviweb quand on redémarre trop souvent HA.
+
+  *Options de configuration disponibles*:
+  
+  ![configurer options](../www/configuration.jpg)
+
+  *Configuration de Neviweb130-V2, importée de Neviweb130-V1*:
+  
+  ![reconfiguration](../www/reconfigurer.jpg)
+
+
+- **Via une installation vierge**:
+
+  Pour une installation vierge, on install Neviweb130-V2 via HACS (Sinopé neviweb130), Version minimum v5.0.0. Allez ensuite dans Paramètres /
+  Appareils et services. Au bas de la page clicquez sur **Ajouter une intégration** et recherchez Sinope Neviweb130.
+  Une fenêtre de configuration apparait à l'écran pour entrer les paramètres de connection à Neviweb.
+
+  ![nouvelle configuration](../www/nouveau_pont.jpg)
+
+Les paramètres sont:
+- nom du compte Neviweb, le premier est nommé **default**. Vous pouvez le conserver, le remplacer ou même laisser ce champs vide pour avoir les même noms
+  d'appareil que dans Neviweb130-V1.
+- Courriel Neviweb
+- Mot de passe Neviweb
+- Premier emplacement (location)
+- Deuxième emplacement
+- Troisième emplacement
+  
+  Ces champs sont optionnels si vous n'avez pas d'appareil Miwi. Dans le cas contraire il faut entrer le nom de l'emplacement. Les emplacements
+  non utilisés sont laissé vides ou on peut mettre un "_" pour indiquer à Neviweb130-V2 de ne pas les rechercher.
+- Scan_interval, par défaut 360 secondes.
+- Support Homekit, optionnel
+- Ignorer les appareils Miwi, optionnel
+- Stat_interval, par default 1800 secondes
+- Avis en cas de déconnection d'appareils, 4 options:
+  - nothing, aucun avis
+  - logging, seulement dans les log
+  - Notification, on reçois une notification en cas de déconnection d'appareil
+  - Both, Notification plus logging
+- ID d'appareil à mettre à jour en mode sans échec. Pour les appareils problématiques (Wi-FI ?)
+
+Ensuite Neviweb130-V2 est rechargé et commencera à récupérer les appareils de Neviweb. 
+
+La grosse différence entre V1 et V2 c'est qu'il n'est plus nécessaire de créer des capteurs pour suivre certains attributs de vos appareils.
+Pour tous les appareils, neviweb130-V2 cré des entités d'attributs automatiquement.
+
+- capteur (sensors), pour les attributs numériques à suivre comme la température, le voltage et les stats énergie.
+- capteur_binaire (binary_sensors), pour les attributs binaires comme les capteurs de fuite.
+- bouton (button), pour modifier ou réinitialiser la valeur d'un attribut de type on/off ou alarme.
+- nombre (number), pour changer la valeur numérique d'un attribut, température minimum, maximum, en absence etc
+- commutateur (switch), pour activer / désactiver un attribut.
+
+On peut retrouver tous ces entités d'attribut dans la page de chaque appareil. (Paramètres / Appareils et services / Neviweb130).
+Elles sont mises à jour en temps réel par HA. Ces entités peuvent être utilisées directement dans vos automations ou pour le module énergie.
+Si vous installez neviweb130-V2 via une mise à jour, il faudra revalider vos automations. Celles-ci demeureront fonctionnelles mais
+en utilisant les nouvelles entités d'attributs vous pourrez vous débarasser de tous vos capteurs et ça va simplifier vos automations.
+
+Il est possible qu'il manque quelques entités d'attributs. Ils seront facilement ajoutés dès que j'en serai nottifié.
+
+Voici une page d'appareil type:
+![Page appareil](../www/page_appareil.jpg)
+![Page appareil suite](../www/page_appareil_suite.jpg)
 
 ## Valve Sedna
 Pour les valves Sedna, il existe deux façons de les connecter à Neviweb :
