@@ -23,7 +23,8 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 - [Prerequisite](#prerequisite)
 - [Installation](#installation)
 - [Configuration](#legacy-configuration)
-- [Multi_accounts](#multi-account-configuration)
+- [Multi_accounts configuration](#multi-account-configuration)
+- [V2 configuration](#v2-configuration)
 - [Sedna valve](#sedna-valve)
 - [GT130](#gateway-gt130)
 - [Update system](#updater-system)
@@ -45,12 +46,6 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 ### Neviweb130-V2 is almost there
 
 neviweb130 v5.0.0b0 is ready for testing. I just need to add documentation on separate branch for those who are interested
-
-### Big changes for Sedna valve devices
-
-Since version 2.6.2, valves devices are supported as new HA valve entities. They are no longer supported as switch. This 
-will cause all your `switch.neviweb130_switch_sedna_valve` to be replaced by `valve.neviweb130_valve_sedna_valve` entities. 
-You will need to revise your automations and cards to retrieve your valve entities.
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
@@ -222,6 +217,53 @@ There are two methods to install this custom component:
           update.py
           valve.py
     ```
+
+- **Neviweb130-V2 installation**
+  Version V2 will be installed via a simple update of Neviweb130 to version v5.0.0. You must perform a backup beforehand, as V2
+  completely changes the way Neviweb130 operates. The Neviweb130 update module allows you to create a backup prior to
+  the update.
+
+  For those wishing to test the new V2 version, you can copy the V2 files from the **Neviweb130-V2** branch. There are significantly
+  more files because the operation of Neviweb130-V2 differs completely from that of version V1.
+  You can copy all the V2 files into the V1 directory or install them on a separate test machine.
+
+  Your V2 directory will look like this:
+  ```
+    config/
+      configuration.yaml
+      custom_components/
+        neviweb130/
+          translations/
+            en.json
+            fr.json
+          __init__.py
+          binary_sensor.py
+          button.py
+          climate.py
+          config_flow.py
+          const.py
+          coordinator.py
+          devices.py
+          helpers.py
+          light.py
+          manifest.json
+          number.py
+          schema.py
+          select.py
+          sensor.py
+          services.yaml
+          session_manager.py
+          strings.json
+          switch.py
+          update.py
+          valve.py
+    ```
+    Upon the first startup of HA, Neviweb130-V2 will perform the following operations:
+    - import the V1 configuration from `configuration.yaml` into the `config_flow` (HA's modern configuration method).
+    - convert `unique_id`s to an alphanumeric format (int to str).
+    - convert device model numbers to an alphanumeric format (int to str).
+  These changes are required by HA. No action is required on the part of users.
+
 ## Legacy configuration
 
 To enable Neviweb130 management in your installation, add the following to your `configuration.yaml` file, then restart 
@@ -361,6 +403,100 @@ neviweb130:
 - **Multi-account config (`accounts:`)**:
   - With prefix + location → `climate.neviweb130_parents_chalet_climate_living_room`
   - With location only (no prefix) → `climate.neviweb130_chalet_climate_living_room`
+
+## V2 Configuration
+(new since version 5.0.0)
+
+Neviweb130 V2 is version v5.0.0 of the current Neviweb130. An update will be released as soon as the final compatibility 
+tests for the migration from Neviweb130 to Neviweb130-V2 are complete. Version V2 has been designed to meet the latest 
+Home Assistant standards. Configuration via **configuration.yaml** is now obsolete.
+
+- **Via the neviweb130 update**:
+
+  The configuration from `configuration.yaml` is migrated to the `config_flow`, which is the modern HA approach. Options in
+  `configuration.yaml` can be safely removed or commented out. Device names are preserved, and attributes remain accessible.
+  The configuration can be found under Settings > Devices & Services > Neviweb130. All devices are listed there, and each one
+  now has a dedicated graphical configuration page. Neviweb130-V2 now supports French or English, depending on your HA
+  configuration; services, entities, and attributes are all automatically translated.
+
+  The configuration for the Neviweb130-V2 can be found here:
+
+  ![options](www/options.jpg)
+
+  Here, in order, you can:
+
+  - Add a new Neviweb account (gateway). Up to 3 accounts can be managed.
+  - Modify certain neviweb130 options (see below).
+  - Modify the neviweb130-V2 configuration (see below). Up to three locations can be supported for each
+    Neviweb account. Permission must be requested from Sinopé to activate the third location.
+
+  It is no longer necessary to restart HA after changing settings; Neviweb130-V2 reloads automatically.
+  A connection manager (Session_manager) handles closing connections to Neviweb and establishing new ones as needed.
+  This eliminates the ACCSESSEXC errors received from Neviweb when restarting HA too frequently.
+
+  *Available configuration options*:
+
+  ![configuration options](www/configuration.jpg)
+
+  *Neviweb130-V2 configuration, imported from Neviweb130-V1*:
+
+  ![reconfiguration](www/reconfigurer.jpg)
+
+- **Via a clean installation**:
+
+  For a fresh installation, install Neviweb130-V2 via HACS (Sinopé neviweb130), minimum version v5.0.0. Then go to Settings /
+  Devices & Services. At the bottom of the page, click **Add integration** and search for **Sinopé Neviweb130**.
+  A configuration window will appear on the screen for entering your Neviweb connection settings.
+
+  ![new configuration](www/nouveau_pont.jpg)
+
+  The settings are:
+- Neviweb account name; the first one is named **default**. You can keep it, replace it, or even leave this field blank to
+  use the same device names as in Neviweb130-V1.
+- Neviweb email
+- Neviweb password
+- First location
+- Second location
+- Third location
+
+  These fields are optional if you do not have a Miwi device. Otherwise, you must enter the location name. Unused locations
+  can be left blank, or you can enter "_" to instruct Neviweb130-V2 not to search for them.
+- Scan_interval, default 360 seconds.
+- HomeKit support, optional
+- Ignore Miwi devices, optional
+- Stat_interval, default 1800 seconds
+- Notifications for device disconnections, 4 options:
+  - nothing: no notification
+  - logging: logs only
+  - Notification: receive a notification upon device disconnection
+  - Both: "Notification" plus "logging"
+- Device ID to update in safe mode. For problematic devices (Wi-Fi?)
+
+Then, Neviweb130-V2 is reloaded and will begin retrieving the Neviweb devices.
+
+The major difference between V1 and V2 is that it is no longer necessary to create sensors to track specific attributes 
+of your devices. For all devices, neviweb130-V2 automatically creates attribute entities.
+
+- sensor, for numeric attributes to be monitored, such as temperature, voltage, and energy statistics.
+- binary_sensor, for binary attributes, such as leak sensors.
+- button, to modify or reset the value of an on/off or alarm-type attribute.
+- number, to change the numeric value of an attribute (e.g., minimum/maximum temperature, away temperature, etc.).
+- switch, to enable or disable an attribute.
+- select, for attributes with a choice of options. All options are translated, so it is no longer necessary to enter
+  numeric values ​​for intervals like 15 seconds, 15 minutes, etc. Neviweb130-V2 automatically handles the conversion
+  when sending values ​​to Neviweb and receiving values ​​from Neviweb.
+
+You can find all these attribute entities on each device's page (Settings > Devices & Services > Neviweb130).
+They are updated in real-time by HA. These entities can be used directly in your automations or with the Energy dashboard.
+If you install neviweb130-V2 via an update, you will need to re-validate your automations. They will remain functional, but
+by using the new attribute entities, you can eliminate your separate sensors and simplify your automations.
+
+A few attribute entities may be missing. They can easily be added once I am notified.
+
+Here is a sample device page:
+
+![Page appareil](www/page_appareil.jpg)
+![Page appareil suite](www/page_appareil_suite.jpg)
 
 ## Sedna valve
 For Sedna valves there are two ways to connect it to Neviweb:
