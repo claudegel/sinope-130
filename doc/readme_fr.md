@@ -223,7 +223,7 @@ Il existe deux méthodes pour installer ce composant personnalisé :
     ```
 
 - **Installation Neviweb130-V2**
-  la version V2 sera installé via une simple mise à jour de Neviweb130 vers la version v5.0.0.  Il faut faire un backup avant car V2
+  La version V2 sera installé via une simple mise à jour de Neviweb130 vers la version v5.0.0.  Il faut faire un backup avant car V2
   change complètement la méthode de fonctionnement de Neviweb130. Le module de mise à jour de Neviweb130 permet de faire un backup avant
   la mise à jour.
 
@@ -507,6 +507,7 @@ en utilisant les nouvelles entités d'attributs vous pourrez vous débarrasser d
 Il est possible qu'il manque quelques entités d'attributs. Ils seront facilement ajoutés dès que j'en serai notifié.
 
 Voici une page d'appareil type:
+
 ![Page appareil](../www/page_appareil.jpg)
 ![Page appareil suite](../www/page_appareil_suite.jpg)
 
