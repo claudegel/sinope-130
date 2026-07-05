@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.2.8] - 2026-06-__
+### Added
+
+### Fix
+- Fix HVACAction when TH6xxxWF device are in cooling mode.
+
+### Doc
+
 ## [v4.2.7] - 2026-06-26
 ### Added
 - Add support for HP6000ZB-GE-RS485 thermostats.
