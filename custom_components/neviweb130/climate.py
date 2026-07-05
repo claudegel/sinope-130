@@ -6861,6 +6861,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     return HVACAction.IDLE
                 return HVACAction.HEATING
             if self._heat_level_source_type == "cooling":
+                if self._heat_level == 0:
+                    return HVACAction.IDLE
                 return HVACAction.COOLING
         return None
 
