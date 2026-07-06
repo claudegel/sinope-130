@@ -6847,26 +6847,37 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     @override
     def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
-        if self.hvac_mode == HVACMode.OFF:
+
+        mode = self.hvac_mode
+
+        # OFF = always OFF
+        if mode == HVACMode.OFF:
             return HVACAction.OFF
-        if self._heat_cool == HVACMode.COOL:
-            if self._heat_level == 0:
-                return HVACAction.IDLE
-            return HVACAction.COOLING
-        if self._heat_cool == HVACMode.HEAT:
-            if self._heat_level == 0:
-                return HVACAction.IDLE
-            return HVACAction.HEATING
-        if self._heat_cool in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+
+        # determine base action (heating / cooling / None)
+        action: HVACAction | None = None
+
+        if mode == HVACMode.COOL:
+            action = HVACAction.COOLING
+
+        elif mode == HVACMode.HEAT:
+            action = HVACAction.HEATING
+
+        elif mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             if self._heat_level_source_type in ("heating", "auxHeating"):
-                if self._heat_level == 0:
-                    return HVACAction.IDLE
-                return HVACAction.HEATING
-            if self._heat_level_source_type == "cooling":
-                if self._heat_level == 0:
-                    return HVACAction.IDLE
-                return HVACAction.COOLING
-        return None
+                action = HVACAction.HEATING
+            elif self._heat_level_source_type == "cooling":
+                action = HVACAction.COOLING
+
+        # If action is None → None
+        if action is None:
+            return None
+
+        # If heat_level == 0 → IDLE (for all modes)
+        if self._heat_level == 0:
+            return HVACAction.IDLE
+
+        return action
 
     @property
     @override
