@@ -6871,7 +6871,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         # If action is None → None
         if action is None:
-            return None
+            return HVACAction.IDLE
 
         # If heat_level == 0 → IDLE (for all modes)
         if self._heat_level == 0:
