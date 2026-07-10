@@ -10,6 +10,7 @@ All modification for this custom_component will be added in this file.
 - Fix HVACAction when TH6xxxWF device is in heat-cool mode.
 
 ### Doc
+- Update specification for RM3250WF to 40A limit
 
 ## [v4.2.7] - 2026-06-26
 ### Added
