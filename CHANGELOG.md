@@ -8,6 +8,7 @@ All modification for this custom_component will be added in this file.
 ### Fix
 - Fix HVACAction when TH6xxxWF device are in cooling mode.
 - Fix HVACAction when TH6xxxWF device is in heat-cool mode.
+- Refactor hvac_action to improve action determination.
 
 ### Doc
 - Update specification for RM3250WF to 40A limit
