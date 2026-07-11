@@ -2575,21 +2575,33 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
-        elif self._operation_mode == HVACMode.COOL:
-            return HVACAction.COOLING
+
+        # determine base action (heating / cooling / other / None)
+        action: HVACAction | None = None
+
+        if self._operation_mode == HVACMode.COOL:
+            action = HVACAction.COOLING
+        elif self._operation_mode == HVACMode.HEAT:
+            action = HVACAction.HEATING
         elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACAction.FAN
+            action = HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
-            return HVACAction.DRYING
+            action = HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
+                action = f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
             else:
-                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
-        elif self._heat_level == 0:
+                action = f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
+
+        # If action is None → HVACAction.IDLE
+        if action is None:
             return HVACAction.IDLE
-        else:
-            return HVACAction.HEATING
+
+        # If heat_level == 0 → IDLE (for all modes)
+        if self._heat_level == 0:
+            return HVACAction.IDLE
+
+        return action
 
     @property
     def is_on(self) -> bool:
@@ -6246,6 +6258,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         if mode == HVACMode.OFF:
             return HVACAction.OFF
+
         if mode == HVACMode.COOL:
             if temp > self.target_temperature_high:
                 return HVACAction.COOLING
@@ -6869,7 +6882,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             elif self._heat_level_source_type == "cooling":
                 action = HVACAction.COOLING
 
-        # If action is None → None
+        # If action is None → HVACAction.IDLE
         if action is None:
             return HVACAction.IDLE
 
