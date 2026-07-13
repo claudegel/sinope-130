@@ -4,12 +4,15 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.2.8] - 2026-06-__
 ### Added
+- Complete support for new RM3250WF at 40A.
 
 ### Fix
 - Fix HVACAction when TH6xxxWF device are in cooling mode.
 - Fix HVACAction when TH6xxxWF device are in heat-cool mode.
 - Refactor hvac_action to improve action determination.
-- Refactor target temperature methods to handle None returns for HEAT_COOL and AUTO modes.
+- Refactor target_temperature methods to handle None returns for HEAT_COOL and AUTO modes.
+- Refactor HVACAction logic for HP6000WF to handle None temperatures and adjust target temperatures based on HVAC modes.
+- Refactor target_temperature, target_temperature_high and low for HP6000WF.
 
 ### Doc
 - Update specification for RM3250WF to 40A limit
