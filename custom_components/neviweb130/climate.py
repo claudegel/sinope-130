@@ -2579,7 +2579,7 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACAction.OFF
 
         # determine base action (heating / cooling / other / None)
-        action: HVACAction | None = None
+        action: str | HVACAction | None = None
 
         if self._operation_mode == HVACMode.COOL:
             action = HVACAction.COOLING
