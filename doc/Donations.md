@@ -4,7 +4,7 @@ Merci de soutenir le développement de Neviweb130 !
 Tank you for your support to Neviweb130 development !
 
 Vous pouvez envoyer un virement Interac à :
-You can send interac transfert at :
+You can send interac transfer at :
 
 📧 **claude@phyto.qc.ca**
 
