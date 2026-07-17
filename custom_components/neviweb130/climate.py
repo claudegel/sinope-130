@@ -6873,7 +6873,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     @override
     def target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
-        return self._target_cool  # Must return a value only if we are in heat_cool or auto mode
+        # Must return a value only if we are in heat_cool or auto mode
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return self._target_cool
         return None
