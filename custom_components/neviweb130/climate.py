@@ -2497,7 +2497,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     @override
-    def target_temperature(self) -> float:
+    def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self._target_temp is not None:
             temp = self._target_temp + self._drsetpoint_value
@@ -5873,6 +5873,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         self._display_cap = None
         self._fan_cap = None
         self._heat_cool = None
+        self._heatcool_setpoint_delta = 2
         self._interlock_id = None
         self._system_mode_avail = None
         self._model = None
