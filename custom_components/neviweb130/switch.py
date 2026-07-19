@@ -1029,6 +1029,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._today_kwh: float = 0.0
         self._total_kwh_count: float = float(retrieve_data(self._id, self._device_dict, 1) or 0.0)
         self._water_leak_status = None
+        self._water_temp = None
         self._water_temp_min: str | None = None
 
         self._attr_device_info = DeviceInfo(
@@ -1215,7 +1216,15 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         return None
 
     @property
+    def water_temperature(self):
+        return self._water_temp
+
+    @property
     def wattage(self):
+        return self._wattage
+
+    @property
+    def wattage_instant(self):
         return self._current_power_w
 
     @property
@@ -1290,9 +1299,14 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         return data
 
     @property
-    def battery_voltage(self):
-        """Return the current battery voltage of the controller in %."""
+    def battery_level(self):
+        """Return the current battery level in percentage."""
         return voltage_to_percentage(self._battery_voltage, 2 if self._is_zb_control or self._is_sedna_control else 4)
+
+    @property
+    def battery_voltage(self):
+        """Return the current battery voltage of the controller."""
+        return self._battery_voltage
 
     @property
     def is_standby(self):
@@ -1945,7 +1959,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._error_code = None
         self._temperature = None
         self._water_leak_status = None
-        self._water_temp = None
         self._water_temp_protec = None
         self._water_temp_time = None
         self._watt_time_on = None
@@ -2159,7 +2172,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_leak_disconnected_status = None
         self._water_leak_status = None
         self._water_tank_on = None
-        self._water_temp = None
         self._water_temp_protec = None
         self._water_temp_time = None
         self._wattage = 0
