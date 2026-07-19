@@ -489,6 +489,9 @@
       "battery_level": {
         "name": "Battery level"
       },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      },
       "cool_stage1_hourly_count": {
         "name": "CoolStage1 hourly count"
       },
@@ -576,8 +579,14 @@
       "total_kwh_count": {
         "name": "Total Energy"
       },
+      "water_temperature":{
+        "name": "water temperature"
+      },
       "wattage": {
         "name": "Wattage"
+      },
+      "wattage_instant": {
+        "name": "Wattage instant"
       },
       "weather_icon": {
         "name": "Weather icon"
