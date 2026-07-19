@@ -1028,6 +1028,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._timer2: str | None = None
         self._today_kwh: float = 0.0
         self._total_kwh_count: float = float(retrieve_data(self._id, self._device_dict, 1) or 0.0)
+        self._wattage = 0
         self._water_leak_status = None
         self._water_temp = None
         self._water_temp_min: str | None = None
@@ -1664,7 +1665,6 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
         self._error_code = None
-        self._wattage = 0
 
     @override
     async def async_update(self) -> None:
@@ -1811,7 +1811,6 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
         self._error_code = None
-        self._wattage = 0
         self._wifirssi = None
 
     @override
@@ -1962,7 +1961,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
         self._water_temp_protec = None
         self._water_temp_time = None
         self._watt_time_on = None
-        self._wattage = 0
 
     @override
     async def async_update(self) -> None:
@@ -2174,7 +2172,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._water_tank_on = None
         self._water_temp_protec = None
         self._water_temp_time = None
-        self._wattage = 0
 
     @override
     async def async_update(self) -> None:
