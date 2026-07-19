@@ -580,7 +580,6 @@ MODEL_ATTRIBUTES = {
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
-            "wattage",
             "weather_icon",
         ],
         "number": [
@@ -1102,7 +1101,6 @@ MODEL_ATTRIBUTES = {
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
-            "wattage",
             "weather_icon",
         ],
         "number": [
@@ -1279,6 +1277,7 @@ MODEL_ATTRIBUTES = {
             "monthly_kwh_count",
             "total_kwh_count",
             "wattage",
+            "wattage_instant",
             "wifirssi",
         ],
         "number": [],
@@ -1294,7 +1293,9 @@ MODEL_ATTRIBUTES = {
             "hourly_kwh_count",
             "monthly_kwh_count",
             "total_kwh_count",
+            "water_temperature",
             "wattage",
+            "wattage_instant",
         ],
         "number": ["water_remaining_time"],
         "select": [
@@ -1315,7 +1316,9 @@ MODEL_ATTRIBUTES = {
             "hourly_kwh_count",
             "monthly_kwh_count",
             "total_kwh_count",
+            "water_temperature",
             "wattage",
+            "wattage_instant",
         ],
         "number": ["water_remaining_time"],
         "select": [
@@ -1375,6 +1378,7 @@ MODEL_ATTRIBUTES = {
             "monthly_kwh_count",
             "total_kwh_count",
             "wattage",
+            "wattage_instant",
         ],
         "number": [],
         "select": [
@@ -1401,6 +1405,7 @@ MODEL_ATTRIBUTES = {
             "monthly_kwh_count",
             "total_kwh_count",
             "wattage",
+            "wattage_instant",
         ],
         "number": [],
         "select": [],
@@ -1426,6 +1431,7 @@ MODEL_ATTRIBUTES = {
             "monthly_kwh_count",
             "total_kwh_count",
             "wattage",
+            "wattage_instant",
         ],
         "number": [],
         "select": [],
@@ -1445,7 +1451,11 @@ MODEL_ATTRIBUTES = {
     },
     # Valves
     3150: {  # VA4201WZ, VA4200WZ, VA4220WZ, VA4220WF, VA4221WZ, VA4221WF
-        "sensor": [ATTR_RSSI],
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+        ],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1453,7 +1463,11 @@ MODEL_ATTRIBUTES = {
         "switch": [],
     },
     3151: {  # VA4200ZB
-        "sensor": [ATTR_RSSI],
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+        ],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1463,6 +1477,8 @@ MODEL_ATTRIBUTES = {
     3153: {  # VA4220ZB 2e gen
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
@@ -1490,6 +1506,8 @@ MODEL_ATTRIBUTES = {
     3155: {  # ACT4221WF-M, ACT4220WF-M
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
@@ -1517,6 +1535,8 @@ MODEL_ATTRIBUTES = {
     31532: {  # ACT4221ZB-M, ACT4220ZB-M
         "sensor": [
             ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
@@ -1819,8 +1839,10 @@ EXPOSED_ATTRIBUTES = [
     "valve_alert",
     "valve_temp_alert",
     "wattage",
+    "wattage_instant",
     "water_leak_status",
     "water_remaining_time",
+    "water_temperature",
     "weather_icon",
     "wifi_aux_cycle_length",
     "wifi_cycle",
