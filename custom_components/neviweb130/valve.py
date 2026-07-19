@@ -957,9 +957,13 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return SUPPORT_FLAGS
 
     @property
+    def battery_level(self):
+        return voltage_to_percentage(self._battery_voltage, 2 if self._is_zb_control or self._is_sedna_control else 4)
+
+    @property
     def battery_voltage(self):
         """Return the current battery voltage of the valve in %."""
-        return voltage_to_percentage(self._battery_voltage, 2 if self._is_zb_control or self._is_sedna_control else 4)
+        return self._battery_voltage
 
     async def async_set_valve_alert(self, value):
         """Set valve battery alert action."""
