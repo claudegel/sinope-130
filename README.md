@@ -126,7 +126,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
 - **Wi-Fi specialized control**:
   - Sinopé RM3500WF Load controller for water heater
   - Sinopé RM3510WF Load controller for water heater
-  - Sinopé RM3250WF load controller 50A, Wi-Fi
+  - Sinopé RM3250WF load controller 40A, Wi-Fi
 - **Water leak detector and valves**:
   - Sinopé VA4201WZ, VA4221WZ, sedna valve 1 inch
   - Sinopé VA4200WZ, VA4220WZ, sedna valve 3/4 inch Wi-Fi

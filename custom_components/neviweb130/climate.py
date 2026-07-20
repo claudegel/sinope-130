@@ -2427,16 +2427,18 @@ class Neviweb130Thermostat(ClimateEntity):
             return False
 
     @property
-    @override
-    def target_temperature_low(self) -> float:
-        """(deprecated, use min_temp) Return the minimum heating temperature."""
-        return self._min_temp
+    def target_temperature_low(self) -> float | None:
+        """Return the minimum target heating temperature for heat-cool devices only."""
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            return self._min_temp
+        return None
 
     @property
-    @override
-    def target_temperature_high(self) -> float:
-        """(deprecated, use max_temp) Return the maximum heating temperature."""
-        return self._max_temp
+    def target_temperature_high(self) -> float | None:
+        """Return the maximum target heating temperature for heat-cool devices only."""
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            return self._max_temp
+        return None
 
     @property
     @override
@@ -2575,21 +2577,33 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return current HVAC action."""
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
-        elif self._operation_mode == HVACMode.COOL:
-            return HVACAction.COOLING
+
+        # determine base action (heating / cooling / other / None)
+        action: str | HVACAction | None = None
+
+        if self._operation_mode == HVACMode.COOL:
+            action = HVACAction.COOLING
+        elif self._operation_mode == HVACMode.HEAT:
+            action = HVACAction.HEATING
         elif self._operation_mode == HVACMode.FAN_ONLY:
-            return HVACAction.FAN
+            action = HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
-            return HVACAction.DRYING
+            action = HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
             if self._heat_level == 0:
-                return f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
+                action = f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
             else:
-                return f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
-        elif self._heat_level == 0:
+                action = f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
+
+        # If action is None → HVACAction.IDLE
+        if action is None:
             return HVACAction.IDLE
-        else:
-            return HVACAction.HEATING
+
+        # If heat_level == 0 → IDLE (for all modes)
+        if self._heat_level == 0:
+            return HVACAction.IDLE
+
+        return action
 
     @property
     def is_on(self) -> bool:
@@ -5785,16 +5799,22 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
         if mode == HVACMode.OFF:
             return HVACAction.OFF
+
         if mode == HVACMode.COOL:
-            if temp > self.target_temperature_high:
+            if self._target_cool is not None and temp > self._target_cool:
                 return HVACAction.COOLING
             return HVACAction.IDLE
+
         if mode == HVACMode.HEAT:
-            if temp < self.target_temperature_low:
-                return HVACAction.HEATING
-            return HVACAction.IDLE
+            if self._target_temp is not None and self._drsetpoint_value is not None:
+                target_heat: float = self._target_temp + self._drsetpoint_value
+                if temp < target_heat:
+                    return HVACAction.HEATING
+                return HVACAction.IDLE
+
         if mode == HVACMode.DRY:
             return HVACAction.DRYING
+
         if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
 
@@ -5828,11 +5848,11 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
         # If HVACMode.heat, apply target_temperature_low
         if self.hvac_mode == HVACMode.HEAT and self._target_temp is not None:
-            temp = self.target_temperature_low
+            temp = self._target_temp + self._drsetpoint_value
 
         # If HVACMode.cool, apply target_temperature_high
         elif self.hvac_mode == HVACMode.COOL:
-            temp = self.target_temperature_high
+            temp = self._target_cool
 
         # Other modes
         else:
@@ -5852,15 +5872,22 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature_low(self) -> float:
+    def target_temperature_low(self) -> float | None:
         """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        return self._target_temp + self._drsetpoint_value
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            if self._target_temp is not None:
+                delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
+                return self._target_temp + delta
+            return None
+        return None
 
     @property
     @override
-    def target_temperature_high(self) -> float:
+    def target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
-        return self._target_cool
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            return self._target_cool
+        return None
 
     @override
     def turn_on(self) -> None:
@@ -6241,27 +6268,37 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         mode = self.hvac_mode
         temp = self.current_temperature
 
+        if mode == HVACMode.OFF:
+            return HVACAction.OFF
+
+        # If action is None → HVACAction.IDLE
         if temp is None:
             return HVACAction.IDLE
 
-        if mode == HVACMode.OFF:
-            return HVACAction.OFF
         if mode == HVACMode.COOL:
-            if temp > self.target_temperature_high:
+            if self._target_cool is not None and temp > self._target_cool:
                 return HVACAction.COOLING
             return HVACAction.IDLE
+
         if mode == HVACMode.HEAT:
-            if temp < self.target_temperature_low:
-                return HVACAction.HEATING
+            if self._target_temp is not None and self._drsetpoint_value is not None:
+                target: float = self._target_temp + self._drsetpoint_value
+                if temp < target:
+                    return HVACAction.HEATING
             return HVACAction.IDLE
+
         if mode == HVACMode.DRY:
             return HVACAction.DRYING
+
         if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
+
         if mode == HVACMode.HEAT_COOL:
-            if temp < self.target_temperature_low:
-                return HVACAction.HEATING
-            if temp > self.target_temperature_high:
+            if self._target_temp is not None and self._drsetpoint_value is not None:
+                target_heat: float = self._target_temp + self._drsetpoint_value
+                if temp < target_heat:
+                    return HVACAction.HEATING
+            if self._target_cool is not None and temp > self._target_cool:
                 return HVACAction.COOLING
             return HVACAction.IDLE
 
@@ -6295,23 +6332,28 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
 
         # Default temp
-        temp = self._target_temp
+        temp: float | None = self._target_temp
 
         # If HVACMode.heat, apply target_temperature_low
         if self.hvac_mode == HVACMode.HEAT and self._target_temp is not None:
-            temp = self.target_temperature_low
+            delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
+            temp = self._target_temp + delta
 
         # If HVACMode.cool, apply target_temperature_high
         elif self.hvac_mode == HVACMode.COOL:
-            temp = self.target_temperature_high
+            temp = self._target_cool
 
-        # If HVACMode.heatCool, apply target_temperature_low
+        # If HVACMode.heatCool, should return None
         elif self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            temp = self.target_temperature_low
+            temp = None
 
         # Other modes
         else:
-            temp = self._target_temp
+            if self._target_temp is not None:
+                delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
+                temp = self._target_temp + delta
+            else:
+                temp = None
 
         # if temp is None → return None
         if temp is None:
@@ -6327,15 +6369,24 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature_low(self) -> float:
+    def target_temperature_low(self) -> float | None:
         """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        return self._target_temp + self._drsetpoint_value
+        # Must return a value only if we are in heat_cool or auto mode
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            if self._target_temp is not None:
+                delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
+                return self._target_temp + delta
+            return None
+        return None
 
     @property
     @override
-    def target_temperature_high(self) -> float:
+    def target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
-        return self._target_cool
+        # Must return a value only if we are in heat_cool or auto mode
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            return self._target_cool
+        return None
 
     @override
     def turn_on(self) -> None:
@@ -6847,22 +6898,38 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     @override
     def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
-        if self.hvac_mode == HVACMode.OFF:
+
+        mode = self.hvac_mode
+
+        # OFF = always OFF
+        if mode == HVACMode.OFF:
             return HVACAction.OFF
-        if self._heat_cool == HVACMode.COOL:
-            return HVACAction.COOLING
-        if self._heat_cool == HVACMode.HEAT:
-            if self._heat_level == 0:
-                return HVACAction.IDLE
-            return HVACAction.HEATING
-        if self._heat_cool in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+
+        # determine base action (heating / cooling / None)
+        action: HVACAction | None = None
+
+        if mode == HVACMode.COOL:
+            action = HVACAction.COOLING
+
+        elif mode == HVACMode.HEAT:
+            action = HVACAction.HEATING
+
+        elif mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             if self._heat_level_source_type in ("heating", "auxHeating"):
-                if self._heat_level == 0:
-                    return HVACAction.IDLE
-                return HVACAction.HEATING
-            if self._heat_level_source_type == "cooling":
-                return HVACAction.COOLING
-        return None
+                action = HVACAction.HEATING
+            elif self._heat_level_source_type == "cooling":
+                action = HVACAction.COOLING
+
+        # If action is None → HVACAction.IDLE
+        if action is None:
+            return HVACAction.IDLE
+
+        # If heat_level == 0 → IDLE (for all modes)
+        if self._heat_level == 0:
+            return HVACAction.IDLE
+
+        assert action is not None
+        return action
 
     @property
     @override
@@ -6953,21 +7020,33 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self.hvac_mode == HVACMode.COOL:
-            return self.target_temperature_high
-        else:
-            return self.target_temperature_low
+            return self._target_cool
+        elif self.hvac_mode == HVACMode.HEAT:
+            return self._target_temp + self._drsetpoint_value
+
+        # In HEAT_COOL or AUTO mode, this should be None
+        return None
 
     @property
     @override
-    def target_temperature_low(self) -> float:
+    def target_temperature_low(self) -> float | None:
         """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        return self._target_temp + self._drsetpoint_value
+        # Must return a value only if we are in heat_cool or auto mode
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            if self._target_temp is not None:
+                delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
+                return self._target_temp + delta
+            return None
+        return None
 
     @property
     @override
-    def target_temperature_high(self) -> float:
+    def target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
-        return self._target_cool
+        # Must return a value only if we are in heat_cool or auto mode
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            return self._target_cool
+        return None
 
     @property
     @override

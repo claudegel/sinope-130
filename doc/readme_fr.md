@@ -124,7 +124,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
 - **Contrôle spécialisé Wi-Fi**:
   - Sinopé RM3500WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
   - Sinopé RM3510WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
-  - Sinopé RM3250WF, Contrôleur de charge 50A, Wi-Fi
+  - Sinopé RM3250WF, Contrôleur de charge 40A, Wi-Fi
 - **Water leak detector and valves**:
   - Sinopé VA4201WZ, VA4221WZ, valve sedna 1 pouce
   - Sinopé VA4200WZ, VA4220WZ, valve sedna 3/4 pouce, Wi-Fi
