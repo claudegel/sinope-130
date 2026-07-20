@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.8] - 2026-06-__
+## [v4.2.8] - 2026-06-20
 ### Added
 - Complete support for new RM3250WF at 40A.
 
