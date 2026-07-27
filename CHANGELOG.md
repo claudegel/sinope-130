@@ -2,7 +2,16 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.8] - 2026-06-20
+## [v4.2.9] - 2026-07-__
+### Added
+
+### Fix
+- Fix nested IF statement in __init__.py
+- Fix blind exception: `Exception` in __init__.py
+
+### Doc
+
+## [v4.2.8] - 2026-07-20
 ### Added
 - Complete support for new RM3250WF at 40A.
 
