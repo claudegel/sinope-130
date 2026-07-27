@@ -8,6 +8,8 @@ All modification for this custom_component will be added in this file.
 ### Fix
 - Fix nested IF statement in __init__.py
 - Fix blind exception: `Exception` in __init__.py
+- Fix date parsing in statistic to comply with timezone DEFAULT_TIME_ZONE for climate.py, light.py, switch.py and valve.py
+- Code cleanup for is_em_heat parameter
 
 ### Doc
 
