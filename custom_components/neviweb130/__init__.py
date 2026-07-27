@@ -301,20 +301,25 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
-                if resp.status == 200:
-                    text = await resp.text()
-                    try:
-                        tags = json.loads(text)
-                        if isinstance(tags, list) and len(tags) > 0:
-                            latest_tag = tags[0].get("name")
-                            if latest_tag and latest_tag.startswith("v"):
-                                latest_tag = latest_tag[1:]
-                            return latest_tag
-                    except Exception as err:
-                        _LOGGER.error("Failed to parse GitHub tags: %s", err)
-                        return None
+                if resp.status != 200:
+                    return None
 
-        return None
+                text = await resp.text()
+
+                try:
+                    tags = json.loads(text)
+                except (json.JSONDecodeError, TypeError, ValueError) as err:
+                    _LOGGER.error("Failed to parse GitHub tags: %s", err)
+                    return None
+
+                if not isinstance(tags, list) or not tags:
+                    return None
+
+                latest_tag = tags[0].get("name")
+                if latest_tag and latest_tag.startswith("v"):
+                    latest_tag = latest_tag[1:]
+
+                return latest_tag
 
     async def async_init_update():
         latest = await fetch_latest_version()
@@ -898,67 +903,66 @@ class Neviweb130Client:
             if ATTR_SIGNATURE in data:
                 device[ATTR_SIGNATURE] = data[ATTR_SIGNATURE]
             _LOGGER.debug("Received signature data: %s", data)
-            if data[ATTR_SIGNATURE]["protocol"] == "miwi":
-                if not self._ignore_miwi:
-                    _LOGGER.debug(
-                        translated_or_default(
-                            self.hass,
-                            "ignore_miwi",
-                            (
-                                f"The Neviweb location selected for parameter {'«network»'} contains unsupported\n"
-                                "MiWi devices. If this location contains only MiWi devices, use the sinope neviweb\n"
-                                "integration instead. If mixed devices exist, set ignore_miwi:\n"
-                                "True in your neviweb130 configuration."
-                            ),
-                            param="«network»",
-                        )
+            if data[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
+                _LOGGER.debug(
+                    translated_or_default(
+                        self.hass,
+                        "ignore_miwi",
+                        (
+                            f"The Neviweb location selected for parameter {'«network»'} contains unsupported\n"
+                            "MiWi devices. If this location contains only MiWi devices, use the sinope neviweb\n"
+                            "integration instead. If mixed devices exist, set ignore_miwi:\n"
+                            "True in your neviweb130 configuration."
+                        ),
+                        param="«network»",
                     )
+                )
+
         if self._gateway_id2 is not None:
             for device in self.gateway_data2:
                 data2 = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data2:
                     device[ATTR_SIGNATURE] = data2[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data2)
-                if data2[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    if not self._ignore_miwi:
-                        _LOGGER.debug(
-                            translated_or_default(
-                                self.hass,
-                                "ignore_miwi",
-                                (
-                                    f"The Neviweb location selected for parameter {'«network2»'} "
-                                    "contains unsupported\n"
-                                    "MiWi devices. If this location contains only MiWi devices, "
-                                    "use the sinope neviweb\n"
-                                    "integration instead. If mixed devices exist, set ignore_miwi:\n"
-                                    "True in your neviweb130 configuration."
-                                ),
-                                param="«network2»",
-                            )
+                if data2[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
+                    _LOGGER.debug(
+                        translated_or_default(
+                            self.hass,
+                            "ignore_miwi",
+                            (
+                                f"The Neviweb location selected for parameter {'«network2»'} "
+                                "contains unsupported\n"
+                                "MiWi devices. If this location contains only MiWi devices, "
+                                "use the sinope neviweb\n"
+                                "integration instead. If mixed devices exist, set ignore_miwi:\n"
+                                "True in your neviweb130 configuration."
+                            ),
+                            param="«network2»",
                         )
+                    )
+
         if self._gateway_id3 is not None:
             for device in self.gateway_data3:
                 data3 = self.get_device_attributes(str(device["id"]), [ATTR_SIGNATURE])
                 if ATTR_SIGNATURE in data3:
                     device[ATTR_SIGNATURE] = data3[ATTR_SIGNATURE]
                 _LOGGER.debug("Received signature data: %s", data3)
-                if data3[ATTR_SIGNATURE]["protocol"] == "miwi":
-                    if not self._ignore_miwi:
-                        _LOGGER.debug(
-                            translated_or_default(
-                                self.hass,
-                                "ignore_miwi",
-                                (
-                                    f"The Neviweb location selected for parameter {'«network3»'} "
-                                    "contains unsupported\n"
-                                    "MiWi devices. If this location contains only MiWi devices, "
-                                    "use the sinope neviweb\n"
-                                    "integration instead. If mixed devices exist, set ignore_miwi:\n"
-                                    "True in your neviweb130 configuration."
-                                ),
-                                param="«network3»",
-                            )
+                if data3[ATTR_SIGNATURE]["protocol"] == "miwi" and not self._ignore_miwi:
+                    _LOGGER.debug(
+                        translated_or_default(
+                            self.hass,
+                            "ignore_miwi",
+                            (
+                                f"The Neviweb location selected for parameter {'«network3»'} "
+                                "contains unsupported\n"
+                                "MiWi devices. If this location contains only MiWi devices, "
+                                "use the sinope neviweb\n"
+                                "integration instead. If mixed devices exist, set ignore_miwi:\n"
+                                "True in your neviweb130 configuration."
+                            ),
+                            param="«network3»",
                         )
+                    )
 
     def get_device_attributes(self, device_id: str, attributes: list[str]) -> dict[str, Any]:
         """Get device attributes."""
@@ -971,11 +975,10 @@ class Neviweb130Client:
                 cookies=self._cookies,
                 timeout=self._timeout,
             )
-        #            _LOGGER.debug("Received devices data: %s", raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
-        except Exception as e:
-            raise PyNeviweb130Error(f"Cannot get device attributes {e}")
+        except requests.exceptions.RequestException as err:
+            raise PyNeviweb130Error(f"Cannot get device attributes: {err}") from err
         # Update cookies
         if self._cookies is None:
             self._cookies = raw_res.cookies
@@ -983,19 +986,19 @@ class Neviweb130Client:
             self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    translated_or_default(
-                        self.hass,
-                        "usr_session",
-                        (
-                            "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
-                            "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
-                            "Reconnecting..."
-                        ),
-                    )
+        if "error" in data and data["error"]["code"] == "USRSESSEXP":
+            _LOGGER.error(
+                translated_or_default(
+                    self.hass,
+                    "usr_session",
+                    (
+                        "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
+                        "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
+                        "Reconnecting..."
+                    ),
                 )
+            )
+
         return data
 
     def get_device_status(self, device_id: str):
@@ -1012,23 +1015,28 @@ class Neviweb130Client:
             _LOGGER.debug("Received devices status: %s", raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
-        except Exception as e:
-            raise PyNeviweb130Error("Cannot get device status", e)
+        except requests.exceptions.RequestException as err:
+            raise PyNeviweb130Error(f"Cannot get device status: {err}") from err
+        # Update cookies
+        if self._cookies is None:
+            self._cookies = raw_res.cookies
+        else:
+            self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    translated_or_default(
-                        self.hass,
-                        "usr_session",
-                        (
-                            "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
-                            "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
-                            "Reconnecting..."
-                        ),
-                    )
+        if "error" in data and data["error"]["code"] == "USRSESSEXP":
+            _LOGGER.error(
+                translated_or_default(
+                    self.hass,
+                    "usr_session",
+                    (
+                        "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
+                        "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
+                        "Reconnecting..."
+                    ),
                 )
+            )
+
         return data
 
     def get_neviweb_status(self, location):
@@ -1045,22 +1053,24 @@ class Neviweb130Client:
             _LOGGER.debug("Received neviweb status: %s", raw_res.json())
         except requests.exceptions.ReadTimeout:
             return {"errorCode": "ReadTimeout"}
-        except Exception as e:
-            raise PyNeviweb130Error("Cannot get neviweb status", e)
+        except requests.exceptions.RequestException as err:
+            raise PyNeviweb130Error(f"Cannot get neviweb status: {err}") from err
+
         data = raw_res.json()
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    translated_or_default(
-                        self.hass,
-                        "location_status",
-                        (
-                            f"Session expired while fetching Neviweb status for location {location}.\n"
-                            "Set scan_interval < 10 minutes to avoid session expiration."
-                        ),
-                        param=location,
-                    )
+
+        if "error" in data and data["error"]["code"] == "USRSESSEXP":
+            _LOGGER.error(
+                translated_or_default(
+                    self.hass,
+                    "location_status",
+                    (
+                        f"Session expired while fetching Neviweb status for location {location}.\n"
+                        "Set scan_interval < 10 minutes to avoid session expiration."
+                    ),
+                    param=location,
                 )
+            )
+
         return data
 
     def get_device_alert(self, device_id: str):
@@ -1093,19 +1103,18 @@ class Neviweb130Client:
             self._cookies.update(raw_res.cookies)
         # Prepare data
         data = raw_res.json()
-        if "error" in data:
-            if data["error"]["code"] == "USRSESSEXP":
-                _LOGGER.error(
-                    translated_or_default(
-                        self.hass,
-                        "usr_session",
-                        (
-                            "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
-                            "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
-                            "Reconnecting..."
-                        ),
-                    )
+        if "error" in data and data["error"]["code"] == "USRSESSEXP":
+            _LOGGER.error(
+                translated_or_default(
+                    self.hass,
+                    "usr_session",
+                    (
+                        "Warning: Got USRSESSEXP error, Neviweb session expired.\n"
+                        "Set your scan_interval parameter to less than 10 minutes to avoid this...\n"
+                        "Reconnecting..."
+                    ),
                 )
+            )
         return data
 
     def get_device_monthly_stats(self, device_id: str, HC: bool):
