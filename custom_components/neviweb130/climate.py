@@ -57,7 +57,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from threading import Lock
 from typing import Any, Mapping, override
 
