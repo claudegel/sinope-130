@@ -2417,14 +2417,10 @@ class Neviweb130Thermostat(ClimateEntity):
     @property
     def is_em_heat(self) -> bool:
         """Return emergency heat state."""
-        if self._em_heat == "slave":
-            return True
-        elif self._cycle_length_output2_status == "on":
-            return True
-        elif self._aux_cycle_length > 0:
-            return True
-        else:
-            return False
+        slave = self._em_heat == "slave"
+        output2 = self._cycle_length_output2_status == "on"
+        aux = self._aux_cycle_length > 0
+        return slave or output2 or aux
 
     @property
     def target_temperature_low(self) -> float | None:
@@ -3135,7 +3131,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def do_stat(self, start):
         """Get device energy statistic."""
         if start - self._energy_stat_time > STAT_INTERVAL and self._energy_stat_time != 0:
-            today = date.today()
+            today = dt_util.now().astimezone(dt_util.DEFAULT_TIME_ZONE).date()
             current_month = today.month
             current_day = today.day
             if not self._is_HC:
@@ -3172,17 +3168,13 @@ class Neviweb130Thermostat(ClimateEntity):
                     daily_kwh_count = 0.0
                     k = 0
                     while k < n:
-                        if (
-                            datetime.fromisoformat(device_daily_stats[k]["date"][:-1] + "+00:00")
-                            .astimezone(timezone.utc)
-                            .month
-                            == current_month
-                        ):
+                        dt = dt_util.parse_datetime(device_daily_stats[k]["date"])
+                        if dt.month == current_month:
                             daily_kwh_count += safe_number(device_daily_stats[k]["period"]) / 1000
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 3)
                     self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]) / 1000, 3)
-                    dt_day = datetime.fromisoformat(device_daily_stats[n - 1]["date"][:-1].replace("Z", "+00:00"))
+                    dt_day = dt_util.parse_datetime(device_daily_stats[n - 1]["date"])
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
                     self._today_kwh = 0.0
@@ -3217,7 +3209,7 @@ class Neviweb130Thermostat(ClimateEntity):
                     self._hourly_kwh_count = round(hourly_kwh_count, 3)
                     self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]) / 1000, 3)
                     self._marker = device_hourly_stats[n - 1]["date"]
-                    dt_hour = datetime.strptime(device_hourly_stats[n - 1]["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    dt_hour = dt_util.parse_datetime(device_hourly_stats[n - 1]["date"])
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
                 else:
                     self._hour_kwh = 0.0
