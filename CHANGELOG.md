@@ -24,6 +24,7 @@ All modification for this custom_component will be added in this file.
 - Refactor target_temperature methods to handle None returns for HEAT_COOL and AUTO modes.
 - Refactor HVACAction logic for HP6000WF to handle None temperatures and adjust target temperatures based on HVAC modes.
 - Refactor target_temperature, target_temperature_high and low for HP6000WF.
+- Replaced datetime usage with homeassistant's dt_util for date parsing and logging.
 
 ### Doc
 - Update specification for RM3250WF to 40A limit
