@@ -915,10 +915,11 @@ class Neviweb130Valve(ValveEntity):
                         k += 1
                     self._monthly_kwh_count = round(monthly_kwh_count, 2)
                     self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]), 2)
-                    dt_month = datetime.fromisoformat(device_monthly_stats[n - 1]["date"][:-1] + "+00:00").astimezone(
-                        timezone.utc
-                    )
-                    _LOGGER.debug("stat month = %s", dt_month.month)
+                    dt_month = dt_util.parse_datetime(device_monthly_stats[n - 1]["date"])
+                    if dt_month is not None:
+                        _LOGGER.debug("stat month = %s", dt_month.month)
+                    else:
+                        _LOGGER.debug("stat month = unknown (invalid date from Neviweb)")
                 else:
                     self._month_kwh = 0.0
                     _LOGGER.warning(
@@ -938,13 +939,16 @@ class Neviweb130Valve(ValveEntity):
                     k = 0
                     while k < n:
                         dt = dt_util.parse_datetime(device_daily_stats[k]["date"])
-                        if dt.month == current_month:
+                        if dt and dt.month == current_month:
                             daily_kwh_count += safe_number(device_daily_stats[k]["period"])  # / 1000
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 2)
                     self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]), 2)
                     dt_day = dt_util.parse_datetime(device_daily_stats[n - 1]["date"])
-                    _LOGGER.debug("stat day = %s", dt_day.day)
+                    if dt_day is not None:
+                        _LOGGER.debug("stat day = %s", dt_day.day)
+                    else:
+                        _LOGGER.debug("stat day = unknown (invalid date from Neviweb)")
                 else:
                     self._today_kwh = 0.0
                     _LOGGER.warning(
@@ -963,17 +967,18 @@ class Neviweb130Valve(ValveEntity):
                     hourly_kwh_count = 0.0
                     k = 0
                     while k < n:
-                        if (
-                            datetime.fromisoformat(device_hourly_stats[k]["date"][:-1].replace("Z", "+00:00")).day
-                            == current_day
-                        ):
+                        dt = dt_util.parse_datetime(device_hourly_stats[k]["date"])
+                        if dt and dt.day == current_day:
                             hourly_kwh_count += safe_number(device_hourly_stats[k]["period"])  # / 1000
                         k += 1
                     self._hourly_kwh_count = round(hourly_kwh_count, 2)
                     self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]), 2)
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = dt_util.parse_datetime(device_hourly_stats[n - 1]["date"])
-                    _LOGGER.debug("stat hour = %s", dt_hour.hour)
+                    if dt_hour is not None:
+                        _LOGGER.debug("stat hour = %s", dt_hour.hour)
+                    else:
+                        _LOGGER.debug("stat hour = unknown (invalid date from Neviweb)")
                 else:
                     self._hour_kwh = 0.0
                     _LOGGER.warning(
