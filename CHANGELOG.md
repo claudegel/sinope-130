@@ -2,7 +2,18 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.2.8] - 2026-06-20
+## [v4.2.9] - 2026-07-__
+### Added
+
+### Fix
+- Fix nested IF statement in __init__.py
+- Fix blind exception: `Exception` in __init__.py
+- Fix date parsing in statistic to comply with timezone DEFAULT_TIME_ZONE for climate.py, light.py, switch.py and valve.py
+- Code cleanup for is_em_heat parameter
+
+### Doc
+
+## [v4.2.8] - 2026-07-20
 ### Added
 - Complete support for new RM3250WF at 40A.
 
@@ -13,6 +24,7 @@ All modification for this custom_component will be added in this file.
 - Refactor target_temperature methods to handle None returns for HEAT_COOL and AUTO modes.
 - Refactor HVACAction logic for HP6000WF to handle None temperatures and adjust target temperatures based on HVAC modes.
 - Refactor target_temperature, target_temperature_high and low for HP6000WF.
+- Replaced datetime usage with homeassistant's dt_util for date parsing and logging.
 
 ### Doc
 - Update specification for RM3250WF to 40A limit
