@@ -57,8 +57,9 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping
 from threading import Lock
-from typing import Any, Mapping, override
+from typing import Any, override
 
 import homeassistant.util.dt as dt_util
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
@@ -6238,6 +6239,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             or self._heat_cool == HVACMode.HEAT_COOL
             or self._heat_cool == HVACMode.DRY
             or self._heat_cool == HVACMode.FAN_ONLY
+            or self._heat_cool == HVACMode.AUTO
         )
 
     @property
@@ -6254,6 +6256,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             HVACMode.DRY,
             HVACMode.FAN_ONLY,
             HVACMode.HEAT,
+            HVACMode.AUTO,
         ):
             return HVACMode.HEAT
 
@@ -6291,7 +6294,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
 
-        if mode == HVACMode.HEAT_COOL:
+        if mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             if self._target_temp is not None and self._drsetpoint_value is not None:
                 target_heat: float = self._target_temp + self._drsetpoint_value
                 if temp < target_heat:
@@ -6306,7 +6309,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     @override
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        if self.hvac_mode == HVACMode.HEAT_COOL:
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return min(self._min_temp, self._cool_min)
         elif self.hvac_mode == HVACMode.COOL:
             return self._cool_min
@@ -6317,7 +6320,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     @override
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        if self.hvac_mode == HVACMode.HEAT_COOL:
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return max(self._max_temp, self._cool_max)
         elif self.hvac_mode == HVACMode.COOL:
             return self._cool_max
