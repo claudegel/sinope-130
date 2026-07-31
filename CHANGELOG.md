@@ -7,6 +7,7 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
+- Refactor fetch_release_notes handling in helpers.py.
 
 ### Doc
 
