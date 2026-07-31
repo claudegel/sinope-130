@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.0] - 2026-08-__
+### Added
+
+### Fix
+- Add AUTO heat-cool mode support for HP6000WF.
+
+### Doc
+
 ## [v4.2.9] - 2026-07-31
 ### Added
 
