@@ -360,10 +360,9 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
         try:
             # Fetch release info
-            async with aiohttp.ClientSession() as session:
-                async with session.get(api_url) as resp:
-                    resp.raise_for_status()
-                    release_data = await resp.json()
+            async with aiohttp.ClientSession() as session, session.get(api_url) as resp:
+                resp.raise_for_status()
+                release_data = await resp.json()
 
             # Select correct ZIP
             assets = release_data.get("assets", [])
