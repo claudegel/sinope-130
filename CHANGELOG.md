@@ -10,6 +10,7 @@ All modification for this custom_component will be added in this file.
 - Refactor fetch_release_notes handling in helpers.py.
 - Replace duplicate swingRegion3 with swingRegion4 in schema.py.
 - Refactor Fetch release info to use a single context manager.
+- Allow AUTO hvac_mode for temperature setting for HP6000WF.
 
 ### Doc
 
