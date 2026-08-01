@@ -6417,7 +6417,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Set new target temperature."""
         temperature_low = None
         temperature_high = None
-        if self.hvac_mode == HVACMode.HEAT_COOL:
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
             temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
         else:
