@@ -2407,7 +2407,7 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of supported features."""
         if self._is_floor or self._is_wifi_floor or self._is_low_wifi or self._is_low_voltage:
             return SUPPORT_AUX_FLAGS
-        elif self._is_HP or self._is_WHP:
+        elif self._is_HP:
             return SUPPORT_HP_FLAGS
         elif self._is_h_c:
             return SUPPORT_H_c_FLAGS
@@ -6228,6 +6228,17 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             sku=self._sku,
                         )
                     )
+
+    @property
+    @override
+    def supported_features(self) -> ClimateEntityFeature:
+        """Return the list of supported features."""
+        features = SUPPORT_HP_FLAGS
+
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+
+        return features
 
     @property
     @override
