@@ -12,6 +12,7 @@ All modification for this custom_component will be added in this file.
 - Refactor Fetch release info to use a single context manager.
 - Allow AUTO hvac_mode for temperature setting for HP6000WF.
 - Refactor supported_features method to include HVAC mode checks and adjust feature flags accordingly for HP6000WF.
+- Allow AUTO mode in set_temperature action for HP6000WF.
 
 ### Doc
 
