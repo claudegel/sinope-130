@@ -6440,7 +6440,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         if temperature_low is not None:
             temperature_low = max(temperature_low, self._min_temp)
-            if self.hvac_mode == HVACMode.HEAT_COOL:
+            if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
                 temperature_low = min(
                     temperature_low, self._target_cool - self._heatcool_setpoint_delta
                 )  # a corriger le delta
@@ -6453,7 +6453,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         if temperature_high is not None:
             temperature_high = min(temperature_high, self._cool_max)
-            if self.hvac_mode == HVACMode.HEAT_COOL:
+            if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
                 temperature_high = max(
                     temperature_high, self._target_temp + self._heatcool_setpoint_delta
                 )  # a corriger le delta
