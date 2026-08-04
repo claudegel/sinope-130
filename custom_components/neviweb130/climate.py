@@ -58,8 +58,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Mapping
 from threading import Lock
-from typing import Any, Mapping, override
+from typing import Any, override
 
 import homeassistant.util.dt as dt_util
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
@@ -2378,7 +2379,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Return the list of supported features."""
         if self._is_floor or self._is_wifi_floor or self._is_low_wifi or self._is_low_voltage:
             return SUPPORT_AUX_FLAGS
-        elif self._is_HP or self._is_WHP:
+        elif self._is_HP:
             return SUPPORT_HP_FLAGS
         elif self._is_HC:
             return SUPPORT_HC_FLAGS
@@ -2559,7 +2560,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
         if self._operation_mode == HVACMode.COOL:
             action = HVACAction.COOLING
-        elif self._operation_mode == HVACMode.HEAT:
+        elif self._operation_mode in (HVACMode.HEAT, MODE_MANUAL):
             action = HVACAction.HEATING
         elif self._operation_mode == HVACMode.FAN_ONLY:
             action = HVACAction.FAN
@@ -6056,6 +6057,17 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
     @property
     @override
+    def supported_features(self) -> ClimateEntityFeature:
+        """Return the list of supported features."""
+        features = SUPPORT_HP_FLAGS
+
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+
+        return features
+
+    @property
+    @override
     def is_on(self) -> bool:
         """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
         return (
@@ -6064,6 +6076,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             or self._heat_cool == HVACMode.HEAT_COOL
             or self._heat_cool == HVACMode.DRY
             or self._heat_cool == HVACMode.FAN_ONLY
+            or self._heat_cool == HVACMode.AUTO
         )
 
     @property
@@ -6090,6 +6103,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             HVACMode.DRY,
             HVACMode.FAN_ONLY,
             HVACMode.HEAT,
+            HVACMode.AUTO,
         ):
             return HVACMode.HEAT
 
@@ -6127,7 +6141,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
 
-        if mode == HVACMode.HEAT_COOL:
+        if mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             if self._target_temp is not None and self._drsetpoint_value is not None:
                 target_heat: float = self._target_temp + self._drsetpoint_value
                 if temp < target_heat:
@@ -6144,7 +6158,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Return the minimum temperature."""
         cool_min = self._cool_min if self._cool_min is not None else 16.0
 
-        if self.hvac_mode == HVACMode.HEAT_COOL:
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return min(self._min_temp, cool_min)
         elif self.hvac_mode == HVACMode.COOL:
             return cool_min
@@ -6157,7 +6171,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Return the maximum temperature."""
         cool_max = self._cool_max if self._cool_max is not None else 31.0
 
-        if self.hvac_mode == HVACMode.HEAT_COOL:
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return max(self._max_temp, cool_max)
         elif self.hvac_mode == HVACMode.COOL:
             return cool_max
@@ -6256,7 +6270,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Set new target temperature."""
         temperature_low = None
         temperature_high = None
-        if self.hvac_mode == HVACMode.HEAT_COOL:
+        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
             temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
         else:
@@ -6268,7 +6282,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         if temperature_low is not None:
             temperature_low = max(temperature_low, self._min_temp)
-            if self.hvac_mode == HVACMode.HEAT_COOL:
+            if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
                 temperature_low = min(
                     temperature_low, self._target_cool - self._heatcool_setpoint_delta
                 )  # a corriger le delta
@@ -6281,7 +6295,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         if temperature_high is not None:
             temperature_high = min(temperature_high, self._cool_max)
-            if self.hvac_mode == HVACMode.HEAT_COOL:
+            if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
                 temperature_high = max(
                     temperature_high, self._target_temp + self._heatcool_setpoint_delta
                 )  # a corriger le delta
