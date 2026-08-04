@@ -13,6 +13,7 @@ All modification for this custom_component will be added in this file.
 - Allow AUTO hvac_mode for temperature setting for HP6000WF.
 - Refactor supported_features method to include HVAC mode checks and adjust feature flags accordingly for HP6000WF.
 - Allow AUTO mode in set_temperature action for HP6000WF.
+- Allow manual mode in set_hvac_action for TH112xWF thermostats.
 
 ### Doc
 
