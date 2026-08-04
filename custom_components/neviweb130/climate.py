@@ -2579,7 +2579,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
         if self._operation_mode == HVACMode.COOL:
             action = HVACAction.COOLING
-        elif self._operation_mode == HVACMode.HEAT:
+        elif self._operation_mode in (HVACMode.HEAT, MODE_MANUAL):
             action = HVACAction.HEATING
         elif self._operation_mode == HVACMode.FAN_ONLY:
             action = HVACAction.FAN
