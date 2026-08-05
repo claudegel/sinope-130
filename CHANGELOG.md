@@ -4,6 +4,7 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.3.0] - 2026-08-__
 ### Added
+- Refactor valve control logic to add delayed refresh for Wi-Fi valves.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
