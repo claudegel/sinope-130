@@ -295,7 +295,7 @@ MODE_MANUAL = "manual"
 MODE_OFF = "off"
 
 STATE_KEYPAD_STATUS = "unlocked"
-STATE_VALVE_STATUS = "open"
+STATE_VALVE_STATUS = "opened"
 STATE_WATER_LEAK = "water"
 
 SERVICE_SET_ACCESSORY_TYPE = "set_accessory_type"
