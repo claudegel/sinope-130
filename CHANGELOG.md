@@ -15,6 +15,7 @@ All modification for this custom_component will be added in this file.
 - Refactor supported_features method to include HVAC mode checks and adjust feature flags accordingly for HP6000WF.
 - Allow AUTO mode in set_temperature action for HP6000WF.
 - Allow manual mode in set_hvac_action for TH112xWF thermostats.
+- Change valve status from 'open' to 'opened'.
 
 ### Doc
 
