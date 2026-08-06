@@ -1257,7 +1257,13 @@ class Neviweb130WifiValve(Neviweb130Valve):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    if ATTR_VALVE_INFO in device_data:
+                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
+                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
+                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                        self._valve_status = STATE_VALVE_STATUS if self._valve_info_status == "opened" else "closed"
+                    else:
+                        self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
                     self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
                     self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = (
@@ -1293,10 +1299,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     if ATTR_VALVE_CLOSURE in device_data:
                         self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
-                    if ATTR_VALVE_INFO in device_data:
-                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
-                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
-                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
                         if "motorPosition" in device_data[ATTR_STM8_ERROR]:
@@ -1701,15 +1703,17 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
-                    self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
-                    self._motor_position = device_data[ATTR_MOTOR_POS]
-                    self._motor_target = device_data[ATTR_MOTOR_TARGET]
-                    self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     if ATTR_VALVE_INFO in device_data:
                         self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
                         self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                        self._valve_status = STATE_VALVE_STATUS if self._valve_info_status == "opened" else "closed"
+                    else:
+                        self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
+                    self._motor_position = device_data[ATTR_MOTOR_POS]
+                    self._motor_target = device_data[ATTR_MOTOR_TARGET]
+                    self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
                     self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     self._battery_voltage = (
