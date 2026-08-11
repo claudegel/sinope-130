@@ -6,7 +6,8 @@ All modification for this custom_component will be added in this file.
 ### Added
 - Refactor valve control logic to add delayed refresh for Wi-Fi valves.
 - Refactor valve status handling with valve info for Wi-Fi valves.
-- Refactor fetch_latest_version for improved readability in __init__.py
+- Refactor fetch_latest_version for improved readability in __init__.py.
+- Refactor swing mode checks and simplify HVAC mode logic.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
