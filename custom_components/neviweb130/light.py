@@ -1060,7 +1060,7 @@ class Neviweb130Light(LightEntity):
                     "unknown_error",
                     (
                         f"Unknown error for {self._name} (id: {self._id}) (SKU: {self._sku}),\n"
-                        f"(Model: {str(self._device_model)}). Report to maintainer. Data received: {error_data}."
+                        f"(Model: {self._device_model!s}). Report to maintainer. Data received: {error_data}."
                     ),
                     name=self._name,
                     id=self._id,
