@@ -174,7 +174,7 @@ from .helpers import (
     setup_logger,
     translated_or_default,
 )
-from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA  # noqa: F401
+from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NEVIWEB_MODE_MAP
@@ -299,27 +299,26 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
     async def fetch_latest_version():
         url = "https://api.github.com/repos/claudegel/sinope-130/tags"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                if resp.status != 200:
-                    return None
+        async with aiohttp.ClientSession() as session, session.get(url) as resp:
+            if resp.status != 200:
+                return None
 
-                text = await resp.text()
+            text = await resp.text()
 
-                try:
-                    tags = json.loads(text)
-                except (json.JSONDecodeError, TypeError, ValueError) as err:
-                    _LOGGER.error("Failed to parse GitHub tags: %s", err)
-                    return None
+            try:
+                tags = json.loads(text)
+            except (json.JSONDecodeError, TypeError, ValueError) as err:
+                _LOGGER.error("Failed to parse GitHub tags: %s", err)
+                return None
 
-                if not isinstance(tags, list) or not tags:
-                    return None
+            if not isinstance(tags, list) or not tags:
+                return None
 
-                latest_tag = tags[0].get("name")
-                if latest_tag and latest_tag.startswith("v"):
-                    latest_tag = latest_tag[1:]
+            latest_tag = tags[0].get("name")
+            if latest_tag and latest_tag.startswith("v"):
+                latest_tag = latest_tag[1:]
 
-                return latest_tag
+            return latest_tag
 
     async def async_init_update():
         latest = await fetch_latest_version()
