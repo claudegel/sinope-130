@@ -2643,9 +2643,11 @@ class Neviweb130Thermostat(ClimateEntity):
     def swing_modes(self) -> list[str] | None:
         """Return available vertical swing modes."""
         if self._is_HP or self._is_WHP or self._is_h_c:
-            if self._fan_swing_cap is None or self._fan_swing_cap_vert is None:
-                return None
-            elif not extract_capability(self._fan_swing_cap):
+            if (
+                self._fan_swing_cap is None
+                or self._fan_swing_cap_vert is None
+                or not extract_capability(self._fan_swing_cap)
+            ):
                 return None
             elif "fullVertical" in extract_capability(self._fan_swing_cap):
                 return FULL_SWING + extract_capability_full(self._fan_swing_cap_vert)
@@ -2667,9 +2669,11 @@ class Neviweb130Thermostat(ClimateEntity):
     def swing_horizontal_modes(self) -> list[str] | None:
         """Return available horizontal swing modes"""
         if self._is_HP or self._is_WHP or self._is_h_c:
-            if self._fan_swing_cap is None or self._fan_swing_cap_horiz is None:
-                return None
-            elif not extract_capability(self._fan_swing_cap):
+            if (
+                self._fan_swing_cap is None
+                or self._fan_swing_cap_horiz is None
+                or not extract_capability(self._fan_swing_cap)
+            ):
                 return None
             elif "fullHorizontal" in extract_capability(self._fan_swing_cap):
                 return FULL_SWING + extract_capability_full(self._fan_swing_cap_horiz)
@@ -2904,13 +2908,7 @@ class Neviweb130Thermostat(ClimateEntity):
             MODE_EM_HEAT,
         ]
 
-        if hvac_mode in simple_modes:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC_like)
-
-        elif hvac_mode == HVACMode.AUTO:
-            self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC_like)
-
-        elif hvac_mode == HVACMode.HEAT_COOL:
+        if hvac_mode in simple_modes or hvac_mode == HVACMode.AUTO or hvac_mode == HVACMode.HEAT_COOL:
             self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_HC_like)
 
         elif hvac_mode == MODE_AUTO_BYPASS:
@@ -3056,8 +3054,7 @@ class Neviweb130Thermostat(ClimateEntity):
     def set_heat_pump_operation_limit(self, value):
         """Set minimum temperature for heat pump operation."""
         temp = value["temp"]
-        if temp < self._balance_pt_low:
-            temp = self._balance_pt_low
+        temp = max(temp, self._balance_pt_low)
         self._client.set_heat_pump_limit(value["id"], temp)
         self._balance_pt = temp
 
