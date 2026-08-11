@@ -17,6 +17,8 @@ All modification for this custom_component will be added in this file.
 - Allow AUTO mode in set_temperature action for HP6000WF.
 - Allow manual mode in set_hvac_action for TH112xWF thermostats.
 - Change valve status from 'open' to 'opened'.
+- Fix set_preset_mode that was not updating HA immediately when changed.
+- Add HVACMode.AUTO to hvac_action to get heating action when heat_level is > 0 for Wi-Fi thermostats.
 
 ### Doc
 
