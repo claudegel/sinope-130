@@ -2579,7 +2579,7 @@ class Neviweb130Thermostat(ClimateEntity):
 
         if self._operation_mode == HVACMode.COOL:
             action = HVACAction.COOLING
-        elif self._operation_mode in (HVACMode.HEAT, MODE_MANUAL):
+        elif self._operation_mode in (HVACMode.AUTO, HVACMode.HEAT, MODE_MANUAL):
             action = HVACAction.HEATING
         elif self._operation_mode == HVACMode.FAN_ONLY:
             action = HVACAction.FAN
@@ -2939,6 +2939,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set preset mode: %s", preset_mode)
         self._occupancy = preset_mode
+        self._delayed_refresh()
 
     def turn_em_heat_on(self):
         """Turn emergency heater on."""
