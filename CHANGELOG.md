@@ -21,7 +21,7 @@ All modification for this custom_component will be added in this file.
 - Change valve status from 'open' to 'opened'.
 - Fix set_preset_mode that was not updating HA immediately when changed.
 - Add HVACMode.AUTO to hvac_action to get heating action when heat_level is > 0 for Wi-Fi thermostats.
-- Fix string formatting for error reporting in light.py.
+- Fix string formatting for error reporting in light.py and sensor.py.
 
 ### Doc
 
