@@ -556,6 +556,10 @@ class Neviweb130Valve(ValveEntity):
         self._is_wifi_valve = device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL
         self._is_zb_mesh_valve = device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL
         self._is_wifi_mesh_valve = device_info["signature"]["model"] in IMPLEMENTED_WIFI_MESH_VALVE_MODEL
+        self._is_wifi = (
+            device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL
+            or device_info["signature"]["model"] in IMPLEMENTED_WIFI_MESH_VALVE_MODEL
+        )
         self._active = True
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -767,8 +771,8 @@ class Neviweb130Valve(ValveEntity):
 
     def open_valve(self, **kwargs):
         """Open the valve."""
-        wifi = self._is_wifi_valve or self._is_wifi_mesh_valve
-        if wifi:
+
+        if self._is_wifi:
             self._client.set_valve_onoff(self._id, 100)
         else:
             self._client.set_onoff(self._id, "on")
@@ -776,13 +780,12 @@ class Neviweb130Valve(ValveEntity):
         self._valve_status = "open"
         self._onoff = "on"
 
-        if wifi:
-            self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     def close_valve(self, **kwargs):
         """Close the valve."""
-        wifi = self._is_wifi_valve or self._is_wifi_mesh_valve
-        if wifi:
+
+        if self._is_wifi:
             self._client.set_valve_onoff(self._id, 0)
         else:
             self._client.set_onoff(self._id, "off")
@@ -790,8 +793,7 @@ class Neviweb130Valve(ValveEntity):
         self._valve_status = "closed"
         self._onoff = MODE_OFF
 
-        if wifi:
-            self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     def extra_state_attributes(self):
@@ -903,12 +905,12 @@ class Neviweb130Valve(ValveEntity):
         """Activate or deactivate neviweb polling for a missing device."""
         self._active = value["active"]
 
-    def _delayed_refresh(self, delay: float = 2.0) -> None:
-        """Push immediate state and schedule a delayed refresh."""
+    def _delayed_refresh(self, delay: float = 2.0, wifi: bool = False) -> None:
+        """Push immediate state and schedule a delayed refresh for Wi-Fi devices."""
         self.schedule_update_ha_state()
 
-        # Set a delayed refresh to wait from Neviweb to finish his setting
-        call_later(self.hass, delay, lambda _: self.update())
+        if wifi:
+            call_later(self.hass, delay, lambda _: self.schedule_update_ha_state())
 
     def do_stat(self, start):
         """Get device flow statistic."""
