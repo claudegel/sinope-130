@@ -23,6 +23,7 @@ All modification for this custom_component will be added in this file.
 - Add HVACMode.AUTO to hvac_action to get heating action when heat_level is > 0 for Wi-Fi thermostats.
 - Fix string formatting for error reporting in light.py and sensor.py.
 - Updated _delayed_refresh method to include wifi parameter for better handling of Wi-Fi devices.
+- Refactor valve control logic to use a single wifi check and update delayed refresh method to handle Wi-Fi devices.
 
 ### Doc
 
