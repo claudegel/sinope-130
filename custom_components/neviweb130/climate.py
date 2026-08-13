@@ -2271,6 +2271,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -2751,7 +2752,7 @@ class Neviweb130Thermostat(ClimateEntity):
         temperature = max(temperature, self._min_temp)
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     def set_second_display(self, value):
         """Set thermostat second display between outside and setpoint temperature."""
@@ -2919,7 +2920,7 @@ class Neviweb130Thermostat(ClimateEntity):
             _LOGGER.error("Unable to set hvac mode: %s", hvac_mode)
 
         self._operation_mode = hvac_mode
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @override
     def set_preset_mode(self, preset_mode: str) -> None:
@@ -2937,7 +2938,7 @@ class Neviweb130Thermostat(ClimateEntity):
         else:
             _LOGGER.error("Unable to set preset mode: %s", preset_mode)
         self._occupancy = preset_mode
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     def turn_em_heat_on(self):
         """Turn emergency heater on."""
@@ -3119,12 +3120,12 @@ class Neviweb130Thermostat(ClimateEntity):
         self._client.post_neviweb_status(self._location, value["mode"])
         self._occupancy_mode = value["mode"]
 
-    def _delayed_refresh(self, delay: float = 2.0) -> None:
-        """Push immediate state and schedule a delayed refresh."""
+    def _delayed_refresh(self, delay: float = 2.0, wifi: bool = False) -> None:
+        """Push immediate state and schedule a delayed refresh for Wi-Fi devices."""
         self.schedule_update_ha_state()
 
-        # Set a delayed refresh to wait from Neviweb to finish his setting
-        call_later(self.hass, delay, lambda _: self.update())
+        if wifi:
+            call_later(self.hass, delay, lambda _: self.schedule_update_ha_state())
 
     def do_stat(self, start):
         """Get device energy statistic."""
@@ -3654,6 +3655,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -3853,6 +3855,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -4072,6 +4075,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -4252,6 +4256,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -4438,6 +4443,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -4647,6 +4653,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -4840,6 +4847,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -5061,6 +5069,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -5294,6 +5303,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -5526,6 +5536,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -5759,6 +5770,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 self._occupancy_mode = status
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -5906,7 +5918,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             mode_to_send = "fanOnly"
         self._client.set_setpoint_mode(self._id, mode_to_send, self._is_wifi, self._is_HP)
 
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @override
     def set_temperature(self, **kwargs: Any) -> None:
@@ -5939,7 +5951,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
 
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     @override
@@ -6213,6 +6225,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 self._occupancy_mode = status
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -6419,7 +6432,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         # Reset the preset to the occupancy
         self.set_preset_mode(self._occupancy)
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @override
     def set_temperature(self, **kwargs: Any) -> None:
@@ -6461,7 +6474,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     @override
@@ -6859,6 +6872,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self.do_stat(start)
             self.get_sensor_error_code()
             self.get_weather()
+
         else:
             if time.time() - self._snooze > SNOOZE_TIME:
                 self._active = True
@@ -7109,7 +7123,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
         # Reset the preset to the occupancy
         self.set_preset_mode(self._occupancy)
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     def _em_heat_allowed(self) -> bool:
         """Check if device configuration allow turning on emergency heat. 'addOn' or 'conventional'."""
@@ -7214,7 +7228,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
-        self._delayed_refresh()
+        self._delayed_refresh(wifi=self._is_wifi)
 
     def set_min_time_on(self, value):
         """Set minimum time the device is on before letting be off again (run-on time)"""
