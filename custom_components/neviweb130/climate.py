@@ -2572,7 +2572,9 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
+        _LOGGER.debug("hvac_action data for %s = %s (%s)", self._name, self._operation_mode, self._heat_level)
         if self._operation_mode == HVACMode.OFF:
+            _LOGGER.debug("hvac_action return for %s = Off", self._name)
             return HVACAction.OFF
 
         # determine base action (heating / cooling / other / None)
@@ -2592,14 +2594,19 @@ class Neviweb130Thermostat(ClimateEntity):
             else:
                 action = f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
 
+        _LOGGER.debug("hvac_action action for %s = %s", self._name, action)
+
         # If action is None → HVACAction.IDLE
         if action is None:
+            _LOGGER.debug("hvac_action return for %s = None", self._name)
             return HVACAction.IDLE
 
         # If heat_level == 0 → IDLE (for all modes)
         if self._heat_level == 0:
+            _LOGGER.debug("hvac_action return for %s = IDLE", self._name)
             return HVACAction.IDLE
 
+        _LOGGER.debug("hvac_action return for %s = %s", self._name, action)
         return action
 
     @property
