@@ -25,6 +25,7 @@ All modification for this custom_component will be added in this file.
 - Updated _delayed_refresh method to include wifi parameter for better handling of Wi-Fi devices.
 - Refactor valve control logic to use a single wifi check and update delayed refresh method to handle Wi-Fi devices.
 - Add missing parameter raw_code to error message translations in climate.py.
+- Added wrapper error handling for get_sensor_error_code() and get_weather() to improve robustness.
 
 ### Doc
 
