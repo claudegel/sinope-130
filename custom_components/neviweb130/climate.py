@@ -5506,7 +5506,24 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 )
             else:
                 device_data = self._client.get_device_attributes(self._id, attributes)
-            neviweb_status = self._client.get_neviweb_status(self._location)
+            try:
+                neviweb_status = self._client.get_neviweb_status(self._location)
+            except (KeyError, TypeError, ValueError) as err:
+                _LOGGER.error(
+                    "Data error while retrieving Neviweb status for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
+                neviweb_status = {}
+            except (ConnectionError, TimeoutError) as err:
+                _LOGGER.error(
+                    "Network error while retrieving Neviweb status for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
+                neviweb_status = {}
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -5579,7 +5596,15 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             if isinstance(status, str):
                 self._occupancy_mode = status
             if self._sku != "FLP55" and self._sku != "PS120_240WF":
-                self.do_stat(start)
+                try:
+                    self.do_stat(start)
+                except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
+                    _LOGGER.error(
+                        "Error in do_stat() for %s (%s): %s",
+                        self._name,
+                        self._id,
+                        err,
+                    )
             try:
                 self.get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
