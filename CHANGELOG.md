@@ -8,6 +8,8 @@ All modification for this custom_component will be added in this file.
 - Refactor valve status handling with valve info for Wi-Fi valves.
 - Refactor fetch_latest_version for improved readability in __init__.py.
 - Refactor swing mode checks and simplify HVAC mode logic.
+- Added heat level protection delay and updated heat level handling based on temperature gap.
+- Introduced a new function to determine heat level from temperature gap.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
