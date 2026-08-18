@@ -332,6 +332,8 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
+HEAT_LEVEL_PROTECTION_DELAY = 10  # secondes
+
 NEVIWEB_TO_HA_MODE = {v: k for k, v in NEVIWEB_MODE_MAP.items()}
 
 SUPPORT_FLAGS = (
@@ -1975,6 +1977,23 @@ def neviweb_to_ha(value: int) -> str:
     return last
 
 
+def temp_to_heat_level(gap: float) -> str:
+    """Return heat level according to temperature gap."""
+    match gap:
+        case 0.1:
+            return 0
+        case 0.2:
+            return 20
+        case 0.3:
+            return 40
+        case 0.4:
+            return 60
+        case 0.5:
+            return 80
+
+    return 100
+
+
 def lock_to_ha(lock: str) -> str:
     """Convert keypad lock state to better description."""
     match lock:
@@ -2137,6 +2156,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._hourly_kwh_count: float = 0.0
         self._keypad = "unlocked"
         self._language = None
+        self._last_setpoint_change = None
         self._load2 = None
         self._load2_status = None
         self._mark: str | float | None = None
@@ -2245,7 +2265,10 @@ class Neviweb130Thermostat(ClimateEntity):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
 
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -2603,37 +2626,37 @@ class Neviweb130Thermostat(ClimateEntity):
     def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
         _LOGGER.debug("hvac_action data for %s = %s (%s)", self._name, self._operation_mode, self._heat_level)
+        gap = self._target_temp - self._cur_temp
+        cool_gap = self._target_cool - self._cur_temp
+        heating = True if gap >= 0.2 else False
+        cooling = True if cool_gap >= 0.2 else False
+
         if self._operation_mode == HVACMode.OFF:
             _LOGGER.debug("hvac_action return for %s = Off", self._name)
             return HVACAction.OFF
 
-        # determine base action (heating / cooling / other / None)
+        # Determine base action (heating / cooling / other / None)
         action: str | HVACAction | None = None
 
         if self._operation_mode == HVACMode.COOL:
-            action = HVACAction.COOLING
+            action = HVACAction.COOLING if cooling else HVACAction.IDLE
         elif self._operation_mode in (HVACMode.AUTO, HVACMode.HEAT, MODE_MANUAL):
-            action = HVACAction.HEATING
+            action = HVACAction.HEATING if heating else HVACAction.IDLE
         elif self._operation_mode == HVACMode.FAN_ONLY:
             action = HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
             action = HVACAction.DRYING
         elif not HOMEKIT_MODE and self._operation_mode == MODE_AUTO_BYPASS:
-            if self._heat_level == 0:
-                action = f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
-            else:
+            if heating:
                 action = f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
+            else:
+                action = f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
 
         _LOGGER.debug("hvac_action action for %s = %s", self._name, action)
 
         # If action is None → HVACAction.IDLE
         if action is None:
             _LOGGER.debug("hvac_action return for %s = None", self._name)
-            return HVACAction.IDLE
-
-        # If heat_level == 0 → IDLE (for all modes)
-        if self._heat_level == 0:
-            _LOGGER.debug("hvac_action return for %s = IDLE", self._name)
             return HVACAction.IDLE
 
         _LOGGER.debug("hvac_action return for %s = %s", self._name, action)
@@ -2789,7 +2812,12 @@ class Neviweb130Thermostat(ClimateEntity):
         temperature = max(temperature, self._min_temp)
         self._client.set_temperature(self._id, temperature)
         self._target_temp = temperature
-        self._delayed_refresh(wifi=self._is_wifi)
+        self._last_setpoint_change = time.time()
+        gap = self._target_temp - self._cur_temp
+        if gap > 0:
+            self._heat_level = temp_to_heat_level(gap)
+        else:
+            self._heat_level = 0
 
     def set_second_display(self, value):
         """Set thermostat second display between outside and setpoint temperature."""
@@ -3163,6 +3191,24 @@ class Neviweb130Thermostat(ClimateEntity):
 
         if wifi:
             call_later(self.hass, delay, lambda _: self.schedule_update_ha_state())
+
+    def ignore_heat_level(self, last_change: float, percent: int) -> bool:
+        """Return True if percent should be ignored because update is too early."""
+        if last_change is None:
+            return False
+
+        elapsed = time.time() - last_change
+
+        if elapsed < HEAT_LEVEL_PROTECTION_DELAY:
+            _LOGGER.debug(
+                "Ignoring early heat_level update for %s: percent=%s (%.1f sec after setpoint change)",
+                self._name,
+                percent,
+                elapsed,
+            )
+            return True
+
+        return False
 
     def do_stat(self, start):
         """Get device energy statistic."""
@@ -3671,7 +3717,10 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._cold_load_pickup = device_data[ATTR_COLD_LOAD_PICKUP]
                     if ATTR_HEAT_LOCKOUT_TEMP in device_data:
                         self._heat_lockout_temp = device_data[ATTR_HEAT_LOCKOUT_TEMP]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -3881,7 +3930,10 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -4111,7 +4163,10 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_DRSETPOINT in device_data:
@@ -4360,7 +4415,10 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -4569,7 +4627,10 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -4654,6 +4715,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
         data = {}
         data.update(
             {
+                "operation_mode": self._operation_mode,
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "wattage": self._wattage,
                 "occupancy": self._occupancy,
@@ -4798,7 +4860,10 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     source_info = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {})
                     if isinstance(source_info, dict) and "sourceType" in source_info:
                         self._heat_source_type = source_info["sourceType"]
@@ -5033,7 +5098,10 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     source_info = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {})
                     if isinstance(source_info, dict) and "sourceType" in source_info:
                         self._heat_source_type = source_info["sourceType"]
@@ -5271,7 +5339,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -5556,7 +5627,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -5826,7 +5900,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
-                        self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                        percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                        if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                            # Accept heat_level received (delay passed)
+                            self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = device_data[ATTR_BACKLIGHT]
                     if ATTR_RSSI in device_data:
@@ -6345,7 +6422,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
 
-        self._delayed_refresh(wifi=self._is_wifi)
+        # self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     @override
@@ -6898,7 +6975,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
-        self._delayed_refresh(wifi=self._is_wifi)
+        # self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     @override
@@ -7682,7 +7759,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             if self._target_cool != temperature_high:
                 self._client.set_cool_temperature(self._id, temperature_high)
                 self._target_cool = temperature_high
-        self._delayed_refresh(wifi=self._is_wifi)
+        # self._delayed_refresh(wifi=self._is_wifi)
 
     def set_min_time_on(self, value):
         """Set minimum time the device is on before letting be off again (run-on time)"""
