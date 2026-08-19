@@ -1977,20 +1977,18 @@ def neviweb_to_ha(value: int) -> str:
     return last
 
 
-def temp_to_heat_level(gap: float) -> str:
+def temp_to_heat_level(gap: float) -> int:
     """Return heat level according to temperature gap."""
-    match gap:
-        case 0.1:
-            return 0
-        case 0.2:
-            return 20
-        case 0.3:
-            return 40
-        case 0.4:
-            return 60
-        case 0.5:
-            return 80
-
+    if gap < 0.2:
+        return 0
+    if gap < 0.3:
+        return 20
+    if gap < 0.4:
+        return 40
+    if gap < 0.5:
+        return 60
+    if gap < 0.6:
+        return 80
     return 100
 
 
@@ -4627,7 +4625,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
                     if not self.ignore_heat_level(self._last_setpoint_change, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
