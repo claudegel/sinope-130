@@ -10,6 +10,7 @@ All modification for this custom_component will be added in this file.
 - Refactor swing mode checks and simplify HVAC mode logic.
 - Added heat level protection delay and updated heat level handling based on temperature gap.
 - Introduced a new function to determine heat level from temperature gap.
+- Refactor temp_to_heat_level function to use if statements instead of match cases and change return type from str to int.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
