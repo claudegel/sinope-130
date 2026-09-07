@@ -1168,7 +1168,7 @@ class Neviweb130Sensor(Entity):
                     "unknown_error",
                     (
                         f"Unknown error for {self._name} (id: {self._id}) (SKU: {self._sku}),\n"
-                        f"(Model: {str(self._device_model)}). Report to maintainer.\n"
+                        f"(Model: {self._device_model!s}). Report to maintainer.\n"
                         f"Data received: {error_data}."
                     ),
                     name=self._name,
@@ -1747,5 +1747,3 @@ class NeviwebDailyRequestSensor(Entity):
 
         if data["date"] != today:
             self._notified = False
-
-        return None
