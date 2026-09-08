@@ -272,12 +272,11 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     async def async_check_for_updates(self) -> None:
         self._last_check = datetime.datetime.now().isoformat()
-
+        api_url = "https://api.github.com/repos/claudegel/sinope-130/releases"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://api.github.com/repos/claudegel/sinope-130/releases") as resp:
-                    resp.raise_for_status()
-                    releases = await resp.json()
+            async with aiohttp.ClientSession() as session, session.get(api_url) as resp:
+                resp.raise_for_status()
+                releases = await resp.json()
 
             latest_release = releases[0]
             latest = latest_release.get("tag_name", "").lstrip("v")
