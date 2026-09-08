@@ -62,6 +62,30 @@ BINARY_SENSOR_TYPES: Final[tuple[Neviweb130BinarySensorEntityDescription, ...]] 
         is_on_fn=lambda data, attr: str(data[attr]).lower() in {"water", "leak", "flowmeter", "probe"},
         icon_fn=static_icon("mdi:pipe-leak", "mdi:pipe"),
     ),
+    Neviweb130BinarySensorEntityDescription(
+        key="stm8Error_motorJam",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        translation_key="motor_jam_error",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:alert-circle", "mdi:check-circle"),
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="stm8Error_motorPosition",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        translation_key="motor_position_error",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:alert-circle", "mdi:check-circle"),
+    ),
+    Neviweb130BinarySensorEntityDescription(
+        key="stm8Error_motorLimit",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        translation_key="motor_limit_error",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        is_on_fn=lambda data, attr: bool(data.get(attr)),
+        icon_fn=static_icon("mdi:alert-circle", "mdi:check-circle"),
+    ),
     #  Switch attributes
     Neviweb130BinarySensorEntityDescription(
         key="battery_status",
