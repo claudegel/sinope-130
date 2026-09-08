@@ -234,6 +234,27 @@
           "off": "OK"
         }
       },
+      "motor_jam_error": {
+        "name": "Motor jam error",
+        "state": {
+          "on": "Motor jam detected",
+          "off": "Motor normal"
+        }
+      },
+      "motor_limit_error": {
+        "name": "Motor limit error",
+        "state": {
+          "on": "Motor limit error",
+          "off": "Motor limit normal"
+        }
+      },
+      "motor_position_error": {
+        "name": "Motor position error",
+        "state": {
+          "on": "Motor position error",
+          "off": "Motor position normal"
+        }
+      },
       "refuel_status": {
         "name": "Refuel Status",
         "state": {
@@ -560,6 +581,12 @@
       },
       "monthly_kwh_count": {
         "name": "Monthly Energy"
+      },
+      "motor_position": {
+        "name": "Motor position"
+      },
+      "motor_target": {
+        "name": "Motor target"
       },
       "outdoor_temp": {
         "name": "Outdoor temperature"
