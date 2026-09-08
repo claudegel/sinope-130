@@ -33,6 +33,7 @@ All modification for this custom_component will be added in this file.
 - Add missing parameter raw_code to error message translations in climate.py.
 - Added wrapper error handling for get_sensor_error_code() and get_weather() to improve robustness.
 - Added error handling for Neviweb status retrieval and do_stat() method in climate.py.
+- Refactor HP6000WF-xxx support for heat_cool and presets.
 
 ### Doc
 
