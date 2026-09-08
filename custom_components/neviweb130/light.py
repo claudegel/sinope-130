@@ -533,9 +533,9 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
+        self._device_model = str(device_info["signature"]["model"])
+        self._device_model_cfg = str(device_info["signature"]["modelCfg"])
+        self._hard_rev = str(device_info["signature"]["hardRev"])
         self._identifier = device_info["identifier"]
         self._is_light = device_info["signature"]["model"] in DEVICE_MODEL_LIGHT
         self._is_sedna_light = device_info["signature"]["model"] in DEVICE_MODEL_SED_LIGHT
@@ -849,7 +849,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "rssi": self._rssi,
                 "firmware": self._firmware,
@@ -1102,7 +1102,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 self._name,
                 self._id,
                 self._sku,
-                str(self._device_model),
+                self._device_model,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -1165,7 +1165,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
-                model=str(self._device_model),
+                model=self._device_model,
                 data=error_data,
             )
             _LOGGER.warning(msg)
@@ -1319,7 +1319,7 @@ class Neviweb130Dimmer(Neviweb130Light):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "rssi": self._rssi,
@@ -1490,7 +1490,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "rssi": self._rssi,
