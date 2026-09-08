@@ -2237,6 +2237,8 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     def wattage(self):
+        if self._sku == "TH1315WF":
+            return self._load1 * (self._heat_level / 100)
         return self._wattage
 
     @property
@@ -2378,7 +2380,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -3410,7 +3412,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 self._name,
                 self._id,
                 self._sku,
-                str(self._device_model),
+                self._device_model,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -3494,7 +3496,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
-                model=str(self._device_model),
+                model=self._device_model,
                 data=error_data,
             )
             _LOGGER.warning(msg)
@@ -3696,7 +3698,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "outdoor_temp": self._temperature,
                 "weather_icon": self._weather_icon,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -3941,7 +3943,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -4200,7 +4202,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -4397,7 +4399,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -4626,7 +4628,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -4863,7 +4865,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -5083,7 +5085,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -5355,7 +5357,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -5617,7 +5619,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -5903,7 +5905,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -6323,7 +6325,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -6918,7 +6920,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -7995,7 +7997,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "outdoor_temp": self._temperature,
                 "weather_icon": self._weather_icon,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
