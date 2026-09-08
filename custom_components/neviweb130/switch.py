@@ -975,10 +975,10 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
+        self._device_model = str(device_info["signature"]["model"])
+        self._device_model_cfg = str(device_info["signature"]["modelCfg"])
         self._device_type = device_type
-        self._hard_rev = device_info["signature"]["hardRev"]
+        self._hard_rev = str(device_info["signature"]["hardRev"])
         self._identifier = device_info["identifier"]
         self._is_wall = device_info["signature"]["model"] in IMPLEMENTED_WALL_DEVICES
         self._is_sedna_wall = device_info["signature"]["model"] in IMPLEMENTED_SED_WALL_DEVICES
@@ -1289,7 +1289,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -1588,7 +1588,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 self._name,
                 self._id,
                 self._sku,
-                str(self._device_model),
+                self._device_model,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -1651,7 +1651,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
-                model=str(self._device_model),
+                model=self._device_model,
                 data=error_data,
             )
             _LOGGER.warning(msg)
@@ -1791,7 +1791,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -1933,7 +1933,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "error_code": self._error_code,
                 "rssi": self._wifirssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -2136,7 +2136,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "error_code": self._error_code,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -2363,7 +2363,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "error_code": self._error_code,
                 "rssi": self._rssi,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
@@ -2603,7 +2603,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
