@@ -2067,12 +2067,12 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -3604,12 +3604,12 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -3839,12 +3839,12 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -4092,12 +4092,12 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -4306,12 +4306,12 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -4527,12 +4527,12 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -4986,12 +4986,12 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -5241,12 +5241,12 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -5787,12 +5787,12 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
@@ -6729,7 +6729,6 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         return heat_min
 
-
     @property
     @override
     def max_temp(self) -> float:
@@ -7088,7 +7087,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             # Model-specific attributes
             MODEL_EXTRA = {
                 "6727": HC_EXTRA + HC_CONFIG,  # ← 6727 have both
-                "6731": HC_CONFIG,             # ← 6731 have only HC_CONFIG
+                "6731": HC_CONFIG,  # ← 6731 have only HC_CONFIG
             }
 
             attributes += MODEL_EXTRA.get(self._device_model, [])
@@ -7269,12 +7268,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             try:
                 await self.async_do_stat(start)
             except (KeyError, TypeError, ValueError, ZeroDivisionError) as err:
-                    _LOGGER.error(
-                        "Error in do_stat() for %s (%s): %s",
-                        self._name,
-                        self._id,
-                        err,
-                    )
+                _LOGGER.error(
+                    "Error in do_stat() for %s (%s): %s",
+                    self._name,
+                    self._id,
+                    err,
+                )
             try:
                 await self.async_get_sensor_error_code()
             except (KeyError, TypeError, ValueError) as err:
