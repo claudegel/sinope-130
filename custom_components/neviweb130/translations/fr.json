@@ -234,6 +234,27 @@
           "off": "OK"
         }
       },
+      "motor_jam_error": {
+        "name": "Blocage moteur",
+        "state": {
+          "on": "Blocage moteur détecté",
+          "off": "Moteur normal"
+        }
+      },
+      "motor_limit_error": {
+        "name": "Erreur de limite moteur",
+        "state": {
+          "on": "Limite moteur en erreur",
+          "off": "Limite moteur normale"
+        }
+      },
+      "motor_position_error": {
+        "name": "Erreur de position moteur",
+        "state": {
+          "on": "Position moteur en erreur",
+          "off": "Position moteur normale"
+        }
+      },
       "refuel_status": {
         "name": "Alerte Remplissage",
         "state": {
@@ -560,6 +581,12 @@
       },
       "monthly_kwh_count": {
         "name": "Énergie Mensuelle"
+      },
+      "motor_position": {
+        "name": "Position moteur"
+      },
+      "motor_target": {
+        "name": "Cible moteur"
       },
       "outdoor_temp": {
         "name": "Température extérieure"
