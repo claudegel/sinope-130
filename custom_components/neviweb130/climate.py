@@ -24,7 +24,7 @@ model 343 = thermostat THEWF01 (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1145WF ?  (Wi-Fi) two wires connection, color screen
-model 738 = thermostat TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort (sku: PS120_240WF)
+model 738 = thermostat TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort (sku: PS120_240WF)
     (wifi floor), no energy stat for True Comfort
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
 model 742 = thermostat TH1500WF double pole thermostat (Wi-Fi)
@@ -32,6 +32,7 @@ model 6727 = thermostat TH6500WF heat/cool (Wi-Fi)
 model 6727 = thermostat TH6510WF heat/cool (Wi-Fi)
 model 6730 = thermostat TH6250WF heat/cool (Wi-Fi)
 model 6731 = thermostat TH6250WF-PRO heat/cool (Wi-Fi)
+model 6731 = thermostat TH6251WF-PRO heat/cool (Wi-Fi)
 
 Support for Flextherm Wi-Fi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
@@ -165,6 +166,7 @@ from .const import (
     ATTR_HUMIDITY_DISPLAY,
     ATTR_HUMIDITY_SETPOINT,
     ATTR_HUMIDITY_SETPOINT_MODE,
+    ATTR_HUMIDITY_SETPOINT_OFF,
     ATTR_HUMIDITY_SETPOINT_OFFSET,
     ATTR_HVAC_INPUT_1_FUNCTION,
     ATTR_INTERLOCK_HC_MODE,
@@ -372,6 +374,8 @@ SUPPORT_HC_FLAGS = ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_
 
 SNOOZE_TIME = 1200
 SCAN_INTERVAL = scan_interval
+PRESET_MANUAL = "manual"
+PRESET_SCHEDULE = "schedule"
 
 UPDATE_ATTRIBUTES = [
     ATTR_DRSETPOINT,
@@ -494,6 +498,14 @@ PRESET_MODES = [
 ]
 
 PRESET_HP_MODES = [
+    PRESET_HOME,
+    PRESET_AWAY,
+    PRESET_NONE,
+]
+
+PRESET_WHP_MODES = [
+    PRESET_MANUAL,
+    PRESET_SCHEDULE,
     PRESET_HOME,
     PRESET_AWAY,
     PRESET_NONE,
@@ -2459,7 +2471,7 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return the list of supported features."""
         if self._is_floor or self._is_wifi_floor or self._is_low_wifi or self._is_low_voltage:
             return SUPPORT_AUX_FLAGS
-        elif self._is_HP:
+        elif self._is_HP or self._is_WHP:
             return SUPPORT_HP_FLAGS
         elif self._is_h_c:
             return SUPPORT_H_c_FLAGS
@@ -2532,6 +2544,8 @@ class Neviweb130Thermostat(ClimateEntity):
             return HVACMode.DRY
         elif self._operation_mode == HVACMode.FAN_ONLY:
             return HVACMode.FAN_ONLY
+        elif self._operation_mode == MODE_EM_HEAT:
+            return MODE_EM_HEAT
         else:
             return HVACMode.HEAT
 
@@ -2612,10 +2626,12 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return available preset modes."""
         if self._is_h_c:
             return PRESET_h_c_MODES
+        elif self._is_HP:
+            return PRESET_HP_MODES
+        elif self._is_WHP:
+            return PRESET_WHP_MODES
         elif self._is_wifi:
             return PRESET_WIFI_MODES
-        elif self._is_HP or self._is_WHP:
-            return PRESET_HP_MODES
         else:
             return PRESET_MODES
 
@@ -2623,14 +2639,12 @@ class Neviweb130Thermostat(ClimateEntity):
     @override
     def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
-        _LOGGER.debug("hvac_action data for %s = %s (%s)", self._name, self._operation_mode, self._heat_level)
         gap = self._target_temp - self._cur_temp
         cool_gap = self._target_cool - self._cur_temp
         heating = True if gap >= 0.2 else False
         cooling = True if cool_gap >= 0.2 else False
 
         if self._operation_mode == HVACMode.OFF:
-            _LOGGER.debug("hvac_action return for %s = Off", self._name)
             return HVACAction.OFF
 
         # Determine base action (heating / cooling / other / None)
@@ -2650,14 +2664,10 @@ class Neviweb130Thermostat(ClimateEntity):
             else:
                 action = f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
 
-        _LOGGER.debug("hvac_action action for %s = %s", self._name, action)
-
         # If action is None → HVACAction.IDLE
         if action is None:
-            _LOGGER.debug("hvac_action return for %s = None", self._name)
             return HVACAction.IDLE
 
-        _LOGGER.debug("hvac_action return for %s = %s", self._name, action)
         return action
 
     @property
@@ -5508,7 +5518,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF, SRM40, True Comfort thermostat and FLP55."""
+    """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat and FLP55."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -5528,6 +5538,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
     @override
     def update(self) -> None:
         if self._active:
+            if self._sku == "TH1315WF":
+                WIFI_1315 = []
+            else:
+                WIFI_1315 = [ATTR_WIFI_WATTAGE]
             WIFI_FLOOR_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_GFCI_ALERT,
@@ -5540,7 +5554,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 ATTR_FLOOR_AIR_LIMIT,
                 ATTR_FLOOR_SENSOR,
                 ATTR_FLOOR_OUTPUT1,
-                ATTR_WIFI_WATTAGE,
                 ATTR_WIFI,
                 ATTR_WIFI_KEYPAD,
                 ATTR_DISPLAY2,
@@ -5549,12 +5562,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 ATTR_BACKLIGHT_AUTO_DIM,
                 ATTR_EARLY_START,
                 ATTR_ROOM_SETPOINT_AWAY,
-                ATTR_ROOM_SETPOINT_MIN,
-                ATTR_ROOM_SETPOINT_MAX,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            attributes = UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES
+            attributes = UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES + WIFI_1315
             _LOGGER.debug(
                 "Updated attributes for %s: %s",
                 self._name,
@@ -5634,7 +5645,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
-                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    if ATTR_WIFI_WATTAGE in device_data:
+                        self._wattage = device_data[ATTR_WIFI_WATTAGE]
                     self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -5732,7 +5744,6 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         data.update(
             {
                 "neviweb_occupancy_mode": self._occupancy_mode,
-                "load_watt": self._wattage,
                 "gfci_status": self._gfci_status,
                 "temp_display_error": self._room_temp_error,
                 "sensor_mode": self._floor_mode,
@@ -5790,6 +5801,18 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "id": self._id,
             }
         )
+        if self._sku == "TH1315WF":
+            data.update(
+                {
+                    "wattage": self._load1 * (self._heat_level / 100),
+                }
+            )
+        else:
+            data.update(
+                {
+                    "wattage": self._wattage,
+                }
+            )
         return data
 
 
@@ -6487,7 +6510,59 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb HP6000WF-MA and HP6000WF-XX Wi-Fi heat pump interfaces thermostats."""
+    """Implementation of Neviweb HP6000WF-MA, HP6000WF-TCL and HP6000WF-XX Wi-Fi heat pump interfaces thermostats.
+    — internal behavior notes
+    ------------------------------------------------------
+
+    This thermostat is unique in the Sinopé lineup because it exposes
+    THREE independent control systems:
+
+    1. heatCoolMode  (HVAC mode)
+       - Values: heat, cool, auto, dry, fanOnly, off
+       - Mapped from HA:
+           HEAT_COOL → auto
+           AUTO      → auto
+           HEAT      → heat
+           COOL      → cool
+           DRY       → dry
+           FAN_ONLY  → fanOnly
+           OFF       → off
+       - Managed via: set_setpoint_mode(..., HC=True)
+
+    2. setpointMode  (schedule mode)
+       - Values: "manual", "auto"
+       - "manual"  → no schedule (manual control)
+       - "auto"    → Sinopé schedule enabled
+       - Mapped to HA presets:
+           PRESET_MANUAL    → "manual"
+           PRESET_SCHEDULE  → "auto"
+       - Managed via: set_setpoint_mode(..., HC=False)
+
+    3. occupancy (home / away / none)
+       - Independent from schedule and HVAC mode
+       - Managed via: set_occupancy_mode()
+
+    Important distinctions:
+    -----------------------
+
+    • Sinopé uses the word "auto" in TWO different systems:
+        - heatCoolMode.auto  → HA HEAT_COOL (single setpoint)
+        - setpointMode.auto  → HA PRESET_SCHEDULE (calendar)
+
+    • In heatCoolMode.auto, the thermostat uses ONE setpoint only.
+      HA must NOT expose target_temperature_low / high.
+
+    • DR (Demand Response) applies ONLY to heating setpoint.
+
+    • set_hvac_mode() must NEVER modify setpointMode.
+    • set_preset_mode() must NEVER modify heatCoolMode.
+
+    • set_temperature():
+        - HEAT / AUTO / HEAT_COOL → heating setpoint
+        - COOL                    → cooling setpoint
+
+    This class implements all these rules explicitly.
+    """
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -6741,27 +6816,21 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def supported_features(self) -> ClimateEntityFeature:
-        """Return the list of supported features."""
-        features = SUPPORT_HP_FLAGS
+    def preset_mode(self) -> str:
+        """Return current preset mode."""
 
-        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
-
-        return features
+        # 1. Priority to setpointMode (manual / auto)
+        if self._operation_mode == "auto":
+            return PRESET_SCHEDULE
+        else:
+            # 2. Return the preset occupancy (home / away / none)
+            return self._occupancy
 
     @property
     @override
     def is_on(self) -> bool:
-        """Return True if mode = HVACMode.HEAT or HVACMode.COOL."""
-        return (
-            self._heat_cool == HVACMode.HEAT
-            or self._heat_cool == HVACMode.COOL
-            or self._heat_cool == HVACMode.HEAT_COOL
-            or self._heat_cool == HVACMode.DRY
-            or self._heat_cool == HVACMode.FAN_ONLY
-            or self._heat_cool == HVACMode.AUTO
-        )
+        """Return True if the thermostat is not OFF."""
+        return self.hvac_mode != HVACMode.OFF
 
     @property
     @override
@@ -6769,15 +6838,16 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Return current HVAC mode."""
         mode = self._heat_cool
 
+        if mode == HVACMode.AUTO:
+            return HVACMode.HEAT_COOL
+
         # If Neviweb return an unknown mode
         if mode not in (
             HVACMode.OFF,
-            HVACMode.HEAT_COOL,
             HVACMode.COOL,
             HVACMode.DRY,
             HVACMode.FAN_ONLY,
             HVACMode.HEAT,
-            HVACMode.AUTO,
         ):
             return HVACMode.HEAT
 
@@ -6790,38 +6860,50 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         mode = self.hvac_mode
         temp = self.current_temperature
 
+        # Single setpoint for HEAT and AUTO
+        target_heat = None
+        if self._target_temp is not None:
+            if self._drsetpoint_value is not None:
+                target_heat = self._target_temp + self._drsetpoint_value
+            else:
+                target_heat = self._target_temp
+
+        # COOL uses its own target
+        target_cool = self._target_cool
+
         if mode == HVACMode.OFF:
             return HVACAction.OFF
 
-        # If action is None → HVACAction.IDLE
         if temp is None:
             return HVACAction.IDLE
 
+        # HEAT
+        if mode == HVACMode.HEAT:
+            if target_heat is not None and temp < target_heat:
+                return HVACAction.HEATING
+            return HVACAction.IDLE
+
+        # COOL
         if mode == HVACMode.COOL:
-            if self._target_cool is not None and temp > self._target_cool:
+            if target_cool is not None and temp > target_cool:
                 return HVACAction.COOLING
             return HVACAction.IDLE
 
-        if mode == HVACMode.HEAT:
-            if self._target_temp is not None and self._drsetpoint_value is not None:
-                target: float = self._target_temp + self._drsetpoint_value
-                if temp < target:
-                    return HVACAction.HEATING
-            return HVACAction.IDLE
-
+        # DRY
         if mode == HVACMode.DRY:
             return HVACAction.DRYING
 
+        # FAN
         if mode == HVACMode.FAN_ONLY:
             return HVACAction.FAN
 
+        # AUTO / HEAT_COOL (single setpoint)
         if mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            if self._target_temp is not None and self._drsetpoint_value is not None:
-                target_heat: float = self._target_temp + self._drsetpoint_value
+            if target_heat is not None:
                 if temp < target_heat:
                     return HVACAction.HEATING
-            if self._target_cool is not None and temp > self._target_cool:
-                return HVACAction.COOLING
+                if temp > target_heat:
+                    return HVACAction.COOLING
             return HVACAction.IDLE
 
         return HVACAction.IDLE
@@ -6830,58 +6912,67 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     @override
     def min_temp(self) -> float:
         """Return the minimum temperature."""
+        heat_min = self._min_temp
+        cool_min = self._cool_min if self._cool_min is not None else 16.0
+
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            return min(self._min_temp, self._cool_min)
-        elif self.hvac_mode == HVACMode.COOL:
-            return self._cool_min
-        else:
-            return self._min_temp
+            return min(heat_min, cool_min)
+
+        if self.hvac_mode == HVACMode.COOL:
+            return cool_min
+
+        return heat_min
 
     @property
     @override
     def max_temp(self) -> float:
         """Return the maximum temperature."""
+        heat_max = self._max_temp
+        cool_max = self._cool_max if self._cool_max is not None else 31.0
+
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            return max(self._max_temp, self._cool_max)
-        elif self.hvac_mode == HVACMode.COOL:
-            return self._cool_max
-        else:
-            return self._max_temp
+            return max(heat_max, cool_max)
+
+        if self.hvac_mode == HVACMode.COOL:
+            return cool_max
+
+        return heat_max
 
     @property
     @override
     def target_temperature(self) -> float | None:
-        """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
+        """Return the effective target temperature (single setpoint logic for WHP)."""
 
-        # Default temp
-        temp: float | None = self._target_temp
+        mode = self.hvac_mode
+        temp = None
 
-        # If HVACMode.heat, apply target_temperature_low
-        if self.hvac_mode == HVACMode.HEAT and self._target_temp is not None:
-            delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
-            temp = self._target_temp + delta
+        # HEAT → target_temp + DR
+        if mode == HVACMode.HEAT:
+            if self._target_temp is not None:
+                delta = self._drsetpoint_value or 0.0
+                temp = self._target_temp + delta
 
-        # If HVACMode.cool, apply target_temperature_high
-        elif self.hvac_mode == HVACMode.COOL:
+        # COOL → target_cool (no DR)
+        elif mode == HVACMode.COOL:
             temp = self._target_cool
 
-        # If HVACMode.heatCool, should return None
-        elif self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            temp = None
+        # AUTO / HEAT_COOL → single setpoint (target_temp + DR)
+        elif mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
+            if self._target_temp is not None:
+                delta = self._drsetpoint_value or 0.0
+                temp = self._target_temp + delta
 
-        # Other modes
+        # Other modes → fallback to heating setpoint
         else:
             if self._target_temp is not None:
-                delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
+                delta = self._drsetpoint_value or 0.0
                 temp = self._target_temp + delta
-            else:
-                temp = None
 
-        # if temp is None → return None
+        # No setpoint available
         if temp is None:
             return None
 
-        # Apply limit
+        # Apply limits
         if temp < self._min_temp:
             return self._min_temp
         if temp > self._max_temp:
@@ -6889,26 +6980,6 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         return temp
 
-    @property
-    @override
-    def target_temperature_low(self) -> float | None:
-        """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
-        # Must return a value only if we are in heat_cool or auto mode
-        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            if self._target_temp is not None:
-                delta = self._drsetpoint_value if self._drsetpoint_value is not None else 0.0
-                return self._target_temp + delta
-            return None
-        return None
-
-    @property
-    @override
-    def target_temperature_high(self) -> float | None:
-        """Return the cooling temperature we try to reach."""
-        # Must return a value only if we are in heat_cool or auto mode
-        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            return self._target_cool
-        return None
 
     @override
     def turn_on(self) -> None:
@@ -6924,56 +6995,75 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
     @override
     def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        """Set new hvac mode."""
-        self._client.set_setpoint_mode(self._id, hvac_mode, self._is_wifi, self._is_WHP)
+        """Set new hvac mode for HP6000WF-xxx."""
 
-        self._heat_cool = hvac_mode if hvac_mode != HVACMode.HEAT_COOL else HVACMode.AUTO
+        # Map HA → Neviweb heatCoolMode
+        mode = HVACMode.AUTO if hvac_mode == HVACMode.HEAT_COOL else hvac_mode
 
-        # Reset the preset to the occupancy
+        # Send heatCoolMode (because self._is_WHP = True)
+        self._client.set_setpoint_mode(self._id, mode, self._is_wifi, self._is_WHP)
+
+        # Update local state
+        self._heat_cool = mode
+
+        # Reapply occupancy preset (Sinopé behavior)
         self.set_preset_mode(self._occupancy)
+
+        # self._delayed_refresh(wifi=self._is_wifi)
+
+    @override
+    def set_preset_mode(self, preset_mode: str) -> None:
+        """Activate a preset for HP6000WF-xxx."""
+
+        if preset_mode == self.preset_mode:
+            return
+
+        # --- Occupancy presets ---
+        if preset_mode in (PRESET_HOME, PRESET_AWAY, PRESET_NONE):
+            self._client.set_occupancy_mode(self._id, preset_mode, self._is_wifi)
+            self._occupancy = preset_mode
+
+            if preset_mode == PRESET_NONE:
+                # Re-apply current hvac_mode without any preset
+                self.set_hvac_mode(self.hvac_mode)
+
+        # --- SetpointMode presets (manual / schedule (auto)) ---
+        elif preset_mode == PRESET_MANUAL:
+            self._client.set_setpoint_mode(self._id, "manual", self._is_wifi, False)
+            # IMPORTANT: do not change self._occupancy
+
+        elif preset_mode == PRESET_SCHEDULE:
+            self._client.set_setpoint_mode(self._id, "auto", self._is_wifi, False)
+            # IMPORTANT: do not change self._occupancy
+
+        else:
+            _LOGGER.error("Unable to set preset mode: %s", preset_mode)
+
         self._delayed_refresh(wifi=self._is_wifi)
 
     @override
     def set_temperature(self, **kwargs: Any) -> None:
-        """Set new target temperature."""
-        temperature_low = None
-        temperature_high = None
-        if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-            temperature_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
-            temperature_high = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+        """Set new target temperature for HP6000WF-xxx."""
+
+        temp = kwargs.get(ATTR_TEMPERATURE)
+        if temp is None:
+            return
+
+        mode = self.hvac_mode
+
+        # HEAT or AUTO → heating setpoint
+        if mode in (HVACMode.HEAT, HVACMode.HEAT_COOL, HVACMode.AUTO):
+            self._client.set_temperature(self._id, temp)
+
+        # COOL → cooling setpoint
+        elif mode == HVACMode.COOL:
+            self._client.set_cool_temperature(self._id, temp)
+
+        # Other modes → fallback to heating
         else:
-            temperature = kwargs.get(ATTR_TEMPERATURE)
-            if self.hvac_mode == HVACMode.COOL:
-                temperature_high = temperature
-            else:
-                temperature_low = temperature
+            self._client.set_temperature(self._id, temp)
 
-        if temperature_low is not None:
-            temperature_low = max(temperature_low, self._min_temp)
-            if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-                temperature_low = min(
-                    temperature_low, self._target_cool - self._heatcool_setpoint_delta
-                )  # a corriger le delta
-            else:
-                temperature_low = min(temperature_low, self._max_temp)
-
-            if self._target_temp != temperature_low:
-                self._client.set_temperature(self._id, temperature_low)
-                self._target_temp = temperature_low
-
-        if temperature_high is not None:
-            temperature_high = min(temperature_high, self._cool_max)
-            if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
-                temperature_high = max(
-                    temperature_high, self._target_temp + self._heatcool_setpoint_delta
-                )  # a corriger le delta
-            else:
-                temperature_high = max(temperature_high, self._cool_min)
-
-            if self._target_cool != temperature_high:
-                self._client.set_cool_temperature(self._id, temperature_high)
-                self._target_cool = temperature_high
-        # self._delayed_refresh(wifi=self._is_wifi)
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     @override
@@ -7035,7 +7125,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO heat cool thermostats."""
+    """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO, TH6251WF-PRO heat cool thermostats."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -7085,6 +7175,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._humidity_display = None
         self._humidity_setpoint = None
         self._humidity_setpoint_mode = None
+        self._humidity_setpoint_off = None
         self._humidity_setpoint_offset = 0
         self._hvac_input1_function = None
         self._interlock_id = None
@@ -7149,7 +7240,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_TEMP_OFFSET_HEAT,
                 ATTR_WIFI_KEYPAD,
             ]
-            """Get specific attributes"""
+            # Get specific attributes
             HC_SPECIAL_FIRMWARE = [
                 ATTR_ACCESSORY_TYPE,
                 ATTR_AIR_EX_MIN_TIME_ON,
@@ -7165,36 +7256,48 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_HUMIDITY_SETPOINT_OFFSET,
                 ATTR_HUMIDITY_SETPOINT_MODE,
             ]
-            if self._device_model == 6727:
-                HC_EXTRA = [
-                    ATTR_COOL_INTERSTAGE_MIN_DELAY,
-                    ATTR_HEAT_INTERSTAGE_MIN_DELAY,
-                    ATTR_HVAC_INPUT_1_FUNCTION,
-                    ATTR_SCHEDULED_PEAK_DELAY,
-                    #  ATTR_SCHEDULED_PEAK_STATUS,
-                ]
-            else:
-                HC_EXTRA = []
-            if self._device_model == 6727 or self._device_model == 6731:
-                HC_CONFIG = [
-                    ATTR_AIR_ACTIVATION_TEMP,
-                    ATTR_AIR_CONFIG,
-                    ATTR_AIR_MAX_POWER_TEMP,
-                    ATTR_DRAIR_CURT_CONF,
-                    ATTR_HEAT_OUTPUT_POLARITY,
-                ]
-            else:
-                HC_CONFIG = []
-            if self._firmware == "4.3.6":
-                HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
-            else:
-                HC_43 = []
+            # Get specific attribute for 6727 model
+            HC_EXTRA = [
+                ATTR_COOL_INTERSTAGE_MIN_DELAY,
+                ATTR_HEAT_INTERSTAGE_MIN_DELAY,
+                ATTR_HVAC_INPUT_1_FUNCTION,
+                ATTR_SCHEDULED_PEAK_DELAY,
+                #  ATTR_SCHEDULED_PEAK_STATUS,
+            ]
+            # Get specific attribute for both 6727 and 6731 model
+            HC_CONFIG = [
+                ATTR_AIR_ACTIVATION_TEMP,
+                ATTR_AIR_CONFIG,
+                ATTR_AIR_MAX_POWER_TEMP,
+                ATTR_DRAIR_CURT_CONF,
+                ATTR_HEAT_OUTPUT_POLARITY,
+            ]
+            # Get specific attributes for firmware 4.3.6 and 4.5.4
+            HC_43 = [ATTR_INTERLOCK_ID, ATTR_INTERLOCK_HC_MODE, ATTR_INTERLOCK_PARTNER]
+            # Get specific attributes for firmware 4.5.4
+            HC_45 = [ATTR_HUMIDITY_SETPOINT_OFF]
+
+            # Base attributes
+            attributes = HC_ATTRIBUTES + HC_SPECIAL_FIRMWARE
+
+            # Model-specific attributes
+            MODEL_EXTRA = {
+                "6727": HC_EXTRA + HC_CONFIG,  # ← 6727 have both
+                "6731": HC_CONFIG,             # ← 6731 have only HC_CONFIG
+            }
+
+            attributes += MODEL_EXTRA.get(self._device_model, [])
+
+            # Firmware-specific attributes
+            FW_EXTRA = {
+                "4.3.6": HC_43,
+                "4.5.4": HC_43 + HC_45,  # ← 4.5.4 include all 4.3.6 attributes
+            }
+
+            attributes += FW_EXTRA.get(self._firmware, [])
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            attributes = (
-                UPDATE_HEAT_COOL_ATTRIBUTES + HC_ATTRIBUTES + HC_SPECIAL_FIRMWARE + HC_EXTRA + HC_CONFIG + HC_43
-            )
             _LOGGER.debug("Updated attributes for %s (firmware %s): %s", self._name, self._firmware, attributes)
             safe_mode = self.hass.data[DOMAIN]["safe_mode"]
 
@@ -7344,10 +7447,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
                     self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                     self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
-                    if self._firmware == "4.3.6":
+                    if self._firmware == "4.3.6" or self._firmware == "4.5.4":
                         self._interlock_id = device_data[ATTR_INTERLOCK_ID]
                         self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
                         self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
+                    if self._firmware == "4.5.4":
+                        self._humidity_setpoint_off = device_data[ATTR_HUMIDITY_SETPOINT_OFF]
                     if self._device_model == 6727 or self._device_model == 6731:
                         self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
                         self._heat_output_polarity = device_data[ATTR_HEAT_OUTPUT_POLARITY]
@@ -8150,12 +8255,18 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "dr_air_curtain_conf": self._dr_air_curt_conf,
                 }
             )
-        if self._firmware == "4.3.6":
+        if self._firmware == "4.3.6" or self._firmware == "4.5.4":
             data.update(
                 {
                     "interlock_id": self._interlock_id,
                     "interlock_hc_mode": self._interlock_hc_mode,
                     "interlock_partner": self._interlock_partner,
+                }
+            )
+        if self._firmware == "4.5.4":
+            data.update(
+                {
+                    "humidity_setpoint_off": self._humidity_setpoint_off,
                 }
             )
         for mode in TH6_MODES_VALUES:
