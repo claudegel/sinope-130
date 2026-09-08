@@ -651,7 +651,7 @@ class NamingHelper:
 
 
 # ─────────────────────────────────────────────
-# Device method refresh
+# Device method request counter
 # ─────────────────────────────────────────────
 
 
