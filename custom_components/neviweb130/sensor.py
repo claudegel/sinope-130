@@ -332,6 +332,30 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         mean_type=StatisticMeanType.NONE,
         icon="mdi:lightning-bolt",
     ),
+    Neviweb130SensorEntityDescription(
+        key="motor_position",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="motor_position",
+        value_fn=lambda data: data["motor_position"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement="%",
+        unit_class="percentage",
+        mean_type=StatisticMeanType.NONE,
+        icon="mdi:valve",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="motor_target",
+        device_class=None,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="motor_target",
+        value_fn=lambda data: data["motor_target"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement="%",
+        unit_class="percentage",
+        mean_type=StatisticMeanType.NONE,
+        icon="mdi:valve",
+    ),
     #  Real sensor attributes
     Neviweb130SensorEntityDescription(
         key="gauge_angle",
@@ -1026,9 +1050,9 @@ class Neviweb130BaseSensor(CoordinatorEntity):
         self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
-        self._device_model = device_info["signature"]["model"]
-        self._device_model_cfg = device_info["signature"]["modelCfg"]
-        self._hard_rev = device_info["signature"]["hardRev"]
+        self._device_model = str(device_info["signature"]["model"])
+        self._device_model_cfg = str(device_info["signature"]["modelCfg"])
+        self._hard_rev = str(device_info["signature"]["hardRev"])
         self._identifier = device_info["identifier"]
         self._device_type = device_type
         self._is_leak = (
@@ -1300,7 +1324,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
                 self._name,
                 self._id,
                 self._sku,
-                str(self._device_model),
+                self._device_model,
             )
         elif error_data == "DVCCOMMTO":
             _LOGGER.warning(
@@ -1363,7 +1387,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
                 name=self._name,
                 id=self._id,
                 sku=self._sku,
-                model=str(self._device_model),
+                model=self._device_model,
                 data=error_data,
             )
             _LOGGER.warning(msg)
@@ -1541,7 +1565,7 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
@@ -1704,7 +1728,7 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
@@ -1977,7 +2001,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
         data.update(
             {
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
@@ -2098,7 +2122,7 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
                 "gateway_status": self._gateway_status,
                 "neviweb_occupancy_mode": self._occupancy_mode,
                 "sku": self._sku,
-                "device_model": str(self._device_model),
+                "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
