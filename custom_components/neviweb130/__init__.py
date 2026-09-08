@@ -184,8 +184,10 @@ async def async_migrate_device_models(hass):
     """Migrate numeric device model to string in the device registry."""
     device_registry = dr.async_get(hass)
 
-    for device_id, device in device_registry.devices.items():
-        if DOMAIN not in device.identifiers:
+    # Iterate directly over device entries (future-proof)
+    for device in device_registry.devices:
+        # device.identifiers is a set of tuples
+        if not any(ident[0] == DOMAIN for ident in device.identifiers):
             continue
 
         # device.model may be int → must become str
@@ -193,13 +195,13 @@ async def async_migrate_device_models(hass):
             new_model = str(device.model)
             _LOGGER.info(
                 "Migrating device model for %s from %s to %s",
-                device_id,
+                device.id,
                 device.model,
                 new_model,
             )
 
             device_registry.async_update_device(
-                device_id,
+                device.id,
                 model=new_model,
             )
 
