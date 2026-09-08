@@ -177,6 +177,7 @@ ATTR_HUMIDITY = "humidity"
 ATTR_HUMIDITY_DISPLAY = "humidityDisplay"
 ATTR_HUMIDITY_SETPOINT = "humiditySetpoint"
 ATTR_HUMIDITY_SETPOINT_MODE = "humiditySetpointMode"
+ATTR_HUMIDITY_SETPOINT_OFF = "humiditySetpoint.off"
 ATTR_HUMIDITY_SETPOINT_OFFSET = "humiditySetpointOffset"
 ATTR_HVAC_INPUT_1_FUNCTION = "hvacInput1Function"
 ATTR_INPUT2_STATUS = "input2Status"
@@ -300,8 +301,11 @@ MODE_HOME = "home"
 MODE_MANUAL = "manual"
 MODE_OFF = "off"
 
+PRESET_MANUAL = "manual"
+PRESET_SCHEDULE = "schedule"
+
 STATE_KEYPAD_STATUS = "unlocked"
-STATE_VALVE_STATUS = "open"
+STATE_VALVE_STATUS = "opened"
 STATE_WATER_LEAK = "water"
 
 SERVICE_SET_ACCESSORY_TYPE = "set_accessory_type"
@@ -638,7 +642,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
-    738: {  # TH1300WF 3600W, TH1325WF, TH1310WF, SRM40, True Comfort, concerto connect FLP55
+    738: {  # TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort, concerto connect FLP55
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -1455,10 +1459,21 @@ MODEL_ATTRIBUTES = {
             ATTR_RSSI,
             "battery_level",
             "battery_voltage",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "motor_position",
+            "motor_target",
+            "total_kwh_count",
         ],
         "number": [],
         "select": [],
-        "binary_sensor": ["activation"],
+        "binary_sensor": [
+            "activation",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
+        ],
         "button": [],
         "switch": [],
     },
@@ -1494,6 +1509,9 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [
             "activation",
             "battery_status",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
             "valve_temp_alert",
             "water_leak_status",
         ],
@@ -1511,6 +1529,8 @@ MODEL_ATTRIBUTES = {
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "motor_position",
+            "motor_target",
             "total_kwh_count",
         ],
         "number": [],
@@ -1523,6 +1543,9 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [
             "activation",
             "battery_status",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
             "valve_temp_alert",
             "water_leak_status",
         ],
@@ -1552,6 +1575,9 @@ MODEL_ATTRIBUTES = {
         "binary_sensor": [
             "activation",
             "battery_status",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
             "valve_temp_alert",
             "water_leak_status",
         ],
@@ -1809,6 +1835,8 @@ EXPOSED_ATTRIBUTES = [
     "min_temp",
     "monthly_flow_count",
     "monthly_kwh_count",
+    "motor_position",
+    "motor_target",
     "occupancy_mode",
     "outdoor_temp",
     "phase_control",
@@ -1824,6 +1852,9 @@ EXPOSED_ATTRIBUTES = [
     "second_display",
     "sensor_mode",
     "setpoint_away",
+    "stm8Error_motorJam",
+    "stm8Error_motorLimit",
+    "stm8Error_motorPosition",
     "switch_keypad",
     "tank_height",
     "tank_size",
