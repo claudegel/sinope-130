@@ -5802,9 +5802,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             }
         )
         if self._sku == "TH1315WF":
+            heat_level = self._heat_level or 0
             data.update(
                 {
-                    "wattage": self._load1 * (self._heat_level / 100),
+                    "wattage": self._load1 * (heat_level / 100),
                 }
             )
         else:
