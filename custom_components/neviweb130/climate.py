@@ -1712,11 +1712,11 @@ def neviweb_to_ha(value: int) -> str:
     return last
 
 
-def neviweb_to_ha_fan(value: int, model: int) -> str:
+def neviweb_to_ha_fan(value: int, model: str) -> str:
     """Return fanSpeed value for model 6813 or 6814."""
-    if model == 6813:
+    if model == "6813":
         mapping = HA_TO_NEVIWEB_FAN_SPEED
-    elif model == 6814:
+    elif model == "6814":
         mapping = HA_TO_NEVIWEB_FAN_SPEED_5
     else:
         raise ValueError(f"model not supported: {model}")
@@ -1957,7 +1957,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._time_format = "24h"
         self._today_kwh: float = 0.0
         self._total_kwh_count: float = float(retrieve_data(self._id, self._device_dict, 1) or 0.0)
-        self._wattage = 0
+        self._wattage: int = 0
         self._weather_icon = None
         self._wifi_aux_cycle_length: str | None = None
         self._wifi_cycle_length: str | None = None
@@ -2237,8 +2237,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     def wattage(self):
-        if self._sku == "TH1315WF":
-            return self._load1 * (self._heat_level / 100)
         return self._wattage
 
     @property
@@ -5368,7 +5366,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300WF, TH1325WF, TH1310WF, SRM40, True Comfort thermostat and FLP55."""
+    """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat and FLP55."""
 
     def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
         """Initialize."""
@@ -5380,8 +5378,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._gfci_alert = None
         self._gfci_status = None
         self._heat_source_type = None
-        self._load1 = 0
-        self._load2 = 0
+        self._load1: int = 0
+        self._load2: float = 0.0
         self._room_temp_error = None
         self._target_temp_away = None
 
@@ -5564,6 +5562,14 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
 
     @property
     @override
+    def wattage(self) -> float:
+        if self._sku == "TH1315WF":
+            heat_level = self._heat_level or 0
+            return self._load1 * (heat_level / 100)
+        return self._wattage
+
+    @property
+    @override
     def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return the state attributes."""
         data = {}
@@ -5627,9 +5633,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             }
         )
         if self._sku == "TH1315WF":
+            heat_level = self._heat_level or 0
             data.update(
                 {
-                    "load_watt": self._load1 * (self._heat_level / 100),
+                    "load_watt": self._load1 * (heat_level / 100),
                 }
             )
         else:
@@ -5638,6 +5645,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     "load_watt": self._wattage,
                 }
             )
+
         return data
 
 
@@ -6805,7 +6813,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         """Set new hvac mode for HP6000WF-xxx."""
 
         # Map HA → Neviweb heatCoolMode
-        mode = HVACMode.AUTO if hvac_mode == HVACMode.HEAT_COOL else hvac_modes
+        mode = HVACMode.AUTO if hvac_mode == HVACMode.HEAT_COOL else hvac_mode
 
         await self._client.async_set_setpoint_mode(self._id, mode, self._is_wifi, self._is_WHP)
 
@@ -6931,7 +6939,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO heat cool thermostats."""
+    """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO, TH6251WF-PRO heat cool thermostats."""
 
     def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
         """Initialize."""
