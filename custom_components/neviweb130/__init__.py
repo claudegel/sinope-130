@@ -6,6 +6,7 @@ import logging
 import os
 from datetime import timedelta
 from functools import partial
+from typing import cast
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
@@ -15,6 +16,7 @@ from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -185,7 +187,7 @@ async def async_migrate_device_models(hass):
     device_registry = dr.async_get(hass)
 
     # Iterate directly over device entries (future-proof)
-    for device in device_registry.devices:
+    for device in cast(list[DeviceEntry], device_registry.devices):
         # device.identifiers is a set of tuples
         if not any(ident[0] == DOMAIN for ident in device.identifiers):
             continue
