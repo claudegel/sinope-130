@@ -25,6 +25,7 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from enum import StrEnum
@@ -942,7 +943,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         return self._motor_position
 
     @property
-    def motor_target(sefl):
+    def motor_target(self):
         """Return valve motor target position, 0 to 100."""
         return self._motor_target
 
