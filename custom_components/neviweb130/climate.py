@@ -6308,11 +6308,11 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             return HVACAction.IDLE
 
         if mode == HVACMode.HEAT:
-            if self._target_temp is not None and self._drsetpoint_value is not None:
-                target_heat: float = self._target_temp + self._drsetpoint_value
-                if temp < target_heat:
-                    return HVACAction.HEATING
+            if self._target_temp is None or self._drsetpoint_value is None:
                 return HVACAction.IDLE
+
+            target_heat = self._target_temp + self._drsetpoint_value
+            return HVACAction.HEATING if temp < target_heat else HVACAction.IDLE
 
         if mode == HVACMode.DRY:
             return HVACAction.DRYING
