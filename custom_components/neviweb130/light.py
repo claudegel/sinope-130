@@ -637,24 +637,27 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                     if self._is_light:
                         self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                         self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = await translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
-                                await async_notify_critical(
-                                    self.hass,
-                                    msg,
-                                    title=f"Neviweb130 integration {VERSION}",
-                                    notification_id="neviweb130_error_code",
-                                )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            msg = await translate_error(
+                                self.hass,
+                                "error_code",
+                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
+                            )
+                            await async_notify_critical(
+                                self.hass,
+                                msg,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
+                            )
                         self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                         self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
                         self._rssi = device_data[ATTR_RSSI]
@@ -1226,24 +1229,27 @@ class Neviweb130Dimmer(Neviweb130Light):
                         self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                         self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                         self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = await translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
-                                await async_notify_critical(
-                                    self.hass,
-                                    msg,
-                                    title=f"Neviweb130 integration {VERSION}",
-                                    notification_id="neviweb130_error_code",
-                                )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            msg = await translate_error(
+                                self.hass,
+                                "error_code",
+                                code=str(self._error_code),
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
+                            )
+                            await async_notify_critical(
+                                self.hass,
+                                msg,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
+                            )
                         self._keypad = lock_to_ha(device_data[ATTR_KEYPAD])
                         self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
                         self._rssi = device_data[ATTR_RSSI]
