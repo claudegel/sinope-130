@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import logging
 import time
+from aiohttp import ClientError
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any, Callable, Mapping, cast, override
@@ -42,7 +43,7 @@ from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, Swi
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, EntityCategory
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -141,6 +142,7 @@ from .const import (
 )
 from .coordinator import Neviweb130Client, Neviweb130Coordinator
 from .devices import save_devices
+from .exceptions import SilentAttributeIgnoreError
 from .helpers import (
     NamingHelper,
     async_apply_device_update,
@@ -1716,24 +1718,27 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                             self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                             self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                             self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = await translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
-                                await async_notify_critical(
-                                    self.hass,
-                                    msg,
-                                    title=f"Neviweb130 integration {VERSION}",
-                                    notification_id="neviweb130_error_code",
-                                )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            msg = await translate_error(
+                                self.hass,
+                                "error_code",
+                                code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
+                            )
+                            await async_notify_critical(
+                                self.hass,
+                                msg,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
+                            )
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
                         self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
@@ -1856,24 +1861,27 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            msg = await translate_error(
-                                self.hass,
-                                "error_code",
-                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                message="",
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku,
-                            )
-                            await async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        msg = await translate_error(
+                            self.hass,
+                            "error_code",
+                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                            message="",
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku,
+                        )
+                        await async_notify_critical(
+                            self.hass,
+                            msg,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id="neviweb130_error_code",
+                        )
                     else:
                         self._error_code = 0
                     if ATTR_WIFI in device_data:
@@ -2028,30 +2036,33 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                 STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
                             )
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            message = None
-                            match self._error_code:
-                                case 32:
-                                    message = "Temperature sensor disconnected"
-                                case 64:
-                                    message = "Leak sensor disconnected"
-                            msg = await translate_error(
-                                self.hass,
-                                "error_code",
-                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                message=message,
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku,
-                            )
-                            await async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        message = None
+                        match self._error_code:
+                            case 32:
+                                message = "Temperature sensor disconnected"
+                            case 64:
+                                message = "Leak sensor disconnected"
+                        msg = await translate_error(
+                            self.hass,
+                            "error_code",
+                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                            message=message,
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku,
+                        )
+                        await async_notify_critical(
+                            self.hass,
+                            msg,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id="neviweb130_error_code",
+                        )
                     else:
                         self._error_code = 0
                     self._wattage = device_data[ATTR_WATTAGE]
@@ -2241,30 +2252,33 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     else:
                         self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            message = None
-                            match self._error_code:
-                                case 32:
-                                    message = "Temperature sensor disconnected"
-                                case 64:
-                                    message = "Leak sensor disconnected"
-                            msg = await translate_error(
-                                self.hass,
-                                "error_code",
-                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                message=message,
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku,
-                            )
-                            await async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        message = None
+                        match self._error_code:
+                            case 32:
+                                message = "Temperature sensor disconnected"
+                            case 64:
+                                message = "Leak sensor disconnected"
+                        msg = await translate_error(
+                            self.hass,
+                            "error_code",
+                            code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                            message=message,
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku,
+                        )
+                        await async_notify_critical(
+                            self.hass,
+                            msg,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id="neviweb130_error_code",
+                        )
                     else:
                         self._error_code = 0
                     if ATTR_DRSTATUS in device_data:
@@ -2714,6 +2728,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         if method is None:
             _LOGGER.error("No method defined for attribute '%s'", self._attribute)
             return
+
         try:
             success = await method(self, state)
             if success:
@@ -2721,8 +2736,14 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
                 await self.coordinator.async_request_refresh()
             else:
                 _LOGGER.warning("Failed to set '%s' to %s", self._attribute, state)
-        except Exception as e:
-            _LOGGER.exception("Error while setting '%s' to %s: %s", self._attribute, state, e)
+
+        except (ClientError, TimeoutError, OSError, SilentAttributeIgnoreError, HomeAssistantError) as err:
+            _LOGGER.exception(
+                "Error while setting '%s' to %s: %s",
+                self._attribute,
+                state,
+                err,
+            )
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch device on."""
