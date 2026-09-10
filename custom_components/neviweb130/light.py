@@ -564,25 +564,29 @@ class Neviweb130Light(LightEntity):
                     if self._is_light:
                         self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                         self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                self.notify_ha(
-                                    translated_or_default(
-                                        self.hass,
-                                        "error_code",
-                                        (
-                                            f"Warning: Neviweb Device error code detected: {code} for device: \n"
-                                            f"{self._name}, ID: {self._id}, Sku: {self._sku}. {''}"
-                                        ),
-                                        code=code,
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
-                                    )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            code = str(self._error_code)
+
+                            self.notify_ha(
+                                translated_or_default(
+                                    self.hass,
+                                    "error_code",
+                                    (
+                                        f"Warning: Neviweb Device error code detected: {code} for device:\n"
+                                        f"{self._name}, ID: {self._id}, Sku: {self._sku}."
+                                    ),
+                                    code=code,
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
                                 )
+                            )
                         self._keypad = device_data[ATTR_KEYPAD]
                         self._timer = device_data[ATTR_TIMER]
                         self._rssi = device_data[ATTR_RSSI]
@@ -1137,26 +1141,29 @@ class Neviweb130Dimmer(Neviweb130Light):
                         self._intensity_min = device_data[ATTR_INTENSITY_MIN]
                         self._wattage = device_data[ATTR_LIGHT_WATTAGE]["value"]
                         self._wattage_status = device_data[ATTR_LIGHT_WATTAGE]["status"]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                self.notify_ha(
-                                    translated_or_default(
-                                        self.hass,
-                                        "error_code",
-                                        (
-                                            "Warning: Neviweb Device error code detected: "
-                                            f"{code} for device: {self._name},"
-                                            f"ID: {self._id}, Sku: {self._sku}. {''}"
-                                        ),
-                                        code=code,
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
-                                    )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            code = str(self._error_code)
+                            self.notify_ha(
+                                translated_or_default(
+                                    self.hass,
+                                    "error_code",
+                                    (
+                                        "Warning: Neviweb Device error code detected: "
+                                        f"{code} for device: {self._name},"
+                                        f"ID: {self._id}, Sku: {self._sku}. {''}"
+                                    ),
+                                    code=code,
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
                                 )
+                            )
                         self._keypad = device_data[ATTR_KEYPAD]
                         self._timer = device_data[ATTR_TIMER]
                         self._rssi = device_data[ATTR_RSSI]
