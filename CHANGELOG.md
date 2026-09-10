@@ -14,6 +14,7 @@ All modification for this custom_component will be added in this file.
 - Add new parameter for TH6250WF-PRO, humiditySetpoint.off.
 - Add support for new TH1315WF floor thermostat without energy metering chip.
 - Add support for new TH6251WF-PRO.
+- Add SilentAttributeIgnoreError exception class in exceptions.py
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
