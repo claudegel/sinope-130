@@ -36,6 +36,7 @@ All modification for this custom_component will be added in this file.
 - Added error handling for Neviweb status retrieval and do_stat() method in climate.py.
 - Refactor HP6000WF-xxx support for heat_cool and presets.
 - Refactor error handling and logging in various functions. Replace generic exceptions with specific ones for better clarity and control.
+- Refactor error code handling for Neviweb devices to improve readability and maintainability in light.py
 
 ### Doc
 
