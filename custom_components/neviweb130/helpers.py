@@ -9,8 +9,10 @@ import os
 import re
 import shutil
 import time
+from aiohttp import ClientError
 from dataclasses import dataclass
 from logging.handlers import RotatingFileHandler
+from requests.exceptions import RequestException
 from typing import Any, Callable, Mapping
 
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
@@ -25,6 +27,7 @@ from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
+from .exceptions import SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,12 +78,14 @@ def setup_logger(
 
 
 def clear_log_file(log_path: str):
-    if os.path.exists(log_path):
-        try:
-            with open(log_path, "w", encoding="utf-8") as f:
-                f.write("")
-        except Exception as e:
-            print(f"Failed to clear log file: {e}")
+    if not os.path.exists(log_path):
+        return
+
+    try:
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write("")
+    except (OSError, PermissionError) as err:
+        print(f"Failed to clear log file: {err}")
 
 
 def extract_log_options(entry):
@@ -136,29 +141,28 @@ async def expose_log_file(
     www_path = os.path.join(www_dir, public_name)
 
     try:
-        # Run blocking file copy in executor
         await hass.async_add_executor_job(shutil.copy2, log_path, www_path)
-        _LOGGER.debug("Log file copied to %s", www_path)
-
-        # Schedule deletion asynchronously
-        hass.async_create_task(_delete_file_later(www_path, expire_after))
-
-        return www_path
-
-    except Exception as e:
-        _LOGGER.warning("Cannot expose log file: %s", e)
+    except (OSError, PermissionError) as err:
+        _LOGGER.warning("Cannot expose log file: %s", err)
         return None
+
+    _LOGGER.debug("Log file copied to %s", www_path)
+    hass.async_create_task(_delete_file_later(www_path, expire_after))
+    return www_path
 
 
 async def _delete_file_later(path: str, delay: int):
     """Wait for delay seconds then delete the file if it exists."""
     await asyncio.sleep(delay)
+
+    if not os.path.exists(path):
+        return
+
     try:
-        if os.path.exists(path):
-            os.remove(path)
-            _LOGGER.info("Log file deleted after %s seconds : %s", delay, path)
-    except Exception as e:
-        _LOGGER.warning("Error during log file delete process : %s", e)
+        os.remove(path)
+        _LOGGER.info("Log file deleted after %s seconds : %s", delay, path)
+    except (OSError, PermissionError) as err:
+        _LOGGER.warning("Error during log file delete process : %s", err)
 
 
 # ─────────────────────────────────────────────
@@ -664,7 +668,7 @@ class DailyRequestCounter:
 
         # Types stricts : date = str, count = int
         self.data: dict[str, str | int] = {
-            "date": datetime.date.today().isoformat(),
+            "date": dt_util.now().date().isoformat(),
             "count": 0,
         }
 
@@ -674,7 +678,7 @@ class DailyRequestCounter:
 
         if stored:
             # Normalisation stricte
-            date = stored.get("date", datetime.date.today().isoformat())
+            date = stored.get("date", dt_util.now().date().isoformat())
             count = stored.get("count", 0)
 
             self.data = {
@@ -686,7 +690,7 @@ class DailyRequestCounter:
 
     async def async_increment(self) -> int:
         """Increment the counter and return the new value."""
-        today = datetime.date.today().isoformat()
+        today = dt_util.now().date().isoformat()
 
         if self.data["date"] != today:
             self.data["date"] = today
@@ -858,11 +862,12 @@ def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
 
 def file_exists(hass, path: str) -> bool:
     """Return True if a /local/ file exists."""
+    local_path = path.replace("/local/", "www/")
+    full_path = os.path.join(hass.config.path(), local_path)
+
     try:
-        local_path = path.replace("/local/", "www/")
-        full_path = os.path.join(hass.config.path(), local_path)
         return os.path.isfile(full_path)
-    except Exception:
+    except (OSError, PermissionError):
         return False
 
 
@@ -1186,20 +1191,22 @@ async def async_safe_get_device_attributes(
 
         logger.debug("client result = %s", result)
 
-        # If Neviweb silently ignore → result == {} or incomplete
         if not result or any(attr not in result for attr in filtered_attrs):
-            raise Exception("Silent attribute ignore")
+            raise SilentAttributeIgnoreError(
+                f"Missing attributes: {filtered_attrs} for device {device_id}"
+            )
 
-        # Inject UNSUPPORTED_ATTRS with None into the result
         for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
             result[attr] = None
 
         return result
 
-    except Exception as e:
-        if "DVCATTRNSPTD" not in str(e) and "Silent attribute ignore" not in str(e):
+    except (ClientError, OSError, SilentAttributeIgnoreError) as err:
+        # if not a DVCATTRNSPTD → we restart
+        if "DVCATTRNSPTD" not in str(err):
             raise
 
+        # here we know it is an unsupported attribute
         model_info = f"Model: {device_model}" if device_model else "Model: unknown"
         fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
         sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
@@ -1212,7 +1219,6 @@ async def async_safe_get_device_attributes(
             fw_info,
         )
 
-        # Notification HA
         await async_notify_ha(
             hass,
             (
@@ -1226,7 +1232,7 @@ async def async_safe_get_device_attributes(
 
         device_data: dict[str, object] = {}
 
-        # Test each attributes one by one
+        # Test each attribute individually
         for attr in attributes:
             logger.debug("Testing attribute %s for %s", attr, model_info)
 
@@ -1234,12 +1240,10 @@ async def async_safe_get_device_attributes(
                 result = await client.async_get_device_attributes(device_id, [attr])
                 logger.debug("Result for '%s': %s", attr, result)
 
-                # 1. If Neviweb return value
                 if result and attr in result:
                     device_data[attr] = result[attr]
                     continue
 
-                # 2. If Neviweb return {} → Attribute is supported but empty → just ignore
                 if result == {}:
                     logger.warning(
                         "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
@@ -1253,12 +1257,10 @@ async def async_safe_get_device_attributes(
                     device_data[attr] = None
                     continue
 
-                # 3. If Neviweb return None explicitly we add it to device_data
                 if attr in result and result[attr] is None:
                     device_data[attr] = None
                     continue
 
-                # 4. Improbable case : absent attr → log but add nothing
                 logger.warning(
                     "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
                     attr,
@@ -1268,9 +1270,8 @@ async def async_safe_get_device_attributes(
                     fw_info,
                 )
 
-            except Exception as e_attr:
-                # 5. if we get DVCATTRNSPTD → this attribute is not supported, add None
-                if "DVCATTRNSPTD" in str(e_attr):
+            except (ClientError, OSError, SilentAttributeIgnoreError) as err:
+                if "DVCATTRNSPTD" in str(err):
                     logger.warning(
                         "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
                         attr,
@@ -1278,17 +1279,21 @@ async def async_safe_get_device_attributes(
                         sku_info,
                         model_info,
                         fw_info,
-                        e_attr,
+                        err,
                     )
-
-                    if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
-                        logger.warning("Blacklisting unsupported attribute '%s' for device %s", attr, device_id)
 
                     UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
                     device_data[attr] = None
                     continue
 
-        # Reinject UNSUPPORTED_ATTRS with None into fallback result
+                logger.error(
+                    "Error while fetching attribute '%s' for device %s: %s",
+                    attr,
+                    device_id,
+                    err,
+                )
+                continue
+
         for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
             device_data.setdefault(attr, None)
 
