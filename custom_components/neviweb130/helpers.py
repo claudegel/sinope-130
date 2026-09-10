@@ -9,12 +9,11 @@ import os
 import re
 import shutil
 import time
-from aiohttp import ClientError
 from dataclasses import dataclass
 from logging.handlers import RotatingFileHandler
-from requests.exceptions import RequestException
 from typing import Any, Callable, Mapping
 
+from aiohttp import ClientError
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
@@ -1192,9 +1191,7 @@ async def async_safe_get_device_attributes(
         logger.debug("client result = %s", result)
 
         if not result or any(attr not in result for attr in filtered_attrs):
-            raise SilentAttributeIgnoreError(
-                f"Missing attributes: {filtered_attrs} for device {device_id}"
-            )
+            raise SilentAttributeIgnoreError(f"Missing attributes: {filtered_attrs} for device {device_id}")
 
         for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
             result[attr] = None
