@@ -31,12 +31,12 @@ from __future__ import annotations
 
 import logging
 import time
-from aiohttp import ClientError
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any, Callable, Mapping, cast, override
 
 import homeassistant.util.dt as dt_util
+from aiohttp import ClientError
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, SwitchEntityDescription
