@@ -43,6 +43,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_ACTIVE,
@@ -1009,7 +1010,8 @@ def neviweb_to_ha_height(value):
 
 def convert(sampling):
     sample = str(sampling)
-    date = datetime.datetime.fromtimestamp(int(sample[0:-3]))
+    ts = int(sample[0:-3])
+    date = dt_util.utc_from_timestamp(ts)
     return date
 
 
@@ -1476,24 +1478,27 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
                             self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if self._is_new_leak:
-                            if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                                if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                    self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                    msg = await translate_error(
-                                        self.hass,
-                                        "error_code",
-                                        code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
-                                    )
-                                    await async_notify_critical(
-                                        self.hass,
-                                        msg,
-                                        title=f"Neviweb130 integration {VERSION}",
-                                        notification_id="neviweb130_error_code",
-                                    )
+                            if (
+                                ATTR_ERROR_CODE_SET1 in device_data
+                                and device_data[ATTR_ERROR_CODE_SET1]
+                                and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                            ):
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                msg = await translate_error(
+                                    self.hass,
+                                    "error_code",
+                                    code=device_data[ATTR_ERROR_CODE_SET1]["raw"],
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
+                                )
+                                await async_notify_critical(
+                                    self.hass,
+                                    msg,
+                                    title=f"Neviweb130 integration {VERSION}",
+                                    notification_id="neviweb130_error_code",
+                                )
                             if ATTR_SENSOR_TYPE in device_data:
                                 self._sensor_type = device_data[ATTR_SENSOR_TYPE]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
@@ -1826,24 +1831,27 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                msg = await translate_error(
-                                    self.hass,
-                                    "error_code",
-                                    code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
-                                await async_notify_critical(
-                                    self.hass,
-                                    msg,
-                                    title=f"Neviweb130 integration {VERSION}",
-                                    notification_id="neviweb130_error_code",
-                                )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            msg = await translate_error(
+                                self.hass,
+                                "error_code",
+                                code=str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
+                            )
+                            await async_notify_critical(
+                                self.hass,
+                                msg,
+                                title=f"Neviweb130 integration {VERSION}",
+                                notification_id="neviweb130_error_code",
+                            )
                     self.async_write_ha_state()
                     return
                 _LOGGER.warning(
