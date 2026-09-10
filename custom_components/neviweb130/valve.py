@@ -1541,29 +1541,32 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._rssi = device_data[ATTR_RSSI]
                     if ATTR_FLOW_ENABLED in device_data:
                         self._flowmeter_enabled = device_data[ATTR_FLOW_ENABLED]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                            self.notify_ha(
-                                translated_or_default(
-                                    self.hass,
-                                    "error_code",
-                                    (
-                                        f"Warning: Neviweb Device error code detected: {code} for \n"
-                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
-                                    ),
-                                    code=code,
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                        self.notify_ha(
+                             translated_or_default(
+                                self.hass,
+                                "error_code",
+                                (
+                                    f"Warning: Neviweb Device error code detected: {code} for \n"
+                                    f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
+                                ),
+                                code=code,
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
-                            _LOGGER.warning(
-                                "Error code set1 updated: %s",
-                                str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                            )
+                        )
+                        _LOGGER.warning(
+                            "Error code set1 updated: %s",
+                            str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                        )
                     else:
                         self._error_code = 0
                 else:
