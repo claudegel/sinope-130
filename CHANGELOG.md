@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.3.0] - 2026-08-__
+## [v4.3.0] - 2026-09-__
 ### Added
 - Refactor valve control logic to add delayed refresh for Wi-Fi valves.
 - Refactor valve status handling with valve info for Wi-Fi valves.
@@ -34,6 +34,7 @@ All modification for this custom_component will be added in this file.
 - Added wrapper error handling for get_sensor_error_code() and get_weather() to improve robustness.
 - Added error handling for Neviweb status retrieval and do_stat() method in climate.py.
 - Refactor HP6000WF-xxx support for heat_cool and presets.
+- Refactor error handling and logging in various functions. Replace generic exceptions with specific ones for better clarity and control.
 
 ### Doc
 
