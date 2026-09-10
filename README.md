@@ -81,6 +81,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1145WF Wi-Fi ? two wires connection, color screen
   - Sinopé TH1300WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1310WF Wi-Fi 3600W floor thermostat
+  - Sinopé TH1315WF Wi-Fi 3600W floor thermostat, no energy measurement
   - Sinopé TH1325WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1400WF Wi-Fi low voltage thermostat
   - Sinopé TH1500WF Wi-Fi 3600W double pole thermostat
@@ -88,6 +89,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH6510WF Wi-Fi heat/cool
   - Sinopé TH6250WF Wi-Fi heat/cool
   - Sinopé TH6250WF_PRO Wi-Fi heat/cool
+  - Sinopé TH6251WF_PRO Wi-Fi heat/cool
   - Sinopé THEWF01 Wi-Fi lite thermostat
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
