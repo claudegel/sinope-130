@@ -435,7 +435,7 @@
       "power_supply": {
         "name": "Power Supply",
         "state": {
-          "acups-01": "ACUPS-01",
+          "acups_01": "ACUPS-01",
           "battery": "Battery",
           "battery_acups_01": "Both"
         }
