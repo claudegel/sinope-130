@@ -673,6 +673,7 @@
         "name": "Wattage instant",
         "state": {
           "Total": "Total"
+        }
       },
       "weather_icon": {
         "name": "Weather icon",
