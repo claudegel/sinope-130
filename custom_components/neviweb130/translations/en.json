@@ -369,7 +369,7 @@
       "hc_second_display": {
         "name": "Second Display",
         "state": {
-          "exteriorTemperature": "Exterior temperature",
+          "exterior_temperature": "Exterior temperature",
           "setpoint": "Setpoint",
           "none": "None"
         }
@@ -444,7 +444,7 @@
         "name": "Second Display",
         "state": {
           "default": "Default",
-          "exteriorTemperature": "Exterior temperature",
+          "exterior_temperature": "Exterior temperature",
           "setpoint": "Setpoint"
         }
       },
@@ -656,7 +656,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 climate device to lock or unlock the keypad."
         },
-        "lockKeypad": {
+        "lock_keypad": {
           "name": "Keypad lock mode",
           "description": "LockKeypad status to set: \"locked\" = Locked, \"unlocked\" = Unlocked, \"partiallyLocked\" = Tamper protection. For HP6000ZB-xx devices, \"partiallyLocked\" is not available."
         }
@@ -671,7 +671,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 light device to lock or unlock the keypad."
         },
-        "lockKeypad": {
+        "lock_keypad": {
           "name": "Keypad lock mode",
           "description": "LockKeypad status to set: \"locked\", \"unlocked\", or \"partiallyLocked\"."
         }
@@ -686,7 +686,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 switch device to lock or unlock the keypad."
         },
-        "lockKeypad": {
+        "lock_keypad": {
           "name": "Keypad lock mode",
           "description": "LockKeypad status to set: \"locked\", \"unlocked\", or \"partiallyLocked\"."
         }
@@ -701,7 +701,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 light device to set the timer."
         },
-        "powerTimer": {
+        "power_timer": {
           "name": "Timer value",
           "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
         }
@@ -716,7 +716,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 switch device to set the timer."
         },
-        "powerTimer": {
+        "power_timer": {
           "name": "Timer value",
           "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
         }
@@ -731,7 +731,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 switch device to set timer2."
         },
-        "powerTimer2": {
+        "power_timer2": {
           "name": "Timer 2 value",
           "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\"."
         }
@@ -746,7 +746,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 switch device to set the timer."
         },
-        "powerTimer": {
+        "power_timer": {
           "name": "Timer value",
           "description": "Timer value: \"off\", \"1 min\", \"2 min\", \"5 min\", \"10 min\", \"15 min\", \"30 min\", \"1 hr\", \"2 hrs\", \"3 hrs\", \"6 hrs\", \"12 hrs\", \"24 hrs\"."
         }
@@ -761,7 +761,7 @@
           "name": "Entity",
           "description": "Name of the MC3100ZB switch entity."
         },
-        "alertLowTemp": {
+        "alert_low_temp": {
           "name": "Low temperature threshold",
           "description": "Set to 0 to disable the alert, or a temperature value (e.g., 5°C)."
         }
@@ -776,7 +776,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the time format."
         },
-        "timeFormat": {
+        "time_format": {
           "name": "Time format",
           "description": "Time format to set: 12 or 24."
         }
@@ -791,7 +791,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the temperature format."
         },
-        "temperatureFormat": {
+        "temperature_format": {
           "name": "Temperature format",
           "description": "Temperature format to set: \"celsius\" or \"fahrenheit\"."
         }
@@ -825,7 +825,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the LED intensity."
         },
-        "statusLedOnIntensity": {
+        "status_led_on_intensity": {
           "name": "Intensity",
           "description": "Intensity from 0 to 100%."
         }
@@ -840,7 +840,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the LED intensity."
         },
-        "statusLedOnIntensity": {
+        "status_led_on_intensity": {
           "name": "Intensity",
           "description": "Intensity from 0 to 100%."
         }
@@ -855,7 +855,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the minimum intensity."
         },
-        "intensityMin": {
+        "intensity_min": {
           "name": "Minimum intensity",
           "description": "Value from 1 to 3000."
         }
@@ -870,7 +870,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the second display."
         },
-        "config2ndDisplay": {
+        "config2nd_display": {
           "name": "Second display mode",
           "description": "\"exteriorTemperature\", \"setpoint\", or \"default\"."
         }
@@ -885,7 +885,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the backlight."
         },
-        "backlightAdaptive": {
+        "backlight_adaptive": {
           "name": "Backlight mode",
           "description": "\"auto\", \"on\", or \"bedroom\"."
         }
@@ -915,19 +915,19 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF device."
         },
-        "heatMinTimeOn": {
+        "heat_min_time_on": {
           "name": "Heat minimum ON time",
           "description": "Possible values: 120, 180, 240, 300, 600 seconds."
         },
-        "auxHeatMinTimeOn": {
+        "aux_heat_min_time_on": {
           "name": "Aux heat minimum ON time",
           "description": "Possible values: 120, 180, 240, 300, 600 seconds."
         },
-        "coolMinTimeOn": {
+        "cool_min_time_on": {
           "name": "Cool minimum ON time",
           "description": "Possible values: 120, 180, 240, 300, 600 seconds."
         },
-        "airExchangerMinTimeOn": {
+        "air_exchanger_min_time_on": {
           "name": "Air exchanger minimum ON time",
           "description": "Possible values: \"Off\", \"20 min\", \"40 min\", \"Continuous\"."
         }
@@ -942,15 +942,15 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF device."
         },
-        "heatMinTimeOff": {
+        "heat_min_time_off": {
           "name": "Heat minimum OFF time",
           "description": "Possible values: 120, 180, 240, 300, 600 seconds."
         },
-        "auxHeatMinTimeOff": {
+        "aux_heat_min_time_off": {
           "name": "Aux heat minimum OFF time",
           "description": "Possible values: 120, 180, 240, 300, 600 seconds."
         },
-        "coolMinTimeOff": {
+        "cool_min_time_off": {
           "name": "Cool minimum OFF time",
           "description": "Possible values: 120, 180, 240, 300, 600 seconds."
         }
@@ -1025,7 +1025,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF device."
         },
-        "accessoryType": {
+        "accessory_type": {
           "name": "Accessory type",
           "description": "Possible values: \"none\", \"humOnHeat\", \"humOnFan\", \"dehum\", \"airExchanger\"."
         }
@@ -1040,7 +1040,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF device."
         },
-        "setpointMode": {
+        "setpoint_mode": {
           "name": "Schedule mode",
           "description": "Possible values: \"manual\", \"auto\"."
         }
@@ -1055,7 +1055,7 @@
           "name": "Entity",
           "description": "Name(s) of Sedna 2nd gen device."
         },
-        "flowMeterAlarmDisableTimer": {
+        "flow_meter_alarm_disable_timer": {
           "name": "Disable timer",
           "description": "Value in seconds from 0 to 86400 (24 hours). 0 = disabled."
         }
@@ -1070,7 +1070,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF or TH6250WF thermostats."
         },
-        "heatCoolSetpointMinDelta": {
+        "heat_cool_setpoint_min_delta": {
           "name": "Delta",
           "description": "Values from 1°C to 5°C."
         }
@@ -1085,7 +1085,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF or TH6250WF thermostats."
         },
-        "fanFilterReminderPeriod": {
+        "fan_filter_reminder_period": {
           "name": "Reminder period",
           "description": "Values from 1 to 12 months."
         }
@@ -1100,7 +1100,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF or TH6250WF thermostats."
         },
-        "temperatureOffsetHeat": {
+        "temperature_offset_heat": {
           "name": "Temperature offset",
           "description": "Values from -2 to 2°C with 0.5°C increments."
         }
@@ -1115,7 +1115,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF or TH6250WF thermostats."
         },
-        "auxHeatSourceType": {
+        "aux_heat_source_type": {
           "name": "Aux heat source",
           "description": "Possible values: \"Electric\" or \"Fossil\"."
         }
@@ -1130,7 +1130,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF or TH6250WF thermostats."
         },
-        "fanSpeed": {
+        "fan_speed": {
           "name": "Fan speed",
           "description": "Possible values: \"On\", \"Auto\" for TH6xxxWF; or 0, 20, 40, 60, 80, 100, 128 for HP6000WF-xx."
         }
@@ -1145,7 +1145,7 @@
           "name": "Entity",
           "description": "Name(s) of TH6500WF or TH6250WF thermostats."
         },
-        "humiditySetpointMode": {
+        "humidity_setpoint_mode": {
           "name": "Humidity mode",
           "description": "Possible values: \"defog\", \"manual\"."
         }
