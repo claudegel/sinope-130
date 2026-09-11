@@ -387,7 +387,7 @@
       "hc_second_display": {
         "name": "Second Display",
         "state": {
-          "exteriorTemperature": "Exterior temperature",
+          "exterior_temperature": "Exterior temperature",
           "setpoint": "Setpoint",
           "none": "None"
         }
@@ -399,8 +399,8 @@
           "locked": "Locked",
           "unlock": "Unlocked",
           "unlocked": "Unlocked",
-          "partialLock": "Tamper protection",
-          "partiallyLocked": "Tamper protection"
+          "partial_lock": "Tamper protection",
+          "partially_locked": "Tamper protection"
         }
       },
       "language": {
@@ -462,7 +462,7 @@
         "name": "Second Display",
         "state": {
           "default": "Default",
-          "exteriorTemperature": "Exterior temperature",
+          "exterior_temperature": "Exterior temperature",
           "setpoint": "Setpoint"
         }
       },
