@@ -121,7 +121,7 @@
       "neviweb130_reload_error": "Failed to reload integration: {error}.",
       "neviweb130_migrated": "Neviweb130 device's unique_id have been migrated from integer values to string values.\nMore details in log.",
       "neviweb130_reloaded": "Integration neviweb130 have been reloaded.",
-      "neviweb130_log_ready": "Download log file: \n<a href='/local/neviweb130.log'  download target='_blank'>click here</a>.\nFile will be deleted after 30 minutes.",
+      "neviweb130_log_ready": "Download log file at /local/neviweb130.log. It will be deleted after 30 minutes.",
       "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfully.",
       "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather icons png files won't be displayed. Read documentation for help.",
       "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help."
@@ -435,9 +435,9 @@
       "power_supply": {
         "name": "Power Supply",
         "state": {
-          "ACUPS-01": "ACUPS-01",
-          "Battery": "Battery",
-          "Battery and ACUPS-01": "Both"
+          "acups-01": "ACUPS-01",
+          "battery": "Battery",
+          "battery_acups_01": "Both"
         }
       },
       "second_display": {
