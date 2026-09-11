@@ -1,0 +1,76 @@
+blueprint:
+  name: Neviweb130 – Carte de mise à jour
+  description: Affiche l’état, la progression et les détails de mise à jour de Neviweb130.
+  author: Claude G.
+  domain: lovelace
+  input:
+    update_entity:
+      name: Entité Update
+      description: L’entité update.neviweb130_update
+      selector:
+        entity:
+          domain: update
+
+type: vertical-stack
+cards:
+  - type: entities
+    title: Mise à jour Neviweb130
+    entities:
+      - entity: !input update_entity
+        name: Version disponible
+      - type: attribute
+        entity: !input update_entity
+        attribute: installed_version
+        name: Version installée
+      - type: attribute
+        entity: !input update_entity
+        attribute: latest_version
+        name: Version disponible
+      - type: section
+        label: Détails
+      - type: attribute
+        entity: !input update_entity
+        attribute: update_status
+        name: Statut
+      - type: attribute
+        entity: !input update_entity
+        attribute: update_percentage
+        name: Progression
+      - type: attribute
+        entity: !input update_entity
+        attribute: rollback_status
+        name: Rollback
+      - type: attribute
+        entity: !input update_entity
+        attribute: last_check
+        name: Dernière vérification
+      - type: attribute
+        entity: !input update_entity
+        attribute: next_check
+        name: Prochaine vérification
+      - type: attribute
+        entity: !input update_entity
+        attribute: check_interval
+        name: Intervalle de vérification
+
+  - type: markdown
+    content: >
+      {% set status = state_attr(!input update_entity, 'update_status') %}
+      {% set pct = state_attr(!input update_entity, 'update_percentage') %}
+
+      ### 🔧 État de la mise à jour
+
+      **Statut :**  
+      {% if status == "preparing" %} 🛠️ Préparation  
+      {% elif status == "backup" %} 🗄️ Sauvegarde  
+      {% elif status == "updating" %} 🔄 Mise à jour  
+      {% elif status == "rollback" %} 🔁 Rollback  
+      {% elif status == "success" %} ✅ Réussie  
+      {% elif status == "failed" %} ❌ Échec  
+      {% else %} 💤 En attente  
+      {% endif %}
+
+      **Progression :**  
+      {% if pct != None %} ⌛ {{ pct }}%  
+      {% else %} ⏳ En attente  
+      {% endif %}
