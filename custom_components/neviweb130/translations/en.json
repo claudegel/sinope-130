@@ -381,8 +381,8 @@
           "locked": "Locked",
           "unlock": "Unlocked",
           "unlocked": "Unlocked",
-          "partialLock": "Tamper Protection",
-          "partiallyLocked": "Tamper Protection"
+          "partial_lock": "Tamper Protection",
+          "partially_locked": "Tamper Protection"
         }
       },
       "language": {
