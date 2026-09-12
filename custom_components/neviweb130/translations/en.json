@@ -59,7 +59,8 @@
       "update_fail": "Update to version {version} failed.\nA rollback was performed and the old version was restored.\n[See update notes]({url}).",
       "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
       "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
-      "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute."
+      "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute.",
+      "set_attribute_failed": "Cannot set device {id} attributes: {data}. Neviweb returned: {error}."
     }
   }
 }
