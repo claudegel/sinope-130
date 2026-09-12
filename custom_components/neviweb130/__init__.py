@@ -2287,6 +2287,7 @@ class Neviweb130Client:
         """Set devices attributes."""
         increment_request_counter(self.hass)
         result = 1
+        last_error: dict[str, Any] | None = None
         while result < 4:
             try:
                 resp = requests.put(
@@ -2310,12 +2311,13 @@ class Neviweb130Client:
                 _LOGGER.debug("Text = %s", resp.text)
 
                 if "error" not in resp.json():
-                    break
+                    return
 
                 result += 1
+                last_error = resp.json()
                 _LOGGER.debug(
                     "Service error received: %s, resending requests %s",
-                    resp.json(),
+                    last_error,
                     result,
                 )
             except OSError:
@@ -2328,6 +2330,25 @@ class Neviweb130Client:
                         data=data,
                     )
                 )
+        # All 3 attempts returned a Neviweb error payload: raise instead of
+        # silently dropping the write, otherwise service calls report
+        # success while the device never received the change (#515).
+        _LOGGER.warning(
+            "Failed to set attributes on device %s after 3 attempts: %s (payload: %s)",
+            device_id,
+            last_error,
+            data,
+        )
+        raise PyNeviweb130Error(
+            translated_or_default(
+                self.hass,
+                "set_attribute_failed",
+                f"Cannot set device {device_id} attributes: {data}. Neviweb returned: {last_error}.",
+                id=device_id,
+                data=data,
+                error=last_error,
+            )
+        )
 
     def post_neviweb_status(self, location: int | str, mode: str):
         """Send post requests to Neviweb for global occupancy mode"""
