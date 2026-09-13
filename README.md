@@ -752,9 +752,9 @@ messages.
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
 - ACCDAYREQMAX: Maximum daily request reached ('daily': 30000)... Reduce polling frequency.
-- ACCRATELIMIT: Maximum access rate limit reach when login to Neviweb. Too frequent login. Wait few minute before HA restart.
 - ACCSESSEXC: To many open session at the same time. This is common if you restart Home Assistant many times and/or you 
   also have an open session on Neviweb.
+- ACCRATELIMIT: Maximum access rate limit reach when login to Neviweb. Too frequent login. Wait few minute before HA restart.
 - DVCACTNSPTD: Device action not supported. Service call is not supported for that specific device.
 - DVCATTRNSPTD: Device attribute not supported, The device you have installed have and older firmware and do not support 
   some attributes. Wait for firmware update in Neviweb and the error should disappear or file an issue so we can put an 
@@ -767,6 +767,7 @@ In you log you can get those messages from Neviweb:
 - MAINTENANCE: Neviweb access temporary blocked for maintenance... Retry later.
 - SVCERR: Service error. Service unavailable. Try later.
 - SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
+- SVCUNAUTH: Service unauthorized.
 - USRBADLOGIN: your login and/or password provided in configuration for Neviweb is no good.
 - USRSESSEXP: User session expired. Reduce your scan_interval below 10 minutes or your session will be terminated.
 - VALINVLD: Invalid value sent to Neviweb.
