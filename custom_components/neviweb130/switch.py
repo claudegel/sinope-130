@@ -1393,25 +1393,28 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                             self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                             self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                             self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                self.notify_ha(
-                                    translated_or_default(
-                                        self.hass,
-                                        "error_code",
-                                        (
-                                            f"Warning: Neviweb Device error code detected: {code} for \n"
-                                            f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
-                                        ),
-                                        code=code,
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
-                                    )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            self.notify_ha(
+                                translated_or_default(
+                                    self.hass,
+                                    "error_code",
+                                    (
+                                        f"Warning: Neviweb Device error code detected: {code} for \n"
+                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
+                                    ),
+                                    code=code,
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
                                 )
+                            )
                         else:
                             self._error_code = 0
                         if ATTR_RSSI in device_data:
@@ -1534,25 +1537,28 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                            self.notify_ha(
-                                translated_or_default(
-                                    self.hass,
-                                    "error_code",
-                                    (
-                                        f"Warning: Neviweb Device error code detected: {code} for \n"
-                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
-                                    ),
-                                    code=code,
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                        self.notify_ha(
+                            translated_or_default(
+                                self.hass,
+                                "error_code",
+                                (
+                                    f"Warning: Neviweb Device error code detected: {code} for \n"
+                                    f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
+                                ),
+                                code=code,
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
+                        )
                     else:
                         self._error_code = 0
                     if ATTR_WIFI in device_data:
@@ -1701,31 +1707,34 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                                 STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
                             )
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            message = None
-                            match self._error_code:
-                                case 32:
-                                    message = "Temperature sensor disconnected"
-                                case 64:
-                                    message = "Leak sensor disconnected"
-                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                            self.notify_ha(
-                                translated_or_default(
-                                    self.hass,
-                                    "error_code",
-                                    (
-                                        f"Warning: Neviweb Device error code detected: {code} for \n"
-                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}. {message}"
-                                    ),
-                                    code=code,
-                                    message=message,
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        message = None
+                        match self._error_code:
+                            case 32:
+                                message = "Temperature sensor disconnected"
+                            case 64:
+                                message = "Leak sensor disconnected"
+                        code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                        self.notify_ha(
+                            translated_or_default(
+                                self.hass,
+                                "error_code",
+                                (
+                                    f"Warning: Neviweb Device error code detected: {code} for \n"
+                                    f"device: {self._name}, ID: {self._id}, Sku: {self._sku}. {message}"
+                                ),
+                                code=code,
+                                message=message,
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
+                        )
                     else:
                         self._error_code = 0
                     self._wattage = device_data[ATTR_WATTAGE]
@@ -1911,32 +1920,35 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     else:
                         self._water_leak_disconnected_status = device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS]
                     self._water_temp = device_data[ATTR_WATER_TEMPERATURE]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            message = None
-                            match self._error_code:
-                                case 32:
-                                    message = "Temperature sensor disconnected"
-                                case 64:
-                                    message = "Leak sensor disconnected"
-                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                            self.notify_ha(
-                                translated_or_default(
-                                    self.hass,
-                                    "error_code",
-                                    (
-                                        f"Warning: Neviweb Device error code detected: {code} for \n"
-                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}.\n"
-                                        f"{message}"
-                                    ),
-                                    code=code,
-                                    message=message,
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        message = None
+                        match self._error_code:
+                            case 32:
+                                message = "Temperature sensor disconnected"
+                            case 64:
+                                message = "Leak sensor disconnected"
+                        code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                        self.notify_ha(
+                            translated_or_default(
+                                self.hass,
+                                "error_code",
+                                (
+                                    f"Warning: Neviweb Device error code detected: {code} for \n"
+                                    f"device: {self._name}, ID: {self._id}, Sku: {self._sku}.\n"
+                                    f"{message}"
+                                ),
+                                code=code,
+                                message=message,
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
+                        )
                     else:
                         self._error_code = 0
                     if ATTR_DRSTATUS in device_data:

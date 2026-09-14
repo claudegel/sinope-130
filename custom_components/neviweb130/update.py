@@ -13,9 +13,14 @@ from datetime import timedelta
 from typing import Any
 
 import aiohttp
-from awesomeversion import AwesomeVersion
+from awesomeversion import (
+    AwesomeVersion,
+    AwesomeVersionCompareException,
+    AwesomeVersionException,
+)
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 
@@ -284,7 +289,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             self.async_write_ha_state()
 
-        except Exception as err:
+        except (aiohttp.ClientError, OSError, ValueError, HomeAssistantError) as err:
             _LOGGER.error("Failed to check for updates: %s", err)
 
     async def async_install(self, version: str | None, backup: bool, **kwargs: Any) -> None:
@@ -313,7 +318,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             )
             _LOGGER.info("Partial backup '%s' triggered successfully", snapshot_name)
 
-        except Exception as err:
+        except (HomeAssistantError, ServiceValidationError, OSError) as err:
             _LOGGER.error("Backup failed: %s", err)
 
     async def _do_update(self, version: str | None) -> None:
@@ -333,7 +338,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     self._update_percentage = None
                     self.async_write_ha_state()
                     return
-            except Exception as err:
+            except (AwesomeVersionException, AwesomeVersionCompareException, ValueError, TypeError) as err:
                 _LOGGER.warning("Version comparison failed: %s", err)
                 self._in_progress = False
                 self._update_percentage = None
@@ -548,7 +553,15 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             _LOGGER.info(msg)
 
-        except Exception as err:
+        except (
+            aiohttp.ClientError,
+            OSError,
+            ValueError,
+            zipfile.BadZipFile,
+            zipfile.LargeZipFile,
+            HomeAssistantError,
+            ServiceValidationError,
+        ) as err:
             _LOGGER.error("Update fail: %s", err)
             self._update_status = "failed"
             self._rollback_status = "attempting"
@@ -605,7 +618,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     )
                     _LOGGER.error(msg)
                     self._rollback_status = "skipped"
-            except Exception as rb_err:
+            except (OSError, RuntimeError, HomeAssistantError, ServiceValidationError) as rb_err:
                 _LOGGER.error("Rollback failed: %s", rb_err)
                 self._rollback_status = "failed"
 
@@ -620,5 +633,5 @@ class Neviweb130UpdateEntity(UpdateEntity):
                     if exists:
                         await self.hass.async_add_executor_job(shutil.rmtree, self._local_backup_dir)
                         _LOGGER.debug("Local backup directory removed: %s", self._local_backup_dir)
-            except Exception as cleanup_err:
+            except (OSError, HomeAssistantError, ServiceValidationError) as cleanup_err:
                 _LOGGER.warning("Failed to remove local backup directory: %s", cleanup_err)

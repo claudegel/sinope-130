@@ -39,6 +39,7 @@ from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveE
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.event import call_later
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -555,6 +556,10 @@ class Neviweb130Valve(ValveEntity):
         self._is_wifi_valve = device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL
         self._is_zb_mesh_valve = device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL
         self._is_wifi_mesh_valve = device_info["signature"]["model"] in IMPLEMENTED_WIFI_MESH_VALVE_MODEL
+        self._is_wifi = (
+            device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL
+            or device_info["signature"]["model"] in IMPLEMENTED_WIFI_MESH_VALVE_MODEL
+        )
         self._active = True
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -766,25 +771,29 @@ class Neviweb130Valve(ValveEntity):
 
     def open_valve(self, **kwargs):
         """Open the valve."""
-        if self._is_wifi_valve or self._is_wifi_mesh_valve:
+
+        if self._is_wifi:
             self._client.set_valve_onoff(self._id, 100)
-            self._valve_status = "open"
         else:
             self._client.set_onoff(self._id, "on")
-            if self._is_zb_valve or self._is_zb_mesh_valve:
-                self._valve_status = "open"
+
+        self._valve_status = "open"
         self._onoff = "on"
+
+        self._delayed_refresh(wifi=self._is_wifi)
 
     def close_valve(self, **kwargs):
         """Close the valve."""
-        if self._is_wifi_valve or self._is_wifi_mesh_valve:
+
+        if self._is_wifi:
             self._client.set_valve_onoff(self._id, 0)
-            self._valve_status = "closed"
         else:
             self._client.set_onoff(self._id, "off")
-            if self._is_zb_valve or self._is_zb_mesh_valve:
-                self._valve_status = "closed"
+
+        self._valve_status = "closed"
         self._onoff = MODE_OFF
+
+        self._delayed_refresh(wifi=self._is_wifi)
 
     @property
     def extra_state_attributes(self):
@@ -895,6 +904,13 @@ class Neviweb130Valve(ValveEntity):
     def set_activation(self, value):
         """Activate or deactivate neviweb polling for a missing device."""
         self._active = value["active"]
+
+    def _delayed_refresh(self, delay: float = 2.0, wifi: bool = False) -> None:
+        """Push immediate state and schedule a delayed refresh for Wi-Fi devices."""
+        self.schedule_update_ha_state()
+
+        if wifi:
+            call_later(self.hass, delay, lambda _: self.schedule_update_ha_state())
 
     def do_stat(self, start):
         """Get device flow statistic."""
@@ -1181,6 +1197,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
         self._flowmeter_opt_flow_min_2 = 1
         self._flowmeter_opt_observationPeriod_1 = 0
         self._flowmeter_opt_observationPeriod_2 = 0
+        self._motor_position = None
         self._motor_target = None
         self._occupancy_delay = None
         self._stm8Error_motorJam = None
@@ -1242,7 +1259,13 @@ class Neviweb130WifiValve(Neviweb130Valve):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    if ATTR_VALVE_INFO in device_data:
+                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
+                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
+                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                        self._valve_status = STATE_VALVE_STATUS if self._valve_info_status == "opened" else "closed"
+                    else:
+                        self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
                     self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
                     self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = (
@@ -1273,14 +1296,11 @@ class Neviweb130WifiValve(Neviweb130Valve):
                                     sku=self._sku,
                                 )
                             )
+                    self._motor_position = device_data[ATTR_MOTOR_POS]
                     if ATTR_MOTOR_TARGET in device_data:
                         self._motor_target = device_data[ATTR_MOTOR_TARGET]
                     if ATTR_VALVE_CLOSURE in device_data:
                         self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
-                    if ATTR_VALVE_INFO in device_data:
-                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
-                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
-                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
                         if "motorPosition" in device_data[ATTR_STM8_ERROR]:
@@ -1353,6 +1373,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "power_supply": self._power_supply,
                 "valve_closure_source": self._valve_closure,
                 "battery_alert": self._battery_alert,
+                "motor_position": self._motor_position,
                 "motor_target_position": self._motor_target,
                 "water_leak_status": self._water_leak_status,
                 "valve_info_status": self._valve_info_status,
@@ -1520,29 +1541,32 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._rssi = device_data[ATTR_RSSI]
                     if ATTR_FLOW_ENABLED in device_data:
                         self._flowmeter_enabled = device_data[ATTR_FLOW_ENABLED]
-                    if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                        if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                            self.notify_ha(
-                                translated_or_default(
-                                    self.hass,
-                                    "error_code",
-                                    (
-                                        f"Warning: Neviweb Device error code detected: {code} for \n"
-                                        f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
-                                    ),
-                                    code=code,
-                                    message="",
-                                    name=self._name,
-                                    id=self._id,
-                                    sku=self._sku,
-                                )
+                    if (
+                        ATTR_ERROR_CODE_SET1 in device_data
+                        and device_data[ATTR_ERROR_CODE_SET1]
+                        and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                    ):
+                        self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                        code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                        self.notify_ha(
+                             translated_or_default(
+                                self.hass,
+                                "error_code",
+                                (
+                                    f"Warning: Neviweb Device error code detected: {code} for \n"
+                                    f"device: {self._name}, ID: {self._id}, Sku: {self._sku}."
+                                ),
+                                code=code,
+                                message="",
+                                name=self._name,
+                                id=self._id,
+                                sku=self._sku,
                             )
-                            _LOGGER.warning(
-                                "Error code set1 updated: %s",
-                                str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
-                            )
+                        )
+                        _LOGGER.warning(
+                            "Error code set1 updated: %s",
+                            str(device_data[ATTR_ERROR_CODE_SET1]["raw"]),
+                        )
                     else:
                         self._error_code = 0
                 else:
@@ -1626,6 +1650,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         self._flow_alarm_2 = None
         self._flowmeter_divisor = 1
         self._flowmeter_offset = None
+        self._motor_position = None
         self._motor_target = None
         self._stm8Error_motorJam = None
         self._stm8Error_motorLimit = None
@@ -1683,14 +1708,17 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
-                    self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
-                    self._motor_target = device_data[ATTR_MOTOR_TARGET]
-                    self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     if ATTR_VALVE_INFO in device_data:
                         self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
                         self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
                         self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                        self._valve_status = STATE_VALVE_STATUS if self._valve_info_status == "opened" else "closed"
+                    else:
+                        self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                    self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
+                    self._motor_position = device_data[ATTR_MOTOR_POS]
+                    self._motor_target = device_data[ATTR_MOTOR_TARGET]
+                    self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     self._battery_status = device_data[ATTR_BATTERY_STATUS]
                     self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     self._battery_voltage = (
@@ -1763,6 +1791,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
         data = {}
         data.update(
             {
+                "motor_position": self._motor_position,
                 "motor_target_position": self._motor_target,
                 "temperature_alert": self._temp_alert,
                 "valve_status": self._valve_info_status,

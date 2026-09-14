@@ -30,6 +30,7 @@ from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity
+from homeassistant.util import dt as dt_util
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
@@ -608,7 +609,8 @@ def voltage_to_percentage(voltage, type_val):
 
 def convert(sampling):
     sample = str(sampling)
-    date = datetime.datetime.fromtimestamp(int(sample[0:-3]))
+    ts = int(sample[0:-3])
+    date = dt_util.utc_from_timestamp(ts)
     return date
 
 
@@ -768,17 +770,20 @@ class Neviweb130Sensor(Entity):
                             self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         if self._is_new_leak:
-                            if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                                if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                    self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                    self.notify_ha(
-                                        "Warning: Neviweb Device error code detected: "
-                                        + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                        + " for device: "
-                                        + self._name
-                                        + ", Sku: "
-                                        + self._sku
-                                    )
+                            if (
+                                ATTR_ERROR_CODE_SET1 in device_data
+                                and device_data[ATTR_ERROR_CODE_SET1]
+                                and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                            ):
+                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                                self.notify_ha(
+                                    "Warning: Neviweb Device error code detected: "
+                                    + str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                                    + " for device: "
+                                    + self._name
+                                    + ", Sku: "
+                                    + self._sku
+                                )
                             if ATTR_SENSOR_TYPE in device_data:
                                 self._sensor_type = device_data[ATTR_SENSOR_TYPE]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
@@ -965,9 +970,9 @@ class Neviweb130Sensor(Entity):
     def set_sensor_alert(self, value):
         """Set water leak sensor alert and action."""
         self._client.set_sensor_alert(value["id"], value["leak"], value["batt"], value["temp"], value["close"])
-        self._leak_alert = True if value["leak"] == 1 else False
-        self._temp_alert = True if value["temp"] == 1 else False
-        self._battery_alert = True if value["batt"] == 1 else False
+        self._leak_alert = bool(int(value["leak"]))
+        self._temp_alert = bool(int(value["temp"]))
+        self._battery_alert = bool(int(value["batt"]))
         self._closure_action = value["close"]
 
     def set_battery_type(self, value):
@@ -1413,25 +1418,28 @@ class Neviweb130TankSensor(Neviweb130Sensor):
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                self.notify_ha(
-                                    translated_or_default(
-                                        self.hass,
-                                        "error_code",
-                                        (
-                                            f"Warning: Neviweb Device error code detected: {code} for device: "
-                                            f"{self._name}, ID: {self._id}, Sku: {self._sku}."
-                                        ),
-                                        code=code,
-                                        message="",
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
-                                    )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1].get("raw", 0) != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                            self.notify_ha(
+                                translated_or_default(
+                                    self.hass,
+                                    "error_code",
+                                    (
+                                        f"Warning: Neviweb Device error code detected: {code} for device: "
+                                        f"{self._name}, ID: {self._id}, Sku: {self._sku}."
+                                    ),
+                                    code=code,
+                                    message="",
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
                                 )
+                            )
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return

@@ -2,6 +2,45 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.0] - 2026-09-__
+### Added
+- Refactor valve control logic to add delayed refresh for Wi-Fi valves.
+- Refactor valve status handling with valve info for Wi-Fi valves.
+- Refactor fetch_latest_version for improved readability in __init__.py.
+- Refactor swing mode checks and simplify HVAC mode logic.
+- Added heat level protection delay and updated heat level handling based on temperature gap.
+- Introduced a new function to determine heat level from temperature gap.
+- Refactor temp_to_heat_level function to use if statements instead of match cases and change return type from str to int.
+- Add new parameter for TH6250WF-PRO, humiditySetpoint.off.
+- Add support for new TH1315WF floor thermostat without energy metering chip.
+- Add support for new TH6251WF-PRO.
+- Add SilentAttributeIgnoreError exception class in exceptions.py
+
+### Fix
+- Add AUTO heat-cool mode support for HP6000WF.
+- Refactor fetch_release_notes handling in helpers.py.
+- Replace duplicate swingRegion3 with swingRegion4 in schema.py.
+- Refactor Fetch release info to use a single context manager.
+- Allow AUTO hvac_mode for temperature setting for HP6000WF.
+- Refactor supported_features method to include HVAC mode checks and adjust feature flags accordingly for HP6000WF.
+- Allow AUTO mode in set_temperature action for HP6000WF.
+- Allow manual mode in set_hvac_action for TH112xWF thermostats.
+- Change valve status from 'open' to 'opened'.
+- Fix set_preset_mode that was not updating HA immediately when changed.
+- Add HVACMode.AUTO to hvac_action to get heating action when heat_level is > 0 for Wi-Fi thermostats.
+- Fix string formatting for error reporting in light.py and sensor.py.
+- Updated _delayed_refresh method to include wifi parameter for better handling of Wi-Fi devices.
+- Refactor valve control logic to use a single wifi check and update delayed refresh method to handle Wi-Fi devices.
+- Add missing parameter raw_code to error message translations in climate.py.
+- Added wrapper error handling for get_sensor_error_code() and get_weather() to improve robustness.
+- Added error handling for Neviweb status retrieval and do_stat() method in climate.py.
+- Refactor HP6000WF-xxx support for heat_cool and presets.
+- Refactor error handling and logging in various functions. Replace generic exceptions with specific ones for better clarity and control.
+- Refactor error code handling for Neviweb devices to improve readability and maintainability in light.py, sensor.py, switch.py and valve.py.
+- Refine exception handling in update.py
+
+### Doc
+
 ## [v4.2.9] - 2026-07-31
 ### Added
 
