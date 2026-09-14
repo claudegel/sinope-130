@@ -60,7 +60,7 @@
       "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
       "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
       "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute.",
-      "set_attribute_failed": "Cannot set device {id} attributes: {data}. Neviweb returned: {error}."
+      "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}."
     }
   }
 }
