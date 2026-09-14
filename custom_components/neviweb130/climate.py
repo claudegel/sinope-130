@@ -6981,7 +6981,6 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         return temp
 
-
     @override
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT."""
@@ -7284,7 +7283,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             # Model-specific attributes
             MODEL_EXTRA = {
                 "6727": HC_EXTRA + HC_CONFIG,  # ← 6727 have both
-                "6731": HC_CONFIG,             # ← 6731 have only HC_CONFIG
+                "6731": HC_CONFIG,  # ← 6731 have only HC_CONFIG
             }
 
             attributes += MODEL_EXTRA.get(self._device_model, [])
