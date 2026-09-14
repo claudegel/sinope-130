@@ -60,7 +60,7 @@ import logging
 import time
 from collections.abc import Mapping
 from threading import Lock
-from typing import Any, override
+from typing import Any, cast, override
 
 import homeassistant.util.dt as dt_util
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
@@ -2545,7 +2545,9 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._operation_mode == HVACMode.FAN_ONLY:
             return HVACMode.FAN_ONLY
         elif self._operation_mode == MODE_EM_HEAT:
-            return MODE_EM_HEAT
+            # MODE_EM_HEAT is a Neviweb-specific mode string, not an
+            # HVACMode member; HA only ever compares it by value.
+            return cast(HVACMode, MODE_EM_HEAT)
         else:
             return HVACMode.HEAT
 
@@ -3200,7 +3202,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if wifi:
             call_later(self.hass, delay, lambda _: self.schedule_update_ha_state())
 
-    def ignore_heat_level(self, last_change: float, percent: int) -> bool:
+    def ignore_heat_level(self, last_change: float | None, percent: int) -> bool:
         """Return True if percent should be ignored because update is too early."""
         if last_change is None:
             return False
