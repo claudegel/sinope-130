@@ -1549,7 +1549,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
                         code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
                         self.notify_ha(
-                             translated_or_default(
+                            translated_or_default(
                                 self.hass,
                                 "error_code",
                                 (
