@@ -158,17 +158,16 @@ async def fetch_release_notes(version: str) -> tuple[str, str] | None:
     tag = f"v{version}" if not version.startswith("v") else version
     url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            if resp.status != 200:
-                _LOGGER.warning("Failed to fetch release notes for %s: HTTP %s", tag, resp.status)
-                return None
+    async with aiohttp.ClientSession() as session, session.get(url) as resp:
+        if resp.status != 200:
+            _LOGGER.warning("Failed to fetch release notes for %s: HTTP %s", tag, resp.status)
+            return None
 
-            data = await resp.json()
-            title = (data.get("name") or "").strip()
-            body = (data.get("body") or "").strip()
-            _LOGGER.debug("Raw release notes for %s (len=%d): %r", tag, len(body), body)
-            return title, body
+        data = await resp.json()
+        title = (data.get("name") or "").strip()
+        body = (data.get("body") or "").strip()
+        _LOGGER.debug("Raw release notes for %s (len=%d): %r", tag, len(body), body)
+        return title, body
 
 
 def build_update_summary(installed: str, latest: str, notes: str) -> str:
