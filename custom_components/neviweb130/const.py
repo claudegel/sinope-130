@@ -387,3 +387,31 @@ SERVICE_SET_TIME_FORMAT = "set_time_format"
 SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
+
+
+# Descriptions of the Neviweb error messages received.
+NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
+    "ACCDAYREQMAX": ("Maximum daily request reached (30000 requests/day). Reduce polling frequency."),
+    "ACCSESSEXC": (
+        "Too many open sessions. This commonly occurs after multiple "
+        "Home Assistant restarts or when Neviweb is open elsewhere."
+    ),
+    "ACCRATELIMIT": (
+        "Maximum login rate reached. Too many authentication attempts. Wait a few minutes before retrying."
+    ),
+    "DVCACTNSPTD": ("Device action not supported. This service call is not available for the selected device."),
+    "DVCATTRNSPTD": ("Device attribute not supported. The device firmware does not support the requested attribute."),
+    "DVCBUSY": ("Device busy. Neviweb is currently performing an update."),
+    "DVCCOMMTO": ("Device communication timeout. The device did not respond in time."),
+    "DVCNOTSYNC": ("Device not synchronized with Neviweb."),
+    "DVCUNVLB": ("Device unavailable. Neviweb cannot communicate with the device."),
+    "MAINTENANCE": ("Neviweb is temporarily unavailable for maintenance."),
+    "SVCERR": ("Service unavailable."),
+    "SVCINVREQ": ("Invalid request sent to Neviweb."),
+    "SVCUNAUTH": ("Service unauthorized."),
+    "USRBADLOGIN": ("Invalid username or password."),
+    "USRSESSEXP": ("User session expired. Reduce scan_interval below 10 minutes."),
+    "VALINVLD": ("Invalid value sent to Neviweb."),
+    "ReadTimeout": ("The request was sent but no response was received from the device."),
+    "TimeoutError": ("Request timeout."),
+}

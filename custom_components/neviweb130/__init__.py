@@ -164,6 +164,7 @@ from .const import (
     DOMAIN,
     MODE_EM_HEAT,
     MODE_MANUAL,
+    NEVIWEB_ERROR_MESSAGES,
     STARTUP_MESSAGE,
     VERSION,
 )
@@ -2308,15 +2309,18 @@ class Neviweb130Client:
                 _LOGGER.debug("Content = %s", resp.content)
                 _LOGGER.debug("Text = %s", resp.text)
 
-                if "error" not in resp.json():
-                    break
+                response_data: dict[str, Any] = resp.json()
 
-                result += 1
-                _LOGGER.debug(
-                    "Service error received: %s, resending requests %s",
-                    resp.json(),
+                if "error" not in response_data:
+                    return
+
+                _LOGGER.warning(
+                    "Service error received: %s, attempt %s of 3",
+                    response_data,
                     result,
                 )
+                result += 1
+
             except OSError:
                 raise PyNeviweb130Error(
                     translated_or_default(
@@ -2327,6 +2331,40 @@ class Neviweb130Client:
                         data=data,
                     )
                 )
+
+        error_code = response_data.get("error", {}).get("code", "UNKNOWN")
+        error_description = NEVIWEB_ERROR_MESSAGES.get(
+            error_code,
+            "Unknown Neviweb error, report to maintainer",
+        )
+        _LOGGER.warning(
+            "Failed to set attributes on device %s after 3 attempts: %s, description: %s",
+            device_id,
+            error_code,
+            error_description,
+        )
+        msg = translated_or_default(
+            self.hass,
+            "set_attribute_failed",
+            (
+                f"Unable to send command to device {device_id}. "
+                f"Error: {error_code}. Description: {error_description}. "
+                f"Payload: {data}"
+            ),
+            id=device_id,
+            error=error_code,
+            description=error_description,
+            data=data,
+        )
+
+        _LOGGER.warning(msg)
+
+        self.notify_ha(
+            msg,
+            title="Neviweb130 - Write command failed",
+        )
+
+        raise PyNeviweb130Error(msg)
 
     def post_neviweb_status(self, location: int | str, mode: str):
         """Send post requests to Neviweb for global occupancy mode"""

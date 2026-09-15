@@ -1,17 +1,16 @@
 """Helpers for debugging and logger setup in neviweb130"""
 
 import asyncio
-import datetime
 import logging
 import os
 import shutil
 from logging.handlers import RotatingFileHandler
-from requests.exceptions import RequestException
 
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
+from requests.exceptions import RequestException
 
 from .const import DOMAIN
 from .exceptions import SilentAttributeIgnoreError
@@ -370,9 +369,7 @@ def safe_get_device_attributes(
         logger.debug("client result = %s", result)
         # If Neviweb silently ignore → result == {} or incomplete
         if not result or any(attr not in result for attr in filtered_attrs):
-            raise SilentAttributeIgnoreError(
-                f"Missing attributes: {filtered_attrs} for device {device_id}"
-            )
+            raise SilentAttributeIgnoreError(f"Missing attributes: {filtered_attrs} for device {device_id}")
 
         # Inject UNSUPPORTED_ATTRS with None into the result
         for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
