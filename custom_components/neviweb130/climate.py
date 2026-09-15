@@ -2166,7 +2166,7 @@ class Neviweb130Thermostat(ClimateEntity):
         self._hourly_kwh_count: float = 0.0
         self._keypad = "unlocked"
         self._language = None
-        self._last_setpoint_change = None
+        self._last_setpoint_change: float | None = None
         self._load2 = None
         self._load2_status = None
         self._mark: str | float | None = None
@@ -2545,7 +2545,7 @@ class Neviweb130Thermostat(ClimateEntity):
         elif self._operation_mode == HVACMode.FAN_ONLY:
             return HVACMode.FAN_ONLY
         elif self._operation_mode == MODE_EM_HEAT:
-            return MODE_EM_HEAT
+            return HVACMode.HEAT
         else:
             return HVACMode.HEAT
 
@@ -3200,7 +3200,7 @@ class Neviweb130Thermostat(ClimateEntity):
         if wifi:
             call_later(self.hass, delay, lambda _: self.schedule_update_ha_state())
 
-    def ignore_heat_level(self, last_change: float, percent: int) -> bool:
+    def ignore_heat_level(self, last_change: float | None, percent: int) -> bool:
         """Return True if percent should be ignored because update is too early."""
         if last_change is None:
             return False
@@ -6981,7 +6981,6 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         return temp
 
-
     @override
     def turn_on(self) -> None:
         """Turn the thermostat to HVACMode.HEAT."""
@@ -7284,7 +7283,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             # Model-specific attributes
             MODEL_EXTRA = {
                 "6727": HC_EXTRA + HC_CONFIG,  # ← 6727 have both
-                "6731": HC_CONFIG,             # ← 6731 have only HC_CONFIG
+                "6731": HC_CONFIG,  # ← 6731 have only HC_CONFIG
             }
 
             attributes += MODEL_EXTRA.get(self._device_model, [])
