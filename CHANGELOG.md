@@ -16,6 +16,7 @@ All modification for this custom_component will be added in this file.
 - Add support for new TH6251WF-PRO.
 - Add SilentAttributeIgnoreError exception class in exceptions.py
 - Add bedroom backlight thermostat support for devices that support it.
+- Send notification if bedroom option is selected for device that don't support it.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
