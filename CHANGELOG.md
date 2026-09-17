@@ -16,6 +16,7 @@ All modification for this custom_component will be added in this file.
 - Add support for new TH6251WF-PRO.
 - Add SilentAttributeIgnoreError exception class in exceptions.py
 - Add bedroom backlight thermostat support for devices that support it.
+- Add bedroom mode error message to strings.json, en.json and fr.json.
 - Send notification if bedroom option is selected for device that don't support it.
 
 ### Fix
