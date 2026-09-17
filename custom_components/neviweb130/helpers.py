@@ -44,47 +44,85 @@ NETWORK_MAP = {
 # ─────────────────────────────────────────────
 
 
-def setup_logger(
-    name: str,
-    log_path: str,
-    level: str = "INFO",
-    max_bytes: int = 2 * 1024 * 1024,
-    backup_count: int = 2,
-    reset_on_start: bool = True,
-):
+async def async_write(hass, path, text):
+    def _write():
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+    return hass.async_add_executor_job(_write)
+
+
+async def async_rotate(hass, path, max_bytes, backup_count):
+    def _rotate():
+        if not os.path.exists(path):
+            return
+
+        if os.path.getsize(path) < max_bytes:
+            return
+
+        # Rotate backups
+        for i in range(backup_count - 1, 0, -1):
+            src = f"{path}.{i}"
+            dst = f"{path}.{i+1}"
+            if os.path.exists(src):
+                os.replace(src, dst)
+
+        # Move current log to .1
+        os.replace(path, f"{path}.1")
+
+    return hass.async_add_executor_job(_rotate)
+
+
+class AsyncRotatingHandler(logging.Handler):
+    def __init__(self, hass, path, max_bytes, backup_count):
+        super().__init__()
+        self.hass = hass
+        self.path = path
+        self.baseFilename = path
+        self.max_bytes = max_bytes
+        self.backup_count = backup_count
+
+    def emit(self, record):
+        msg = self.format(record)
+        # rotation async
+        self.hass.async_create_task(
+            async_rotate(self.hass, self.path, self.max_bytes, self.backup_count)
+        )
+        # écriture async
+        self.hass.async_create_task(
+            async_write(self.hass, self.path, msg)
+        )
+
+
+def setup_logger(hass, name, log_path, level="INFO", max_bytes=2*1024*1024, backup_count=2, reset_on_start=True):
     if reset_on_start and os.path.exists(log_path):
-        clear_log_file(log_path)
+        def _clear():
+            open(log_path, "w").close()
+        hass.async_add_executor_job(_clear)
 
     logger = logging.getLogger(name)
-    numeric_level = getattr(logging, level.upper(), logging.WARNING)
+    numeric_level = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(numeric_level)
 
-    handler = RotatingFileHandler(log_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8")
+    handler = AsyncRotatingHandler(hass, log_path, max_bytes, backup_count)
     handler.setLevel(numeric_level)
     formatter = logging.Formatter(
-        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
 
-    # Delete hold handlers on same file
-    logger.handlers = [
-        h for h in logger.handlers if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
-    ]
+    logger.handlers = []
     logger.addHandler(handler)
     logger.propagate = False
 
-    logger.debug("Logger initialized early at level %s", level.upper())
+    return logger
 
 
-def clear_log_file(log_path: str):
-    if not os.path.exists(log_path):
-        return
+async def async_clear_log_file(hass, log_path: str):
+    def _clear():
+        open(log_path, "w").close()
 
-    try:
-        with open(log_path, "w", encoding="utf-8") as f:
-            f.write("")
-    except (OSError, PermissionError) as err:
-        print(f"Failed to clear log file: {err}")
+    return hass.async_add_executor_job(_clear)
 
 
 def extract_log_options(entry):
@@ -113,12 +151,16 @@ def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, b
 
     updated = False
     for h in logger.handlers:
-        if isinstance(h, RotatingFileHandler) and os.path.samefile(h.baseFilename, log_path):
-            h.setLevel(numeric_level)
-            h.maxBytes = max_bytes
-            h.backupCount = backup_count
-            logger.debug("Logger handler updated : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
-            updated = True
+        if isinstance(h, AsyncRotatingHandler):
+            try:
+                if os.path.samefile(h.baseFilename, log_path):
+                    h.setLevel(numeric_level)
+                    h.max_bytes = max_bytes
+                    h.backup_count = backup_count
+                    logger.debug("Logger handler updated : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
+                    updated = True
+            except FileNotFoundError:
+                continue
 
     if not updated:
         logger.warning("No handler updated — check log path or level")
