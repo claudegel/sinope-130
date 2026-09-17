@@ -162,6 +162,7 @@ from .const import (
     CONF_SAFE_MODE,
     CONF_STAT_INTERVAL,
     DOMAIN,
+    HAVE_BEDROOM_BACKLIGHT,
     MODE_EM_HEAT,
     MODE_MANUAL,
     NEVIWEB_ERROR_MESSAGES,
@@ -1561,9 +1562,32 @@ class Neviweb130Client:
         data = {ATTR_HEAT_INSTALLATION_TYPE: type_val}
         self.set_device_attributes(device_id, data)
 
-    def set_backlight(self, device_id: str, level, is_wifi: bool):
+    def set_backlight(self, device_id: str, level, is_wifi: bool, device_model: int):
         """Set backlight intensity when idle, on or auto.
         Work differently for Wi-Fi and Zigbee devices."""
+        if (
+            level == "bedroom"
+            and device_model not in HAVE_BEDROOM_BACKLIGHT
+        ):
+            msg = translated_or_default(
+                self.hass,
+                "bedroom_mode_not_supported",
+                (
+                    "Bedroom mode is not supported by device {id} "
+                    "(model {model})."
+                ),
+                id=device_id,
+                model=device_model,
+            )
+
+            _LOGGER.warning(msg)
+            self.notify_ha(
+                msg,
+                title="Neviweb130 - Unsupported feature",
+            )
+
+            return
+
         if is_wifi:
             data = {ATTR_BACKLIGHT_AUTO_DIM: level}
         else:
