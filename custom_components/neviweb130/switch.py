@@ -556,7 +556,7 @@ async def async_setup_entry(
         """Lock/unlock keypad device."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        value = {"id": typed_switch.id, "lock": service.data[ATTR_KEYPAD]}
         await typed_switch.async_set_keypad_lock(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -565,7 +565,7 @@ async def async_setup_entry(
         """Set timer for switch device."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "time": service.data[ATTR_TIMER]}
+        value = {"id": typed_switch.id, "time": service.data[ATTR_TIMER]}
         await typed_switch.async_set_timer(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -574,7 +574,7 @@ async def async_setup_entry(
         """Set timer for switch device."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "time": service.data[ATTR_TIMER2]}
+        value = {"id": typed_switch.id, "time": service.data[ATTR_TIMER2]}
         await typed_switch.async_set_timer2(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -583,7 +583,7 @@ async def async_setup_entry(
         """Set timer for switch device."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "time": service.data[ATTR_TIMER]}
+        value = {"id": typed_switch.id, "time": service.data[ATTR_TIMER]}
         await typed_switch.async_set_timer(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -592,7 +592,7 @@ async def async_setup_entry(
         """Set temperature alert for switch device MC3100ZB."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
+        value = {"id": typed_switch.id, "alert": service.data[ATTR_TEMP_ALERT]}
         await typed_switch.async_set_temp_alert(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -602,7 +602,7 @@ async def async_setup_entry(
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": typed_switch.unique_id,
+            "id": typed_switch.id,
             "dractive": service.data[ATTR_DRACTIVE],
             "droptout": service.data[ATTR_OPTOUT],
             "onoff": service.data[ATTR_ONOFF],
@@ -616,7 +616,7 @@ async def async_setup_entry(
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": typed_switch.unique_id,
+            "id": typed_switch.id,
             "onoff_num": service.data[ATTR_ONOFF_NUM],
             "status": service.data[ATTR_STATUS],
         }
@@ -628,7 +628,7 @@ async def async_setup_entry(
         """Set water tank size for RM3500ZB."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        value = {"id": typed_switch.id, "val": service.data[ATTR_VALUE][0]}
         await typed_switch.async_set_tank_size(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -637,7 +637,7 @@ async def async_setup_entry(
         """Set controlled device type for RM3250ZB."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        value = {"id": typed_switch.id, "val": service.data[ATTR_VALUE][0]}
         await typed_switch.async_set_controlled_device(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -646,7 +646,7 @@ async def async_setup_entry(
         """Set water tank temperature protection for RM3500ZB."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "val": service.data[ATTR_WATER_TEMP_MIN]}
+        value = {"id": typed_switch.id, "val": service.data[ATTR_WATER_TEMP_MIN]}
         await typed_switch.async_set_low_temp_protection(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -656,7 +656,7 @@ async def async_setup_entry(
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": typed_switch.unique_id,
+            "id": typed_switch.id,
             "input1": service.data[ATTR_NAME_1],
             "input2": service.data[ATTR_NAME_2],
             "output1": service.data[ATTR_OUTPUT_NAME_1],
@@ -670,7 +670,7 @@ async def async_setup_entry(
         """Activate or deactivate Neviweb polling for missing device."""
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
-        value = {"id": typed_switch.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": typed_switch.id, "active": service.data[ATTR_ACTIVE]}
         await typed_switch.async_set_activation(value)
         typed_switch.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -680,7 +680,7 @@ async def async_setup_entry(
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": typed_switch.unique_id,
+            "id": typed_switch.id,
             "time": service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
         }
         await typed_switch.async_set_remaining_time(value)
@@ -692,7 +692,7 @@ async def async_setup_entry(
         switch = await get_switch(service)
         typed_switch = cast(Neviweb130Switch, switch)
         value = {
-            "id": typed_switch.unique_id,
+            "id": typed_switch.id,
             "input_number": service.data[ATTR_INPUT_NUMBER],
             "onoff": service.data[ATTR_ONOFF],
             "delay": service.data[ATTR_DELAY][0],
@@ -921,7 +921,7 @@ def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retrieve data for %s = $s", id, device_data)
+        _LOGGER.debug("Retrieve data for id=%s data=%s", id, device_data)
         return device_data[data]  # 1 ou 2
     else:
         # Set defaults if device not found
