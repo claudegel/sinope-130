@@ -40,6 +40,7 @@ All modification for this custom_component will be added in this file.
 - Refactor error handling and logging in various functions. Replace generic exceptions with specific ones for better clarity and control.
 - Refactor error code handling for Neviweb devices to improve readability and maintainability in light.py, sensor.py, switch.py and valve.py.
 - Refine exception handling in update.py
+- Fix SVCUNAUTH error from Neviweb in service device ID for climate, light, sensor, switch and valve.
 
 ### Doc
 
