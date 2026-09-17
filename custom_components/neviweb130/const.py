@@ -398,6 +398,51 @@ SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
 
+# Descriotions of the neviweb error messages received.
+NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
+    "ACCDAYREQMAX": ("Maximum daily request reached (30000 requests/day). Reduce polling frequency."),
+    "ACCSESSEXC": (
+        "Too many open sessions. This commonly occurs after multiple "
+        "Home Assistant restarts or when Neviweb is open elsewhere."
+    ),
+    "ACCRATELIMIT": (
+        "Maximum login rate reached. Too many authentication attempts. Wait a few minutes before retrying."
+    ),
+    "DVCACTNSPTD": ("Device action not supported. This service call is not available for the selected device."),
+    "DVCATTRNSPTD": ("Device attribute not supported. The device firmware does not support the requested attribute."),
+    "DVCBUSY": ("Device busy. Neviweb is currently performing an update."),
+    "DVCCOMMTO": ("Device communication timeout. The device did not respond in time."),
+    "DVCNOTSYNC": ("Device not synchronized with Neviweb."),
+    "DVCUNVLB": ("Device unavailable. Neviweb cannot communicate with the device."),
+    "MAINTENANCE": ("Neviweb is temporarily unavailable for maintenance."),
+    "SVCERR": ("Service unavailable."),
+    "SVCINVREQ": ("Invalid request sent to Neviweb."),
+    "SVCUNAUTH": ("Bad or malformed service request rejected by Neviweb server."),
+    "USRBADLOGIN": ("Invalid username or password."),
+    "USRSESSEXP": ("User session expired. Reduce scan_interval below 10 minutes."),
+    "VALINVLD": ("Invalid value sent to Neviweb."),
+    "ReadTimeout": ("The request was sent but no response was received from the device."),
+    "TimeoutError": ("Request timeout."),
+}
+
+# Thermostats supporting backlightAdaptive="bedroom"
+HAVE_BEDROOM_BACKLIGHT: set[str] = {
+    "300",
+    "336",
+    "343",
+    "348",
+    "350",
+    "738",
+    "739",
+    "742",
+    "1510",
+    "1512",
+    "6727",
+    "6730",
+    "6731",
+    "6734",
+}
+
 CLIMATE_MODEL = [
     300,
     336,
@@ -1879,6 +1924,7 @@ EXPOSED_ATTRIBUTES = [
     "wifi_cycle",
     "wifirssi",
     # Constants
+    "model",
     "is_color_wifi",
     "is_gen2",
     "is_HC_like",
