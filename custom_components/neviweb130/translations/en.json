@@ -124,7 +124,9 @@
       "neviweb130_log_ready": "Download log file at /local/neviweb130.log. It will be deleted after 30 minutes.",
       "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfully.",
       "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather icons png files won't be displayed. Read documentation for help.",
-      "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help."
+      "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help.",
+      "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}.",
+      "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model})."
     }
   },
   "options": {
