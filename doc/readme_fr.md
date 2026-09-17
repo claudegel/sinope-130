@@ -764,10 +764,10 @@ informations plus détaillées.
 ### Messages d'erreur reçus de Neviweb
 Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb :
 - ACCDAYREQMAX : Requête quotidienne maximale atteinte (« quotidienne » : 30000)... Réduire la fréquence d'interrogation (scan_interval).
-- ACCRATELIMIT: Limite maximale de tentatives de connexion atteinte lors de la connexion à Neviweb. Connexions trop fréquentes.
-  Veuillez patienter quelques minutes avant le redémarrage de HA.
 - ACCSESSEXC : Plusieurs sessions ouvertes en même temps. Ceci est courant si vous redémarrez Home Assistant plusieurs fois et/ou si vous 
   ayez également une session ouverte sur Neviweb.
+- ACCRATELIMIT: Limite maximale de tentatives de connexion atteinte lors de la connexion à Neviweb. Connexions trop fréquentes.
+  Veuillez patienter quelques minutes avant le redémarrage de HA.
 - DVCACTNSPTD : Action du périphérique non prise en charge. L'appel de service n'est pas pris en charge pour cet appareil spécifique.
 - DVCATTRNSPTD : Attribut de périphérique non pris en charge. Le périphérique que vous avez installé possède un firmware plus ancien et ne prend pas en charge 
   certains attributs. Attendez la mise à jour du firmware dans Neviweb et l'erreur devrait disparaître ou signalez un problème afin que nous puissions mettre un 
@@ -780,6 +780,7 @@ Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb�
 - MAINTENANCE : Accès Neviweb temporairement bloqué pour maintenance... Réessayez plus tard.
 - SVCERR : Erreur de service. Service non disponible. Essayez plus tard.
 - SVCINVREQ : Demande invalide envoyée à Neviweb, service inexistant ou demande mal formée.
+- SVCUNAUTH: Mauvaise requête de service ou requête mal formée rejetée par le serveur Neviweb.
 - USRBADLOGIN : votre login et/ou mot de passe fourni dans la configuration de Neviweb ne sont pas les bons.
 - USRSESSEXP : Session utilisateur expirée. Réduisez votre scan_interval en dessous de 10 minutes ou votre session sera terminée.
 - VALINVLD : Valeur non valide envoyée à Neviweb.
