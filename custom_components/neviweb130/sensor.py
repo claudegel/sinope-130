@@ -712,7 +712,7 @@ async def async_setup_entry(
         """Set water leak sensor leak alert action."""
         sensor = await get_sensor(service)
         typed_sensor = cast(Neviweb130BaseSensor, sensor)
-        value = {"id": typed_sensor.unique_id, "leak": service.data[ATTR_LEAK_ALERT]}
+        value = {"id": typed_sensor.id, "leak": service.data[ATTR_LEAK_ALERT]}
         await typed_sensor.async_set_sensor_leak_alert(value)
         typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -721,7 +721,7 @@ async def async_setup_entry(
         """Set water leak sensor low temperature alert action."""
         sensor = await get_sensor(service)
         typed_sensor = cast(Neviweb130BaseSensor, sensor)
-        value = {"id": typed_sensor.unique_id, "temp": service.data[ATTR_TEMP_ALERT]}
+        value = {"id": typed_sensor.id, "temp": service.data[ATTR_TEMP_ALERT]}
         await typed_sensor.async_set_sensor_temp_alert(value)
         typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -730,7 +730,7 @@ async def async_setup_entry(
         """Set water leak sensor connected to Sedna valve closure action in case of leak alert."""
         sensor = await get_sensor(service)
         typed_sensor = cast(Neviweb130BaseSensor, sensor)
-        value = {"id": typed_sensor.unique_id, "close": service.data[ATTR_CONF_CLOSURE]}
+        value = {"id": typed_sensor.id, "close": service.data[ATTR_CONF_CLOSURE]}
         await typed_sensor.async_set_sensor_closure_action(value)
         typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -739,7 +739,7 @@ async def async_setup_entry(
         """Set battery type for water leak sensor."""
         sensor = await get_sensor(service)
         typed_sensor = cast(Neviweb130BaseSensor, sensor)
-        value = {"id": typed_sensor.unique_id, "type": service.data[ATTR_BATTERY_TYPE]}
+        value = {"id": typed_sensor.id, "type": service.data[ATTR_BATTERY_TYPE]}
         await typed_sensor.async_set_battery_type(value)
         typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -750,7 +750,7 @@ async def async_setup_entry(
         if not isinstance(sensor, Neviweb130TankSensor):
             msg = await translate_error(hass, "cannot_use_entity", entity=sensor.entity_id)
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
+        value = {"id": sensor.id, "type": service.data[ATTR_TANK_TYPE]}
         await sensor.async_set_tank_type(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -767,7 +767,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
+        value = {"id": sensor.id, "gauge": service.data[ATTR_GAUGE_TYPE]}
         await sensor.async_set_gauge_type(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -784,7 +784,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "low": service.data[ATTR_FUEL_PERCENT_ALERT]}
+        value = {"id": sensor.id, "low": service.data[ATTR_FUEL_PERCENT_ALERT]}
         await sensor.async_set_low_fuel_alert(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -801,7 +801,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "height": service.data[ATTR_TANK_HEIGHT]}
+        value = {"id": sensor.id, "height": service.data[ATTR_TANK_HEIGHT]}
         await sensor.async_set_tank_height(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -818,7 +818,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
+        value = {"id": sensor.id, "fuel": service.data[ATTR_FUEL_ALERT]}
         await sensor.async_set_fuel_alert(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -835,7 +835,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
+        value = {"id": sensor.id, "refuel": service.data[ATTR_REFUEL]}
         await sensor.async_set_refuel_alert(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -852,7 +852,7 @@ async def async_setup_entry(
                 platform="tank sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+        value = {"id": sensor.id, "batt": service.data[ATTR_BATT_ALERT]}
         await sensor.async_set_battery_alert(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -861,7 +861,7 @@ async def async_setup_entry(
         """Activate or deactivate Neviweb polling for missing device."""
         sensor = await get_sensor(service)
         typed_sensor = cast(Neviweb130BaseSensor, sensor)
-        value = {"id": typed_sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": typed_sensor.id, "active": service.data[ATTR_ACTIVE]}
         await typed_sensor.async_set_activation(value)
         typed_sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -882,7 +882,7 @@ async def async_setup_entry(
             )
             raise ServiceValidationError(msg)
 
-        value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
+        value = {"id": sensor.id, "mode": service.data[ATTR_MODE]}
         await sensor.async_set_neviweb_status(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
