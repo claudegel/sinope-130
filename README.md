@@ -767,7 +767,7 @@ In you log you can get those messages from Neviweb:
 - MAINTENANCE: Neviweb access temporary blocked for maintenance... Retry later.
 - SVCERR: Service error. Service unavailable. Try later.
 - SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
-- SVCUNAUTH: Service unauthorized.
+- SVCUNAUTH: Bad or malformed service request rejected by Neviweb server.
 - USRBADLOGIN: your login and/or password provided in configuration for Neviweb is no good.
 - USRSESSEXP: User session expired. Reduce your scan_interval below 10 minutes or your session will be terminated.
 - VALINVLD: Invalid value sent to Neviweb.
