@@ -347,7 +347,7 @@ async def async_setup_platform(
         """Set different alert and action for water leak sensor."""
         sensor = get_sensor(service)
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "leak": service.data[ATTR_LEAK_ALERT],
             "temp": service.data[ATTR_TEMP_ALERT],
             "batt": service.data[ATTR_BATT_ALERT],
@@ -360,7 +360,7 @@ async def async_setup_platform(
         """Set battery type for water leak sensor."""
         sensor = get_sensor(service)
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "type": service.data[ATTR_BATTERY_TYPE],
         }
         sensor.set_battery_type(value)
@@ -378,7 +378,7 @@ async def async_setup_platform(
                     entity=sensor.entity_id,
                 )
             )
-        value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
+        value = {"id": sensor.id, "type": service.data[ATTR_TANK_TYPE]}
         sensor.set_tank_type(value)
         sensor.schedule_update_ha_state(True)
 
@@ -396,7 +396,7 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
+        value = {"id": sensor.id, "gauge": service.data[ATTR_GAUGE_TYPE]}
         sensor.set_gauge_type(value)
         sensor.schedule_update_ha_state(True)
 
@@ -415,7 +415,7 @@ async def async_setup_platform(
                 )
             )
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "low": service.data[ATTR_FUEL_PERCENT_ALERT],
         }
         sensor.set_low_fuel_alert(value)
@@ -436,7 +436,7 @@ async def async_setup_platform(
                 )
             )
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "height": service.data[ATTR_TANK_HEIGHT],
         }
         sensor.set_tank_height(value)
@@ -456,7 +456,7 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
+        value = {"id": sensor.id, "fuel": service.data[ATTR_FUEL_ALERT]}
         sensor.set_fuel_alert(value)
         sensor.schedule_update_ha_state(True)
 
@@ -474,7 +474,7 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
+        value = {"id": sensor.id, "refuel": service.data[ATTR_REFUEL]}
         sensor.set_refuel_alert(value)
         sensor.schedule_update_ha_state(True)
 
@@ -492,14 +492,14 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+        value = {"id": sensor.id, "batt": service.data[ATTR_BATT_ALERT]}
         sensor.set_battery_alert(value)
         sensor.schedule_update_ha_state(True)
 
     def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         sensor = get_sensor(service)
-        value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": sensor.id, "active": service.data[ATTR_ACTIVE]}
         sensor.set_activation(value)
         sensor.schedule_update_ha_state(True)
 
@@ -517,7 +517,7 @@ async def async_setup_platform(
                     platform="gateway sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
+        value = {"id": sensor.id, "mode": service.data[ATTR_MODE]}
         sensor.set_neviweb_status(value)
         sensor.schedule_update_ha_state(True)
 
@@ -1755,3 +1755,5 @@ class NeviwebDailyRequestSensor(Entity):
 
         if data["date"] != today:
             self._notified = False
+
+        return None
