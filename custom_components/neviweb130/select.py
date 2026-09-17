@@ -393,7 +393,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
 
     _ATTRIBUTE_METHODS = {
         "aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
-        "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi),
+        "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi, self.model),
         "batt_type": lambda self, option: self._client.async_set_battery_type(self._id, option),
         "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option, self.is_HC),
         "early_start": lambda self, option: self._client.async_set_early_start(self._id, option),
@@ -462,6 +462,12 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
     def unique_id(self):
         """Return a unique ID."""
         return self._attr_unique_id
+
+    @property
+    def model(self) -> str | None:
+        """Return device model."""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("model") if device_obj else None
 
     @property
     def is_wifi(self):
