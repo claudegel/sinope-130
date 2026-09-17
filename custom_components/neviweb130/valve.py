@@ -301,7 +301,7 @@ async def async_setup_entry(
         """Set alert for water valve."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "batt": service.data[ATTR_BATT_ALERT],
         }
         await valve.async_set_valve_alert(value)
@@ -312,7 +312,7 @@ async def async_setup_entry(
         """Set alert for water valve temperature location."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "temp": service.data[ATTR_TEMP_ALERT],
         }
         await valve.async_set_valve_temp_alert(value)
@@ -323,7 +323,7 @@ async def async_setup_entry(
         """Set the flow meter model connected to water valve."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
         }
         await valve.async_set_flow_meter_model(value)
@@ -334,7 +334,7 @@ async def async_setup_entry(
         """Set the flow meter delay before alert is turned on."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
         }
         await valve.async_set_flow_meter_delay(value)
@@ -345,7 +345,7 @@ async def async_setup_entry(
         """Set the flow meter options when leak is detected."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "alarm": service.data[ATTR_TRIGGER_ALARM],
             "close": service.data[ATTR_CLOSE_VALVE],
         }
@@ -357,7 +357,7 @@ async def async_setup_entry(
         """Set power supply type for water valve."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "supply": service.data[ATTR_POWER_SUPPLY],
         }
         await valve.async_set_power_supply(value)
@@ -368,7 +368,7 @@ async def async_setup_entry(
         """Activate or deactivate Neviweb polling for missing device."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "active": service.data[ATTR_ACTIVE],
         }
         await valve.async_set_activation(value)
@@ -379,7 +379,7 @@ async def async_setup_entry(
         """Set alert for water valve temperature location."""
         valve = await get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "timer": service.data[ATTR_FLOW_ALARM_TIMER],
         }
         await valve.async_set_flow_alarm_disable_timer(value)
@@ -520,7 +520,7 @@ def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retrieve data for %s = $s", id, device_data)
+        _LOGGER.debug("Retrieve data for id=%s data=%s", id, device_data)
         return device_data[data]  # 1 ou 2
     else:
         # Set defaults if device not found
