@@ -54,25 +54,14 @@ from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 from .session_manager import SessionManager
 
 LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviweb130_log.txt"))
-
-setup_logger(
-    name="custom_components.neviweb130",
-    log_path=LOG_PATH,
-    level="DEBUG",
-    max_bytes=2 * 1024 * 1024,
-    backup_count=2,
-    reset_on_start=True,
-)
+_LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL: timedelta = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-_LOGGER = logging.getLogger(__name__)
-
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Import neviweb130 integration from YAML if it exists."""
-    _LOGGER.warning(STARTUP_MESSAGE)
 
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
     hass.data.setdefault(DOMAIN, {})
@@ -251,6 +240,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await counter.async_load()
 
     log_options = extract_log_options(entry)
+
+    setup_logger(
+        hass,
+        name="custom_components.neviweb130",
+        log_path=LOG_PATH,
+        level=log_options["log_level"],
+        max_bytes=log_options["log_max_bytes"],
+        backup_count=log_options["log_backup_count"],
+        reset_on_start=log_options["log_reset_on_start"],
+    )
+
+    _LOGGER.warning(STARTUP_MESSAGE)
+
     update_logger_level("custom_components.neviweb130", log_options["log_level"])
 
     update_logger_config(
