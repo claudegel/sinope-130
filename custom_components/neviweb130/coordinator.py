@@ -131,8 +131,10 @@ from .const import (
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
     EXPOSED_ATTRIBUTES,
+    HAVE_BEDROOM_BACKLIGHT,
     MODE_EM_HEAT,
     MODE_MANUAL,
+    NEVIWEB_ERROR_MESSAGES,
     VERSION,
 )
 from .helpers import (
@@ -1047,7 +1049,7 @@ class Neviweb130Client:
                 timeout=self._timeout,
             ) as response:
                 raw = await response.json()
-                _LOGGER.debug("Raw sensor error response for device %s: %s", device_id, raw)
+                # _LOGGER.debug("Raw sensor error response for device %s: %s", device_id, raw)
 
                 # Update cookies
                 self._cookies.update(response.cookies)
@@ -1298,9 +1300,34 @@ class Neviweb130Client:
             )
             return False
 
-    async def async_set_backlight(self, device_id: str, level: str, wifi: bool) -> bool:
+    async def async_set_backlight(self, device_id: str, level: str, wifi: bool, device_model: str) -> bool:
         """Set backlight intensity when idle, on or auto."""
         """Work differently for Wi-Fi and Zigbee devices."""
+        if (
+            level == "bedroom"
+            and device_model not in HAVE_BEDROOM_BACKLIGHT
+        ):
+            msg = await translate_error(
+                self.hass,
+                "bedroom_mode_not_supported",
+                (
+                    "Bedroom mode is not supported by device {id} "
+                    "(model {model})."
+                ),
+                id=device_id,
+                model=device_model,
+            )
+
+            _LOGGER.warning(msg)
+            await async_notify_critical(
+                self.hass,
+                msg,
+                title="Neviweb130 - Unsupported feature",
+                notification_id="bedroom_mode_not_supported",
+            )
+
+            return
+
         if wifi:
             match level:
                 case "on":
@@ -2134,6 +2161,7 @@ class Neviweb130Client:
 
         attempts = 0
         resp: dict[str, Any] = {}
+        code: str = "UNKNOWN"
 
         while attempts < 3:
             try:
@@ -2164,7 +2192,7 @@ class Neviweb130Client:
             # Handle API error
             if "error" in resp:
                 code = resp["error"].get("code")
-                _LOGGER.debug("Error response for device %s attribute update: %s", device_id, resp)
+                _LOGGER.warning("Error response for device %s attribute update: %s", device_id, resp)
 
                 if code == "USRSESSEXP":
                     msg = await translate_error(self.hass, "usr_session")
@@ -2172,11 +2200,35 @@ class Neviweb130Client:
                     return False
 
             attempts += 1
-            _LOGGER.debug("Retrying device %s attribute update (attempt %s/3)", device_id, attempts)
+            _LOGGER.warning(
+                "Service error received: %s, attempt %s of 3",
+                resp,
+                attempts,
+            )
 
         # All attempts failed
-        _LOGGER.debug("Failed to update attributes for device %s after 3 attempts.", device_id)
-        return False
+        _LOGGER.warning("Failed to update attributes for device %s after 3 attempts.", device_id)
+        error_description = NEVIWEB_ERROR_MESSAGES.get(
+            code,
+            "Unknown Neviweb error, report to maintainer",
+        )
+        msg = await translate_error(
+            self.hass,
+            "set_attribute_failed",
+            id=device_id,
+            error=code,
+            description=error_description,
+            data=data,
+        )
+        _LOGGER.warning(msg)
+        await async_notify_critical(
+            self.hass,
+            msg,
+            title="Neviweb130 - Write command failed",
+            notification_id="service_error",
+        )
+
+        raise PyNeviweb130Error(msg)
 
     async def async_post_neviweb_status(self, location: int | str, mode: str) -> bool:
         """Send post requests to Neviweb for global occupancy mode"""
