@@ -1303,17 +1303,11 @@ class Neviweb130Client:
     async def async_set_backlight(self, device_id: str, level: str, wifi: bool, device_model: str) -> bool:
         """Set backlight intensity when idle, on or auto."""
         """Work differently for Wi-Fi and Zigbee devices."""
-        if (
-            level == "bedroom"
-            and device_model not in HAVE_BEDROOM_BACKLIGHT
-        ):
+        if level == "bedroom" and device_model not in HAVE_BEDROOM_BACKLIGHT:
             msg = await translate_error(
                 self.hass,
                 "bedroom_mode_not_supported",
-                (
-                    "Bedroom mode is not supported by device {id} "
-                    "(model {model})."
-                ),
+                ("Bedroom mode is not supported by device {id} (model {model})."),
                 id=device_id,
                 model=device_model,
             )
