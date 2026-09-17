@@ -31,7 +31,7 @@ model 6727 = thermostat TH6500WF heat/cool (Wi-Fi)
 model 6727 = thermostat TH6510WF heat/cool (Wi-Fi)
 model 6730 = thermostat TH6250WF heat/cool (Wi-Fi)
 model 6731 = thermostat TH6250WF-PRO heat/cool (Wi-Fi)
-model 6731 = thermostat TH6251WF-PRO heat/cool (Wi-Fi)
+model 6734 = thermostat TH6251WF-PRO heat/cool (Wi-Fi)
 
 Support for Flextherm Wi-Fi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
@@ -347,6 +347,8 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
+HEAT_LEVEL_PROTECTION_DELAY = 10  # secondes
+
 # Add runtime attribute
 for prefix in RUNTIME_PREFIXES:
     runtime_attrs = generate_runtime_count_attributes(TH6_MODES_VALUES, prefix)
@@ -550,7 +552,7 @@ DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1512]
 DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
 DEVICE_MODEL_WIFI_HEAT_PUMP = [6813, 6814]
-DEVICE_MODEL_HEAT_COOL = [6727, 6730, 6731]
+DEVICE_MODEL_HEAT_COOL = [6727, 6730, 6731, 6734]
 IMPLEMENTED_DEVICE_MODEL = (
     DEVICE_MODEL_HEAT
     + DEVICE_MODEL_FLOOR
@@ -822,7 +824,7 @@ async def async_setup_entry(
     async def set_second_display_service(service: ServiceCall) -> None:
         """Set to outside or setpoint temperature display for Wi-Fi thermostats."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "display": service.data[ATTR_DISPLAY2]}
+        value = {"id": thermostat.id, "display": service.data[ATTR_DISPLAY2]}
         await thermostat.async_set_second_display(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -831,7 +833,7 @@ async def async_setup_entry(
         """Set backlight always on or auto."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "type": service.data[ATTR_TYPE],
             "level": service.data[ATTR_BACKLIGHT],
         }
@@ -842,7 +844,7 @@ async def async_setup_entry(
     async def set_climate_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        value = {"id": thermostat.id, "lock": service.data[ATTR_KEYPAD]}
         await thermostat.async_set_keypad_lock(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -866,7 +868,7 @@ async def async_setup_entry(
             )
             raise ServiceValidationError(msg)
 
-        value = {"id": thermostat.unique_id, ATTR_TIME: service.data[ATTR_TIME_FORMAT]}
+        value = {"id": thermostat.id, ATTR_TIME: service.data[ATTR_TIME_FORMAT]}
         await thermostat.async_set_time_format(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -874,7 +876,7 @@ async def async_setup_entry(
     async def set_temperature_format_service(service: ServiceCall) -> None:
         """Set temperature format, celsius or fahrenheit."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "temp": service.data[ATTR_TEMP]}
+        value = {"id": thermostat.id, "temp": service.data[ATTR_TEMP]}
         await thermostat.async_set_temperature_format(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -882,7 +884,7 @@ async def async_setup_entry(
     async def set_setpoint_max_service(service: ServiceCall) -> None:
         """Set maximum setpoint for device."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "temp": service.data[ATTR_ROOM_SETPOINT_MAX]}
+        value = {"id": thermostat.id, "temp": service.data[ATTR_ROOM_SETPOINT_MAX]}
         await thermostat.async_set_setpoint_max(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -890,7 +892,7 @@ async def async_setup_entry(
     async def set_setpoint_min_service(service: ServiceCall) -> None:
         """Set minimum setpoint for device."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "temp": service.data[ATTR_ROOM_SETPOINT_MIN]}
+        value = {"id": thermostat.id, "temp": service.data[ATTR_ROOM_SETPOINT_MIN]}
         await thermostat.async_set_setpoint_min(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -898,7 +900,7 @@ async def async_setup_entry(
     async def set_floor_air_limit_service(service: ServiceCall) -> None:
         """Set minimum setpoint for device."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "temp": service.data[ATTR_FLOOR_AIR_LIMIT]}
+        value = {"id": thermostat.id, "temp": service.data[ATTR_FLOOR_AIR_LIMIT]}
         await thermostat.async_set_floor_air_limit(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -906,7 +908,7 @@ async def async_setup_entry(
     async def set_early_start_service(service: ServiceCall) -> None:
         """Set early heating on/off for Wi-Fi thermostat."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "start": service.data[ATTR_EARLY_START]}
+        value = {"id": thermostat.id, "start": service.data[ATTR_EARLY_START]}
         await thermostat.async_set_early_start(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -914,7 +916,7 @@ async def async_setup_entry(
     async def set_air_floor_mode_service(service: ServiceCall) -> None:
         """Switch between ambient or floor temperature sensor."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "mode": service.data[ATTR_FLOOR_MODE]}
+        value = {"id": thermostat.id, "mode": service.data[ATTR_FLOOR_MODE]}
         await thermostat.async_set_air_floor_mode(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -924,14 +926,14 @@ async def async_setup_entry(
         thermostat = await get_thermostat(service)
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
             value = {
-                "id": thermostat.unique_id,
+                "id": thermostat.id,
                 "dractive": service.data(ATTR_DRACTIVE),
                 "optout": service.data(ATTR_OPTOUT),
                 "setpoint": service.data(ATTR_SETPOINT),
             }
         else:
             value = {
-                "id": thermostat.unique_id,
+                "id": thermostat.id,
                 ATTR_AUX_OPTIM: service.data.get(ATTR_AUX_OPTIM),
                 ATTR_FAN_SPEED_OPTIM: service.data.get(ATTR_FAN_SPEED_OPTIM),
             }
@@ -943,7 +945,7 @@ async def async_setup_entry(
         """Set options for hvac dr setpoint in Eco Sinope."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "status": service.data[ATTR_STATUS],
             "val": service.data[ATTR_VALUE],
         }
@@ -955,7 +957,7 @@ async def async_setup_entry(
         """Set options for auxiliary heating."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "status": service.data[ATTR_STATUS],
             "val": service.data[ATTR_VALUE],
         }
@@ -970,7 +972,7 @@ async def async_setup_entry(
         if val is None:
             msg = await translate_error(hass, "missing_parameter", param=ATTR_VALUE)
             raise ServiceValidationError(msg)
-        value = {"id": thermostat.unique_id, "val": val}
+        value = {"id": thermostat.id, "val": val}
         await thermostat.async_set_aux_cycle_output(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -978,7 +980,7 @@ async def async_setup_entry(
     async def set_cycle_output_service(service: ServiceCall) -> None:
         """Set options for main cycle length for low voltage thermostats."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "val": service.data[ATTR_VALUE]}
+        value = {"id": thermostat.id, "val": service.data[ATTR_VALUE]}
         await thermostat.async_set_cycle_output(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -987,7 +989,7 @@ async def async_setup_entry(
         """Set status of pump protection for low voltage thermostats."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "status": service.data[ATTR_STATUS],
         }
         await thermostat.async_set_pump_protection(value)
@@ -998,7 +1000,7 @@ async def async_setup_entry(
         """Set maximum cooling setpoint for device."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "temp": service.data[ATTR_COOL_SETPOINT_MAX],
         }
         await thermostat.async_set_cool_setpoint_max(value)
@@ -1009,7 +1011,7 @@ async def async_setup_entry(
         """Set minimum cooling setpoint for device."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "temp": service.data[ATTR_COOL_SETPOINT_MIN],
         }
         await thermostat.async_set_cool_setpoint_min(value)
@@ -1020,7 +1022,7 @@ async def async_setup_entry(
         """Set away heating setpoint."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "temp": service.data[ATTR_ROOM_SETPOINT_AWAY],
         }
         await thermostat.async_set_room_setpoint_away(value)
@@ -1034,7 +1036,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise HomeAssistantError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "temp": service.data[ATTR_COOL_SETPOINT_AWAY],
         }
         await thermostat.async_set_cool_setpoint_away(value)
@@ -1045,7 +1047,7 @@ async def async_setup_entry(
         """Set maximum floor heating limit for floor device."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "level": service.data[ATTR_FLOOR_MAX],
             "limit": "high",
         }
@@ -1057,7 +1059,7 @@ async def async_setup_entry(
         """Set minimum floor heating limit for floor device."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "level": service.data[ATTR_FLOOR_MIN],
             "limit": "low",
         }
@@ -1068,7 +1070,7 @@ async def async_setup_entry(
     async def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": thermostat.id, "active": service.data[ATTR_ACTIVE]}
         await thermostat.async_set_activation(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1076,7 +1078,7 @@ async def async_setup_entry(
     async def set_sensor_type_service(service: ServiceCall) -> None:
         """Set floor sensor type."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "type": service.data[ATTR_FLOOR_SENSOR]}
+        value = {"id": thermostat.id, "type": service.data[ATTR_FLOOR_SENSOR]}
         await thermostat.async_set_sensor_type(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1085,9 +1087,9 @@ async def async_setup_entry(
         """Set emergency heat on/off for thermostats."""
         thermostat = await get_thermostat(service)
         if service.data[ATTR_VALUE] == "on":
-            await thermostat.async_turn_em_heat_on()
+            await thermostat.async_turn_em_heat_on(service.data)
         else:
-            await thermostat.async_turn_em_heat_off()
+            await thermostat.async_turn_em_heat_off(service.data)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
@@ -1095,7 +1097,7 @@ async def async_setup_entry(
         """Set minimum temperature for heat pump device operation."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "temp": service.data[ATTR_BALANCE_PT],
         }
         await thermostat.async_set_heat_pump_operation_limit(value)
@@ -1107,7 +1109,7 @@ async def async_setup_entry(
         # Work differently for G2 thermostats
         thermostat = await get_thermostat(service)
         temp = service.data.get(ATTR_HEAT_LOCK_TEMP) or service.data.get(ATTR_HEAT_LOCKOUT_TEMP)
-        value = {"id": thermostat.unique_id, "temp": temp}
+        value = {"id": thermostat.id, "temp": temp}
         await thermostat.async_set_heat_lockout_temperature(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1115,7 +1117,7 @@ async def async_setup_entry(
     async def set_cool_lockout_temperature_service(service: ServiceCall) -> None:
         """Set minimum outside temperature limit to allow cooling device operation."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "temp": service.data[ATTR_COOL_LOCK_TEMP]}
+        value = {"id": thermostat.id, "temp": service.data[ATTR_COOL_LOCK_TEMP]}
         await thermostat.async_set_cool_lockout_temperature(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1124,7 +1126,7 @@ async def async_setup_entry(
         """Set display on/off for heat pump."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "display": service.data[ATTR_DISPLAY_CONF],
         }
         await thermostat.async_set_display_config(value)
@@ -1135,7 +1137,7 @@ async def async_setup_entry(
         """Set sound on/off for heat pump."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "sound": service.data[ATTR_SOUND_CONF],
         }
         await thermostat.async_set_sound_config(value)
@@ -1146,7 +1148,7 @@ async def async_setup_entry(
         """Set second display for TH1134ZB-HC thermostat."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "display": service.data[ATTR_DISPLAY2],
         }
         await thermostat.async_set_hc_second_display(value)
@@ -1157,7 +1159,7 @@ async def async_setup_entry(
         """Set display language for TH1134ZB-HC thermostat."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "lang": service.data[ATTR_LANGUAGE],
         }
         await thermostat.async_set_language(value)
@@ -1183,7 +1185,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             ATTR_TIME: service.data[ATTR_AUX_HEAT_MIN_TIME_ON],
         }
         await thermostat.async_set_min_time_on(value)
@@ -1229,7 +1231,7 @@ async def async_setup_entry(
         if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
-        value = {"id": thermostat.unique_id, "type": service.data[ATTR_ACCESSORY_TYPE]}
+        value = {"id": thermostat.id, "type": service.data[ATTR_ACCESSORY_TYPE]}
         await thermostat.async_set_accessory_type(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1241,7 +1243,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "mode": service.data[ATTR_SETPOINT_MODE],
         }
         await thermostat.async_set_schedule_mode(value)
@@ -1255,7 +1257,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "level": service.data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA],
         }
         await thermostat.async_set_heatcool_setpoint_delta(value)
@@ -1266,7 +1268,7 @@ async def async_setup_entry(
         """Set TH6500WF, TH6250WF fan filter reminder period from 1 to 12 month."""
         thermostat = await get_thermostat(service)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "month": service.data[ATTR_FAN_FILTER_REMAIN],
         }
         await thermostat.async_set_fan_filter_reminder(value)
@@ -1280,7 +1282,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "temp": service.data[ATTR_TEMP_OFFSET_HEAT],
         }
         await thermostat.async_set_temperature_offset(value)
@@ -1294,7 +1296,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             ATTR_AUX_HEAT_SOURCE_TYPE: service.data[ATTR_AUX_HEAT_SOURCE_TYPE],
         }
         await thermostat.async_set_aux_heating_source(value)
@@ -1308,7 +1310,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "speed": service.data[ATTR_FAN_SPEED],
         }
         await thermostat.async_set_fan_speed(value)
@@ -1322,7 +1324,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             "mode": service.data[ATTR_HUMIDITY_SETPOINT_MODE],
         }
         await thermostat.async_set_humidity_mode(value)
@@ -1336,7 +1338,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             ATTR_TIME: service.data[ATTR_TIME] * 60,
         }
         await thermostat.async_set_heat_dissipation_time(value)
@@ -1350,7 +1352,7 @@ async def async_setup_entry(
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise ServiceValidationError(msg)
         value = {
-            "id": thermostat.unique_id,
+            "id": thermostat.id,
             ATTR_TIME: service.data[ATTR_TIME] * 60,
         }
         await thermostat.async_set_cool_dissipation_time(value)
@@ -1360,7 +1362,7 @@ async def async_setup_entry(
     async def set_climate_neviweb_status_service(service: ServiceCall) -> None:
         """Set Neviweb global occupancy status per location, home or away."""
         thermostat = await get_thermostat(service)
-        value = {"id": thermostat.unique_id, "mode": service.data[ATTR_MODE]}
+        value = {"id": thermostat.id, "mode": service.data[ATTR_MODE]}
         await thermostat.async_set_climate_neviweb_status(value)
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -1737,6 +1739,21 @@ def neviweb_to_ha_mode(mode: str) -> HVACMode:
     return hvac
 
 
+def temp_to_heat_level(gap: float) -> int:
+    """Return heat level according to temperature gap."""
+    if gap < 0.2:
+        return 0
+    if gap < 0.3:
+        return 20
+    if gap < 0.4:
+        return 40
+    if gap < 0.5:
+        return 60
+    if gap < 0.6:
+        return 80
+    return 100
+
+
 def temp_format_to_ha(value):
     if value == "celsius":
         return UnitOfTemperature.CELSIUS
@@ -1788,7 +1805,7 @@ def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retrieve data for %s = $s", id, device_data)
+        _LOGGER.debug("Retrieve data for id=%s data=%s", id, device_data)
         return device_data[data]
     else:
         # Set defaults if device not found
@@ -1928,6 +1945,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._hourly_kwh_count: float = 0.0
         self._keypad: str | None = None
         self._language = None
+        self._last_setpoint_change: float | None = None
         self._load2 = None
         self._load2_status = None
         self._lv_aux_cycle_length: str | None = None
@@ -2042,7 +2060,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
 
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
+
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -2144,6 +2166,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     def sku(self) -> str:
         """Return device sku."""
         return self._sku
+
+    @property
+    def model(self) -> str:
+        """Return device_model."""
+        return self._device_model
 
     @property
     @override
@@ -2490,7 +2517,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     @override
-    def hvac_mode(self):
+    def hvac_mode(self) -> HVACMode:
         """Return current operation."""
         if self._operation_mode == HVACMode.OFF:
             return HVACMode.OFF
@@ -2503,7 +2530,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         elif self._operation_mode == HVACMode.FAN_ONLY:
             return HVACMode.FAN_ONLY
         elif self._operation_mode == MODE_EM_HEAT:
-            return MODE_EM_HEAT
+            return HVACMode.HEAT
         else:
             return HVACMode.HEAT
 
@@ -2601,6 +2628,10 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @override
     def hvac_action(self) -> str | HVACAction | None:  # type: ignore[override]
         """Return current HVAC action."""
+        gap = self._target_temp - self._cur_temp
+        cool_gap = self._target_cool - self._cur_temp
+        heating = gap >= 0.2
+        cooling = cool_gap >= 0.2
 
         if self._operation_mode == HVACMode.OFF:
             return HVACAction.OFF
@@ -2609,25 +2640,21 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         action: str | HVACAction | None = None
 
         if self._operation_mode == HVACMode.COOL:
-            action = HVACAction.COOLING
+            action = HVACAction.COOLING if cooling else HVACAction.IDLE
         elif self._operation_mode in (HVACMode.AUTO, HVACMode.HEAT, MODE_MANUAL):
-            action = HVACAction.HEATING
+            action = HVACAction.HEATING if heating else HVACAction.IDLE
         elif self._operation_mode == HVACMode.FAN_ONLY:
             action = HVACAction.FAN
         elif self._operation_mode == HVACMode.DRY:
             action = HVACAction.DRYING
         elif not self._homekit_mode and self._operation_mode == MODE_AUTO_BYPASS:
-            if self._heat_level == 0:
+            if heating:
                 action = f"{HVACAction.IDLE.value} ({MODE_AUTO_BYPASS})"
             else:
                 action = f"{HVACAction.HEATING.value} ({MODE_AUTO_BYPASS})"
 
         # If action is None → HVACAction.IDLE
         if action is None:
-            return HVACAction.IDLE
-
-        # If heat_level == 0 → IDLE (for all modes)
-        if self._heat_level == 0:
             return HVACAction.IDLE
 
         return action
@@ -2769,9 +2796,14 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         if success:
             # Local update
             self._target_temp = temperature
+            self._last_setpoint_change = time.time()
+            gap = self._target_temp - self._cur_temp
+            if gap > 0:
+                self._heat_level = temp_to_heat_level(gap)
+            else:
+                self._heat_level = 0
             self.async_write_ha_state()
             # Coordinator refresh
-            await self._delayed_refresh(wifi=self._is_wifi)
 
     async def async_set_second_display(self, value):
         """Set thermostat second display between outside and setpoint temperature."""
@@ -2786,7 +2818,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on."""
         """Work differently for Zigbee and Wi-Fi devices."""
         is_wifi = self._is_wifi or self._is_low_wifi or self._is_wifi_lite or self._is_wifi_floor
-        await self._client.async_set_backlight(value["id"], value["level"], is_wifi)
+        await self._client.async_set_backlight(value["id"], value["level"], is_wifi, self._device_model)
         self._backlight = value["level"]
 
     async def async_set_keypad_lock(self, value):
@@ -3193,6 +3225,24 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             # Refresh via coordinator
             await self.coordinator.async_request_refresh()
 
+    def ignore_heat_level(self, last_change: float | None, percent: int) -> bool:
+        """Return True if percent should be ignored because update is too early."""
+        if last_change is None:
+            return False
+
+        elapsed = time.time() - last_change
+
+        if elapsed < HEAT_LEVEL_PROTECTION_DELAY:
+            _LOGGER.debug(
+                "Ignoring early heat_level update for %s: percent=%s (%.1f sec after setpoint change)",
+                self._name,
+                percent,
+                elapsed,
+            )
+            return True
+
+        return False
+
     async def async_do_stat(self, start):
         """Get device energy statistic."""
         if start - self._energy_stat_time > self._stat_interval and self._energy_stat_time != 0:
@@ -3578,7 +3628,10 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._cold_load_pickup = device_data[ATTR_COLD_LOAD_PICKUP]
                     if ATTR_HEAT_LOCKOUT_TEMP in device_data:
                         self._heat_lockout_temp = device_data[ATTR_HEAT_LOCKOUT_TEMP]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -3793,7 +3846,10 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -4026,7 +4082,10 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._time_format = device_data[ATTR_TIME_FORMAT]
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_DRSETPOINT in device_data:
@@ -4278,7 +4337,10 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT])
                     if ATTR_CYCLE_LENGTH in device_data:
@@ -4492,7 +4554,10 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -4722,7 +4787,10 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -4955,7 +5023,10 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._heat_level = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     source_info = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {})
                     if isinstance(source_info, dict) and "sourceType" in source_info:
                         self._heat_source_type = source_info["sourceType"]
@@ -5192,7 +5263,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -5463,7 +5537,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
@@ -5750,7 +5827,10 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
-                        self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                        percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
+                        if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                            # Accept heat_level received (delay passed)
+                            self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     if ATTR_RSSI in device_data:
@@ -7078,7 +7158,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 ATTR_HVAC_INPUT_1_FUNCTION,
                 ATTR_SCHEDULED_PEAK_DELAY,
             ]
-            # Get specific attribute for both 6727 and 6731 model
+            # Get specific attribute for both 6727, 6731 and 6734 model
             HC_CONFIG = [
                 ATTR_AIR_ACTIVATION_TEMP,
                 ATTR_AIR_CONFIG,
@@ -7098,6 +7178,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             MODEL_EXTRA = {
                 "6727": HC_EXTRA + HC_CONFIG,  # ← 6727 have both
                 "6731": HC_CONFIG,  # ← 6731 have only HC_CONFIG
+                "6734": HC_CONFIG,  # ← 6734 have only HC_CONFIG
             }
 
             attributes += MODEL_EXTRA.get(self._device_model, [])
@@ -7169,7 +7250,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._heatcool_setpoint_delta = device_data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA]
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME_FORMAT]
-                    self._heat_level = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["percent"]
+                    percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
+                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        # Accept heat_level received (delay passed)
+                        self._heat_level = percent
                     self._heat_level_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._heat_source_type = device_data[ATTR_HEAT_SOURCE_TYPE]
                     self._aux_heat_source_type = device_data[ATTR_AUX_HEAT_SOURCE_TYPE]
@@ -7256,7 +7340,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                         self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
                     if self._firmware == "4.5.4":
                         self._humidity_setpoint_off = device_data[ATTR_HUMIDITY_SETPOINT_OFF]
-                    if self._device_model == "6727" or self._device_model == "6731":
+                    if self._device_model in {6727, 6731, 6734}:
                         self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
                         self._heat_output_polarity = device_data[ATTR_HEAT_OUTPUT_POLARITY]
                         self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
@@ -7684,19 +7768,19 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         success = False
 
         if heat_min_time_on is not None:
-            success = await self._client.async_set_heat_min_time_on(self.unique_id, heat_min_time_on)
+            success = await self._client.async_set_heat_min_time_on(value["id"], heat_min_time_on)
             if success:
                 self._heat_min_time_on = heat_min_time_on
         if cool_min_time_on is not None:
-            success = await self._client.async_set_cool_min_time_on(self.unique_id, cool_min_time_on)
+            success = await self._client.async_set_cool_min_time_on(value["id"], cool_min_time_on)
             if success:
                 self._cool_min_time_on = cool_min_time_on
         if aux_heat_min_time_on is not None:
-            success = await self._client.async_set_aux_heat_min_time_on(self.unique_id, aux_heat_min_time_on)
+            success = await self._client.async_set_aux_heat_min_time_on(value["id"], aux_heat_min_time_on)
             if success:
                 self._aux_heat_min_time_on = aux_heat_min_time_on
         if air_ex_min_time_on is not None:
-            success = await self._client.async_set_air_ex_min_time_on(self.unique_id, air_ex_min_time_on)
+            success = await self._client.async_set_air_ex_min_time_on(value["id"], air_ex_min_time_on)
             if success:
                 self._air_ex_min_time_on = air_ex_min_time_on
         return success
@@ -7704,7 +7788,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     async def async_set_reversing_valve_polarity(self, value: dict[str, Any]) -> bool:
         """Set minimum time the device is on before letting be off again (run-on time)"""
         polarity = value[ATTR_POLARITY]
-        success = await self._client.async_set_reversing_valve_polarity(self.unique_id, polarity)
+        success = await self._client.async_set_reversing_valve_polarity(value["id"], polarity)
         if success:
             self._reversing_valve_polarity = polarity
         return success
@@ -7718,15 +7802,15 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         success = False
 
         if heat_min_time_off is not None:
-            success = await self._client.async_set_heat_min_time_off(self.unique_id, heat_min_time_off)
+            success = await self._client.async_set_heat_min_time_off(value["id"], heat_min_time_off)
             if success:
                 self._heat_min_time_off = heat_min_time_off
         if cool_min_time_off is not None:
-            success = await self._client.async_set_cool_min_time_off(self.unique_id, cool_min_time_off)
+            success = await self._client.async_set_cool_min_time_off(value["id"], cool_min_time_off)
             if success:
                 self._cool_min_time_off = cool_min_time_off
         if aux_heat_min_time_off is not None:
-            success = await self._client.async_set_aux_heat_min_time_off(self.unique_id, aux_heat_min_time_off)
+            success = await self._client.async_set_aux_heat_min_time_off(value["id"], aux_heat_min_time_off)
             if success:
                 self._aux_heat_min_time_off = aux_heat_min_time_off
         return success
@@ -7753,14 +7837,14 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             raise ServiceValidationError(msg)
 
         if has_multiple_hp_heat_stages:
-            success = await self._client.async_set_heat_interstage_min_delay(self.unique_id, time_val * 60)
+            success = await self._client.async_set_heat_interstage_min_delay(value["id"], time_val * 60)
             if success:
-                success = await self._client.async_set_heat_interstage_delay(self.unique_id, time_val * 120)
+                success = await self._client.async_set_heat_interstage_delay(value["id"], time_val * 120)
 
         if has_multiple_aux_stages:
-            success = await self._client.async_set_aux_interstage_min_delay(self.unique_id, time_val * 60)
+            success = await self._client.async_set_aux_interstage_min_delay(value["id"], time_val * 60)
             if success:
-                success = await self._client.async_set_aux_interstage_delay(self.unique_id, time_val * 120)
+                success = await self._client.async_set_aux_interstage_delay(value["id"], time_val * 120)
 
         return success
 
@@ -7785,11 +7869,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             raise ServiceValidationError(msg)
 
         # First command: min delay
-        success = await self._client.async_set_cool_interstage_min_delay(self.unique_id, time_val * 60)
+        success = await self._client.async_set_cool_interstage_min_delay(value["id"], time_val * 60)
 
         # Only send second command if the first succeeded
         if success:
-            success = await self._client.async_set_cool_interstage_delay(self.unique_id, time_val * 120)
+            success = await self._client.async_set_cool_interstage_delay(value["id"], time_val * 120)
 
         return success
 
@@ -8039,7 +8123,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     "scheduled_peak_delay": self._scheduled_peak_delay,
                 }
             )
-        if self._device_model == "6727" or self._device_model == "6731":
+        if self._device_model in {6727, 6731, 6734}:
             data.update(
                 {
                     "air_curtain_activation_temp": self._air_curt_activation_temp,
