@@ -459,28 +459,28 @@ async def async_setup_platform(
     def set_switch_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        value = {"id": switch.id, "lock": service.data[ATTR_KEYPAD]}
         switch.set_keypad_lock(value)
         switch.schedule_update_ha_state(True)
 
     def set_switch_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
+        value = {"id": switch.id, ATTR_TIME: service.data[ATTR_TIMER]}
         switch.set_timer(value)
         switch.schedule_update_ha_state(True)
 
     def set_switch_timer2_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER2]}
+        value = {"id": switch.id, ATTR_TIME: service.data[ATTR_TIMER2]}
         switch.set_timer2(value)
         switch.schedule_update_ha_state(True)
 
     def set_switch_temp_alert_service(service: ServiceCall) -> None:
         """Set low temperature alert for switch device MC3100ZB."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
+        value = {"id": switch.id, "alert": service.data[ATTR_TEMP_ALERT]}
         switch.set_temp_alert(value)
         switch.schedule_update_ha_state(True)
 
@@ -488,7 +488,7 @@ async def async_setup_platform(
         """Set dr mode options for load controller."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "dractive": service.data[ATTR_DRACTIVE],
             "droptout": service.data[ATTR_OPTOUT],
             "onoff": service.data[ATTR_ONOFF],
@@ -500,7 +500,7 @@ async def async_setup_platform(
         """Set status of both onoff controller."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "onoff_num": service.data[ATTR_ONOFF_NUM],
             "status": service.data[ATTR_STATUS],
         }
@@ -510,14 +510,14 @@ async def async_setup_platform(
     def set_tank_size_service(service: ServiceCall) -> None:
         """Set water tank size for RM3500ZB."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        value = {"id": switch.id, "val": service.data[ATTR_VALUE][0]}
         switch.set_tank_size(value)
         switch.schedule_update_ha_state(True)
 
     def set_controlled_device_service(service: ServiceCall) -> None:
         """Set controlled device type for RM3250ZB."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        value = {"id": switch.id, "val": service.data[ATTR_VALUE][0]}
         switch.set_controlled_device(value)
         switch.schedule_update_ha_state(True)
 
@@ -525,7 +525,7 @@ async def async_setup_platform(
         """Set water tank temperature protection for RM3500ZB."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "val": service.data[ATTR_WATER_TEMP_MIN],
         }
         switch.set_low_temp_protection(value)
@@ -535,7 +535,7 @@ async def async_setup_platform(
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "input1": service.data[ATTR_NAME_1],
             "input2": service.data[ATTR_NAME_2],
             "output1": service.data[ATTR_OUTPUT_NAME_1],
@@ -547,7 +547,7 @@ async def async_setup_platform(
     def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": switch.id, "active": service.data[ATTR_ACTIVE]}
         switch.set_activation(value)
         switch.schedule_update_ha_state(True)
 
@@ -555,7 +555,7 @@ async def async_setup_platform(
         """Set coldLoadPickupRemainingTime value."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             ATTR_TIME: service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
         }
         switch.set_remaining_time(value)
@@ -565,7 +565,7 @@ async def async_setup_platform(
         """Set input 1 or 2 on/off delay for MC3100ZB device."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "input_number": service.data[ATTR_INPUT_NUMBER],
             "onoff": service.data[ATTR_ONOFF],
             "delay": service.data[ATTR_DELAY][0],
