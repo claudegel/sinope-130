@@ -388,8 +388,7 @@ SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
 
-
-# Descriptions of the Neviweb error messages received.
+# Descriotions of the Neviweb error messages received.
 NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
     "ACCDAYREQMAX": ("Maximum daily request reached (30000 requests/day). Reduce polling frequency."),
     "ACCSESSEXC": (
@@ -414,4 +413,22 @@ NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
     "VALINVLD": ("Invalid value sent to Neviweb."),
     "ReadTimeout": ("The request was sent but no response was received from the device."),
     "TimeoutError": ("Request timeout."),
+}
+
+# Thermostats supporting backlightAdaptive="bedroom"
+HAVE_BEDROOM_BACKLIGHT: set[int] = {
+    300,
+    336,
+    343,
+    348,
+    350,
+    738,
+    739,
+    742,
+    1510,
+    1512,
+    6727,
+    6730,
+    6731,
+    6734,
 }
