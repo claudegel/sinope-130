@@ -339,7 +339,7 @@ async def async_setup_platform(
         """Set alert for water valve."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "batt": service.data[ATTR_BATT_ALERT],
         }
         valve.set_valve_alert(value)
@@ -349,7 +349,7 @@ async def async_setup_platform(
         """Set alert for water valve temperature location."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "temp": service.data[ATTR_TEMP_ALERT],
         }
         valve.set_valve_temp_alert(value)
@@ -359,7 +359,7 @@ async def async_setup_platform(
         """Set the flow meter model connected to water valve."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
         }
         valve.set_flow_meter_model(value)
@@ -369,7 +369,7 @@ async def async_setup_platform(
         """Set the flow meter delay before alert is turned on."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
         }
         valve.set_flow_meter_delay(value)
@@ -379,7 +379,7 @@ async def async_setup_platform(
         """Set the flow meter options when leak is detected."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "alarm": service.data[ATTR_TRIGGER_ALARM],
             "close": service.data[ATTR_CLOSE_VALVE],
         }
@@ -390,7 +390,7 @@ async def async_setup_platform(
         """Set power supply type for water valve."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "supply": service.data[ATTR_POWER_SUPPLY],
         }
         valve.set_power_supply(value)
@@ -400,7 +400,7 @@ async def async_setup_platform(
         """Activate or deactivate Neviweb polling for missing device."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "active": service.data[ATTR_ACTIVE],
         }
         valve.set_activation(value)
@@ -410,7 +410,7 @@ async def async_setup_platform(
         """Set alert for water valve temperature location."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "timer": service.data[ATTR_FLOW_ALARM_TIMER],
         }
         valve.set_flow_alarm_disable_timer(value)
