@@ -407,7 +407,7 @@ NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
     "MAINTENANCE": ("Neviweb is temporarily unavailable for maintenance."),
     "SVCERR": ("Service unavailable."),
     "SVCINVREQ": ("Invalid request sent to Neviweb."),
-    "SVCUNAUTH": ("Service unauthorized."),
+    "SVCUNAUTH": ("Bad or malformed service request rejected by Neviweb server."),
     "USRBADLOGIN": ("Invalid username or password."),
     "USRSESSEXP": ("User session expired. Reduce scan_interval below 10 minutes."),
     "VALINVLD": ("Invalid value sent to Neviweb."),
