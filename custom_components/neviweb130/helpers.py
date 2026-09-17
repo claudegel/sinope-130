@@ -10,7 +10,6 @@ import re
 import shutil
 import time
 from dataclasses import dataclass
-from logging.handlers import RotatingFileHandler
 from typing import Any, Callable, Mapping
 
 from aiohttp import ClientError
@@ -48,6 +47,7 @@ async def async_write(hass, path, text):
     def _write():
         with open(path, "a", encoding="utf-8") as f:
             f.write(text + "\n")
+
     return hass.async_add_executor_job(_write)
 
 
@@ -62,7 +62,7 @@ async def async_rotate(hass, path, max_bytes, backup_count):
         # Rotate backups
         for i in range(backup_count - 1, 0, -1):
             src = f"{path}.{i}"
-            dst = f"{path}.{i+1}"
+            dst = f"{path}.{i + 1}"
             if os.path.exists(src):
                 os.replace(src, dst)
 
@@ -84,19 +84,17 @@ class AsyncRotatingHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         # rotation async
-        self.hass.async_create_task(
-            async_rotate(self.hass, self.path, self.max_bytes, self.backup_count)
-        )
+        self.hass.async_create_task(async_rotate(self.hass, self.path, self.max_bytes, self.backup_count))
         # écriture async
-        self.hass.async_create_task(
-            async_write(self.hass, self.path, msg)
-        )
+        self.hass.async_create_task(async_write(self.hass, self.path, msg))
 
 
-def setup_logger(hass, name, log_path, level="INFO", max_bytes=2*1024*1024, backup_count=2, reset_on_start=True):
+def setup_logger(hass, name, log_path, level="INFO", max_bytes=2 * 1024 * 1024, backup_count=2, reset_on_start=True):
     if reset_on_start and os.path.exists(log_path):
+
         def _clear():
             open(log_path, "w").close()
+
         hass.async_add_executor_job(_clear)
 
     logger = logging.getLogger(name)
@@ -106,8 +104,7 @@ def setup_logger(hass, name, log_path, level="INFO", max_bytes=2*1024*1024, back
     handler = AsyncRotatingHandler(hass, log_path, max_bytes, backup_count)
     handler.setLevel(numeric_level)
     formatter = logging.Formatter(
-        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
 
