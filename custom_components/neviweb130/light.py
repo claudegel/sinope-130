@@ -262,7 +262,7 @@ async def async_setup_entry(
     async def set_light_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
         light = await get_light(service)
-        value = {"id": light.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        value = {"id": light.id, "lock": service.data[ATTR_KEYPAD]}
         await light.async_set_keypad_lock(value)
         light.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -270,7 +270,7 @@ async def async_setup_entry(
     async def set_light_timer_service(service: ServiceCall) -> None:
         """Set timer for light device."""
         light = await get_light(service)
-        value = {"id": light.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
+        value = {"id": light.id, ATTR_TIME: service.data[ATTR_TIMER]}
         await light.async_set_timer(value)
         light.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
@@ -279,7 +279,7 @@ async def async_setup_entry(
         """Set led color and intensity for light indicator."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "state": service.data[ATTR_STATE],
             "color": service.data[ATTR_COLOR],
         }
@@ -291,7 +291,7 @@ async def async_setup_entry(
         """Set led on intensity for light indicator."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "led_on": service.data[ATTR_LED_ON_INTENSITY],
         }
         await light.async_set_led_on_intensity(value)
@@ -302,7 +302,7 @@ async def async_setup_entry(
         """Set led off intensity for light indicator."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "led_off": service.data[ATTR_LED_OFF_INTENSITY],
         }
         await light.async_set_led_off_intensity(value)
@@ -313,7 +313,7 @@ async def async_setup_entry(
         """Set dimmer light minimum intensity."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "intensity": service.data[ATTR_INTENSITY_MIN],
         }
         await light.async_set_light_min_intensity(value)
@@ -324,7 +324,7 @@ async def async_setup_entry(
         """Set watt load for light device."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "watt": service.data[ATTR_LIGHT_WATTAGE],
         }
         await light.async_set_wattage(value)
@@ -335,7 +335,7 @@ async def async_setup_entry(
         """Change phase control mode for dimmer device."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "phase": service.data[ATTR_PHASE_CONTROL],
         }
         await light.async_set_phase_control(value)
@@ -346,7 +346,7 @@ async def async_setup_entry(
         """Activate or deactivate Neviweb polling for missing device."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "active": service.data[ATTR_ACTIVE],
         }
         await light.async_set_activation(value)
@@ -357,7 +357,7 @@ async def async_setup_entry(
         """Change key double up action for dimmer device."""
         light = await get_light(service)
         value = {
-            "id": light.unique_id,
+            "id": light.id,
             "double": service.data[ATTR_KEY_DOUBLE_UP],
         }
         await light.async_set_key_double_up(value)
@@ -477,7 +477,7 @@ def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retrieve data for %s = $s", id, device_data)
+        _LOGGER.debug("Retrieve data for id=%s data=%s", id, device_data)
         return device_data[data]  # 1 ou 2
     else:
         # Set defaults if device not found
