@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 from logging.handlers import RotatingFileHandler
+
 from requests.exceptions import RequestException
 
 import aiohttp
