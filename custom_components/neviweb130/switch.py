@@ -874,6 +874,10 @@ class Neviweb130Switch(SwitchEntity):
         return self._client.scoped_unique_id(self._id)
 
     @property
+    def id(self) -> str:
+        return self._id
+
+    @property
     @override
     def name(self) -> str:
         """Return the name of the switch."""
