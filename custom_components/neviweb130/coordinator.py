@@ -1307,7 +1307,6 @@ class Neviweb130Client:
             msg = await translate_error(
                 self.hass,
                 "bedroom_mode_not_supported",
-                ("Bedroom mode is not supported by device {id} (model {model})."),
                 id=device_id,
                 model=device_model,
             )
@@ -1320,7 +1319,7 @@ class Neviweb130Client:
                 notification_id="bedroom_mode_not_supported",
             )
 
-            return
+            return False
 
         if wifi:
             match level:
