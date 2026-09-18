@@ -388,7 +388,7 @@ SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
 
-# Descriotions of the Neviweb error messages received.
+# Descriptions of the Neviweb error messages received.
 NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
     "ACCDAYREQMAX": ("Maximum daily request reached (30000 requests/day). Reduce polling frequency."),
     "ACCSESSEXC": (
