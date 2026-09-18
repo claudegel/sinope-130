@@ -1087,9 +1087,9 @@ async def async_setup_entry(
         """Set emergency heat on/off for thermostats."""
         thermostat = await get_thermostat(service)
         if service.data[ATTR_VALUE] == "on":
-            await thermostat.async_turn_em_heat_on(service.data)
+            await thermostat.async_turn_em_heat_on()
         else:
-            await thermostat.async_turn_em_heat_off(service.data)
+            await thermostat.async_turn_em_heat_off()
         thermostat.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
