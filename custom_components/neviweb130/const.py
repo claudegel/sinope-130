@@ -460,11 +460,13 @@ CLIMATE_MODEL = [
     6727,
     6730,
     6731,
+    6734,
     6810,
     6811,
     6812,
     6813,
     6814,
+    6815,
     7372,
     7373,
 ]
@@ -619,7 +621,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
-    350: {  # TH1143WF, TH1144WF color screen
+    350: {  # TH1143WF, TH1144WF, TH1145WF color screen
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
@@ -1050,6 +1052,43 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
+    6734: {  # TH6251WF-PRO
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "fan_filter_remain",
+            "heat_lockout_temp",
+            "max_cool_temp",
+            "max_temp",
+            "min_cool_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+            "pro_aux_cycle_length",
+            "wifi_cycle",
+        ],
+        "binary_sensor": [
+            "activation",
+            "emergency_heat_allowed",
+        ],
+        "button": [],
+        "switch": [],
+    },
     6810: {  # HP6000ZB-GE
         "sensor": [
             ATTR_RSSI,
@@ -1113,6 +1152,7 @@ MODEL_ATTRIBUTES = {
         ],
         "number": [
             "cool_lockout_temp",
+            "cool_setpoint_away",
             "heat_lockout_temp",
             "max_temp",
             "min_temp",
@@ -1122,7 +1162,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": [],
     },
-    6814: {  # HP6000ZB-XX
+    6814: {  # HP6000WF-TCL
         "sensor": [
             ATTR_RSSI,
             "occupancy_mode",
@@ -1131,6 +1171,26 @@ MODEL_ATTRIBUTES = {
         ],
         "number": [
             "cool_lockout_temp",
+            "cool_setpoint_away",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad_status"],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": [],
+    },
+    6815: {  # HP6000WF-HA
+        "sensor": [
+            ATTR_RSSI,
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
             "heat_lockout_temp",
             "max_temp",
             "min_temp",
