@@ -23,6 +23,7 @@ model 348 = thermostat TH1134CR Sinopé Evo 3000W (Wi-Fi lite)
 model 343 = thermostat THEWF01 (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
+model 350 = thermostat TH1145WF ?  (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort (sku: PS120_240WF)
     (wifi floor), no energy stat for True Comfort
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
@@ -46,6 +47,7 @@ model 6812 = HP6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 Support for Wi-Fi heat pump interfaces
 model 6813 = HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
 model 6814 = HP6000WF-TCL for Runtru/Ameristar heat pump
+model 6815 = HP6000WF-HA for Hotpoint heat pump
 model xxxx = HP6000WF-XX for Hisense, Haxxair and Zephyr heat pump
 model xxxx = HP6000WF-XX for Ouellet heat pump with Gree connector
 
@@ -551,7 +553,7 @@ DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
 DEVICE_MODEL_HC = [1512]
 DEVICE_MODEL_HEAT_PUMP = [6810, 6811, 6812]
-DEVICE_MODEL_WIFI_HEAT_PUMP = [6813, 6814]
+DEVICE_MODEL_WIFI_HEAT_PUMP = [6813, 6814, 6815]
 DEVICE_MODEL_HEAT_COOL = [6727, 6730, 6731, 6734]
 IMPLEMENTED_DEVICE_MODEL = (
     DEVICE_MODEL_HEAT
@@ -1032,7 +1034,10 @@ async def async_setup_entry(
     async def set_cool_setpoint_away_service(service: ServiceCall) -> None:
         """Set away cooling setpoint."""
         thermostat = await get_thermostat(service)
-        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
+        if not isinstance(
+            thermostat,
+            (Neviweb130HeatCoolThermostat, Neviweb130WifiHPThermostat),
+        ):
             msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
             raise HomeAssistantError(msg)
         value = {
@@ -2361,7 +2366,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     def is_color_wifi(self) -> bool:
-        """Return True if device is a Wi-Fi TH1143WF or TH1144WF device."""
+        """Return True if device is a Wi-Fi TH1143WF, TH1144WF and TH1145WF device."""
         return self._is_color_wifi
 
     @property
@@ -3340,7 +3345,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 _LOGGER.debug("Device dict updated: %s", self._device_dict)
                 self._energy_stat_time = time.time()
             else:
-                device_hourly_stats = self._client.get_device_hourly_stats(self._id, True)
+                device_hourly_stats = await self._client.async_get_device_hourly_stats(self._id, True)
                 _LOGGER.debug(
                     "%s device hourly stats (SKU: %s): %s, size = %s",
                     self._name,
@@ -4942,7 +4947,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1143WF, TH1144WF thermostats."""
+    """Implementation of Neviweb TH1143WF, TH1144WF, TH1145WF thermostats."""
 
     _attr_precision = 0.5
     _attr_target_temperature_step = 0.5
@@ -4989,8 +4994,8 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                     firmware=self._firmware,
                 )
             else:
-                device_data = self._client.get_device_attributes(self._id, attributes)
-            neviweb_status = self._client.get_neviweb_status(self._location)
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
+            neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
@@ -6424,11 +6429,11 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb HP6000WF-MA, HP6000WF-TCL and HP6000WF-XX Wi-Fi heat pump interfaces thermostats.
+    """Implementation of Neviweb HP6000WF-MA, HP6000WF-TCL, HP6000WF-HA and HP6000WF-XX Wi-Fi heat pump interfaces thermostats.
     — internal behavior notes
     ------------------------------------------------------
 
-    This thermostat is unique in the Sinopé lineup because it exposes
+    Those thermostats are unique in the Sinopé lineup because they exposes
     THREE independent control systems:
 
     1. heatCoolMode  (HVAC mode)
@@ -6488,7 +6493,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         self._fan_cap = None
         self._heat_cool = None
         self._heatcool_setpoint_delta = 2
+        self._interlock_hc_mode = None
         self._interlock_id = None
+        self._interlock_partner = None
         self._system_mode_avail = None
         self._model = None
         self._room_temp_error = None
@@ -6515,7 +6522,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 ATTR_FAN_SWING_VERT,
                 ATTR_HEAT_COOL,
                 ATTR_HEAT_LOCK_TEMP,
+                ATTR_INTERLOCK_HC_MODE,
                 ATTR_INTERLOCK_ID,
+                ATTR_INTERLOCK_PARTNER,
                 ATTR_MODEL,
                 ATTR_OCCUPANCY,
                 ATTR_ROOM_SETPOINT_AWAY,
@@ -6644,7 +6653,11 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         self._display_cap = device_data[ATTR_DISPLAY_CAP]
                         self._sound_conf = device_data[ATTR_SOUND_CONF]
                         self._sound_cap = device_data[ATTR_SOUND_CAP]
-                    self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                    if ATTR_INTERLOCK_ID in device_data:
+                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
+                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
+                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -6959,6 +6972,17 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         # await self._delayed_refresh(wifi=self._is_wifi)
 
+    async def async_set_cool_setpoint_away(self, value) -> bool:
+        """Set device away cooling setpoint."""
+        success = await self._client.async_set_cool_setpoint_away(value["id"], value["temp"], self._is_WHP)
+        self._cool_target_temp_away = value["temp"]
+
+        return success
+
+    @property
+    def cool_setpoint_away(self):
+        return self._cool_target_temp_away
+
     @property
     @override
     def extra_state_attributes(self) -> Mapping[str, Any]:
@@ -6972,6 +6996,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "operation modes": self._operation_mode,
                 "cool setpoint min": self._cool_min,
                 "cool setpoint max": self._cool_max,
+                "cool_target_temp_away": self._cool_target_temp_away,
                 "setpoint_max": self._max_temp,
                 "setpoint_min": self._min_temp,
                 "temperature_format": self._temperature_format,
@@ -7208,7 +7233,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     firmware=self._firmware,
                 )
             else:
-                device_data = self._client.get_device_attributes(self._id, attributes)
+                device_data = await self._client.async_get_device_attributes(self._id, attributes)
             neviweb_status = await self._client.async_get_neviweb_status(self._location)
             end = time.time()
             elapsed = round(end - start, 3)
