@@ -80,6 +80,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé TH1145WF, thermostat à deux fils, écran couleur Wi-Fi ?
   - Sinopé TH1300WF, thermostat au sol Wi-Fi 3600W
   - Sinopé TH1310WF, thermostat au sol Wi-Fi 3600W
+  - Sinopé TH1315WF, thermostat au sol W--Fi, sans capteur de mesure de consommation d'énergie, seulement une consommation calculée
   - Sinopé TH1325WF, thermostat au sol Wi-Fi 3600W
   - Sinopé TH1400WF, thermostat basse tension Wi-Fi 
   - Sinopé TH1500WF, thermostat bipolaire Wi-Fi 3600W 
@@ -87,6 +88,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé TH6510WF, thermostat Wi-Fi chauffage/climatisation
   - Sinopé TH6250WF, thermostat Wi-Fi chauffage/climatisation
   - Sinopé TH6250WF_PRO, thermostat Wi-Fi chauffage/climatisation PRO
+  - Sinopé TH6251WF-PRO, thermostat Wi-Fi chauffage/climatisation PRO
   - Sinopé THEWF01, thermostat de ligne, édition lite Wi-Fi
   - Flextherm concerto connect FLP55 thermostat de sol (sku FLP55 ne fourni pas de statistique énergétique dans Neviweb)
   - Flextherm True Comfort, thermostat de sol
@@ -97,8 +99,8 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé PH6000ZB-HS, pour les thermopompes Hisense, Haxxair et Zephyr
 - **Contrôleur de pompe à chaleur Wi-Fi**:
   - Sinopé HP6000WF-MA, pour les thermopompes Ouellet, Convectair avec connecteur Midea
-  - Sinopé HP6000WF-GE, pour les thermopompes Ouellet avec connecteur Gree
-  - Sinopé HP6000WF-TCL, pour les thermopompes Runtru/Ameristar
+  - Sinopé HP6000WF-HA, pour les thermopompes Hotpoint
+  - Sinopé HP6000WF-TCL, pour les thermopompes Runtru/Ameristar et Nirvana
 - **éclairage Zigbee**:
   - Sinopé SW2500ZB, Interrupteur
   - Sinopé SW2500ZB-G2, Interrupteur nouvelle génération
