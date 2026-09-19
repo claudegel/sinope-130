@@ -42,8 +42,13 @@ All modification for this custom_component will be added in this file.
 - Refactor error code handling for Neviweb devices to improve readability and maintainability in light.py, sensor.py, switch.py and valve.py.
 - Refine exception handling in update.py
 - Fix SVCUNAUTH error from Neviweb in service device ID for climate, light, sensor, switch and valve.
+- Add missing attributes for TH6xxxWF thermostats.
+- Add missing method set_cool_setpoint_away for HP6000WF thermostats.
 
 ### Doc
+- Add support for TH6251WF-PRO thermostat.
+- Add support for HP6000WF-HA thermostat.
+- Add support for TH1315ZB thermostat.
 
 ## [v4.2.9] - 2026-07-31
 ### Added
