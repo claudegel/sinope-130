@@ -81,7 +81,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1145WF Wi-Fi ? two wires connection, color screen
   - Sinopé TH1300WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1310WF Wi-Fi 3600W floor thermostat
-  - Sinopé TH1315WF Wi-Fi 3600W floor thermostat, no energy measurement
+  - Sinopé TH1315WF Wi-Fi 3600W floor thermostat, no energy measurement chip only calculated energy
   - Sinopé TH1325WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1400WF Wi-Fi low voltage thermostat
   - Sinopé TH1500WF Wi-Fi 3600W double pole thermostat
@@ -101,8 +101,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - **Wi-Fi Heatpump controller**:
   - Sinopé HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
-  - Sinopé HP6000WF-GE for Ouellet heat pump with Gree connector
-  - Sinopé HP6000WF-TCL for Runtru/Ameristar heat pump
+  - Sinopé HP6000WF-HA for for Hotpoint heat pump
+  - Sinopé HP6000WF-TCL for Runtru/Ameristar, Nirvana and TCL heat pump
 - **Zigbee lighting**:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
