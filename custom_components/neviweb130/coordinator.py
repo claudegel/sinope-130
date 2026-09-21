@@ -130,6 +130,7 @@ from .const import (
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
+    CONF_SAFE_MODE,
     EXPOSED_ATTRIBUTES,
     HAVE_BEDROOM_BACKLIGHT,
     MODE_EM_HEAT,
@@ -140,6 +141,7 @@ from .const import (
 from .helpers import (
     async_notify_critical,
     async_notify_once_or_update,
+    parse_safe_mode,
     translate_error,
 )
 from .schema import (
@@ -290,16 +292,19 @@ class Neviweb130Client:
     def __init__(
         self,
         hass: HomeAssistant,
-        ignore_miwi,
+        ignore_miwi: bool,
         username: str,
         password: str,
         network: str | None,
         network2: str | None = None,
         network3: str | None = None,
+        safe_mode: str = "-",
+        config_entry: ConfigEntry | None = None,
+        *,
         session_manager=None,
         counter=None,
         timeout=REQUESTS_TIMEOUT,
-    ):
+    ) -> None:
         """Initialize the client object."""
         #        self.coordinator = coordinator
         self.hass = hass
@@ -310,6 +315,8 @@ class Neviweb130Client:
         self._network_name3 = network3
         self._code: str | None = None
         self._ignore_miwi = ignore_miwi
+        self._config_entry = config_entry
+        self._safe_mode = parse_safe_mode(safe_mode)
 
         # Device storage
         self._devices: dict[str, dict[str, Any]] = {}
@@ -333,6 +340,11 @@ class Neviweb130Client:
         self._occupancyMode = None
         self.user = None
         self._response = None
+
+    @property
+    def safe_mode(self) -> set:
+        """Return device IDs currently in safe mode."""
+        return self._safe_mode
 
     @property
     async def session(self) -> ClientSession:
@@ -2143,6 +2155,49 @@ class Neviweb130Client:
         data: dict[str, Any] = {ATTR_COOL_INTERSTAGE_MIN_DELAY: time}
         _LOGGER.debug("HC set_cool_min_interstage_delay.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_safe_mode(
+        self,
+        device_id: str,
+        state: bool,
+    ) -> bool:
+        """Set or unset safe mode for a device."""
+        if self._config_entry is None:
+            _LOGGER.error(
+                "Unable to persist safe mode for device %s: config entry unavailable",
+                device_id,
+            )
+            return False
+
+        if state:
+            self._safe_mode.add(device_id)
+        else:
+            self._safe_mode.discard(device_id)
+
+        safe_mode = (
+            ",".join(sorted(self._safe_mode))
+            if self._safe_mode
+            else "-"
+        )
+
+        new_data = {
+            **self._config_entry.data,
+            CONF_SAFE_MODE: safe_mode,
+        }
+
+        self.hass.config_entries.async_update_entry(
+            self._config_entry,
+            data=new_data,
+        )
+
+        _LOGGER.debug(
+            "Safe mode %s for device %s; configured devices: %s",
+            "enabled" if state else "disabled",
+            device_id,
+            safe_mode,
+        )
+
+        return True
 
     async def async_set_device_attributes(self, device_id: str, data: dict[str, Any]) -> bool:
         """Set devices attributes and return True if successful."""
