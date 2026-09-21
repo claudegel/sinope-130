@@ -21,7 +21,7 @@ class SessionManager:
                 _LOGGER.debug("Session was closed, creating a new one")
                 self._session = None
             else:
-                _LOGGER.debug("Reusing existing session")
+                # _LOGGER.debug("Reusing existing session")
                 return self._session
 
         # Create new session
