@@ -371,7 +371,6 @@ def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
                 "location2": yaml_config.get("location2"),
                 "location3": yaml_config.get("location3"),
                 "prefix": "default",
-                "safe_mode": "-",
             }
         ]
 
@@ -1350,6 +1349,20 @@ def safe_number(value) -> float:
         return float(value)
     except (TypeError, ValueError):
         return 0.0
+
+
+# ─────────────────────────────────────────────
+# Manage safe mode
+# ─────────────────────────────────────────────
+
+
+def parse_safe_mode(value: str) -> set[str]:
+    """Convert safe mode configuration to a set of device IDs."""
+    return {
+        device_id.strip()
+        for device_id in value.split(",")
+        if device_id.strip() and device_id.strip() != "-"
+    }
 
 
 # await async_notify_throttled(
