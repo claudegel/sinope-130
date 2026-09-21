@@ -14,7 +14,6 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
@@ -40,10 +39,7 @@ from .const import (
 from .coordinator import PyNeviweb130Error
 from .helpers import (
     async_notify_critical,
-    async_notify_throttled,
-    build_import_summary,
     expose_log_file,
-    normalize_yaml_config,
     translate_error,
 )
 from .schema import (
@@ -259,16 +255,10 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
         # Username must be unique.
         await self.async_set_unique_id(username)
-        self._abort_if_unique_id_configured(
-            error="already_configured_for_this_user"
-        )
+        self._abort_if_unique_id_configured(error="already_configured_for_this_user")
 
         # Prefix must also be unique.
-        existing_prefix = [
-            entry
-            for entry in self._async_current_entries()
-            if entry.data.get("prefix") == prefix
-        ]
+        existing_prefix = [entry for entry in self._async_current_entries() if entry.data.get("prefix") == prefix]
 
         if existing_prefix:
             msg = await translate_error(self.hass, "duplicated_prefix", prefix=prefix)
