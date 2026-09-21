@@ -294,6 +294,15 @@ SWITCH_TYPES: tuple[Neviweb130SwitchEntityDescription, ...] = (
         icon="mdi:snowflake",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    Neviweb130SwitchEntityDescription(
+        key="safe_mode",
+        name="safe_mode",
+        device_class=SwitchDeviceClass.SWITCH,
+        translation_key="safe_mode",
+        signal=SIGNAL_EVENTS_CHANGED,
+        icon="mdi:alert",
+        entity_category=EntityCategory.CONFIG,
+    ),
     #  Common attributes
     #    Neviweb130SwitchEntityDescription(
     #        key="activation",
@@ -432,7 +441,7 @@ def create_physical_switch(data, entry, coordinator, device_registry):
 def create_attribute_switch(hass, entry, data, coordinator, device_registry):
     entities: list[SwitchEntity] = []
 
-    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+    _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
 
     config_prefix = data["prefix"]
     platform = __name__.split(".")[-1]  # "switch"
@@ -921,7 +930,7 @@ def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retrieve data for id=%s data=%s", id, device_data)
+        _LOGGER.debug("Retrieve consumption data for id=%s data=%s", id, device_data)
         return device_data[data]  # 1 ou 2
     else:
         # Set defaults if device not found
@@ -974,7 +983,6 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._notify = data["notify"]
         self._prefix = data["prefix"]
         self._stat_interval = data["stat_interval"]
-        self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = str(device_info["signature"]["model"])
@@ -1056,7 +1064,8 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-            if self._safe_mode == self._id:
+            if self.safe_mode:
+                _LOGGER.debug("Safe mode activated for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -1267,6 +1276,11 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         if self._temp_alert == 5:
             return self._temp_alert
         return None
+
+    @property
+    def safe_mode(self) -> bool:
+        """Return whether safe mode is active for this device."""
+        return self._id in self._client.safe_mode
 
     @property
     @override
@@ -1584,6 +1598,21 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 error_data,
                 self._sku,
             )
+
+            if self._id not in self._client.safe_mode:
+                await self._client.async_set_safe_mode(
+                    self._id,
+                    True,
+                )
+
+                msg = await translate_error(
+                    self.hass,
+                    "safe_mode_active",
+                    name=self._name,
+                    id=self._id,
+                )
+                _LOGGER.warning(msg)
+
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
                 "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
@@ -1687,7 +1716,8 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-            if self._safe_mode == self._id:
+            if self.safe_mode:
+                _LOGGER.debug("Safe mode activated for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -1833,7 +1863,8 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-            if self._safe_mode == self._id:
+            if self.safe_mode:
+                _LOGGER.debug("Safe mode activated for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -1993,7 +2024,8 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-            if self._safe_mode == self._id:
+            if self.safe_mode:
+                _LOGGER.debug("Safe mode activated for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -2212,7 +2244,8 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s: %s", self._name, attributes)
-            if self._safe_mode == self._id:
+            if self.safe_mode:
+                _LOGGER.debug("Safe mode activated for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -2469,7 +2502,8 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
             start = time.time()
             attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES + NAME_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-            if self._safe_mode == self._id:
+            if self.safe_mode:
+                _LOGGER.debug("Safe mode activated for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -2643,6 +2677,7 @@ class Neviweb130DeviceAttributeSwitch(CoordinatorEntity[Neviweb130Coordinator], 
         "leak_alert": lambda self, state: self._client.async_set_sensor_leak_alert(self._id, state),
         "onOff2": lambda self, state: self._client.async_set_onoff2(self._id, "on" if state else "off"),
         "refuel_alert": lambda self, state: self._client.async_set_refuel_alert(self._id, state),
+        "safe_mode": lambda self, state: self._client.async_set_safe_mode(self._id, state),
         "temperature_alert": lambda self, state: self._client.async_set_valve_temp_alert(self._id, 1 if state else 0),
         "temp_alert": lambda self, state: self._client.async_set_sensor_temp_alert(self._id, state),
         "valve_alert": lambda self, state: self._client.async_set_valve_alert(
