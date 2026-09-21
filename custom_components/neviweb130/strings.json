@@ -126,7 +126,11 @@
       "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather icons png files won't be displayed. Read documentation for help.",
       "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather icon will be displayed. Read documentation for help.",
       "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}.",
-      "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model})."
+      "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model}).",
+      "config_imported": "The neviweb130 YAML configuration is now obsolete. The configuration for the « {prefix} » account has been automatically imported into the Home Assistant interface. Once all your accounts have been imported, please remove or comment out the `neviweb130:` section in your `configuration.yaml` file, then restart Home Assistant.",
+      "yaml_config_detected": "Neviweb130 YAML configuration was detected and automatic import has started.",
+      "duplicated_prefix": "YAML import: prefix = {prefix} already configured, aborting import",
+      "safe_mode_active": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute detected. Report to maintainer."
     }
   },
   "options": {
@@ -705,6 +709,9 @@
       },
       "refuel_alert": {
         "name": "Refuel Alert"
+      },
+      "safe_mode": {
+        "name": "Safe mode"
       },
       "temp_alert": {
         "name": "Low Temperature Alert"
