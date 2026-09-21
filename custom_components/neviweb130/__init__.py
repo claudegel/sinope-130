@@ -46,6 +46,7 @@ from .helpers import (
     update_logger_config,
     update_logger_level,
 )
+from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
