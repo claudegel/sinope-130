@@ -35,8 +35,8 @@ from .const import (
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import load_devices, save_devices
 from .helpers import (
-    async_notify_critical,
     DailyRequestCounter,
+    async_notify_critical,
     check_weather_icons_folder,
     extract_log_options,
     normalize_yaml_config,
