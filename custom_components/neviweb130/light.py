@@ -477,7 +477,7 @@ def retrieve_data(id, device_dict, data) -> int | None:
     """Retrieve device stat data from device_dict."""
     device_data = device_dict.get(id)
     if device_data:
-        _LOGGER.debug("Retrieve data for id=%s data=%s", id, device_data)
+        _LOGGER.debug("Retrieve concumption data for id=%s data=%s", id, device_data)
         return device_data[data]  # 1 ou 2
     else:
         # Set defaults if device not found
@@ -530,7 +530,6 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._stat_interval = data["stat_interval"]
         self._notify = data["notify"]
         self._prefix = data["prefix"]
-        self._safe_mode = data["safe_mode"]
         self._entry = entry
         self._id = str(device_info["id"])
         self._device_model = str(device_info["signature"]["model"])
@@ -600,7 +599,8 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             if self._is_light:
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-                if self._safe_mode == self._id:
+                if self.safe_mode:
+                    _LOGGER.debug("Safe mode activated for %s", self._id)
                     device_data = await async_safe_get_device_attributes(
                         self.hass,
                         self._client,
@@ -614,7 +614,8 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 else:
                     device_data = await self._client.async_get_device_attributes(self._id, attributes)
             else:
-                if self._safe_mode == self._id:
+                if self.safe_mode:
+                    _LOGGER.debug("Safe mode activated for %s", self._id)
                     device_data = await async_safe_get_device_attributes(
                         self.hass,
                         self._client,
@@ -818,6 +819,11 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     @property
     def activation(self) -> bool:
         return bool(self._active)
+
+    @property
+    def safe_mode(self) -> bool:
+        """Return whether safe mode is active for this device."""
+        return self._id in self._client.safe_mode
 
     @property
     @override
@@ -1099,6 +1105,21 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 error_data,
                 self._sku,
             )
+
+            if self._id not in self._client.safe_mode:
+                await self._client.async_set_safe_mode(
+                    self._id,
+                    True,
+                )
+
+                msg = await translate_error(
+                    self.hass,
+                    "safe_mode_active",
+                    name=self._name,
+                    id=self._id,
+                )
+                _LOGGER.warning(msg)
+
         elif error_data == "DVCACTNSPTD":
             _LOGGER.warning(
                 "Device action not supported for %s (id: %s)...(SKU: %s), (Model: %s). Report to maintainer",
@@ -1187,7 +1208,8 @@ class Neviweb130Dimmer(Neviweb130Light):
             if self._is_dimmer:
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-                if self._safe_mode == self._id:
+                if self.safe_mode:
+                    _LOGGER.debug("Safe mode activated for %s", self._id)
                     device_data = await async_safe_get_device_attributes(
                         self.hass,
                         self._client,
@@ -1201,7 +1223,8 @@ class Neviweb130Dimmer(Neviweb130Light):
                 else:
                     device_data = await self._client.async_get_device_attributes(self._id, attributes)
             else:
-                if self._safe_mode == self._id:
+                if self.safe_mode:
+                    _LOGGER.debug("Safe mode activated for %s", self._id)
                     device_data = await async_safe_get_device_attributes(
                         self.hass,
                         self._client,
@@ -1354,7 +1377,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
             if self._is_new_dimmer:
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
-                if self._safe_mode == self._id:
+                if self.safe_mode:
+                    _LOGGER.debug("Safe mode activated for %s", self._id)
                     device_data = await async_safe_get_device_attributes(
                         self.hass,
                         self._client,
@@ -1368,7 +1392,8 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 else:
                     device_data = await self._client.async_get_device_attributes(self._id, attributes)
             else:
-                if self._safe_mode == self._id:
+                if self.safe_mode:
+                    _LOGGER.debug("Safe mode activated for %s", self._id)
                     device_data = await async_safe_get_device_attributes(
                         self.hass,
                         self._client,
