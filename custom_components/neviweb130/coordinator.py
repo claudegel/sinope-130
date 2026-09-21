@@ -7,6 +7,7 @@ from typing import Any, Mapping, Union
 import aiohttp
 from aiohttp import ClientSession
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
