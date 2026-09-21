@@ -37,8 +37,12 @@ Sélectionner l’entité Update → ⚙️ → désactiver “Visible”.
 -------------------------------------------------------------------
 """
 
+CONF_ACCOUNTS = "accounts"
 CONF_HOMEKIT_MODE = "homekit_mode"
 CONF_IGNORE_MIWI = "ignore_miwi"
+CONF_LOCATION = "location"
+CONF_LOCATION2 = "location2"
+CONF_LOCATION3 = "location3"
 CONF_NETWORK = "network"
 CONF_NETWORK2 = "network2"
 CONF_NETWORK3 = "network3"
@@ -544,7 +548,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     336: {  # TH1133WF, TH1134WF
         "sensor": [
@@ -569,7 +573,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     343: {  # THEWF01
         "sensor": [
@@ -594,7 +598,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     348: {  # TH1133CR, TH1134CR
         "sensor": [
@@ -619,7 +623,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     350: {  # TH1143WF, TH1144WF, TH1145WF color screen
         "sensor": [
@@ -652,7 +656,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     737: {  # TH1300ZB 3600W, TH1320ZB-04, OTH3600-GA-ZB
         "sensor": [
@@ -687,7 +691,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     738: {  # TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort, concerto connect FLP55
         "sensor": [
@@ -724,7 +728,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     739: {  # TH1400WF low voltage
         "sensor": [
@@ -763,7 +767,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     742: {  # TH1500WF double pole
         "sensor": [
@@ -798,7 +802,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     1123: {  # TH1123ZB 3000W
         "sensor": [
@@ -832,7 +836,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     1124: {  # TH1124ZB 4000W, OTH4000-ZB
         "sensor": [
@@ -866,7 +870,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     1510: {  # TH1123WF 3000W, TH1124WF 4000W
         "sensor": [
@@ -901,7 +905,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     1512: {  # TH1134ZB-HC
         "sensor": [
@@ -938,7 +942,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6727: {  # TH6500WF, TH6510WF
         "sensor": [
@@ -976,7 +980,7 @@ MODEL_ATTRIBUTES = {
             "emergency_heat_allowed",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6730: {  # TH6250WF
         "sensor": [
@@ -1013,7 +1017,7 @@ MODEL_ATTRIBUTES = {
             "emergency_heat_allowed",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6731: {  # TH6250WF-PRO
         "sensor": [
@@ -1050,7 +1054,7 @@ MODEL_ATTRIBUTES = {
             "emergency_heat_allowed",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6734: {  # TH6251WF-PRO
         "sensor": [
@@ -1087,7 +1091,7 @@ MODEL_ATTRIBUTES = {
             "emergency_heat_allowed",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6810: {  # HP6000ZB-GE
         "sensor": [
@@ -1105,7 +1109,7 @@ MODEL_ATTRIBUTES = {
         "select": ["keypad_status"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6811: {  # HP6000ZB-MA
         "sensor": [
@@ -1123,7 +1127,7 @@ MODEL_ATTRIBUTES = {
         "select": ["keypad_status"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6812: {  # HP6000ZB-HS
         "sensor": [
@@ -1141,7 +1145,7 @@ MODEL_ATTRIBUTES = {
         "select": ["keypad_status"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6813: {  # HP6000WF-MA
         "sensor": [
@@ -1160,7 +1164,7 @@ MODEL_ATTRIBUTES = {
         "select": ["keypad_status"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6814: {  # HP6000WF-TCL
         "sensor": [
@@ -1179,7 +1183,7 @@ MODEL_ATTRIBUTES = {
         "select": ["keypad_status"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     6815: {  # HP6000WF-HA
         "sensor": [
@@ -1198,7 +1202,7 @@ MODEL_ATTRIBUTES = {
         "select": ["keypad_status"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     7372: {  # TH1400ZB low voltage, TH1420ZB-01 Nordik
         "sensor": [
@@ -1234,7 +1238,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     7373: {  # TH1500ZB double pole
         "sensor": [
@@ -1268,7 +1272,7 @@ MODEL_ATTRIBUTES = {
             "is_heating",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     # Lights
     2121: {  # SW2500ZB, SW2500ZB-G2
@@ -1294,7 +1298,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     21212: {  # SW2500ZB, SW2500ZB-G2 connected to Sedna valve
         "sensor": [
@@ -1304,7 +1308,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2131: {  # DM2500ZB, DM2500ZB-G2
         "sensor": [
@@ -1329,7 +1333,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     21312: {  # DM2500ZB, DM2500ZB-G2 connected to Sedna valve
         "sensor": [
@@ -1339,7 +1343,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2132: {  # DM2550ZB, DM2550ZB-G2
         "sensor": [
@@ -1365,7 +1369,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     21322: {  # DM2550ZB, DM2550ZB-G2 connected to Sedna valve
         "sensor": [
@@ -1375,7 +1379,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     # Switch
     346: {  # RM3250WF, 50A, Wi-Fi
@@ -1393,7 +1397,7 @@ MODEL_ATTRIBUTES = {
         "select": ["switch_keypad"],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2151: {  # RM3500ZB 20,8A, Zigbee
         "sensor": [
@@ -1416,7 +1420,7 @@ MODEL_ATTRIBUTES = {
             "water_leak_status",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2152: {  # RM3500WF 20,8A, Wi-Fi, RM3510WF 20,8A, Wi-Fi
         "sensor": [
@@ -1439,7 +1443,7 @@ MODEL_ATTRIBUTES = {
             "water_leak_status",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2180: {  # MC3100ZB connected to GT130
         "sensor": [
@@ -1464,6 +1468,7 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "alert_temp",
             "onoff2",
+            "safe_mode",
         ],
     },
     2181: {  # MC3100ZB connected to Sedna valve
@@ -1477,7 +1482,7 @@ MODEL_ATTRIBUTES = {
             "input1_status",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2506: {  # RM3250ZB, 50A, Zigbee
         "sensor": [
@@ -1496,7 +1501,7 @@ MODEL_ATTRIBUTES = {
         ],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     25062: {  # RM3250ZB-VA, 50A, Zigbee connected via Sedna valve
         "sensor": [],
@@ -1504,7 +1509,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2600: {  # SP2600ZB
         "sensor": [
@@ -1520,7 +1525,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     26002: {  # SP2600ZB connected to Sedna valve
         "sensor": [
@@ -1530,7 +1535,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     2610: {  # SP2610ZB
         "sensor": [
@@ -1546,7 +1551,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     26102: {  # SP2610ZB connected to Sedna valve
         "sensor": [
@@ -1556,7 +1561,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     # Valves
     3150: {  # VA4201WZ, VA4200WZ, VA4220WZ, VA4220WF, VA4221WZ, VA4221WF
@@ -1580,7 +1585,7 @@ MODEL_ATTRIBUTES = {
             "stm8Error_motorPosition",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     3151: {  # VA4200ZB
         "sensor": [
@@ -1592,7 +1597,7 @@ MODEL_ATTRIBUTES = {
         "select": [],
         "binary_sensor": ["activation"],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     3153: {  # VA4220ZB 2e gen
         "sensor": [
@@ -1622,6 +1627,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
         "switch": [
+            "safe_mode",
             "temperature_alert",
             "valve_alert",
         ],
@@ -1656,6 +1662,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
         "switch": [
+            "safe_mode",
             "temperature_alert",
             "valve_alert",
         ],
@@ -1688,6 +1695,7 @@ MODEL_ATTRIBUTES = {
         ],
         "button": [],
         "switch": [
+            "safe_mode",
             "temperature_alert",
             "valve_alert",
         ],
@@ -1721,6 +1729,7 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "batt_alert",
             "leak_alert",
+            "safe_mode",
             "temp_alert",
         ],
     },
@@ -1742,6 +1751,7 @@ MODEL_ATTRIBUTES = {
             "action_close",
             "batt_alert",
             "leak_alert",
+            "safe_mode",
             "temp_alert",
         ],
     },
@@ -1763,6 +1773,7 @@ MODEL_ATTRIBUTES = {
             "action_close",
             "batt_alert",
             "leak_alert",
+            "safe_mode",
             "temp_alert",
         ],
     },
@@ -1783,6 +1794,7 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "batt_alert",
             "leak_alert",
+            "safe_mode",
             "temp_alert",
         ],
     },
@@ -1804,6 +1816,7 @@ MODEL_ATTRIBUTES = {
             "action_close",
             "batt_alert",
             "leak_alert",
+            "safe_mode",
             "temp_alert",
         ],
     },
@@ -1824,6 +1837,7 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "batt_alert",
             "leak_alert",
+            "safe_mode",
             "temp_alert",
         ],
     },
@@ -1841,7 +1855,7 @@ MODEL_ATTRIBUTES = {
             "level_status",
         ],
         "button": [],
-        "switch": [],
+        "switch": ["safe_mode"],
     },
     5056: {  # LM4110-ZB
         "sensor": [
@@ -1869,6 +1883,7 @@ MODEL_ATTRIBUTES = {
             "batt_alert",
             "fuel_alert",
             "refuel_alert",
+            "safe_mode",
         ],
     },
 }
@@ -1954,6 +1969,7 @@ EXPOSED_ATTRIBUTES = [
     "room_humidity",
     "room_temperature",
     "rssi",
+    "safe_mode",
     "second_display",
     "sensor_mode",
     "setpoint_away",
