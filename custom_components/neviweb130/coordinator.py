@@ -2174,11 +2174,7 @@ class Neviweb130Client:
         else:
             self._safe_mode.discard(device_id)
 
-        safe_mode = (
-            ",".join(sorted(self._safe_mode))
-            if self._safe_mode
-            else "-"
-        )
+        safe_mode = ",".join(sorted(self._safe_mode)) if self._safe_mode else "-"
 
         new_data = {
             **self._config_entry.data,
