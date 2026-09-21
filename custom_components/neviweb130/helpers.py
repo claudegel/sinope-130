@@ -1358,11 +1358,7 @@ def safe_number(value) -> float:
 
 def parse_safe_mode(value: str) -> set[str]:
     """Convert safe mode configuration to a set of device IDs."""
-    return {
-        device_id.strip()
-        for device_id in value.split(",")
-        if device_id.strip() and device_id.strip() != "-"
-    }
+    return {device_id.strip() for device_id in value.split(",") if device_id.strip() and device_id.strip() != "-"}
 
 
 # await async_notify_throttled(
