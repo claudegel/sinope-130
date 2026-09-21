@@ -8,7 +8,6 @@ import voluptuous as vol
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_ENTITY_ID, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import selector
 
 from .const import (
     ATTR_ACCESSORY_TYPE,
