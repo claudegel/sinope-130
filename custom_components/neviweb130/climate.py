@@ -281,7 +281,6 @@ from .helpers import (
     file_exists,
     generate_runtime_count_attributes,
     init_runtime_attributes,
-    parse_safe_mode,
     runtime_attributes_dict,
     safe_number,
     translate_error,
