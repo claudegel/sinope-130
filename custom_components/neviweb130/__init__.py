@@ -30,19 +30,23 @@ from .const import (
     DEFAULT_REQUEST_LIMIT,
     DOMAIN,
     STARTUP_MESSAGE,
+    VERSION,
 )
 from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import load_devices, save_devices
 from .helpers import (
+    async_notify_critical,
     DailyRequestCounter,
     check_weather_icons_folder,
     extract_log_options,
+    normalize_yaml_config,
     sanitize_entry_data,
     setup_logger,
     translate_error,
     update_logger_config,
     update_logger_level,
 )
+from .schema import CONFIG_SCHEMA
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
 from .schema import NOTIFY as DEFAULT_NOTIFY
@@ -57,7 +61,6 @@ LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../neviwe
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL: timedelta = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -69,20 +72,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     if neviweb130_config is None:
         return True
 
-    # Inform the user that YAML is deprecated
-    _LOGGER.warning(
-        "La configuration YAML de neviweb130 est désormais obsolète. "
-        "Votre configuration a été importée automatiquement dans l’interface Home Assistant. "
-        "Veuillez retirer la section 'neviweb130:' de votre configuration.yaml. "
-        "Neviweb130's YAML configuration is now deprecated. "
-        "Your configuration has been automatically imported into the Home Assistant interface. "
-        "Please remove the 'neviweb130:' section from your configuration.yaml."
+    # Inform the user that a configuration was detected in configuration.yaml
+    msg = await translate_error(hass, "yaml_config_detected")
+    _LOGGER.info(msg)
+    await async_notify_critical(
+        hass,
+        msg,
+        title=f"Neviweb130 integration {VERSION}",
+        notification_id="neviweb130_config_detected",
     )
 
-    _LOGGER.warning(
-        "Config found: %s",
-        {key: (value if key != "password" else "*") for key, value in neviweb130_config.items()},
-    )
+    _LOGGER.info("Neviweb130 YAML configuration found, starting automatic import...")
 
     # Normalize scan_interval
     scan_interval = neviweb130_config.get(CONF_SCAN_INTERVAL)
@@ -96,23 +96,33 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         _LOGGER.warning("Unexpected type for scan_interval: %s", type(scan_interval))
         neviweb130_config[CONF_SCAN_INTERVAL] = DEFAULT_SCAN_INTERVAL
 
-    # Find existing entry
-    config_entry = _async_find_matching_config_entry(hass)
-    _LOGGER.debug("Previous Entry found = %s", config_entry)
+    _LOGGER.warning(
+        "YAML import: starting SOURCE_IMPORT with keys: %s",
+        list(neviweb130_config.keys()),
+    )
 
-    if not config_entry:
-        # Create a new entry from YAML
+    accounts, global_options, _ = normalize_yaml_config(dict(neviweb130_config))
+
+    for acc in accounts:
+        data = {
+            **acc,
+            **global_options,
+        }
+
+        _LOGGER.info(
+            "YAML import: starting account import: prefix=%s, username=%s",
+            acc["prefix"],
+            acc["username"],
+        )
+
         hass.async_create_task(
             hass.config_entries.flow.async_init(
                 DOMAIN,
                 context={"source": config_entries.SOURCE_IMPORT},
-                data=dict(neviweb130_config),
+                data=data,
             )
         )
-        return True
 
-    # Update existing entry
-    hass.config_entries.async_update_entry(config_entry, data=dict(neviweb130_config))
     return True
 
 
@@ -337,7 +347,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Setting safe_mode to: %s", safe_mode)
 
     prefix = entry.options.get(CONF_PREFIX, entry.data.get(CONF_PREFIX, DEFAULT_PREFIX))
-    _LOGGER.debug("Setting notification method to: %s", prefix)
+    _LOGGER.debug("Setting prefix to: %s", prefix)
 
     request_limit = entry.options.get(CONF_REQUEST_LIMIT, DEFAULT_REQUEST_LIMIT)
     hass.data[DOMAIN][entry.entry_id]["request_limit"] = request_limit
@@ -358,6 +368,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         network,
         network2,
         network3,
+        safe_mode=safe_mode,
+        config_entry=entry,
         session_manager=session_manager,
         counter=counter,
     )
