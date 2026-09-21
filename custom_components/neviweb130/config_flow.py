@@ -35,6 +35,7 @@ from .const import (
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
     STARTUP_MESSAGE,
+    VERSION,
 )
 from .coordinator import PyNeviweb130Error
 from .helpers import (
@@ -240,49 +241,73 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
 
-    async def async_step_import(self, user_input=None):
-        """Import neviweb130 config from configuration.yaml."""
+    async def async_step_import(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Import one Neviweb130 account from configuration.yaml."""
+        user_input = user_input or {}
 
-        yaml_config = user_input or {}
+        username = user_input[CONF_USERNAME].strip().lower()
+        prefix = user_input[CONF_PREFIX]
 
-        try:
-            accounts, global_options, is_legacy = normalize_yaml_config(yaml_config)
-        except HomeAssistantError as exc:
-            await async_notify_critical(
-                self.hass, str(exc), "Neviweb130 - Invalid YAML import", "neviweb130_yaml_error"
-            )
-            # Stop the flow
-            return self.async_abort(reason="yaml_invalid")
-
-        summary = build_import_summary(accounts, global_options, is_legacy)
-        _LOGGER.warning("Neviweb130 YAML import summary:\n\n%s", summary)
-
-        await async_notify_throttled(
-            self.hass,
-            summary,
-            title="Neviweb130 configuration imported in config_flow.",
-            notification_id="neviweb130_import",
-            min_interval=86400,
+        _LOGGER.warning(
+            "YAML import: processing account prefix=%s, username=%s",
+            prefix,
+            username,
         )
 
-        # Create one entry per account
-        for acc in accounts:
-            # Check if an entry already exist for that prefix
-            existing = [entry for entry in self._async_current_entries() if entry.data.get("prefix") == acc["prefix"]]
-            if existing:
-                continue
+        # Username must be unique.
+        await self.async_set_unique_id(username)
+        self._abort_if_unique_id_configured(
+            error="already_configured_for_this_user"
+        )
 
-            data = {
-                **acc,
-                **global_options,
-            }
+        # Prefix must also be unique.
+        existing_prefix = [
+            entry
+            for entry in self._async_current_entries()
+            if entry.data.get("prefix") == prefix
+        ]
 
-            self.async_create_entry(
-                title=f"Neviweb130 ({acc['prefix']})",
-                data=data,
+        if existing_prefix:
+            msg = await translate_error(self.hass, "duplicated_prefix", prefix=prefix)
+            _LOGGER.warning(msg)
+            await async_notify_critical(
+                self.hass,
+                msg,
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id=f"import_prefix_{prefix}",
             )
 
-        return self.async_abort(reason="imported")
+            return cast(
+                ConfigFlowResult,
+                self.async_abort(reason="prefix_already_configured"),
+            )
+
+        _LOGGER.warning(
+            "YAML import: creating ConfigEntry prefix=%s, username=%s",
+            prefix,
+            username,
+        )
+
+        # Inform the user that YAML is deprecated
+        msg = await translate_error(self.hass, "config_imported", prefix=prefix)
+        _LOGGER.info(msg)
+        await async_notify_critical(
+            self.hass,
+            msg,
+            title=f"Neviweb130 integration {VERSION}",
+            notification_id=f"neviweb130_config_imported_{prefix}",
+        )
+
+        return cast(
+            ConfigFlowResult,
+            self.async_create_entry(
+                title=f"Neviweb130 ({prefix})",
+                data=user_input,
+            ),
+        )
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> FlowResult[Any]:
         """Add reconfigure step to allow to reconfigure a config entry."""
