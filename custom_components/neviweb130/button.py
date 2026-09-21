@@ -57,7 +57,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     platform = __name__.split(".")[-1]  # "button"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+    _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
 
     for index, gateway_data in enumerate(
         [
