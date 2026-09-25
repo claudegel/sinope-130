@@ -23,7 +23,7 @@ model 348 = thermostat TH1134CR Sinopé Evo 3000W (Wi-Fi lite)
 model 343 = thermostat THEWF01 (Wi-Fi lite)
 model 350 = thermostat TH1143WF 3000W (Wi-Fi) two wires connection, color screen
 model 350 = thermostat TH1144WF 4000W (Wi-Fi) two wires connection, color screen
-model 350 = thermostat TH1145WF ?  (Wi-Fi) two wires connection, color screen
+model 354 = thermostat TH1145WF 4000W  (Wi-Fi) two wires connection, color screen
 model 738 = thermostat TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort (sku: PS120_240WF)
     (wifi floor), no energy stat for True Comfort
 model 739 = thermostat TH1400WF low voltage (Wi-Fi)
@@ -547,7 +547,7 @@ DEVICE_MODEL_FLOOR = [737]
 DEVICE_MODEL_WIFI_FLOOR = [738]
 DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_WIFI_LITE = [336, 343, 348]
-DEVICE_MODEL_COLOR_WIFI = [350]
+DEVICE_MODEL_COLOR_WIFI = [350, 354]
 DEVICE_MODEL_HEAT = [1123, 1124]
 DEVICE_MODEL_DOUBLE = [7373]
 DEVICE_MODEL_HEAT_G2 = [300]
@@ -787,7 +787,7 @@ async def async_setup_entry(
                                 entry,
                             )
 
-                        _LOGGER.warning("Device registered = %s", device_info["id"])
+                        _LOGGER.warning("Device registered = %s, name: %s", device_info["id"], device_name)
 
                         if device is not None:
                             entities.append(device)
@@ -1986,7 +1986,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
-            name=f"{self._prefix} {self._name}" if self._prefix else self._name,
+            name=self._name,
             manufacturer="claudegel",
             model=self._device_model,
             sw_version=self._firmware,
@@ -2181,8 +2181,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @override
     def name(self):
         """Return the name of the thermostat."""
-        if self._prefix:
-            return f"{self._prefix} {self._name}"
         return self._name
 
     @property
