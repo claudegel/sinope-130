@@ -78,7 +78,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1134CR Sinopé Evo 4000w Line voltage thermostat lite
   - Sinopé TH1143WF Wi-Fi 3000W two wires connection, color screen
   - Sinopé TH1144WF WI-Fi 4000W two wires connection, color screen
-  - Sinopé TH1145WF Wi-Fi 4000w two wires connection, color screen
+  - Sinopé TH1145WF Wi-Fi 4000W two wires connection, color screen
   - Sinopé TH1300WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1310WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1315WF Wi-Fi 3600W floor thermostat, no energy measurement chip only calculated energy
