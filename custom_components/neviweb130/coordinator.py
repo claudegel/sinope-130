@@ -2374,7 +2374,6 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
     async def async_initialize(self):
         """Initialize the coordinator."""
         await self.client.async_initialize()
-        await self.async_refresh()
 
     async def stop(self):
         _LOGGER.info("Stopping Neviweb130 Coordinator")
@@ -2385,4 +2384,5 @@ class Neviweb130Coordinator(DataUpdateCoordinator):
 async def async_setup_coordinator(hass: HomeAssistant, client: Neviweb130Client, scan_interval):
     coordinator = Neviweb130Coordinator(hass, client, scan_interval)
     await coordinator.async_initialize()
+    await coordinator.async_config_entry_first_refresh()
     return coordinator
