@@ -21,9 +21,10 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES, SIGNAL_EVENTS_CHANGED
+from .const import CONF_PREFIX, DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES, SIGNAL_EVENTS_CHANGED
 from .coordinator import Neviweb130Coordinator
 from .helpers import NamingHelper
+from .schema import PREFIX
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -210,7 +211,6 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1]  # "binary_sensor"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
@@ -233,9 +233,10 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
+                _LOGGER.debug("Device %s coordinator.data not yet initialized", device_id)
 
-            device_name = naming.device_name(platform, index, device_info)
+            device_platform = naming.get_device_platform(int(model))
+            device_name = naming.device_name(device_platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
@@ -264,6 +265,7 @@ def create_attribute_binary_sensors(hass, entry, data, coordinator, device_regis
                                 },
                                 coordinator=coordinator,
                                 entity_description=desc,
+                                entry=entry,
                             )
                         )
 
@@ -308,17 +310,20 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130BinarySensorEntityDescription,
+        entry: ConfigEntry,
     ):
         """Initialize the binary sensor."""
         super().__init__(coordinator)
         self._client = client
         self._device = device
-        self.entity_description: Neviweb130BinarySensorEntityDescription = entity_description
+        self.entity_description = entity_description
         self._id = str(device.get("id"))
         self._device_name = device_name
         self._device_id = device_id
         self._attribute = attribute
-        self._attr_unique_id = f"{self._id}_{attribute}"
+        self._attr_unique_id = (
+            f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
+        )
         self._attr_device_info = attr_info
         self._attr_translation_key = entity_description.translation_key
         self._attr_device_class = entity_description.device_class
@@ -365,7 +370,7 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
                     exc,
                 )
                 return None
-        _LOGGER.warning(
+        _LOGGER.debug(
             "AttributeBinarySensor: %s attribute %s not found for device: %s.",
             self._attr_unique_id,
             self._attribute,
