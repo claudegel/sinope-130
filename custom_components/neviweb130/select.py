@@ -303,7 +303,6 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1]  # "select"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
@@ -326,9 +325,10 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
+                _LOGGER.debug("Device %s coordinator.data not yet initialized", device_id)
 
-            device_name = naming.device_name(platform, index, device_info)
+            device_platform = naming.get_device_platform(int(model))
+            device_name = naming.device_name(device_platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
@@ -346,7 +346,9 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                             Neviweb130DeviceAttributeSelect(
                                 client=client,
                                 device=device_info,
+                                device_name=device_name,
                                 attribute=attribute,
+                                device_id=device_id,
                                 attr_info={
                                     "identifiers": device_entry.identifiers,
                                     "name": device_entry.name,
@@ -355,6 +357,7 @@ def create_attribute_selects(hass, entry, data, coordinator, device_registry):
                                 },
                                 coordinator=coordinator,
                                 entity_description=desc,
+                                entry=entry,
                             )
                         )
 
@@ -438,18 +441,23 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         self,
         client: Neviweb130Client,
         device: dict,
+        device_name: str,
         attribute: str,
+        device_id: str,
         attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130SelectEntityDescription,
+        entry: ConfigEntry,
     ):
         """Initialize the select entity."""
         super().__init__(coordinator)
         self._client = client
         self._device = device
         self._id = str(device.get("id"))
+        self._device_name = device_name
+        self._device_id = device_id
         self._attribute = attribute
-        self._attr_unique_id = f"{self._id}_{attribute}"
+        self._attr_unique_id = f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._current_option: str | None = None
         self.entity_description = entity_description
@@ -509,7 +517,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         if device_obj and self._attribute in device_obj:
             return device_obj[self._attribute]
         else:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "AttributeSelect: %s attribute %s not found for device: %s.",
                 self._attr_unique_id,
                 self._attribute,
