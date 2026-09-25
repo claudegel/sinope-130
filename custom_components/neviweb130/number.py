@@ -225,7 +225,6 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
     client = data["neviweb130_client"]
 
     config_prefix = data["prefix"]
-    platform = __name__.split(".")[-1]  # "number"
     naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
     _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
@@ -248,9 +247,10 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s not yet in coordinator.data", device_id)
+                _LOGGER.debug("Device %s coordinator.data not yet initialized", device_id)
 
-            device_name = naming.device_name(platform, index, device_info)
+            device_platform = naming.get_device_platform(int(model))
+            device_name = naming.device_name(device_platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
@@ -279,6 +279,7 @@ def create_attribute_numbers(hass, entry, data, coordinator, device_registry):
                                 },
                                 coordinator=coordinator,
                                 entity_description=desc,
+                                entry=entry,
                             )
                         )
 
@@ -355,15 +356,18 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130NumberEntityDescription,
+        entry: ConfigEntry,
     ):
         """Initialize the number entity."""
         super().__init__(coordinator)
         self._client = client
         self._device = device
         self._id = str(device.get("id"))
+        self._device_name = device_name
+        self._device_id = device_id
         self._attribute = attribute
         self._native_value: float | None = None
-        self._attr_unique_id = f"{self._id}_{attribute}"
+        self._attr_unique_id = f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self.entity_description = entity_description
         self._attr_icon = entity_description.icon
@@ -414,7 +418,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         if device_obj and self._attribute in device_obj:
             return device_obj[self._attribute]
         else:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "AttributeNumber: %s attribute %s not found for device: %s.",
                 self._attr_unique_id,
                 self._attribute,
