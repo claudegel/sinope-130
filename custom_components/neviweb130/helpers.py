@@ -24,7 +24,17 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, RISKY_ATTRIBUTES, SIGNAL_EVENTS_CHANGED, VERSION
+from .const import (
+    CLIMATE_MODEL,
+    DOMAIN,
+    LIGHT_MODEL,
+    RISKY_ATTRIBUTES,
+    SENSOR_MODEL,
+    SWITCH_MODEL,
+    VALVE_MODEL,
+    SIGNAL_EVENTS_CHANGED,
+    VERSION,
+)
 from .exceptions import SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
@@ -516,7 +526,7 @@ async def async_notify_ha(
     if notification_id:
         data["notification_id"] = notification_id
 
-    await hass.services.call(
+    await hass.services.async_call(
         PN_DOMAIN,
         "create",
         data,
@@ -527,29 +537,11 @@ async def async_notify_ha(
 async def async_notify_once_or_update(
     hass: HomeAssistant, msg: str, title: str | None = None, notification_id: str | None = None
 ) -> None:
-    """Send a persistent notification only once, or update it if it already exists.
-
-    - If the notification does not exist → create it
-    - If it exists → update it with the new message/title
-    """
+    """Create or update a persistent notification."""
 
     if notification_id is None:
         raise ValueError("async_notify_once_or_update requires a notification_id")
 
-    entity_id = f"{PN_DOMAIN}.{notification_id}"
-    existing = hass.states.get(entity_id)
-
-    # If notification exist, update it
-    if existing:
-        await async_notify_ha(
-            hass,
-            msg,
-            title=title,
-            notification_id=notification_id,
-        )
-        return
-
-    # Or → we create it
     await async_notify_ha(
         hass,
         msg,
@@ -681,6 +673,7 @@ class NamingHelper:
         Build complete device name.
         """
         base = self.default_name(platform, index)
+
         return f"{base} {device_info['name']}"
 
     def entity_name(self, platform: str, index: int, device_info: dict, attribute: str) -> str:
@@ -689,6 +682,24 @@ class NamingHelper:
         """
         base = self.device_name(platform, index, device_info)
         return f"{base} {attribute}"
+
+    @staticmethod
+    def get_device_platform(model: str | int) -> str:
+        """Return the primary platform for a device model."""
+        model_id = int(model)
+
+        if model_id in CLIMATE_MODEL:
+            return "climate"
+        if model_id in LIGHT_MODEL:
+            return "light"
+        if model_id in SWITCH_MODEL:
+            return "switch"
+        if model_id in SENSOR_MODEL:
+            return "sensor"
+        if model_id in VALVE_MODEL:
+            return "valve"
+
+        raise ValueError(f"Unsupported device model: {model}")
 
 
 # ─────────────────────────────────────────────
@@ -932,7 +943,7 @@ async def notify_after_startup(hass, coro_factory):
     """Schedule a coroutine to run safely after HA is fully started."""
 
     def _schedule():
-        # exécute la factory pour obtenir la coroutine
+        # execute factory to get the coroutine
         coro = coro_factory()
         hass.loop.call_soon_threadsafe(hass.async_create_task, coro)
 
