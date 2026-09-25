@@ -17,10 +17,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ALL_MODEL, CONF_PREFIX, DOMAIN, MODEL_ATTRIBUTES
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
 from .helpers import NamingHelper
-from .schema import PREFIX
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -170,9 +169,7 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
         self._device_name = device_name
         self._device_id = device_id
         self._attribute = attribute
-        self._attr_unique_id = (
-            f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
-        )
+        self._attr_unique_id = f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._attr_icon = entity_description.icon
         self._attr_translation_key = entity_description.translation_key
