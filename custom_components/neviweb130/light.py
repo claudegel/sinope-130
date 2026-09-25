@@ -223,7 +223,7 @@ async def async_setup_entry(
                                 entry,
                             )
 
-                        _LOGGER.warning("Device registered = %s", device_info["id"])
+                        _LOGGER.warning("Device registered = %s, name: %s", device_info["id"], device_name)
 
                         if device is not None:
                             entities.append(device)
@@ -578,7 +578,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._id)},
-            name=f"{self._prefix} {self._name}" if self._prefix else self._name,
+            name=self._name,
             manufacturer="claudegel",
             model=self._device_model,
             sw_version=self._firmware,
@@ -730,8 +730,6 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
     @override
     def name(self):
         """Return the name of the light."""
-        if self._prefix:
-            return f"{self._prefix} {self._name}"
         return self._name
 
     @property
