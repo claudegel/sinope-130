@@ -36,7 +36,7 @@ from .coordinator import Neviweb130Client, async_setup_coordinator
 from .devices import load_devices, save_devices
 from .helpers import (
     DailyRequestCounter,
-    async_notify_critical,
+    async_notify_once_or_update,
     check_weather_icons_folder,
     extract_log_options,
     normalize_yaml_config,
@@ -77,7 +77,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Inform the user that a configuration was detected in configuration.yaml
     msg = await translate_error(hass, "yaml_config_detected")
     _LOGGER.info(msg)
-    await async_notify_critical(
+    await async_notify_once_or_update(
         hass,
         msg,
         title=f"Neviweb130 integration {VERSION}",
