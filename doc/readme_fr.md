@@ -77,7 +77,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé TH1134CR, Thermostat à tension de ligne – édition Lite Sinopé Evo 4000w
   - Sinopé TH1143WF, thermostat à deux fils, écran couleur Wi-Fi 3000W
   - Sinopé TH1144WF, thermostat à deux fils, écran couleur WI-Fi 4000W
-  - Sinopé TH1145WF, thermostat à deux fils, écran couleur Wi-Fi 4000w
+  - Sinopé TH1145WF, thermostat à deux fils, écran couleur Wi-Fi 4000W
   - Sinopé TH1300WF, thermostat au sol Wi-Fi 3600W
   - Sinopé TH1310WF, thermostat au sol Wi-Fi 3600W
   - Sinopé TH1315WF, thermostat au sol W--Fi, sans capteur de mesure de consommation d'énergie, seulement une consommation calculée
