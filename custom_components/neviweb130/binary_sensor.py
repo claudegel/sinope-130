@@ -21,10 +21,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_PREFIX, DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES, SIGNAL_EVENTS_CHANGED
+from .const import DOMAIN, FULL_MODEL, MODEL_ATTRIBUTES, SIGNAL_EVENTS_CHANGED
 from .coordinator import Neviweb130Coordinator
 from .helpers import NamingHelper
-from .schema import PREFIX
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -321,9 +320,7 @@ class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordina
         self._device_name = device_name
         self._device_id = device_id
         self._attribute = attribute
-        self._attr_unique_id = (
-            f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
-        )
+        self._attr_unique_id = f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._attr_translation_key = entity_description.translation_key
         self._attr_device_class = entity_description.device_class
