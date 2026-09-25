@@ -436,6 +436,7 @@ HAVE_BEDROOM_BACKLIGHT: set[str] = {
     "343",
     "348",
     "350",
+    "354",
     "738",
     "739",
     "742",
@@ -453,6 +454,7 @@ CLIMATE_MODEL = [
     343,
     348,
     350,
+    354,
     737,
     738,
     739,
@@ -625,7 +627,40 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": ["safe_mode"],
     },
-    350: {  # TH1143WF, TH1144WF, TH1145WF color screen
+    350: {  # TH1143WF, TH1144WF color screen
+        "sensor": [
+            ATTR_RSSI,
+            "current_temperature",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    354: {  # TH1145WF color screen
         "sensor": [
             ATTR_RSSI,
             "current_temperature",
