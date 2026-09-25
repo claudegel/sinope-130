@@ -30,9 +30,9 @@ from .const import (
     LIGHT_MODEL,
     RISKY_ATTRIBUTES,
     SENSOR_MODEL,
+    SIGNAL_EVENTS_CHANGED,
     SWITCH_MODEL,
     VALVE_MODEL,
-    SIGNAL_EVENTS_CHANGED,
     VERSION,
 )
 from .exceptions import SilentAttributeIgnoreError
