@@ -18,6 +18,7 @@ All modification for this custom_component will be added in this file.
 - Add bedroom backlight thermostat support for devices that support it.
 - Add bedroom mode error message to strings.json, en.json and fr.json.
 - Send notification if bedroom option is selected for device that don't support it.
+- Update thermostat model information and constants for TH1145WF.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
