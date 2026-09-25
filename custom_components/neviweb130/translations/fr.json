@@ -128,7 +128,7 @@
       "set_attribute_failed": "Incapable d'envoyer la commande à l'appareil {id}. Erreur: {error}. Description: {description}. Données envoyées: {data}",
       "bedroom_mode_not_supported": "Le mode chambre n'est pas supporté pour l'appareil {id} (modèle {model}).",
       "config_imported": "La configuration YAML de neviweb130 est désormais obsolète. La configuration du compte « {prefix} » a été importée automatiquement dans l’interface Home Assistant. Une fois tous vos comptes importés, veuillez retirer ou commenter la section `neviweb130:` de votre `configuration.yaml`, puis redémarrer Home Assistant.",
-      "yaml_config_detected": "Neviweb130 YAML configuration was detected and automatic import has started.",
+      "yaml_config_detected": "Une configuration YAML pour Neviweb130 a été détectée et l'importation automatique a démarré.",
       "duplicated_prefix": "Importation YAML: prefix = {prefix} est déjà configuré, importation avortée.",
       "safe_mode_active": "Le mode sécurisé a été activé pour l’appareil {name} (ID : {id}) en raison d’un attribut non pris en charge. Rapporter au mainteneur."
     }
