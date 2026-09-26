@@ -6519,7 +6519,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb HP6000WF-MA, HP6000WF-TCL, HP6000WF-HA and HP6000WF-XX Wi-Fi heat pump interfaces thermostats.
+    """Implementation of Neviweb HP6000WF-MA, HP6000WF-TCL, HP6000WF-HA and HP6000WF-XX Wi-Fi
+    heat pump interfaces thermostats.
+
     — internal behavior notes
     ------------------------------------------------------
 
