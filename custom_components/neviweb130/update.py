@@ -417,8 +417,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             async with (
                 aiohttp.ClientSession() as session,
-                async with session.get(asset_zip["browser_download_url"]) as resp,
-            )
+                session.get(asset_zip["browser_download_url"]) as resp,
+            ):
                 resp.raise_for_status()
                 data = await resp.read()
 
