@@ -22,7 +22,8 @@ from threading import Lock
 from typing import cast, override
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.persistent_notification import \
+    DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID, PERCENTAGE
@@ -33,64 +34,31 @@ from homeassistant.util import dt as dt_util
 
 from . import NOTIFY
 from . import SCAN_INTERVAL as scan_interval
-from .const import (
-    ATTR_ACTIVE,
-    ATTR_ANGLE,
-    ATTR_BATT_ALERT,
-    ATTR_BATT_PERCENT_NORMAL,
-    ATTR_BATT_STATUS_NORMAL,
-    ATTR_BATTERY_STATUS,
-    ATTR_BATTERY_TYPE,
-    ATTR_BATTERY_VOLTAGE,
-    ATTR_CONF_CLOSURE,
-    ATTR_ERROR_CODE_SET1,
-    ATTR_FUEL_ALERT,
-    ATTR_FUEL_PERCENT_ALERT,
-    ATTR_GAUGE_TYPE,
-    ATTR_LEAK_ALERT,
-    ATTR_MODE,
-    ATTR_OCCUPANCY,
-    ATTR_REFUEL,
-    ATTR_ROOM_TEMP_ALARM,
-    ATTR_ROOM_TEMPERATURE,
-    ATTR_RSSI,
-    ATTR_SAMPLING,
-    ATTR_SENSOR_TYPE,
-    ATTR_STATUS,
-    ATTR_TANK_HEIGHT,
-    ATTR_TANK_PERCENT,
-    ATTR_TANK_TYPE,
-    ATTR_TEMP_ALERT,
-    ATTR_WATER_LEAK_STATUS,
-    DOMAIN,
-    SERVICE_SET_ACTIVATION,
-    SERVICE_SET_BATTERY_ALERT,
-    SERVICE_SET_BATTERY_TYPE,
-    SERVICE_SET_FUEL_ALERT,
-    SERVICE_SET_GAUGE_TYPE,
-    SERVICE_SET_LOW_FUEL_ALERT,
-    SERVICE_SET_NEVIWEB_STATUS,
-    SERVICE_SET_REFUEL_ALERT,
-    SERVICE_SET_SENSOR_ALERT,
-    SERVICE_SET_TANK_HEIGHT,
-    SERVICE_SET_TANK_TYPE,
-    STATE_WATER_LEAK,
-    VERSION,
-)
-from .helpers import file_exists, get_daily_request_count, notify_ha, safe_get_device_attributes, translated_or_default
-from .schema import (
-    SET_ACTIVATION_SCHEMA,
-    SET_BATTERY_ALERT_SCHEMA,
-    SET_BATTERY_TYPE_SCHEMA,
-    SET_FUEL_ALERT_SCHEMA,
-    SET_GAUGE_TYPE_SCHEMA,
-    SET_LOW_FUEL_ALERT_SCHEMA,
-    SET_NEVIWEB_STATUS_SCHEMA,
-    SET_REFUEL_ALERT_SCHEMA,
-    SET_SENSOR_ALERT_SCHEMA,
-    SET_TANK_HEIGHT_SCHEMA,
-    SET_TANK_TYPE_SCHEMA,
-)
+from .const import (ATTR_ACTIVE, ATTR_ANGLE, ATTR_BATT_ALERT,
+                    ATTR_BATT_PERCENT_NORMAL, ATTR_BATT_STATUS_NORMAL,
+                    ATTR_BATTERY_STATUS, ATTR_BATTERY_TYPE,
+                    ATTR_BATTERY_VOLTAGE, ATTR_CONF_CLOSURE,
+                    ATTR_ERROR_CODE_SET1, ATTR_FUEL_ALERT,
+                    ATTR_FUEL_PERCENT_ALERT, ATTR_GAUGE_TYPE, ATTR_LEAK_ALERT,
+                    ATTR_MODE, ATTR_OCCUPANCY, ATTR_REFUEL,
+                    ATTR_ROOM_TEMP_ALARM, ATTR_ROOM_TEMPERATURE, ATTR_RSSI,
+                    ATTR_SAMPLING, ATTR_SENSOR_TYPE, ATTR_STATUS,
+                    ATTR_TANK_HEIGHT, ATTR_TANK_PERCENT, ATTR_TANK_TYPE,
+                    ATTR_TEMP_ALERT, ATTR_WATER_LEAK_STATUS, DOMAIN,
+                    SERVICE_SET_ACTIVATION, SERVICE_SET_BATTERY_ALERT,
+                    SERVICE_SET_BATTERY_TYPE, SERVICE_SET_FUEL_ALERT,
+                    SERVICE_SET_GAUGE_TYPE, SERVICE_SET_LOW_FUEL_ALERT,
+                    SERVICE_SET_NEVIWEB_STATUS, SERVICE_SET_REFUEL_ALERT,
+                    SERVICE_SET_SENSOR_ALERT, SERVICE_SET_TANK_HEIGHT,
+                    SERVICE_SET_TANK_TYPE, STATE_WATER_LEAK, VERSION)
+from .helpers import (file_exists, get_daily_request_count, notify_ha,
+                      safe_get_device_attributes, translated_or_default)
+from .schema import (SET_ACTIVATION_SCHEMA, SET_BATTERY_ALERT_SCHEMA,
+                     SET_BATTERY_TYPE_SCHEMA, SET_FUEL_ALERT_SCHEMA,
+                     SET_GAUGE_TYPE_SCHEMA, SET_LOW_FUEL_ALERT_SCHEMA,
+                     SET_NEVIWEB_STATUS_SCHEMA, SET_REFUEL_ALERT_SCHEMA,
+                     SET_SENSOR_ALERT_SCHEMA, SET_TANK_HEIGHT_SCHEMA,
+                     SET_TANK_TYPE_SCHEMA)
 
 _LOGGER = logging.getLogger(__name__)
 
