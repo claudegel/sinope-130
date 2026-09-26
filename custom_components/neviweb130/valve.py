@@ -41,9 +41,8 @@ from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import call_later
 
-from . import NOTIFY
+from . import NOTIFY, STAT_INTERVAL
 from . import SCAN_INTERVAL as scan_interval
-from . import STAT_INTERVAL
 from .const import (
     ATTR_ACTIVE,
     ATTR_AWAY_ACTION,
@@ -339,7 +338,7 @@ async def async_setup_platform(
         """Set alert for water valve."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "batt": service.data[ATTR_BATT_ALERT],
         }
         valve.set_valve_alert(value)
@@ -349,7 +348,7 @@ async def async_setup_platform(
         """Set alert for water valve temperature location."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "temp": service.data[ATTR_TEMP_ALERT],
         }
         valve.set_valve_temp_alert(value)
@@ -359,7 +358,7 @@ async def async_setup_platform(
         """Set the flow meter model connected to water valve."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "model": service.data[ATTR_FLOW_MODEL_CONFIG][0],
         }
         valve.set_flow_meter_model(value)
@@ -369,7 +368,7 @@ async def async_setup_platform(
         """Set the flow meter delay before alert is turned on."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "delay": service.data[ATTR_FLOW_ALARM1_PERIOD][0],
         }
         valve.set_flow_meter_delay(value)
@@ -379,7 +378,7 @@ async def async_setup_platform(
         """Set the flow meter options when leak is detected."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "alarm": service.data[ATTR_TRIGGER_ALARM],
             "close": service.data[ATTR_CLOSE_VALVE],
         }
@@ -390,7 +389,7 @@ async def async_setup_platform(
         """Set power supply type for water valve."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "supply": service.data[ATTR_POWER_SUPPLY],
         }
         valve.set_power_supply(value)
@@ -400,7 +399,7 @@ async def async_setup_platform(
         """Activate or deactivate Neviweb polling for missing device."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "active": service.data[ATTR_ACTIVE],
         }
         valve.set_activation(value)
@@ -410,7 +409,7 @@ async def async_setup_platform(
         """Set alert for water valve temperature location."""
         valve = get_valve(service)
         value = {
-            "id": valve.unique_id,
+            "id": valve.id,
             "timer": service.data[ATTR_FLOW_ALARM_TIMER],
         }
         valve.set_flow_alarm_disable_timer(value)
@@ -678,6 +677,10 @@ class Neviweb130Valve(ValveEntity):
         return self._client.scoped_unique_id(self._id)
 
     @property
+    def id(self) -> str:
+        return self._id
+
+    @property
     @override
     def name(self) -> str:
         """Return the name of the valve."""
@@ -862,7 +865,7 @@ class Neviweb130Valve(ValveEntity):
     def set_flow_meter_delay(self, value):
         """Set water valve flow meter delay before alert."""
         val = value["delay"]
-        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        delay = HA_TO_NEVIWEB_DELAY[val]
         self._client.set_flow_meter_delay(value["id"], delay)
         self._flowmeter_alert_delay = val
 

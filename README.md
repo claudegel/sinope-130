@@ -78,10 +78,10 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé TH1134CR Sinopé Evo 4000w Line voltage thermostat lite
   - Sinopé TH1143WF Wi-Fi 3000W two wires connection, color screen
   - Sinopé TH1144WF WI-Fi 4000W two wires connection, color screen
-  - Sinopé TH1145WF Wi-Fi ? two wires connection, color screen
+  - Sinopé TH1145WF Wi-Fi 4000W two wires connection, color screen
   - Sinopé TH1300WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1310WF Wi-Fi 3600W floor thermostat
-  - Sinopé TH1315WF Wi-Fi 3600W floor thermostat, no energy measurement
+  - Sinopé TH1315WF Wi-Fi 3600W floor thermostat, no energy measurement chip only calculated energy
   - Sinopé TH1325WF Wi-Fi 3600W floor thermostat
   - Sinopé TH1400WF Wi-Fi low voltage thermostat
   - Sinopé TH1500WF Wi-Fi 3600W double pole thermostat
@@ -101,8 +101,8 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Sinopé PH6000ZB-HS for Hisense, Haxxair and Zephyr heat pump
 - **Wi-Fi Heatpump controller**:
   - Sinopé HP6000WF-MA for Ouellet Convectair heat pump with Midea connector
-  - Sinopé HP6000WF-GE for Ouellet heat pump with Gree connector
-  - Sinopé HP6000WF-TCL for Runtru/Ameristar heat pump
+  - Sinopé HP6000WF-HA for for Hotpoint heat pump
+  - Sinopé HP6000WF-TCL for Runtru/Ameristar, Nirvana and TCL heat pump
 - **Zigbee lighting**:
   - Sinopé SW2500ZB Light switch
   - Sinopé SW2500ZB-G2 Light switch
@@ -267,7 +267,7 @@ custom_component which can run along with this custom_component in HA.
 | **ignore_miwi**   | no       | False                                                                                                              | Ignore miwi devices if present in same location then Zigbee and/or Wi-Fi devices. Warm if we set wrong Neviweb location.                                                                                                     |
 | **stat_interval** | no       | 1800                                                                                                               | The number of seconds between each access to Neviweb for energy statistic update. Scan will start after 5 minutes from HA startup and will be updated at every 300 to 1800 seconds.                                          |
 | **notify**        | no       | both                                                                                                               | The method to send notification in case of device error. value option are `nothing`, `logging`, `notification`, `both`.   |                                                                        
-| **safe_mode**     | no       | -                                                                                                                  | Safe mode is used to run device update in a way that won't crash in case of bad or missing parameters. If a device receive DVCATTRNSPTD error, safe_mode will fire automatically for that device to detect faulty attribute and allow device update to complete. Default value is "-". If you want to test device attributes put device ID as safe_mode value as "12345".                                             |
+| **safe_mode**     | no       | -                                                                                                                  | Safe mode is used to run device update in a way that won't crash in case of bad or missing parameters. If a device receive DVCATTRNSPTD error, safe_mode will fire automatically for that device to detect faulty attribute and allow device update to complete. Default value is "-". If you want to test device attributes put your device ID in safe_mode value ex. "12345".                                             |
 
 If you have a GT125 also connected to Neviweb the network parameter is mandatory, or it is possible that during the 
 setup, the GT125 network will be picked up accidentally. If you have only two GT130/Wi-Fi network, you can omit there 
@@ -767,7 +767,7 @@ In you log you can get those messages from Neviweb:
 - MAINTENANCE: Neviweb access temporary blocked for maintenance... Retry later.
 - SVCERR: Service error. Service unavailable. Try later.
 - SVCINVREQ: Invalid request sent to Neviweb, service do not exist or malformed request.
-- SVCUNAUTH: Service unauthorized.
+- SVCUNAUTH: Bad or malformed service request rejected by Neviweb server.
 - USRBADLOGIN: your login and/or password provided in configuration for Neviweb is no good.
 - USRSESSEXP: User session expired. Reduce your scan_interval below 10 minutes or your session will be terminated.
 - VALINVLD: Invalid value sent to Neviweb.

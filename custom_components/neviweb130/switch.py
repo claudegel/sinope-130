@@ -43,9 +43,8 @@ from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from . import NOTIFY
+from . import NOTIFY, STAT_INTERVAL
 from . import SCAN_INTERVAL as scan_interval
-from . import STAT_INTERVAL
 from .const import (
     ATTR_ACTIVE,
     ATTR_AWAY_ACTION,
@@ -459,28 +458,28 @@ async def async_setup_platform(
     def set_switch_keypad_lock_service(service: ServiceCall) -> None:
         """Lock/unlock keypad device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "lock": service.data[ATTR_KEYPAD]}
+        value = {"id": switch.id, "lock": service.data[ATTR_KEYPAD]}
         switch.set_keypad_lock(value)
         switch.schedule_update_ha_state(True)
 
     def set_switch_timer_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER]}
+        value = {"id": switch.id, ATTR_TIME: service.data[ATTR_TIMER]}
         switch.set_timer(value)
         switch.schedule_update_ha_state(True)
 
     def set_switch_timer2_service(service: ServiceCall) -> None:
         """Set timer for switch device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, ATTR_TIME: service.data[ATTR_TIMER2]}
+        value = {"id": switch.id, ATTR_TIME: service.data[ATTR_TIMER2]}
         switch.set_timer2(value)
         switch.schedule_update_ha_state(True)
 
     def set_switch_temp_alert_service(service: ServiceCall) -> None:
         """Set low temperature alert for switch device MC3100ZB."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "alert": service.data[ATTR_TEMP_ALERT]}
+        value = {"id": switch.id, "alert": service.data[ATTR_TEMP_ALERT]}
         switch.set_temp_alert(value)
         switch.schedule_update_ha_state(True)
 
@@ -488,7 +487,7 @@ async def async_setup_platform(
         """Set dr mode options for load controller."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "dractive": service.data[ATTR_DRACTIVE],
             "droptout": service.data[ATTR_OPTOUT],
             "onoff": service.data[ATTR_ONOFF],
@@ -500,7 +499,7 @@ async def async_setup_platform(
         """Set status of both onoff controller."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "onoff_num": service.data[ATTR_ONOFF_NUM],
             "status": service.data[ATTR_STATUS],
         }
@@ -510,14 +509,14 @@ async def async_setup_platform(
     def set_tank_size_service(service: ServiceCall) -> None:
         """Set water tank size for RM3500ZB."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        value = {"id": switch.id, "val": service.data[ATTR_VALUE][0]}
         switch.set_tank_size(value)
         switch.schedule_update_ha_state(True)
 
     def set_controlled_device_service(service: ServiceCall) -> None:
         """Set controlled device type for RM3250ZB."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "val": service.data[ATTR_VALUE][0]}
+        value = {"id": switch.id, "val": service.data[ATTR_VALUE][0]}
         switch.set_controlled_device(value)
         switch.schedule_update_ha_state(True)
 
@@ -525,7 +524,7 @@ async def async_setup_platform(
         """Set water tank temperature protection for RM3500ZB."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "val": service.data[ATTR_WATER_TEMP_MIN],
         }
         switch.set_low_temp_protection(value)
@@ -535,7 +534,7 @@ async def async_setup_platform(
         """Set names for input 1 and 2, output 1 and 2 for MC3100ZB device."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "input1": service.data[ATTR_NAME_1],
             "input2": service.data[ATTR_NAME_2],
             "output1": service.data[ATTR_OUTPUT_NAME_1],
@@ -547,7 +546,7 @@ async def async_setup_platform(
     def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         switch = get_switch(service)
-        value = {"id": switch.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": switch.id, "active": service.data[ATTR_ACTIVE]}
         switch.set_activation(value)
         switch.schedule_update_ha_state(True)
 
@@ -555,7 +554,7 @@ async def async_setup_platform(
         """Set coldLoadPickupRemainingTime value."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             ATTR_TIME: service.data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME],
         }
         switch.set_remaining_time(value)
@@ -565,7 +564,7 @@ async def async_setup_platform(
         """Set input 1 or 2 on/off delay for MC3100ZB device."""
         switch = get_switch(service)
         value = {
-            "id": switch.unique_id,
+            "id": switch.id,
             "input_number": service.data[ATTR_INPUT_NUMBER],
             "onoff": service.data[ATTR_ONOFF],
             "delay": service.data[ATTR_DELAY][0],
@@ -874,6 +873,10 @@ class Neviweb130Switch(SwitchEntity):
         return self._client.scoped_unique_id(self._id)
 
     @property
+    def id(self) -> str:
+        return self._id
+
+    @property
     @override
     def name(self) -> str:
         """Return the name of the switch."""
@@ -1012,14 +1015,14 @@ class Neviweb130Switch(SwitchEntity):
     def set_tank_size(self, value):
         """Set water tank size for RM3500ZB Calypso controller."""
         val = value["val"]
-        size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == val][0]
+        size = HA_TO_NEVIWEB_SIZE[val]
         self._client.set_tank_size(value["id"], size)
         self._tank_size = size
 
     def set_controlled_device(self, value):
         """Set device name controlled by RM3250ZB load controller."""
         val = value["val"]
-        type_val = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
+        type_val = HA_TO_NEVIWEB_CONTROLLED[val]
         self._client.set_controlled_device(value["id"], type_val)
         self._controlled_device = type_val
 
@@ -1040,7 +1043,7 @@ class Neviweb130Switch(SwitchEntity):
     def set_on_off_input_delay(self, value):
         """Set input 1 or 2 on/off delay in seconds."""
         val = value["delay"]
-        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        delay = HA_TO_NEVIWEB_DELAY[val]
         self._client.set_on_off_input_delay(value["id"], delay, value["onoff"], value["input_number"])
         if value["input_number"] == 1:
             match value["onoff"]:

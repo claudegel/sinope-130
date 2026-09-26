@@ -16,7 +16,6 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
-import datetime
 import logging
 import time
 from threading import Lock
@@ -347,7 +346,7 @@ async def async_setup_platform(
         """Set different alert and action for water leak sensor."""
         sensor = get_sensor(service)
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "leak": service.data[ATTR_LEAK_ALERT],
             "temp": service.data[ATTR_TEMP_ALERT],
             "batt": service.data[ATTR_BATT_ALERT],
@@ -360,7 +359,7 @@ async def async_setup_platform(
         """Set battery type for water leak sensor."""
         sensor = get_sensor(service)
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "type": service.data[ATTR_BATTERY_TYPE],
         }
         sensor.set_battery_type(value)
@@ -378,7 +377,7 @@ async def async_setup_platform(
                     entity=sensor.entity_id,
                 )
             )
-        value = {"id": sensor.unique_id, "type": service.data[ATTR_TANK_TYPE]}
+        value = {"id": sensor.id, "type": service.data[ATTR_TANK_TYPE]}
         sensor.set_tank_type(value)
         sensor.schedule_update_ha_state(True)
 
@@ -396,7 +395,7 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "gauge": service.data[ATTR_GAUGE_TYPE]}
+        value = {"id": sensor.id, "gauge": service.data[ATTR_GAUGE_TYPE]}
         sensor.set_gauge_type(value)
         sensor.schedule_update_ha_state(True)
 
@@ -415,7 +414,7 @@ async def async_setup_platform(
                 )
             )
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "low": service.data[ATTR_FUEL_PERCENT_ALERT],
         }
         sensor.set_low_fuel_alert(value)
@@ -436,7 +435,7 @@ async def async_setup_platform(
                 )
             )
         value = {
-            "id": sensor.unique_id,
+            "id": sensor.id,
             "height": service.data[ATTR_TANK_HEIGHT],
         }
         sensor.set_tank_height(value)
@@ -456,7 +455,7 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "fuel": service.data[ATTR_FUEL_ALERT]}
+        value = {"id": sensor.id, "fuel": service.data[ATTR_FUEL_ALERT]}
         sensor.set_fuel_alert(value)
         sensor.schedule_update_ha_state(True)
 
@@ -474,7 +473,7 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "refuel": service.data[ATTR_REFUEL]}
+        value = {"id": sensor.id, "refuel": service.data[ATTR_REFUEL]}
         sensor.set_refuel_alert(value)
         sensor.schedule_update_ha_state(True)
 
@@ -492,14 +491,14 @@ async def async_setup_platform(
                     platform="tank sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "batt": service.data[ATTR_BATT_ALERT]}
+        value = {"id": sensor.id, "batt": service.data[ATTR_BATT_ALERT]}
         sensor.set_battery_alert(value)
         sensor.schedule_update_ha_state(True)
 
     def set_activation_service(service: ServiceCall) -> None:
         """Activate or deactivate Neviweb polling for missing device."""
         sensor = get_sensor(service)
-        value = {"id": sensor.unique_id, "active": service.data[ATTR_ACTIVE]}
+        value = {"id": sensor.id, "active": service.data[ATTR_ACTIVE]}
         sensor.set_activation(value)
         sensor.schedule_update_ha_state(True)
 
@@ -517,7 +516,7 @@ async def async_setup_platform(
                     platform="gateway sensor",
                 )
             )
-        value = {"id": sensor.unique_id, "mode": service.data[ATTR_MODE]}
+        value = {"id": sensor.id, "mode": service.data[ATTR_MODE]}
         sensor.set_neviweb_status(value)
         sensor.schedule_update_ha_state(True)
 
@@ -813,6 +812,10 @@ class Neviweb130Sensor(Entity):
     def unique_id(self) -> str:
         """Return unique ID based on Neviweb device ID."""
         return self._client.scoped_unique_id(self._id)
+
+    @property
+    def id(self) -> str:
+        return self._id
 
     @property
     @override
@@ -1271,9 +1274,8 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         self._closure_action = device_data[ATTR_CONF_CLOSURE]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                        if self._is_new_connected:
-                            if ATTR_SENSOR_TYPE in device_data:
-                                self._sensor_type = device_data[ATTR_SENSOR_TYPE]
+                        if self._is_new_connected and ATTR_SENSOR_TYPE in device_data:
+                            self._sensor_type = device_data[ATTR_SENSOR_TYPE]
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
@@ -1751,7 +1753,7 @@ class NeviwebDailyRequestSensor(Entity):
 
         # Reset flag when we pass midnight
         data = self.hass.data[DOMAIN]["request_data"]
-        today = datetime.date.today().isoformat()
+        today = dt_util.now().date().isoformat()
 
         if data["date"] != today:
             self._notified = False

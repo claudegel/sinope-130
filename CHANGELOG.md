@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.3.0] - 2026-09-__
+## [v4.3.0] - 2026-09-26
 ### Added
 - Refactor valve control logic to add delayed refresh for Wi-Fi valves.
 - Refactor valve status handling with valve info for Wi-Fi valves.
@@ -15,6 +15,10 @@ All modification for this custom_component will be added in this file.
 - Add support for new TH1315WF floor thermostat without energy metering chip.
 - Add support for new TH6251WF-PRO.
 - Add SilentAttributeIgnoreError exception class in exceptions.py
+- Add bedroom backlight thermostat support for devices that support it.
+- Add bedroom mode error message to strings.json, en.json and fr.json.
+- Send notification if bedroom option is selected for device that don't support it.
+- Update thermostat model information and constants for TH1145WF.
 
 ### Fix
 - Add AUTO heat-cool mode support for HP6000WF.
@@ -38,8 +42,15 @@ All modification for this custom_component will be added in this file.
 - Refactor error handling and logging in various functions. Replace generic exceptions with specific ones for better clarity and control.
 - Refactor error code handling for Neviweb devices to improve readability and maintainability in light.py, sensor.py, switch.py and valve.py.
 - Refine exception handling in update.py
+- Fix SVCUNAUTH error from Neviweb in service device ID for climate, light, sensor, switch and valve by @SBoudrias.
+- Add missing attributes for TH6xxxWF thermostats.
+- Add missing method set_cool_setpoint_away for HP6000WF thermostats.
 
 ### Doc
+- Add support for TH6251WF-PRO thermostat.
+- Add support for HP6000WF-HA thermostat.
+- Add support for TH1315ZB thermostat.
+- Add support for TH1145WF thermostat.
 
 ## [v4.2.9] - 2026-07-31
 ### Added

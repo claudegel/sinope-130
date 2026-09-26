@@ -12,13 +12,7 @@ import aiohttp
 import requests
 from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
-from homeassistant.const import (
-    CONF_PASSWORD,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-    EVENT_HOMEASSISTANT_STARTED,
-    Platform,
-)
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady, IntegrationError
 from homeassistant.helpers import discovery, entity_registry
@@ -162,6 +156,7 @@ from .const import (
     CONF_SAFE_MODE,
     CONF_STAT_INTERVAL,
     DOMAIN,
+    HAVE_BEDROOM_BACKLIGHT,
     MODE_EM_HEAT,
     MODE_MANUAL,
     NEVIWEB_ERROR_MESSAGES,
@@ -175,14 +170,15 @@ from .helpers import (
     setup_logger,
     translated_or_default,
 )
-from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA
+from .schema import CONFIG_SCHEMA, NEVIWEB_MODE_MAP
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
-from .schema import NEVIWEB_MODE_MAP
 from .schema import NOTIFY as DEFAULT_NOTIFY
 from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
 from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
 from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
+
+__all__ = ["CONFIG_SCHEMA"]
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
@@ -1561,9 +1557,26 @@ class Neviweb130Client:
         data = {ATTR_HEAT_INSTALLATION_TYPE: type_val}
         self.set_device_attributes(device_id, data)
 
-    def set_backlight(self, device_id: str, level, is_wifi: bool):
+    def set_backlight(self, device_id: str, level, is_wifi: bool, device_model: int):
         """Set backlight intensity when idle, on or auto.
         Work differently for Wi-Fi and Zigbee devices."""
+        if level == "bedroom" and device_model not in HAVE_BEDROOM_BACKLIGHT:
+            msg = translated_or_default(
+                self.hass,
+                "bedroom_mode_not_supported",
+                ("Bedroom mode is not supported by device {id} (model {model})."),
+                id=device_id,
+                model=device_model,
+            )
+
+            _LOGGER.warning(msg)
+            self.notify_ha(
+                msg,
+                title="Neviweb130 - Unsupported feature",
+            )
+
+            return
+
         if is_wifi:
             data = {ATTR_BACKLIGHT_AUTO_DIM: level}
         else:

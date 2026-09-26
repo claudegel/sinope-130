@@ -22,7 +22,7 @@
       "entity_must_be_domain": "Entity {entity} must be a {domain} {platform}.",
       "missing_parameter": "Missing required parameter: {param}.",
       "does_not_support": "Entity {entity} is {domain} {model} thermostat and does not support time format.",
-      "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool thermostat.",
+      "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool or Wi-Fi HP thermostat.",
       "fan_model_not_supported": "Fan speed is not supported for model {model}.",
       "unknown_mode": "Unknown heat-cool mode for {model}: {mode}.",
       "fan_mode_not_supported": "Model {model} does not support {mode} fan mode.",
@@ -60,7 +60,8 @@
       "rollback_skip": "Update to version {version} failed.\nRollback skipped, no local backup available.\n{message}.",
       "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
       "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute.",
-      "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}."
+      "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}.",
+      "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model})."
     }
   }
 }
