@@ -1275,9 +1275,8 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
                         self._closure_action = device_data[ATTR_CONF_CLOSURE]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                        if self._is_new_connected:
-                            if ATTR_SENSOR_TYPE in device_data:
-                                self._sensor_type = device_data[ATTR_SENSOR_TYPE]
+                        if self._is_new_connected and ATTR_SENSOR_TYPE in device_data:
+                            self._sensor_type = device_data[ATTR_SENSOR_TYPE]
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
                 return
@@ -1755,7 +1754,7 @@ class NeviwebDailyRequestSensor(Entity):
 
         # Reset flag when we pass midnight
         data = self.hass.data[DOMAIN]["request_data"]
-        today = datetime.date.today().isoformat()
+        today = dt_util.now().date().isoformat()
 
         if data["date"] != today:
             self._notified = False
