@@ -296,6 +296,8 @@ async def async_setup_entry(
 class Neviweb130DeviceAttributeBinarySensor(CoordinatorEntity[Neviweb130Coordinator], BinarySensorEntity):
     """Representation of a specific Neviweb130 binary sensor."""
 
+    entity_description: Neviweb130BinarySensorEntityDescription
+
     _attr_has_entity_name = True
     _attr_should_poll = True
 
