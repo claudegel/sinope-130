@@ -1311,25 +1311,28 @@ class Neviweb130NewDimmer(Neviweb130Light):
                         self._keypad = device_data[ATTR_KEYPAD]
                         self._wattage = device_data[ATTR_WATTAGE_INSTANT]
                         self._timer = device_data[ATTR_TIMER]
-                        if ATTR_ERROR_CODE_SET1 in device_data and len(device_data[ATTR_ERROR_CODE_SET1]) > 0:
-                            if device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0:
-                                self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
-                                code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
-                                self.notify_ha(
-                                    translated_or_default(
-                                        self.hass,
-                                        "error_code",
-                                        (
-                                            f"Warning: Neviweb Device error code detected: {code} for device: "
-                                            f"{self._name}, ID: {self._id}, Sku: {self._sku}. {''}"
-                                        ),
-                                        code=code,
-                                        name=self._name,
-                                        id=self._id,
-                                        sku=self._sku,
-                                        message="",
-                                    )
+                        if (
+                            ATTR_ERROR_CODE_SET1 in device_data
+                            and device_data[ATTR_ERROR_CODE_SET1]
+                            and device_data[ATTR_ERROR_CODE_SET1]["raw"] != 0
+                        ):
+                            self._error_code = device_data[ATTR_ERROR_CODE_SET1]["raw"]
+                            code = str(device_data[ATTR_ERROR_CODE_SET1]["raw"])
+                            self.notify_ha(
+                                translated_or_default(
+                                    self.hass,
+                                    "error_code",
+                                    (
+                                        f"Warning: Neviweb Device error code detected: {code} for device: "
+                                        f"{self._name}, ID: {self._id}, Sku: {self._sku}. {''}"
+                                    ),
+                                    code=code,
+                                    name=self._name,
+                                    id=self._id,
+                                    sku=self._sku,
+                                    message="",
                                 )
+                            )
                         self._rssi = device_data[ATTR_RSSI]
                         self._led_on = (
                             str(device_data[ATTR_LED_ON_INTENSITY])
