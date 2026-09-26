@@ -259,9 +259,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
         try:
             async with (
                 aiohttp.ClientSession() as session,
-                session.get(
-                    "https://api.github.com/repos/claudegel/sinope-130/releases"
-                ) as resp,
+                session.get("https://api.github.com/repos/claudegel/sinope-130/releases") as resp,
             ):
                 resp.raise_for_status()
                 releases = await resp.json()
