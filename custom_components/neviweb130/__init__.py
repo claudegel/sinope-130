@@ -176,14 +176,18 @@ from .helpers import (
     setup_logger,
     translated_or_default,
 )
-from .schema import CONFIG_SCHEMA as CONFIG_SCHEMA
-from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
-from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
-from .schema import NEVIWEB_MODE_MAP
-from .schema import NOTIFY as DEFAULT_NOTIFY
-from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
-from .schema import SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL
-from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
+from .schema import (
+    CONFIG_SCHEMA,
+    HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE,
+    IGNORE_MIWI as DEFAULT_IGNORE_MIWI,
+    NEVIWEB_MODE_MAP,
+    NOTIFY as DEFAULT_NOTIFY,
+    SAFE_MODE as DEFAULT_SAFE_MODE,
+    SCAN_INTERVAL as DEFAULT_SCAN_INTERVAL,
+    STAT_INTERVAL as DEFAULT_STAT_INTERVAL,
+)
+
+__all__ = ["CONFIG_SCHEMA"]
 
 REQUESTS_TIMEOUT = 30
 HOST = "https://neviweb.com"
