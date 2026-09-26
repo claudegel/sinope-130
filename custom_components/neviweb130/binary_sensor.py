@@ -35,7 +35,7 @@ def static_icon(on_icon: str, off_icon: str) -> Callable[[bool, dict | None, str
 
 @dataclass(frozen=True)
 class Neviweb130BinarySensorEntityDescription(BinarySensorEntityDescription):
-    """Describes Sensibo Motion binary sensor entity."""
+    """Describes neviweb130 binary sensor entity."""
 
     is_on_fn: Callable[[dict, str], bool] | None = None
     icon_fn: Callable[[bool, dict | None, str | None], str] | None = None
