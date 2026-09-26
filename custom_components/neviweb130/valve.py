@@ -866,7 +866,7 @@ class Neviweb130Valve(ValveEntity):
     def set_flow_meter_delay(self, value):
         """Set water valve flow meter delay before alert."""
         val = value["delay"]
-        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        delay = HA_TO_NEVIWEB_DELAY[val]
         self._client.set_flow_meter_delay(value["id"], delay)
         self._flowmeter_alert_delay = val
 
