@@ -16,7 +16,6 @@ https://www.sinopetech.com/en/support/#api
 
 from __future__ import annotations
 
-import datetime
 import logging
 import time
 from threading import Lock
