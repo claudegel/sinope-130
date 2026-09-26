@@ -23,6 +23,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .helpers import build_update_summary, has_breaking_changes, translate_error
@@ -30,6 +31,13 @@ from .helpers import build_update_summary, has_breaking_changes, translate_error
 _LOGGER = logging.getLogger(__name__)
 
 VALID_ASSET_PATTERN = re.compile(r"^sinope-130-(v[\w\.\-]+)\.(zip|sha256)$")
+
+
+class ReleaseAssetNotFoundError(Exception):
+    """Raised when a required GitHub release asset is missing."""
+
+    def __init__(self) -> None:
+        super().__init__("ZIP or SHA256 asset not found in GitHub release")
 
 
 def compute_sha256(file_path: str) -> str:
@@ -77,7 +85,7 @@ async def async_setup_platform(
     hass.data[DOMAIN]["update_entity"] = entity
     async_add_entities([entity], True)
 
-    now = datetime.datetime.now()
+    now = dt_util.now()
     entity._last_check = now.isoformat()
     entity._next_check = (now + timedelta(hours=6)).isoformat()
     entity._update_status = "idle"
@@ -85,7 +93,8 @@ async def async_setup_platform(
 
     async def scheduled_check(now: datetime.datetime) -> None:
         await entity.async_check_for_updates()
-        now = datetime.datetime.now()
+
+        now = dt_util.now()
         entity._last_check = now.isoformat()
         entity._next_check = (now + timedelta(hours=6)).isoformat()
         entity._last_update_success = now.isoformat()
@@ -248,10 +257,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
     async def async_check_for_updates(self) -> None:
         """Check GitHub for new releases and update entity state."""
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://api.github.com/repos/claudegel/sinope-130/releases") as resp:
-                    resp.raise_for_status()
-                    releases = await resp.json()
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(
+                    "https://api.github.com/repos/claudegel/sinope-130/releases"
+                ) as resp,
+            ):
+                resp.raise_for_status()
+                releases = await resp.json()
 
             latest_release = releases[0]
             latest = latest_release.get("tag_name", "").lstrip("v")
@@ -300,7 +313,8 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
     async def _do_backup(self) -> None:
         """Backup before update."""
-        snapshot_name = f"Neviweb130-{self.installed_version}-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        timestamp = dt_util.now().strftime("%Y%m%d-%H%M%S")
+        snapshot_name = f"Neviweb130-{self.installed_version}-{timestamp}"
 
         try:
             payload = {
@@ -387,33 +401,37 @@ class Neviweb130UpdateEntity(UpdateEntity):
             )
 
             if not asset_zip or not asset_sha:
-                raise Exception("ZIP or SHA256 asset not found in GitHub release")
+                raise ReleaseAssetNotFoundError
 
             # Download SHA256
-            async with aiohttp.ClientSession() as session:
-                async with session.get(asset_sha["browser_download_url"]) as resp:
-                    resp.raise_for_status()
-                    expected_sha256 = (await resp.text()).strip()
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(asset_sha["browser_download_url"]) as resp,
+            ):
+                resp.raise_for_status()
+                expected_sha256 = (await resp.text()).strip()
 
             # 1- Download ZIP file
             self._update_percentage = 10
             self.async_write_ha_state()
 
-            async with aiohttp.ClientSession() as session:
-                async with session.get(asset_zip["browser_download_url"]) as resp:
-                    resp.raise_for_status()
-                    data = await resp.read()
+            async with (
+                aiohttp.ClientSession() as session,
+                async with session.get(asset_zip["browser_download_url"]) as resp,
+            )
+                resp.raise_for_status()
+                data = await resp.read()
 
             # 2- Save to temp file
             self._update_percentage = 30
             self.async_write_ha_state()
 
-            tmp_zip = tempfile.NamedTemporaryFile(delete=False)
-            await self.hass.async_add_executor_job(tmp_zip.write, data)
-            tmp_zip.close()
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_zip:
+                await self.hass.async_add_executor_job(tmp_zip.write, data)
+                tmp_zip_path = tmp_zip.name
 
             # Compute local SHA256
-            local_sha256 = await self.hass.async_add_executor_job(compute_sha256, tmp_zip.name)
+            local_sha256 = await self.hass.async_add_executor_job(compute_sha256, tmp_zip_path)
             expected_sha256 = expected_sha256.strip().split()[0]
 
             if local_sha256.lower() != expected_sha256.lower():
@@ -433,7 +451,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 self._update_percentage = None
                 self.async_write_ha_state()
 
-                await self.hass.async_add_executor_job(os.remove, tmp_zip.name)
+                await self.hass.async_add_executor_job(os.remove, tmp_zip_path)
                 return
 
             # 3- Extract ZIP
@@ -441,7 +459,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self.async_write_ha_state()
 
             tmp_dir = tempfile.mkdtemp()
-            with zipfile.ZipFile(tmp_zip.name, "r") as zip_ref:
+            with zipfile.ZipFile(tmp_zip_path, "r") as zip_ref:
                 await self.hass.async_add_executor_job(zip_ref.extractall, tmp_dir)
 
             tmp_list = await self.hass.async_add_executor_job(os.listdir, tmp_dir)
@@ -468,7 +486,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             # Remove old version
             try:
                 await self.hass.async_add_executor_job(shutil.rmtree, self._target_dir)
-            except Exception as err:
+            except OSError as err:
                 _LOGGER.warning("Failed to remove old version: %s", err)
 
             def _make_target_dir() -> None:
@@ -517,7 +535,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
             self._update_percentage = 95
             self.async_write_ha_state()
 
-            await self.hass.async_add_executor_job(os.remove, tmp_zip.name)
+            await self.hass.async_add_executor_job(os.remove, tmp_zip_path)
             await self.hass.async_add_executor_job(shutil.rmtree, tmp_dir)
 
             # 6- Finalize
