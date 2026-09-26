@@ -14,8 +14,7 @@ from functools import partial
 from typing import Any
 
 import aiohttp
-from awesomeversion import (AwesomeVersion, AwesomeVersionCompareException,
-                            AwesomeVersionException)
+from awesomeversion import AwesomeVersion, AwesomeVersionCompareException, AwesomeVersionException
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -24,8 +23,7 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
-from .helpers import (build_update_summary, has_breaking_changes,
-                      translate_error)
+from .helpers import build_update_summary, has_breaking_changes, translate_error
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -32,48 +32,79 @@ from threading import Lock
 from typing import cast, override
 
 import homeassistant.util.dt as dt_util
-from homeassistant.components.persistent_notification import \
-    DOMAIN as PN_DOMAIN
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.components.valve import (ValveDeviceClass, ValveEntity,
-                                            ValveEntityFeature)
+from homeassistant.components.valve import ValveDeviceClass, ValveEntity, ValveEntityFeature
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.event import call_later
 
-from . import NOTIFY
+from . import NOTIFY, STAT_INTERVAL
 from . import SCAN_INTERVAL as scan_interval
-from . import STAT_INTERVAL
-from .const import (ATTR_ACTIVE, ATTR_AWAY_ACTION, ATTR_BATT_ACTION_LOW,
-                    ATTR_BATT_ALERT, ATTR_BATT_PERCENT_NORMAL,
-                    ATTR_BATT_STATUS_NORMAL, ATTR_BATTERY_STATUS,
-                    ATTR_BATTERY_VOLTAGE, ATTR_CLOSE_VALVE,
-                    ATTR_ERROR_CODE_SET1, ATTR_FLOW_ALARM1,
-                    ATTR_FLOW_ALARM1_LENGTH, ATTR_FLOW_ALARM1_OPTION,
-                    ATTR_FLOW_ALARM1_PERIOD, ATTR_FLOW_ALARM2,
-                    ATTR_FLOW_ALARM_TIMER, ATTR_FLOW_ENABLED,
-                    ATTR_FLOW_METER_CONFIG, ATTR_FLOW_MODEL_CONFIG,
-                    ATTR_FLOW_THRESHOLD, ATTR_MOTOR_POS, ATTR_MOTOR_TARGET,
-                    ATTR_OCCUPANCY_SENSOR_DELAY, ATTR_ONOFF, ATTR_POWER_SUPPLY,
-                    ATTR_RSSI, ATTR_STM8_ERROR, ATTR_TEMP_ACTION_LOW,
-                    ATTR_TEMP_ALARM, ATTR_TEMP_ALERT, ATTR_TRIGGER_ALARM,
-                    ATTR_VALVE_CLOSURE, ATTR_VALVE_INFO,
-                    ATTR_WATER_LEAK_STATUS, ATTR_WIFI, DOMAIN, MODE_AUTO,
-                    MODE_MANUAL, MODE_OFF, SERVICE_SET_ACTIVATION,
-                    SERVICE_SET_FLOW_ALARM_DISABLE_TIMER,
-                    SERVICE_SET_FLOW_METER_DELAY, SERVICE_SET_FLOW_METER_MODEL,
-                    SERVICE_SET_FLOW_METER_OPTIONS, SERVICE_SET_POWER_SUPPLY,
-                    SERVICE_SET_VALVE_ALERT, SERVICE_SET_VALVE_TEMP_ALERT,
-                    STATE_VALVE_STATUS, VERSION)
-from .helpers import (file_exists, safe_get_device_attributes, safe_number,
-                      translated_or_default)
-from .schema import (SET_ACTIVATION_SCHEMA,
-                     SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
-                     SET_FLOW_METER_DELAY_SCHEMA, SET_FLOW_METER_MODEL_SCHEMA,
-                     SET_FLOW_METER_OPTIONS_SCHEMA, SET_POWER_SUPPLY_SCHEMA,
-                     SET_VALVE_ALERT_SCHEMA, SET_VALVE_TEMP_ALERT_SCHEMA)
+from .const import (
+    ATTR_ACTIVE,
+    ATTR_AWAY_ACTION,
+    ATTR_BATT_ACTION_LOW,
+    ATTR_BATT_ALERT,
+    ATTR_BATT_PERCENT_NORMAL,
+    ATTR_BATT_STATUS_NORMAL,
+    ATTR_BATTERY_STATUS,
+    ATTR_BATTERY_VOLTAGE,
+    ATTR_CLOSE_VALVE,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_FLOW_ALARM1,
+    ATTR_FLOW_ALARM1_LENGTH,
+    ATTR_FLOW_ALARM1_OPTION,
+    ATTR_FLOW_ALARM1_PERIOD,
+    ATTR_FLOW_ALARM2,
+    ATTR_FLOW_ALARM_TIMER,
+    ATTR_FLOW_ENABLED,
+    ATTR_FLOW_METER_CONFIG,
+    ATTR_FLOW_MODEL_CONFIG,
+    ATTR_FLOW_THRESHOLD,
+    ATTR_MOTOR_POS,
+    ATTR_MOTOR_TARGET,
+    ATTR_OCCUPANCY_SENSOR_DELAY,
+    ATTR_ONOFF,
+    ATTR_POWER_SUPPLY,
+    ATTR_RSSI,
+    ATTR_STM8_ERROR,
+    ATTR_TEMP_ACTION_LOW,
+    ATTR_TEMP_ALARM,
+    ATTR_TEMP_ALERT,
+    ATTR_TRIGGER_ALARM,
+    ATTR_VALVE_CLOSURE,
+    ATTR_VALVE_INFO,
+    ATTR_WATER_LEAK_STATUS,
+    ATTR_WIFI,
+    DOMAIN,
+    MODE_AUTO,
+    MODE_MANUAL,
+    MODE_OFF,
+    SERVICE_SET_ACTIVATION,
+    SERVICE_SET_FLOW_ALARM_DISABLE_TIMER,
+    SERVICE_SET_FLOW_METER_DELAY,
+    SERVICE_SET_FLOW_METER_MODEL,
+    SERVICE_SET_FLOW_METER_OPTIONS,
+    SERVICE_SET_POWER_SUPPLY,
+    SERVICE_SET_VALVE_ALERT,
+    SERVICE_SET_VALVE_TEMP_ALERT,
+    STATE_VALVE_STATUS,
+    VERSION,
+)
+from .helpers import file_exists, safe_get_device_attributes, safe_number, translated_or_default
+from .schema import (
+    SET_ACTIVATION_SCHEMA,
+    SET_FLOW_ALARM_DISABLE_TIMER_SCHEMA,
+    SET_FLOW_METER_DELAY_SCHEMA,
+    SET_FLOW_METER_MODEL_SCHEMA,
+    SET_FLOW_METER_OPTIONS_SCHEMA,
+    SET_POWER_SUPPLY_SCHEMA,
+    SET_VALVE_ALERT_SCHEMA,
+    SET_VALVE_TEMP_ALERT_SCHEMA,
+)
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -24,40 +24,65 @@ from threading import Lock
 from typing import override
 
 import homeassistant.util.dt as dt_util
-from homeassistant.components.light import (ATTR_BRIGHTNESS,
-                                            ATTR_BRIGHTNESS_PCT, ColorMode,
-                                            LightEntity)
-from homeassistant.components.persistent_notification import \
-    DOMAIN as PN_DOMAIN
+from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_BRIGHTNESS_PCT, ColorMode, LightEntity
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from . import NOTIFY
+from . import NOTIFY, STAT_INTERVAL
 from . import SCAN_INTERVAL as scan_interval
-from . import STAT_INTERVAL
-from .const import (ATTR_ACTIVE, ATTR_BLUE, ATTR_ERROR_CODE_SET1, ATTR_GREEN,
-                    ATTR_INTENSITY, ATTR_INTENSITY_MIN, ATTR_KEY_DOUBLE_UP,
-                    ATTR_KEYPAD, ATTR_LED_OFF_COLOR, ATTR_LED_OFF_INTENSITY,
-                    ATTR_LED_ON_COLOR, ATTR_LED_ON_INTENSITY,
-                    ATTR_LIGHT_WATTAGE, ATTR_ONOFF, ATTR_PHASE_CONTROL,
-                    ATTR_RED, ATTR_RSSI, ATTR_STATE, ATTR_TIME, ATTR_TIMER,
-                    ATTR_WATTAGE_INSTANT, DOMAIN, MODE_OFF,
-                    SERVICE_SET_ACTIVATION, SERVICE_SET_KEY_DOUBLE_UP,
-                    SERVICE_SET_LED_INDICATOR, SERVICE_SET_LED_OFF_INTENSITY,
-                    SERVICE_SET_LED_ON_INTENSITY,
-                    SERVICE_SET_LIGHT_KEYPAD_LOCK,
-                    SERVICE_SET_LIGHT_MIN_INTENSITY, SERVICE_SET_LIGHT_TIMER,
-                    SERVICE_SET_PHASE_CONTROL, SERVICE_SET_WATTAGE, VERSION)
-from .helpers import (safe_get_device_attributes, safe_number,
-                      translated_or_default)
-from .schema import (SET_ACTIVATION_SCHEMA, SET_KEY_DOUBLE_UP_SCHEMA,
-                     SET_LED_INDICATOR_SCHEMA, SET_LED_OFF_INTENSITY_SCHEMA,
-                     SET_LED_ON_INTENSITY_SCHEMA, SET_LIGHT_KEYPAD_LOCK_SCHEMA,
-                     SET_LIGHT_MIN_INTENSITY_SCHEMA, SET_LIGHT_TIMER_SCHEMA,
-                     SET_PHASE_CONTROL_SCHEMA, SET_WATTAGE_SCHEMA)
+from .const import (
+    ATTR_ACTIVE,
+    ATTR_BLUE,
+    ATTR_ERROR_CODE_SET1,
+    ATTR_GREEN,
+    ATTR_INTENSITY,
+    ATTR_INTENSITY_MIN,
+    ATTR_KEY_DOUBLE_UP,
+    ATTR_KEYPAD,
+    ATTR_LED_OFF_COLOR,
+    ATTR_LED_OFF_INTENSITY,
+    ATTR_LED_ON_COLOR,
+    ATTR_LED_ON_INTENSITY,
+    ATTR_LIGHT_WATTAGE,
+    ATTR_ONOFF,
+    ATTR_PHASE_CONTROL,
+    ATTR_RED,
+    ATTR_RSSI,
+    ATTR_STATE,
+    ATTR_TIME,
+    ATTR_TIMER,
+    ATTR_WATTAGE_INSTANT,
+    DOMAIN,
+    MODE_OFF,
+    SERVICE_SET_ACTIVATION,
+    SERVICE_SET_KEY_DOUBLE_UP,
+    SERVICE_SET_LED_INDICATOR,
+    SERVICE_SET_LED_OFF_INTENSITY,
+    SERVICE_SET_LED_ON_INTENSITY,
+    SERVICE_SET_LIGHT_KEYPAD_LOCK,
+    SERVICE_SET_LIGHT_MIN_INTENSITY,
+    SERVICE_SET_LIGHT_TIMER,
+    SERVICE_SET_PHASE_CONTROL,
+    SERVICE_SET_WATTAGE,
+    VERSION,
+)
+from .helpers import safe_get_device_attributes, safe_number, translated_or_default
+from .schema import (
+    SET_ACTIVATION_SCHEMA,
+    SET_KEY_DOUBLE_UP_SCHEMA,
+    SET_LED_INDICATOR_SCHEMA,
+    SET_LED_OFF_INTENSITY_SCHEMA,
+    SET_LED_ON_INTENSITY_SCHEMA,
+    SET_LIGHT_KEYPAD_LOCK_SCHEMA,
+    SET_LIGHT_MIN_INTENSITY_SCHEMA,
+    SET_LIGHT_TIMER_SCHEMA,
+    SET_PHASE_CONTROL_SCHEMA,
+    SET_WATTAGE_SCHEMA,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
