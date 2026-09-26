@@ -18,6 +18,7 @@ from awesomeversion import (
     AwesomeVersionCompareException,
     AwesomeVersionException,
 )
+from functools import partial
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -520,10 +521,14 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
                 if is_dir:
 
-                    def _copytree_src_dst() -> None:
-                        shutil.copytree(src, dst, dirs_exist_ok=True)
-
-                    await self.hass.async_add_executor_job(_copytree_src_dst)
+                    await self.hass.async_add_executor_job(
+                        partial(
+                            shutil.copytree,
+                            src,
+                            dst,
+                            dirs_exist_ok=True,
+                        )
+                    )
                 else:
                     await self.hass.async_add_executor_job(shutil.copy2, src, dst)
 
@@ -538,7 +543,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             # 6- Finalize
             self._update_status = "success"
-            self._last_update_success = datetime.datetime.now().isoformat()
+            self._last_update_success = dt_util.now().isoformat()
             self._update_percentage = 100
             self.async_write_ha_state()
 
