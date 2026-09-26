@@ -1016,14 +1016,14 @@ class Neviweb130Switch(SwitchEntity):
     def set_tank_size(self, value):
         """Set water tank size for RM3500ZB Calypso controller."""
         val = value["val"]
-        size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == val][0]
+        size = HA_TO_NEVIWEB_SIZE[val]
         self._client.set_tank_size(value["id"], size)
         self._tank_size = size
 
     def set_controlled_device(self, value):
         """Set device name controlled by RM3250ZB load controller."""
         val = value["val"]
-        type_val = [v for k, v in HA_TO_NEVIWEB_CONTROLLED.items() if k == val][0]
+        type_val = HA_TO_NEVIWEB_CONTROLLED[val]
         self._client.set_controlled_device(value["id"], type_val)
         self._controlled_device = type_val
 
@@ -1044,7 +1044,7 @@ class Neviweb130Switch(SwitchEntity):
     def set_on_off_input_delay(self, value):
         """Set input 1 or 2 on/off delay in seconds."""
         val = value["delay"]
-        delay = [v for k, v in HA_TO_NEVIWEB_DELAY.items() if k == val][0]
+        delay = HA_TO_NEVIWEB_DELAY[val]
         self._client.set_on_off_input_delay(value["id"], delay, value["onoff"], value["input_number"])
         if value["input_number"] == 1:
             match value["onoff"]:
