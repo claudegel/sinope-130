@@ -10,6 +10,7 @@ import tempfile
 import uuid
 import zipfile
 from datetime import timedelta
+from functools import partial
 from typing import Any
 
 import aiohttp
@@ -18,7 +19,6 @@ from awesomeversion import (
     AwesomeVersionCompareException,
     AwesomeVersionException,
 )
-from functools import partial
 from homeassistant.components.update import UpdateEntity, UpdateEntityFeature
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -520,7 +520,6 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
                 is_dir = await self.hass.async_add_executor_job(os.path.isdir, src)
                 if is_dir:
-
                     await self.hass.async_add_executor_job(
                         partial(
                             shutil.copytree,
