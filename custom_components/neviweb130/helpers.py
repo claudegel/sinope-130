@@ -6,12 +6,11 @@ import os
 import shutil
 from logging.handlers import RotatingFileHandler
 
-from requests.exceptions import RequestException
-
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
+from requests.exceptions import RequestException
 
 from .const import DOMAIN
 from .exceptions import SilentAttributeIgnoreError

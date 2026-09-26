@@ -1565,17 +1565,11 @@ class Neviweb130Client:
     def set_backlight(self, device_id: str, level, is_wifi: bool, device_model: int):
         """Set backlight intensity when idle, on or auto.
         Work differently for Wi-Fi and Zigbee devices."""
-        if (
-            level == "bedroom"
-            and device_model not in HAVE_BEDROOM_BACKLIGHT
-        ):
+        if level == "bedroom" and device_model not in HAVE_BEDROOM_BACKLIGHT:
             msg = translated_or_default(
                 self.hass,
                 "bedroom_mode_not_supported",
-                (
-                    "Bedroom mode is not supported by device {id} "
-                    "(model {model})."
-                ),
+                ("Bedroom mode is not supported by device {id} (model {model})."),
                 id=device_id,
                 model=device_model,
             )

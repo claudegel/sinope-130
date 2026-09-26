@@ -1759,5 +1759,3 @@ class NeviwebDailyRequestSensor(Entity):
 
         if data["date"] != today:
             self._notified = False
-
-        return None
