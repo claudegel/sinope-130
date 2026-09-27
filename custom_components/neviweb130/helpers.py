@@ -6,7 +6,6 @@ import asyncio
 import datetime
 import logging
 import os
-import re
 import shutil
 import time
 from dataclasses import dataclass
@@ -312,38 +311,22 @@ def has_breaking_changes(notes: str | None) -> bool:
     return any(k in text for k in keywords)
 
 
-def extract_notes_for_version(changelog: str, version: str) -> str:
-    """Return version notes from CHANGELOG.md on github."""
-    lines = changelog.splitlines()
-    capture = False
-    notes = []
-    pattern = rf"\[{re.escape(version)}\]"
-    for line in lines:
-        stripped = line.strip()
-        if re.search(pattern, stripped):
-            capture = True
-            continue
-        if capture:
-            if stripped.startswith("[v"):
-                break
-            if stripped:
-                notes.append(stripped)
-    return "\n".join(notes).strip() or f"Notes not found for {version}"
-
-
 def build_update_summary(installed: str, latest: str, notes: str) -> str:
     """Build a full update summary for Neviweb130 V2."""
     base_url = "https://github.com/claudegel/sinope-130"
 
-    release_link = f"{base_url}/releases/tag/v{latest}"
-    compare_link = f"{base_url}/compare/v{installed}...v{latest}"
+    tag_installed = installed if installed.startswith("v") else f"v{installed}"
+    tag_latest = latest if latest.startswith("v") else f"v{latest}"
+
+    release_link = f"{base_url}/releases/tag/{tag_latest}"
+    compare_link = f"{base_url}/compare/{tag_installed}...{tag_latest}"
 
     return (
-        f"### Update Summary\n\n"
+        "### Update Summary\n\n"
         f"**Installed:** {installed}\n"
         f"**Available:** {latest}\n\n"
-        f"[View Release Notes]({release_link})\n"
-        f"[Compare Versions]({compare_link})\n\n"
+        f"{release_link}\n"
+        f"{compare_link}\n\n"
         f"### Version Notes\n{notes}"
     )
 
