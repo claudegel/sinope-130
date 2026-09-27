@@ -159,23 +159,6 @@ def has_breaking_changes(notes: str | None) -> bool:
     return any(k in text for k in keywords)
 
 
-async def fetch_release_notes(version: str) -> tuple[str, str] | None:
-    # We put back the "v" because GitHub still use vX.Y.Z
-    tag = f"v{version}" if not version.startswith("v") else version
-    url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
-
-    async with aiohttp.ClientSession() as session, session.get(url) as resp:
-        if resp.status != 200:
-            _LOGGER.warning("Failed to fetch release notes for %s: HTTP %s", tag, resp.status)
-            return None
-
-        data = await resp.json()
-        title = (data.get("name") or "").strip()
-        body = (data.get("body") or "").strip()
-        _LOGGER.debug("Raw release notes for %s (len=%d): %r", tag, len(body), body)
-        return title, body
-
-
 def build_update_summary(installed: str, latest: str, notes: str) -> str:
     """Build a full update summary for Neviweb130 V1."""
     if not installed or not latest:
@@ -189,6 +172,10 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
     compare_link = f"{base_url}/compare/{tag_installed}...{tag_latest}"
 
     safe_notes = str(notes or "").strip()
+
+    if not safe_notes:
+        safe_notes = f"## Version {latest}\n\nNo release notes available."
+
     section = ""
 
     if "## What's Changed" in safe_notes:
@@ -204,9 +191,6 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
     else:
         section = "No 'What's Changed' section found."
     _LOGGER.debug("Release notes = %s", section)
-
-    if not safe_notes:
-        safe_notes = f"## Version {latest}\n\nNo release notes available."
 
     return f"Available versions :\n- [{tag_installed} -> {tag_latest}]({compare_link})\n\n{section}"
 
