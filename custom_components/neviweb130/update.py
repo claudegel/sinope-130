@@ -82,6 +82,8 @@ async def async_setup_platform(
     hass.data[DOMAIN]["update_entity"] = entity
     async_add_entities([entity], True)
 
+    await entity.async_check_for_updates()
+
     now = dt_util.now()
     entity._last_check = now.isoformat()
     entity._next_check = (now + timedelta(hours=6)).isoformat()
@@ -272,11 +274,10 @@ class Neviweb130UpdateEntity(UpdateEntity):
 
             if latest == self._latest_version:
                 _LOGGER.debug("No new Neviweb130 update found (latest=%s)", latest)
-                return
+            else:
+                _LOGGER.info("New Neviweb130 version detected: %s", latest)
 
-            _LOGGER.info("New Neviweb130 version detected: %s", latest)
-
-            # Update internal attributes
+            # Always synchronize release information
             self._latest_version = latest
             self._attr_latest_version = latest
             self._release_notes = notes
