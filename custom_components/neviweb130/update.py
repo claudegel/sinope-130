@@ -24,6 +24,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_UPDATE_INTERVAL,
@@ -106,7 +107,7 @@ async def async_setup_entry(
     async def async_init_update():
         await entity.async_check_for_updates()
 
-        now = datetime.datetime.now()
+        now = dt_util.now()
         entity._last_check = now.isoformat()
         entity._next_check = (now + interval).isoformat()
         entity._update_status = "idle"
@@ -118,7 +119,7 @@ async def async_setup_entry(
     async def _scheduled_check(now):
         await entity.async_check_for_updates()
 
-        now = datetime.datetime.now()
+        now = dt_util.now()
         entity._last_check = now.isoformat()
         entity._next_check = (now + interval).isoformat()
         entity._update_status = "idle"
@@ -276,7 +277,7 @@ class Neviweb130UpdateEntity(UpdateEntity):
     # -----------------------------
 
     async def async_check_for_updates(self) -> None:
-        self._last_check = datetime.datetime.now().isoformat()
+        self._last_check = dt_util.now().isoformat()
         api_url = "https://api.github.com/repos/claudegel/sinope-130/releases"
         try:
             async with aiohttp.ClientSession() as session, session.get(api_url) as resp:
@@ -292,18 +293,21 @@ class Neviweb130UpdateEntity(UpdateEntity):
                 _LOGGER.warning("GitHub returned an empty tag_name")
                 return
 
-            if normalize_version(latest) == self._latest_version:
-                return
+            normalized_latest = normalize_version(latest) or ""
 
-            _LOGGER.info("New Neviweb130 version detected: %s", latest)
+            if normalized_latest == self._latest_version:
+                _LOGGER.debug("No new Neviweb130 update found (latest=%s)", latest)
+            else:
+                _LOGGER.info("New Neviweb130 version detected: %s", latest)
 
+            # Always synchronize release information
             self._latest_version = normalize_version(latest) or ""
             self._release_notes = notes
             self._release_title = title
 
             summary = build_update_summary(
                 self._installed_version or "",
-                self._latest_version or "",
+                self._latest_version,
                 notes or "",
             )
 
