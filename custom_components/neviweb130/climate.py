@@ -5115,7 +5115,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                     self._language = device_data[ATTR_LANGUAGE]
                     room_display = device_data.get(ATTR_ROOM_TEMP_DISPLAY, {})
                     self._temp_display_status = room_display.get("status", self._temp_display_status)
-                    self._temp_display_value = room_display.get("value". self._temp_display_value)
+                    self._temp_display_value = room_display.get("value", self._temp_display_value)
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
