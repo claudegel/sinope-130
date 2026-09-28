@@ -2,6 +2,17 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.1] - 2026-09-__
+### Added
+
+### Fix
+- Fix updater for update description that was not correctly synchronized.
+- Fix climate.py for TH6xxxWF update that was broken.
+- Fix device_model in TH6xxxWF that was set to string instead of int values.
+- Fix many attributes update in case of Neviweb not returning data.
+
+### Doc
+
 ## [v4.3.0] - 2026-09-26
 ### Added
 - Refactor valve control logic to add delayed refresh for Wi-Fi valves.
