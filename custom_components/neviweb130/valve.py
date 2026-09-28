@@ -646,12 +646,9 @@ class Neviweb130Valve(ValveEntity):
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
                     if device_alert is not None and ATTR_TEMP_ALERT in device_alert:
                         self._temp_alert = device_alert[ATTR_TEMP_ALERT]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
-                    if ATTR_BATT_PERCENT_NORMAL in device_data:
-                        self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                    if ATTR_BATT_STATUS_NORMAL in device_data:
-                        self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
+                    self._rssi = device_data.get(ATTR_RSSI, self._rssi)
+                    self._batt_percent_normal = device_data.get(ATTR_BATT_PERCENT_NORMAL, self._batt_percent_normal)
+                    self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1300,46 +1297,46 @@ class Neviweb130WifiValve(Neviweb130Valve):
                                 )
                             )
                     self._motor_position = device_data[ATTR_MOTOR_POS]
-                    if ATTR_MOTOR_TARGET in device_data:
-                        self._motor_target = device_data[ATTR_MOTOR_TARGET]
-                    if ATTR_VALVE_CLOSURE in device_data:
-                        self._valve_closure = device_data[ATTR_VALVE_CLOSURE]["source"]
+                    self._motor_target = device_data.get(ATTR_MOTOR_TARGET, self._motor_target)
+                    closure = device_data.get(ATTR_VALVE_CLOSURE, {})
+                    self._valve_closure = closure.get("source", self._valve_closure)
                     if ATTR_STM8_ERROR in device_data:
                         self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
                         if "motorPosition" in device_data[ATTR_STM8_ERROR]:
                             self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
                         if "motorLimit" in device_data[ATTR_STM8_ERROR]:
                             self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
-                    if ATTR_FLOW_METER_CONFIG in device_data:
-                        self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
-                        self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
-                        self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
-                    if ATTR_FLOW_ALARM1 in device_data:
-                        self._flowmeter_opt_alarm_1 = device_data[ATTR_FLOW_ALARM1]["actions"][ATTR_TRIGGER_ALARM]
-                        self._flowmeter_opt_action_1 = device_data[ATTR_FLOW_ALARM1]["actions"][ATTR_CLOSE_VALVE]
-                        self._flowmeter_opt_flow_min_1 = device_data[ATTR_FLOW_ALARM1]["flowMin"]
-                        self._flowmeter_opt_duration_1 = device_data[ATTR_FLOW_ALARM1]["duration"]
-                        self._flowmeter_opt_observationPeriod_1 = device_data[ATTR_FLOW_ALARM1]["observationPeriod"]
-                    if ATTR_FLOW_ALARM2 in device_data:
-                        self._flowmeter_opt_alarm_2 = device_data[ATTR_FLOW_ALARM2]["actions"][ATTR_TRIGGER_ALARM]
-                        self._flowmeter_opt_action_2 = device_data[ATTR_FLOW_ALARM2]["actions"][ATTR_CLOSE_VALVE]
-                        self._flowmeter_opt_flow_min_2 = device_data[ATTR_FLOW_ALARM2]["flowMin"]
-                        self._flowmeter_opt_duration_2 = device_data[ATTR_FLOW_ALARM2]["duration"]
-                        self._flowmeter_opt_observationPeriod_2 = device_data[ATTR_FLOW_ALARM2]["observationPeriod"]
-                    if ATTR_TEMP_ACTION_LOW in device_data:
-                        self._temp_action_low = device_data[ATTR_TEMP_ACTION_LOW]
-                    if ATTR_BATT_ACTION_LOW in device_data:
-                        self._batt_action_low = device_data[ATTR_BATT_ACTION_LOW]
-                    if ATTR_OCCUPANCY_SENSOR_DELAY in device_data:
-                        self._occupancy_delay = device_data[ATTR_OCCUPANCY_SENSOR_DELAY]
-                    if ATTR_WIFI in device_data:
-                        self._rssi = device_data[ATTR_WIFI]
-                    if ATTR_BATT_PERCENT_NORMAL in device_data:
-                        self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                    if ATTR_BATT_STATUS_NORMAL in device_data:
-                        self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
-                    if ATTR_AWAY_ACTION in device_data:
-                        self._away_action = device_data[ATTR_AWAY_ACTION]
+                        stm8_error = device_data.get(ATTR_FLOW_METER_CONFIG, {})
+                        self._flowmeter_multiplier = stm8_error.get("multiplier", self._flowmeter_multiplier)
+                        self._flowmeter_offset = stm8_error.get("offset", self._flowmeter_offset)
+                        self._flowmeter_divisor = stm8_error.get("divisor", self._flowmeter_divisor)
+                    flow_alarm_1 = device_data.get(ATTR_FLOW_ALARM1, {})
+                    actions = flow_alarm_1.get("actions", {})
+                    self._flowmeter_opt_alarm_1 = actions.get(ATTR_TRIGGER_ALARM, self._flowmeter_opt_alarm_1)
+                    self._flowmeter_opt_action_1 = actions.get(ATTR_CLOSE_VALVE, self._flowmeter_opt_action_1)
+                    self._flowmeter_opt_flow_min_1 = flow_alarm_1.get("flowMin", self._flowmeter_opt_flow_min_1)
+                    self._flowmeter_opt_duration_1 = flow_alarm_1.get("duration", self._flowmeter_opt_duration_1)
+                    self._flowmeter_opt_observationPeriod_1 = flow_alarm_1.get(
+                        "observationPeriod",
+                        self._flowmeter_opt_observationPeriod_1,
+                    )
+                    flow_alarm_2 = device_data.get(ATTR_FLOW_ALARM2, {})
+                    actions_2 = flow_alarm_2.get("actions", {})
+                    self._flowmeter_opt_alarm_2 = actions_2.get(ATTR_TRIGGER_ALARM, self._flowmeter_opt_alarm_2)
+                    self._flowmeter_opt_action_2 = actions_2.get(ATTR_CLOSE_VALVE, self._flowmeter_opt_action_2)
+                    self._flowmeter_opt_flow_min_2 = flow_alarm_2.get("flowMin", self._flowmeter_opt_flow_min_2)
+                    self._flowmeter_opt_duration_2 = flow_alarm_2.get("duration", self._flowmeter_opt_duration_2)
+                    self._flowmeter_opt_observationPeriod_2 = flow_alarm_2.get(
+                        "observationPeriod",
+                        self._flowmeter_opt_observationPeriod_2,
+                    )
+                    self._temp_action_low = device_data.get(ATTR_TEMP_ACTION_LOW, self._temp_action_low)
+                    self._batt_action_low = device_data.get(ATTR_BATT_ACTION_LOW, self._batt_action_low)
+                    self._occupancy_delay = device_data.get(ATTR_OCCUPANCY_SENSOR_DELAY, self._occupancy_delay)
+                    self._rssi = device_data.get(ATTR_WIFI, self._rssi)
+                    self._batt_percent_normal = device_data.get(ATTR_BATT_PERCENT_NORMAL, self._batt_percent_normal)
+                    self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
+                    self._away_action = device_data.get(ATTR_AWAY_ACTION, self._away_action)
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1501,15 +1498,15 @@ class Neviweb130MeshValve(Neviweb130Valve):
                     self._power_supply = device_data[ATTR_POWER_SUPPLY]
                     if device_alert is not None and ATTR_BATT_ALERT in device_alert:
                         self._battery_alert = device_alert[ATTR_BATT_ALERT]
-                    if ATTR_STM8_ERROR in device_data:
-                        self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
-                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
-                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
-                    if ATTR_FLOW_METER_CONFIG in device_data:
-                        self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
-                        self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
-                        self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
-                        self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
+                    stm8_error = device_data.get(ATTR_STM8_ERROR, {})
+                    self._stm8Error_motorJam = stm8_error.get("motorJam", self._stm8Error_motorJam)
+                    self._stm8Error_motorLimit = stm8_error.get("motorLimit", self._stm8Error_motorLimit)
+                    self._stm8Error_motorPosition = stm8_error.get("motorPosition", self._stm8Error_motorPosition)
+                    flowmeter_config = device_data.get(ATTR_FLOW_METER_CONFIG, {})
+                    self._flowmeter_multiplier = flowmeter_config.get("multiplier", self._flowmeter_multiplier)
+                    self._flowmeter_offset = flowmeter_config.get("offset", self._flowmeter_offset)
+                    self._flowmeter_divisor = flowmeter_config.get("divisor", self._flowmeter_divisor)
+                    self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
                         code = device_data[ATTR_WATER_LEAK_STATUS]
@@ -1528,22 +1525,31 @@ class Neviweb130MeshValve(Neviweb130Valve):
                                 sku=self._sku,
                             )
                         )
-                    if ATTR_FLOW_ALARM_TIMER in device_data:
-                        self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer == 0 and ATTR_FLOW_THRESHOLD in device_data:
-                            self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                            self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                            self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGTH]
-                            self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
-                            self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
-                    if ATTR_BATT_PERCENT_NORMAL in device_data:
-                        self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                    if ATTR_BATT_STATUS_NORMAL in device_data:
-                        self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
-                    if ATTR_RSSI in device_data:
-                        self._rssi = device_data[ATTR_RSSI]
-                    if ATTR_FLOW_ENABLED in device_data:
-                        self._flowmeter_enabled = device_data[ATTR_FLOW_ENABLED]
+                    self._flowmeter_timer = device_data.get(ATTR_FLOW_ALARM_TIMER, self._flowmeter_timer)
+                    if self._flowmeter_timer == 0:
+                        self._flowmeter_threshold = device_data.get(ATTR_FLOW_THRESHOLD, self._flowmeter_threshold)
+                        self._flowmeter_alert_delay = device_data.get(
+                            ATTR_FLOW_ALARM1_PERIOD,
+                            self._flowmeter_alert_delay,
+                        )
+                        self._flowmeter_alarm_length = device_data.get(
+                            ATTR_FLOW_ALARM1_LENGTH,
+                            self._flowmeter_alarm_length,
+                        )
+
+                        flow_alarm_option = device_data.get(ATTR_FLOW_ALARM1_OPTION, {})
+                        self._flowmeter_opt_alarm = flow_alarm_option.get(
+                            ATTR_TRIGGER_ALARM,
+                            self._flowmeter_opt_alarm,
+                        )
+                        self._flowmeter_opt_action = flow_alarm_option.get(
+                            ATTR_CLOSE_VALVE,
+                            self._flowmeter_opt_action,
+                        )
+                    self._batt_percent_normal = device_data.get(ATTR_BATT_PERCENT_NORMAL, self._batt_percent_normal)
+                    self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
+                    self._rssi = device_data.get(ATTR_RSSI, self._rssi)
+                    self._flowmeter_enabled = device_data.get(ATTR_FLOW_ENABLED, self._flowmeter_enabled)
                     if (
                         ATTR_ERROR_CODE_SET1 in device_data
                         and device_data[ATTR_ERROR_CODE_SET1]
