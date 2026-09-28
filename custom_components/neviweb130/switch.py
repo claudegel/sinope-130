@@ -1564,8 +1564,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         )
                     else:
                         self._error_code = 0
-                    if ATTR_WIFI in device_data:
-                        self._wifirssi = device_data[ATTR_WIFI]
+                    self._wifirssi = device_data.get(ATTR_WIFI, self._wifirssi)
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1755,10 +1754,10 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._water_temp_protect = device_data[ATTR_WATER_TEMP_PROTECT]
                     self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
                     self._water_temp_time = device_data[ATTR_DR_WATER_TEMP_TIME]
-                    if ATTR_DR_PROTEC_STATUS in device_data:
-                        self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
-                        self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
-                        self._consumption_time = device_data[ATTR_DR_PROTEC_STATUS]["consumptionOverTime"]
+                    dr_protec = device_data.get(ATTR_DR_PROTEC_STATUS, {})
+                    self._temperature = dr_protec.get("temperature", self._temperature)
+                    self._consumption = dr_protec.get("consumption", self._consumption)
+                    self._consumption_time = dr_protec.get("consumptionOverTime", self._consumption_time)
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -2159,8 +2158,7 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         self._onoff = device_data[ATTR_ONOFF]
                         self._input_status = device_data[ATTR_INPUT_STATUS]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                        if ATTR_BATT_INFO in device_data:
-                            self._batt_info = device_data[ATTR_BATT_INFO]
+                        self._batt_info = device_data.get(ATTR_BATT_INFO, self._batt_info)
                         self._input_name_1 = device_data[ATTR_NAME_1]
                         self._output_name_1 = device_data[ATTR_OUTPUT_NAME_1]
                     if self._is_zb_control:
@@ -2172,21 +2170,18 @@ class Neviweb130ControlerSwitch(Neviweb130Switch):
                         self._ext_temp = device_data[ATTR_EXT_TEMP]
                         self._timer = device_data[ATTR_TIMER]
                         self._timer2 = device_data[ATTR_TIMER2]
-                        if ATTR_INPUT_1_ON_DELAY in device_data:
-                            self._input_1_on_delay = device_data[ATTR_INPUT_1_ON_DELAY]
-                            self._input_2_on_delay = device_data[ATTR_INPUT_2_ON_DELAY]
-                            self._input_1_off_delay = device_data[ATTR_INPUT_1_OFF_DELAY]
-                            self._input_2_off_delay = device_data[ATTR_INPUT_2_OFF_DELAY]
-                        if ATTR_BATT_PERCENT_NORMAL in device_data:
-                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                        if ATTR_BATT_STATUS_NORMAL in device_data:
-                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
-                        if ATTR_RSSI in device_data:
-                            self._rssi = device_data[ATTR_RSSI]
-                        if ATTR_TEMP_ALERT in device_data:
-                            self._temp_alert = device_data[ATTR_TEMP_ALERT]
-                        if ATTR_LOW_TEMP_STATUS in device_data:
-                            self._low_temp_status = device_data[ATTR_LOW_TEMP_STATUS]
+                        self._input_1_on_delay = device_data.get(ATTR_INPUT_1_ON_DELAY, self._input_1_on_delay)
+                        self._input_2_on_delay = device_data.get(ATTR_INPUT_2_ON_DELAY, self._input_2_on_delay)
+                        self._input_1_off_delay = device_data.get(ATTR_INPUT_1_OFF_DELAY, self._input_1_off_delay)
+                        self._input_2_off_delay = device_data.get(ATTR_INPUT_2_OFF_DELAY, self._input_2_off_delay)
+                        self._batt_percent_normal = device_data.get(
+                            ATTR_BATT_PERCENT_NORMAL,
+                            self._batt_percent_normal,
+                        )
+                        self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
+                        self._rssi = device_data.get(ATTR_RSSI, self._rssi)
+                        self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
+                        self._low_temp_status = device_data.get(ATTR_LOW_TEMP_STATUS, self._low_temp_status)
                         self._input_name_2 = device_data[ATTR_NAME_2]
                         self._output_name_2 = device_data[ATTR_OUTPUT_NAME_2]
                         if ATTR_DRSTATUS in device_data:
