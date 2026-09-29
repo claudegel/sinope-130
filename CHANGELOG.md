@@ -10,7 +10,7 @@ All modification for this custom_component will be added in this file.
 - Fix climate.py for TH6xxxWF update that was broken.
 - Fix device_model in TH6xxxWF that was set to string instead of int values.
 - Fix many attributes update in case of Neviweb not returning data.
-- Refactor data retrieval using get method for valve.py, light.py, switch.py and sensor.py.
+- Refactor data retrieval using get method for climate.py, valve.py, light.py, switch.py and sensor.py.
 
 ### Doc
 
