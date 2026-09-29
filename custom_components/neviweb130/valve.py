@@ -1259,13 +1259,16 @@ class Neviweb130WifiValve(Neviweb130Valve):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    if ATTR_VALVE_INFO in device_data:
-                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
-                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
-                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                    valve_info = device_data.get(ATTR_VALVE_INFO, {})
+                    if valve_info:
+                        self._valve_info_status = valve_info.get("status", self._valve_info_status)
+                        self._valve_info_cause = valve_info.get("cause", self._valve_info_cause)
+                        self._valve_info_id = valve_info.get("identifier", self._valve_info_id)
                         self._valve_status = STATE_VALVE_STATUS if self._valve_info_status == "opened" else "closed"
                     else:
-                        self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                        motor_pos = device_data.get(ATTR_MOTOR_POS)
+                        if motor_pos is not None:
+                            self._valve_status = STATE_VALVE_STATUS if motor_pos == 100 else "closed"
                     self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
                     self._temp_alert = device_data[ATTR_TEMP_ALARM]
                     self._battery_voltage = (
@@ -1300,16 +1303,15 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     self._motor_target = device_data.get(ATTR_MOTOR_TARGET, self._motor_target)
                     closure = device_data.get(ATTR_VALVE_CLOSURE, {})
                     self._valve_closure = closure.get("source", self._valve_closure)
-                    if ATTR_STM8_ERROR in device_data:
-                        self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
-                        if "motorPosition" in device_data[ATTR_STM8_ERROR]:
-                            self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
-                        if "motorLimit" in device_data[ATTR_STM8_ERROR]:
-                            self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
-                        stm8_error = device_data.get(ATTR_FLOW_METER_CONFIG, {})
-                        self._flowmeter_multiplier = stm8_error.get("multiplier", self._flowmeter_multiplier)
-                        self._flowmeter_offset = stm8_error.get("offset", self._flowmeter_offset)
-                        self._flowmeter_divisor = stm8_error.get("divisor", self._flowmeter_divisor)
+                    stm8_error = device_data.get(ATTR_STM8_ERROR, {})
+                    self._stm8Error_motorJam = stm8_error.get("motorJam", self._stm8Error_motorJam)
+                    self._stm8Error_motorPosition = stm8_error.get("motorPosition", self._stm8Error_motorPosition)
+                    self._stm8Error_motorLimit = stm8_error.get("motorLimit", self._stm8Error_motorLimit)
+                    meter_config = device_data.get(ATTR_FLOW_METER_CONFIG, {})
+                    self._flowmeter_multiplier = meter_config.get("multiplier", self._flowmeter_multiplier)
+                    self._flowmeter_offset = meter_config.get("offset", self._flowmeter_offset)
+                    self._flowmeter_divisor = meter_config.get("divisor", self._flowmeter_divisor)
+                    self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     flow_alarm_1 = device_data.get(ATTR_FLOW_ALARM1, {})
                     actions = flow_alarm_1.get("actions", {})
                     self._flowmeter_opt_alarm_1 = actions.get(ATTR_TRIGGER_ALARM, self._flowmeter_opt_alarm_1)
@@ -1398,6 +1400,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "flow_meter_multiplier": self._flowmeter_multiplier,
                 "flow_meter_offset": self._flowmeter_offset,
                 "flow_meter_divisor": self._flowmeter_divisor,
+                "flow_meter_model": self._flowmeter_model,
                 "occupancy_sensor_delay": neviweb_to_ha_delay(self._occupancy_delay),
                 "total_flow_count": L_2_sqm(self._total_kwh_count),
                 "monthly_flow_count": L_2_sqm(self._monthly_kwh_count),
@@ -1717,13 +1720,16 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    if ATTR_VALVE_INFO in device_data:
-                        self._valve_info_status = device_data[ATTR_VALVE_INFO]["status"]
-                        self._valve_info_cause = device_data[ATTR_VALVE_INFO]["cause"]
-                        self._valve_info_id = device_data[ATTR_VALVE_INFO]["identifier"]
+                    valve_info = device_data.get(ATTR_VALVE_INFO, {})
+                    if valve_info:
+                        self._valve_info_status = valve_info.get("status", self._valve_info_status)
+                        self._valve_info_cause = valve_info.get("cause", self._valve_info_cause)
+                        self._valve_info_id = valve_info.get("identifier", self._valve_info_id)
                         self._valve_status = STATE_VALVE_STATUS if self._valve_info_status == "opened" else "closed"
                     else:
-                        self._valve_status = STATE_VALVE_STATUS if device_data[ATTR_MOTOR_POS] == 100 else "closed"
+                        motor_pos = device_data.get(ATTR_MOTOR_POS)
+                        if motor_pos is not None:
+                            self._valve_status = STATE_VALVE_STATUS if motor_pos == 100 else "closed"
                     self._onoff = "on" if self._valve_status == STATE_VALVE_STATUS else MODE_OFF
                     self._motor_position = device_data[ATTR_MOTOR_POS]
                     self._motor_target = device_data[ATTR_MOTOR_TARGET]
@@ -1733,15 +1739,15 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                     self._battery_voltage = (
                         device_data[ATTR_BATTERY_VOLTAGE] if device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
                     )
-                    if ATTR_STM8_ERROR in device_data:
-                        self._stm8Error_motorJam = device_data[ATTR_STM8_ERROR]["motorJam"]
-                        self._stm8Error_motorLimit = device_data[ATTR_STM8_ERROR]["motorLimit"]
-                        self._stm8Error_motorPosition = device_data[ATTR_STM8_ERROR]["motorPosition"]
-                    if ATTR_FLOW_METER_CONFIG in device_data:
-                        self._flowmeter_multiplier = device_data[ATTR_FLOW_METER_CONFIG]["multiplier"]
-                        self._flowmeter_offset = device_data[ATTR_FLOW_METER_CONFIG]["offset"]
-                        self._flowmeter_divisor = device_data[ATTR_FLOW_METER_CONFIG]["divisor"]
-                        self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
+                    stm8_error = device_data.get(ATTR_STM8_ERROR, {})
+                    self._stm8Error_motorJam = stm8_error.get("motorJam", self._stm8Error_motorJam)
+                    self._stm8Error_motorPosition = stm8_error.get("motorPosition", self._stm8Error_motorPosition)
+                    self._stm8Error_motorLimit = stm8_error.get("motorLimit", self._stm8Error_motorLimit)
+                    meter_config = device_data.get(ATTR_FLOW_METER_CONFIG, {})
+                    self._flowmeter_multiplier = meter_config.get("multiplier", self._flowmeter_multiplier)
+                    self._flowmeter_offset = meter_config.get("offset", self._flowmeter_offset)
+                    self._flowmeter_divisor = meter_config.get("divisor", self._flowmeter_divisor)
+                    self._flowmeter_model = model_to_HA(self._flowmeter_multiplier)
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
                     if self._water_leak_status == "flowMeter" and device_data[ATTR_FLOW_METER_CONFIG]["offset"] != 0:
                         code = device_data[ATTR_WATER_LEAK_STATUS]
@@ -1760,22 +1766,30 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                                 sku=self._sku,
                             )
                         )
-                    if ATTR_FLOW_ALARM_TIMER in device_data:
-                        self._flowmeter_timer = device_data[ATTR_FLOW_ALARM_TIMER]
-                        if self._flowmeter_timer == 0 and ATTR_FLOW_THRESHOLD in device_data:
-                            self._flowmeter_threshold = device_data[ATTR_FLOW_THRESHOLD]
-                            self._flowmeter_alert_delay = device_data[ATTR_FLOW_ALARM1_PERIOD]
-                            self._flowmeter_alarm_length = device_data[ATTR_FLOW_ALARM1_LENGTH]
-                            self._flowmeter_opt_alarm = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_TRIGGER_ALARM]
-                            self._flowmeter_opt_action = device_data[ATTR_FLOW_ALARM1_OPTION][ATTR_CLOSE_VALVE]
-                    if ATTR_FLOW_ALARM1 in device_data:
-                        self._flow_alarm_1 = device_data[ATTR_FLOW_ALARM1]
-                    if ATTR_FLOW_ALARM2 in device_data:
-                        self._flow_alarm_2 = device_data[ATTR_FLOW_ALARM2]
-                    if ATTR_TEMP_ACTION_LOW in device_data:
-                        self._temp_action_low = device_data[ATTR_TEMP_ACTION_LOW]
-                    if ATTR_BATT_ACTION_LOW in device_data:
-                        self._batt_action_low = device_data[ATTR_BATT_ACTION_LOW]
+                    self._flowmeter_timer = device_data.get(ATTR_FLOW_ALARM_TIMER, self._flowmeter_timer)
+                    if self._flowmeter_timer == 0:
+                        self._flowmeter_threshold = device_data.get(ATTR_FLOW_THRESHOLD, self._flowmeter_threshold)
+                        self._flowmeter_alert_delay = device_data.get(
+                            ATTR_FLOW_ALARM1_PERIOD,
+                            self._flowmeter_alert_delay,
+                        )
+                        self._flowmeter_alarm_length = device_data.get(
+                            ATTR_FLOW_ALARM1_LENGTH,
+                            self._flowmeter_alarm_length,
+                        )
+                        flow_alarm_option = device_data.get(ATTR_FLOW_ALARM1_OPTION, {})
+                        self._flowmeter_opt_alarm = flow_alarm_option.get(
+                            ATTR_TRIGGER_ALARM,
+                            self._flowmeter_opt_alarm,
+                        )
+                        self._flowmeter_opt_action = flow_alarm_option.get(
+                            ATTR_CLOSE_VALVE,
+                            self._flowmeter_opt_action,
+                        )
+                    self._flow_alarm_1 = device_data.get(ATTR_FLOW_ALARM1, self._flow_alarm_1)
+                    self._flow_alarm_2 = device_data.get(ATTR_FLOW_ALARM2, self._flow_alarm_2)
+                    self._temp_action_low = device_data.get(ATTR_TEMP_ACTION_LOW, self._temp_action_low)
+                    self._batt_action_low = device_data.get(ATTR_BATT_ACTION_LOW, self._batt_action_low)
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
