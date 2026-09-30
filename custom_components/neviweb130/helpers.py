@@ -6,7 +6,6 @@ import os
 import shutil
 from logging.handlers import RotatingFileHandler
 
-import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
