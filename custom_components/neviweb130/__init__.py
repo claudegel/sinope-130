@@ -360,6 +360,7 @@ class Neviweb130Data:
         self.current_version = VERSION
         self.available_version = None
         self.release_notes = ""
+        self.release_title = ""
 
         # Check if using new multi-account format
         if CONF_ACCOUNTS in config:
