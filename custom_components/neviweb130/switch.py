@@ -2054,9 +2054,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                         )
                         self._water_leak_status = water_leak_status
                     elif water_leak_status is not None:
-                        self._water_leak_status = (
-                            STATE_WATER_LEAK if water_leak_status == STATE_WATER_LEAK else "ok"
-                        )
+                        self._water_leak_status = STATE_WATER_LEAK if water_leak_status == STATE_WATER_LEAK else "ok"
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if (
                         ATTR_ERROR_CODE_SET1 in device_data
