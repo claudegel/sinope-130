@@ -422,6 +422,7 @@ HAVE_BEDROOM_BACKLIGHT: set[int] = {
     343,
     348,
     350,
+    354,
     738,
     739,
     742,

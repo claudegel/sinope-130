@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 from typing import Any
@@ -164,7 +163,6 @@ from .const import (
     VERSION,
 )
 from .helpers import (
-    fetch_release_notes,
     increment_request_counter,
     init_request_counter,
     setup_logger,
@@ -293,47 +291,41 @@ def setup(hass: HomeAssistant, hass_config: dict[str, Any]) -> bool:
 
     _LOGGER.debug("Setting safe mode to: %s", hass.data[DOMAIN]["safe_mode"])
 
-    async def fetch_latest_version():
-        url = "https://api.github.com/repos/claudegel/sinope-130/tags"
+    async def fetch_latest_release() -> tuple[str, str, str] | None:
+        """Fetch the latest GitHub release."""
+        url = "https://api.github.com/repos/claudegel/sinope-130/releases/latest"
 
         async with aiohttp.ClientSession() as session, session.get(url) as resp:
             if resp.status != 200:
+                _LOGGER.warning(
+                    "Could not fetch latest GitHub release: HTTP %s",
+                    resp.status,
+                )
                 return None
 
-            text = await resp.text()
+            release = await resp.json()
 
-            try:
-                tags = json.loads(text)
-            except (json.JSONDecodeError, TypeError, ValueError) as err:
-                _LOGGER.error("Failed to parse GitHub tags: %s", err)
-                return None
+        latest = (release.get("tag_name") or "").lstrip("v")
+        title = (release.get("name") or "").strip()
+        notes = (release.get("body") or "").strip()
 
-            if not isinstance(tags, list) or not tags:
-                return None
+        if not latest:
+            _LOGGER.warning("GitHub returned an empty tag_name")
+            return None
 
-            latest_tag = tags[0].get("name")
-            if latest_tag and latest_tag.startswith("v"):
-                latest_tag = latest_tag[1:]
-
-            return latest_tag
+        return latest, title, notes
 
     async def async_init_update():
-        latest = await fetch_latest_version()
-        if latest is None:
-            _LOGGER.warning("Could not fetch latest version from GitHub")
+        result = await fetch_latest_release()
+        if result is None:
             return
 
-        hass.data[DOMAIN]["data"].available_version = latest
+        latest, title, notes = result
 
-        result = await fetch_release_notes(latest)
-        if result is None:
-            title = "No title available."
-            notes = "No release notes available."
-        else:
-            title, notes = result
+        data.available_version = latest
+        data.release_title = title
+        data.release_notes = notes
 
-        hass.data[DOMAIN]["data"].release_title = title
-        hass.data[DOMAIN]["data"].release_notes = notes
         entity = hass.data[DOMAIN].get("update_entity")
         if entity:
             entity._latest_version = latest
@@ -368,6 +360,7 @@ class Neviweb130Data:
         self.current_version = VERSION
         self.available_version = None
         self.release_notes = ""
+        self.release_title = ""
 
         # Check if using new multi-account format
         if CONF_ACCOUNTS in config:
