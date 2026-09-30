@@ -1485,12 +1485,13 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data[ATTR_TEMP_ALERT]
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
-                        if ATTR_BATTERY_STATUS in device_data:
-                            self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                            self._battery_type = device_data[ATTR_BATTERY_TYPE]
-                        if ATTR_BATT_PERCENT_NORMAL in device_data:
-                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
+                        self._battery_status = device_data.get(ATTR_BATTERY_STATUS, self._battery_status)
+                        self._battery_type = device_data.get(ATTR_BATTERY_TYPE, self._battery_type)
+                        self._batt_percent_normal = device_data.get(
+                            ATTR_BATT_PERCENT_NORMAL,
+                            self._batt_percent_normal,
+                        )
+                        self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
                         if self._is_new_leak:
                             if (
                                 ATTR_ERROR_CODE_SET1 in device_data
@@ -1513,11 +1514,9 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
                                     title=f"Neviweb130 integration {VERSION}",
                                     notification_id="neviweb130_error_code",
                                 )
-                            if ATTR_SENSOR_TYPE in device_data:
-                                self._sensor_type = device_data[ATTR_SENSOR_TYPE]
+                            self._sensor_type = device_data.get(ATTR_SENSOR_TYPE, self._sensor_type)
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                        if ATTR_RSSI in device_data:
-                            self._rssi = device_data[ATTR_RSSI]
+                        self._rssi = device_data.get(ATTR_RSSI, self._rssi)
                     self.async_write_ha_state()
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1669,21 +1668,20 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
                             )
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
-                        if ATTR_TEMP_ALERT in device_data:
-                            self._temp_alert = device_data[ATTR_TEMP_ALERT]
-                        if ATTR_BATT_ALERT in device_data:
-                            self._battery_alert = device_data[ATTR_BATT_ALERT]
-                        if ATTR_BATTERY_STATUS in device_data:
-                            self._battery_status = device_data[ATTR_BATTERY_STATUS]
-                            self._battery_type = device_data[ATTR_BATTERY_TYPE]
-                        if ATTR_BATT_PERCENT_NORMAL in device_data:
-                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
+                        self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
+                        self._battery_alert = device_data.get(ATTR_BATT_ALERT, self._battery_alert)
+                        self._battery_status = device_data.get(ATTR_BATTERY_STATUS, self._battery_status)
+                        self._battery_type = device_data.get(ATTR_BATTERY_TYPE, self._battery_type)
+                        self._batt_percent_normal = device_data.get(
+                            ATTR_BATT_PERCENT_NORMAL,
+                            self._batt_percent_normal,
+                        )
+                        self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
                         self._closure_action = device_data[ATTR_CONF_CLOSURE]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                         if self._is_new_connected:
-                            if ATTR_SENSOR_TYPE in device_data:
-                                self._sensor_type = device_data[ATTR_SENSOR_TYPE]
+                            self._sensor_type = device_data.get(ATTR_SENSOR_TYPE, self._sensor_type)
+
                     self.async_write_ha_state()
                     return
                 _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
@@ -1845,8 +1843,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                         self._refuel = device_data[ATTR_REFUEL]
                         self._fuel_percent_alert = device_data[ATTR_FUEL_PERCENT_ALERT]
                         self._battery_alert = device_data[ATTR_BATT_ALERT]
-                        if ATTR_RSSI in device_data:
-                            self._rssi = device_data[ATTR_RSSI]
+                        self._rssi = device_data.get(ATTR_RSSI, self._rssi)
                         if (
                             ATTR_ERROR_CODE_SET1 in device_data
                             and device_data[ATTR_ERROR_CODE_SET1]
