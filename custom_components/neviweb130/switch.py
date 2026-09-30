@@ -1906,8 +1906,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         )
                     else:
                         self._error_code = 0
-                    if ATTR_WIFI in device_data:
-                        self._wifirssi = device_data[ATTR_WIFI]
+                    self._wifirssi = device_data.get(ATTR_WIFI, self._wifirssi)
                     self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
                     self.async_write_ha_state()
                 else:
@@ -2036,28 +2035,28 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
-                    if ATTR_WATER_LEAK_STATUS in device_data:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            msg = await translate_error(
-                                self.hass,
-                                "error_code",
-                                code=device_data[ATTR_WATER_LEAK_STATUS],
-                                message="Leak sensor disconnected",
-                                name=self._name,
-                                id=self._id,
-                                sku=self._sku,
-                            )
-                            await async_notify_critical(
-                                self.hass,
-                                msg,
-                                title=f"Neviweb130 integration {VERSION}",
-                                notification_id="neviweb130_error_code",
-                            )
-                            self._water_leak_status = device_data[ATTR_WATER_LEAK_STATUS]
-                        else:
-                            self._water_leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                    water_leak_status = device_data.get(ATTR_WATER_LEAK_STATUS)
+                    if water_leak_status == "probe":
+                        msg = await translate_error(
+                            self.hass,
+                            "error_code",
+                            code=water_leak_status,
+                            message="Leak sensor disconnected",
+                            name=self._name,
+                            id=self._id,
+                            sku=self._sku,
+                        )
+                        await async_notify_critical(
+                            self.hass,
+                            msg,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id="neviweb130_error_code",
+                        )
+                        self._water_leak_status = water_leak_status
+                    elif water_leak_status is not None:
+                        self._water_leak_status = (
+                            STATE_WATER_LEAK if water_leak_status == STATE_WATER_LEAK else "ok"
+                        )
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if (
                         ATTR_ERROR_CODE_SET1 in device_data
@@ -2103,10 +2102,11 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._water_temp_protec = device_data[ATTR_WATER_TEMP_PROTEC]
                     self._watt_time_on = device_data[ATTR_WATT_TIME_ON]
                     self._water_temp_time = device_data[ATTR_DR_WATER_TEMP_TIME]
-                    if ATTR_DR_PROTEC_STATUS in device_data:
-                        self._temperature = device_data[ATTR_DR_PROTEC_STATUS]["temperature"]
-                        self._consumption = device_data[ATTR_DR_PROTEC_STATUS]["consumption"]
-                        self._consumption_time = device_data[ATTR_DR_PROTEC_STATUS]["consumptionOverTime"]
+                    dr_protec = device_data.get(ATTR_DR_PROTEC_STATUS, {})
+                    self._temperature = dr_protec.get("temperature", self._temperature)
+                    self._consumption = dr_protec.get("consumption", self._consumption)
+                    self._consumption_time = dr_protec.get("consumptionOverTime", self._consumption_time)
+
                     self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
@@ -2517,8 +2517,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                         self._onoff = device_data[ATTR_ONOFF]
                         self._input_status = device_data[ATTR_INPUT_STATUS]
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
-                        if ATTR_BATT_INFO in device_data:
-                            self._batt_info = device_data[ATTR_BATT_INFO]
+                        self._batt_info = device_data.get(ATTR_BATT_INFO, self._batt_info)
                         self._input_name_1 = device_data[ATTR_NAME_1]
                         self._output_name_1 = device_data[ATTR_OUTPUT_NAME_1]
                     if self._is_zb_control:
@@ -2530,21 +2529,26 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                         self._ext_temp = device_data[ATTR_EXT_TEMP]
                         self._timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
                         self._timer2 = neviweb_to_ha_timer(device_data[ATTR_TIMER2])
-                        if ATTR_INPUT_1_ON_DELAY in device_data:
-                            self._input_1_on_delay = neviweb_to_ha_delay(device_data[ATTR_INPUT_1_ON_DELAY])
-                            self._input_2_on_delay = neviweb_to_ha_delay(device_data[ATTR_INPUT_2_ON_DELAY])
-                            self._input_1_off_delay = neviweb_to_ha_delay(device_data[ATTR_INPUT_1_OFF_DELAY])
-                            self._input_2_off_delay = neviweb_to_ha_delay(device_data[ATTR_INPUT_2_OFF_DELAY])
-                        if ATTR_BATT_PERCENT_NORMAL in device_data:
-                            self._batt_percent_normal = device_data[ATTR_BATT_PERCENT_NORMAL]
-                        if ATTR_BATT_STATUS_NORMAL in device_data:
-                            self._batt_status_normal = device_data[ATTR_BATT_STATUS_NORMAL]
-                        if ATTR_RSSI in device_data:
-                            self._rssi = device_data[ATTR_RSSI]
-                        if ATTR_TEMP_ALERT in device_data:
-                            self._temp_alert = device_data[ATTR_TEMP_ALERT]
-                        if ATTR_LOW_TEMP_STATUS in device_data:
-                            self._low_temp_status = device_data[ATTR_LOW_TEMP_STATUS]
+                        input_1_on_delay = device_data.get(ATTR_INPUT_1_ON_DELAY)
+                        if input_1_on_delay is not None:
+                            self._input_1_on_delay = neviweb_to_ha_delay(input_1_on_delay)
+                        input_2_on_delay = device_data.get(ATTR_INPUT_2_ON_DELAY)
+                        if input_2_on_delay is not None:
+                            self._input_2_on_delay = neviweb_to_ha_delay(input_2_on_delay)
+                        input_1_off_delay = device_data.get(ATTR_INPUT_1_OFF_DELAY)
+                        if input_1_off_delay is not None:
+                            self._input_1_off_delay = neviweb_to_ha_delay(input_1_off_delay)
+                        input_2_off_delay = device_data.get(ATTR_INPUT_2_OFF_DELAY)
+                        if input_2_off_delay is not None:
+                            self._input_2_off_delay = neviweb_to_ha_delay(input_2_off_delay)
+                        self._batt_percent_normal = device_data.get(
+                            ATTR_BATT_PERCENT_NORMAL,
+                            self._batt_percent_normal,
+                        )
+                        self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
+                        self._rssi = device_data.get(ATTR_RSSI, self._rssi)
+                        self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
+                        self._low_temp_status = device_data.get(ATTR_LOW_TEMP_STATUS, self._low_temp_status)
                         self._input_name_2 = device_data[ATTR_NAME_2]
                         self._output_name_2 = device_data[ATTR_OUTPUT_NAME_2]
                         if ATTR_DRSTATUS in device_data:
