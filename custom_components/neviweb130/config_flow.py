@@ -39,6 +39,7 @@ from .const import (
 from .coordinator import PyNeviweb130Error
 from .helpers import (
     async_notify_critical,
+    async_notify_once_or_update,
     expose_log_file,
     translate_error,
 )
@@ -284,7 +285,7 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
         # Inform the user that YAML is deprecated
         msg = await translate_error(self.hass, "config_imported", prefix=prefix)
         _LOGGER.info(msg)
-        await async_notify_critical(
+        await async_notify_once_or_update(
             self.hass,
             msg,
             title=f"Neviweb130 integration {VERSION}",
