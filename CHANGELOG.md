@@ -4,6 +4,7 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.3.1] - 2026-09-__
 ### Added
+- Add bedroom option in backlight for TH1145WF.
 
 ### Fix
 - Fix updater for update description that was not correctly synchronized.
