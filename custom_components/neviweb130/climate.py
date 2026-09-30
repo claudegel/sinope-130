@@ -4834,9 +4834,8 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     room_display = device_data.get(ATTR_ROOM_TEMP_DISPLAY, {})
                     self._temp_display_status = room_display.get("status", self._temp_display_status)
                     self._temp_display_value = room_display.get("value", self._temp_display_value)
-                    if ATTR_INTERLOCK_ID in device_data:
-                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
-                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
+                    self._interlock_id = device_data.get(ATTR_INTERLOCK_ID, self._interlock_id)
+                    self._interlock_partner = device_data.get(ATTR_INTERLOCK_PARTNER, self._interlock_partner)
                     self.async_write_ha_state()
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -6123,8 +6122,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
-                    if ATTR_MODEL in device_data and ATTR_MODEL is not None:
-                        self._model = device_data[ATTR_MODEL]
+                    model = device_data.get(ATTR_MODEL)
+                    if model is not None:
+                        self._model = model
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
@@ -6144,22 +6144,19 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
                     self._fan_cap = device_data[ATTR_FAN_CAP]
                     self._avail_mode = device_data[ATTR_AVAIL_MODE]
-                    if ATTR_FAN_SWING_HORIZ in device_data:
-                        self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
-                        self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
-                        self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
-                        self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
-                        self._balance_pt = device_data[ATTR_BALANCE_PT]
-                        self._heat_lockout_temp = device_data[ATTR_HEAT_LOCK_TEMP]
-                        self._cool_lockout_temp = device_data[ATTR_COOL_LOCK_TEMP]
-                    if ATTR_BALANCE_PT_TEMP_LOW in device_data:
-                        self._balance_pt_low = device_data[ATTR_BALANCE_PT_TEMP_LOW]
-                        self._balance_pt_high = device_data[ATTR_BALANCE_PT_TEMP_HIGH]
-                    if ATTR_DISPLAY_CONF in device_data:
-                        self._display_conf = device_data[ATTR_DISPLAY_CONF]
-                        self._display_cap = device_data[ATTR_DISPLAY_CAP]
-                        self._sound_conf = device_data[ATTR_SOUND_CONF]
-                        self._sound_cap = device_data[ATTR_SOUND_CAP]
+                    self._fan_swing_horiz = device_data.get(ATTR_FAN_SWING_HORIZ, self._fan_swing_horiz)
+                    self._fan_swing_cap = device_data.get(ATTR_FAN_SWING_CAP, self._fan_swing_cap)
+                    self._fan_swing_cap_horiz = device_data.get(ATTR_FAN_SWING_CAP_HORIZ, self._fan_swing_cap_horiz)
+                    self._fan_swing_cap_vert = device_data.get(ATTR_FAN_SWING_CAP_VERT, self._fan_swing_cap_vert)
+                    self._balance_pt = device_data.get(ATTR_BALANCE_PT, self._balance_pt)
+                    self._heat_lockout_temp = device_data.get(ATTR_HEAT_LOCK_TEMP, self._heat_lockout_temp)
+                    self._cool_lockout_temp = device_data.get(ATTR_COOL_LOCK_TEMP, self._cool_lockout_temp)
+                    self._balance_pt_low = device_data.get(ATTR_BALANCE_PT_TEMP_LOW, self._balance_pt_low)
+                    self._balance_pt_high = device_data.get(ATTR_BALANCE_PT_TEMP_HIGH, self._balance_pt_high)
+                    self._display_conf = device_data.get(ATTR_DISPLAY_CONF, self._display_conf)
+                    self._display_cap = device_data.get(ATTR_DISPLAY_CAP, self._display_cap)
+                    self._sound_conf = device_data.get(ATTR_SOUND_CONF, self._sound_conf)
+                    self._sound_cap = device_data.get(ATTR_SOUND_CAP, self._sound_cap)
                     self.async_write_ha_state()
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -6638,8 +6635,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._cool_target_temp_away = device_data[ATTR_COOL_SETPOINT_AWAY]
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._occupancy = device_data.get(ATTR_OCCUPANCY, self._occupancy)
-                    if ATTR_MODEL in device_data and ATTR_MODEL is not None:
-                        self._model = device_data[ATTR_MODEL]
+                    model = device_data.get(ATTR_MODEL)
+                    if model is not None:
+                        self._model = model
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
@@ -6664,23 +6662,20 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
                     self._fan_cap = device_data[ATTR_FAN_CAP]
                     self._system_mode_avail = device_data[ATTR_SYSTEM_MODE_AVAIL]
-                    if ATTR_FAN_SWING_HORIZ in device_data:
-                        self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
-                        self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
-                        self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
-                        self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
-                        self._balance_pt = device_data[ATTR_BALANCE_PT]
-                        self._heat_lockout_temp = device_data[ATTR_HEAT_LOCK_TEMP]
-                        self._cool_lockout_temp = device_data[ATTR_COOL_LOCK_TEMP]
-                    if ATTR_DISPLAY_CONF in device_data:
-                        self._display_conf = device_data[ATTR_DISPLAY_CONF]
-                        self._display_cap = device_data[ATTR_DISPLAY_CAP]
-                        self._sound_conf = device_data[ATTR_SOUND_CONF]
-                        self._sound_cap = device_data[ATTR_SOUND_CAP]
-                    if ATTR_INTERLOCK_ID in device_data:
-                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
-                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
-                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
+                    self._fan_swing_horiz = device_data.get(ATTR_FAN_SWING_HORIZ, self._fan_swing_horiz)
+                    self._fan_swing_cap = device_data.get(ATTR_FAN_SWING_CAP, self._fan_swing_cap)
+                    self._fan_swing_cap_horiz = device_data.get(ATTR_FAN_SWING_CAP_HORIZ, self._fan_swing_cap_horiz)
+                    self._fan_swing_cap_vert = device_data.get(ATTR_FAN_SWING_CAP_VERT, self._fan_swing_cap_vert)
+                    self._balance_pt = device_data.get(ATTR_BALANCE_PT, self._balance_pt)
+                    self._heat_lockout_temp = device_data.get(ATTR_HEAT_LOCK_TEMP, self._heat_lockout_temp)
+                    self._cool_lockout_temp = device_data.get(ATTR_COOL_LOCK_TEMP, self._cool_lockout_temp)
+                    self._display_conf = device_data.get(ATTR_DISPLAY_CONF, self._display_conf)
+                    self._display_cap = device_data.get(ATTR_DISPLAY_CAP, self._display_cap)
+                    self._sound_conf = device_data.get(ATTR_SOUND_CONF, self._sound_conf)
+                    self._sound_cap = device_data.get(ATTR_SOUND_CAP, self._sound_cap)
+                    self._interlock_id = device_data.get(ATTR_INTERLOCK_ID, self._interlock_id)
+                    self._interlock_partner = device_data.get(ATTR_INTERLOCK_PARTNER, self._interlock_partner)
+                    self._interlock_hc_mode = device_data.get(ATTR_INTERLOCK_HC_MODE, self._interlock_hc_mode)
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -7349,11 +7344,19 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._temp_offset_heat = device_data[ATTR_TEMP_OFFSET_HEAT]
                     self._aux_heat_min_time_on = device_data[ATTR_AUX_HEAT_MIN_TIME_ON]
                     self._aux_heat_start_delay = device_data[ATTR_AUX_HEAT_START_DELAY]
-                    if ATTR_HEAT_INTERSTAGE_MIN_DELAY in device_data:
-                        self._heat_interstage_min_delay = device_data[ATTR_HEAT_INTERSTAGE_MIN_DELAY]
-                        self._cool_interstage_min_delay = device_data[ATTR_COOL_INTERSTAGE_MIN_DELAY]
-                        self._hvac_input1_function = device_data[ATTR_HVAC_INPUT_1_FUNCTION]
-                        self._scheduled_peak_delay = device_data[ATTR_SCHEDULED_PEAK_DELAY]
+                    self._heat_interstage_min_delay = device_data.get(
+                        ATTR_HEAT_INTERSTAGE_MIN_DELAY,
+                        self._heat_interstage_min_delay,
+                    )
+                    self._cool_interstage_min_delay = device_data.get(
+                        ATTR_COOL_INTERSTAGE_MIN_DELAY,
+                        self._cool_interstage_min_delay,
+                    )
+                    self._hvac_input1_function = device_data.get(
+                        ATTR_HVAC_INPUT_1_FUNCTION,
+                        self._hvac_input1_function,
+                    )
+                    self._scheduled_peak_delay = device_data.get(ATTR_SCHEDULED_PEAK_DELAY, self._scheduled_peak_delay)
                     self._dual_status = device_data[ATTR_DUAL_STATUS]
                     self._cool_min_time_on = device_data[ATTR_COOL_MIN_TIME_ON]
                     self._cool_min_time_off = device_data[ATTR_COOL_MIN_TIME_OFF]
