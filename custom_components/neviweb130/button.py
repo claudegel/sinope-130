@@ -19,10 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES
 from .coordinator import Neviweb130Coordinator
-
-DEFAULT_NAME = f"{DOMAIN} button"
-DEFAULT_NAME_2 = f"{DOMAIN} button 2"
-DEFAULT_NAME_3 = f"{DOMAIN} button 3"
+from .helpers import NamingHelper
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,13 +53,19 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
     entities = []
     client = data["neviweb130_client"]
 
-    _LOGGER.debug("Keys dans coordinator.data : %s", list(coordinator.data.keys()))
+    config_prefix = data["prefix"]
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
 
-    for gateway_data, default_name in [
-        (client.gateway_data, DEFAULT_NAME),
-        (client.gateway_data2, DEFAULT_NAME_2),
-        (client.gateway_data3, DEFAULT_NAME_3),
-    ]:
+    _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
+
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
         if not gateway_data or gateway_data == "_":
             continue
 
@@ -73,15 +76,16 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
 
             device_id = str(device_info["id"])
             if device_id not in coordinator.data:
-                _LOGGER.warning("Device %s coordinator.data not yet initialized", device_id)
+                _LOGGER.debug("Device %s coordinator.data not yet initialized", device_id)
 
-            device_name = f"{default_name} {device_info['name']}"
+            device_platform = naming.get_device_platform(int(model))
+            device_name = naming.device_name(device_platform, index, device_info)
             device_entry = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
                 manufacturer="claudegel",
                 name=device_name,
-                model=model,
+                model=str(model),
                 sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
             )
 
@@ -104,6 +108,7 @@ def create_attribute_buttons(hass, entry, data, coordinator, device_registry):
                                 },
                                 coordinator=coordinator,
                                 entity_description=desc,
+                                entry=entry,
                             )
                         )
 
@@ -153,6 +158,7 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
         attr_info: DeviceInfo,
         coordinator,
         entity_description: Neviweb130ButtonEntityDescription,
+        entry: ConfigEntry,
     ):
         """Initialize the button."""
         super().__init__(coordinator)
@@ -163,7 +169,7 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
         self._device_name = device_name
         self._device_id = device_id
         self._attribute = attribute
-        self._attr_unique_id = f"{self._id}_{attribute}"
+        self._attr_unique_id = f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
         self._attr_device_info = attr_info
         self._attr_icon = entity_description.icon
         self._attr_translation_key = entity_description.translation_key
@@ -186,10 +192,10 @@ class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], 
         if handler:
             success = await handler(self)
             if success:
-                _LOGGER.info(f"Button {self._attr_translation_key} pressed.")
+                _LOGGER.info("Button %s pressed.", self._attr_translation_key)
                 self.async_write_ha_state()
                 await self.coordinator.async_request_refresh()
             else:
-                _LOGGER.warning(f"Button press failed for attribute: {self._attr_translation_key}")
+                _LOGGER.warning("Button press failed for attribute: %s", self._attr_translation_key)
         else:
             _LOGGER.warning("No handler for button attribute: %s", self._attribute)
