@@ -2,6 +2,14 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.2] - 2026-10-__
+### Added
+
+### Fix
+- Refactor wattage assignment to handle nested structure for some Wi-Fi devices.
+
+### Doc
+
 ## [v4.3.1] - 2026-09-30
 ### Added
 - Add bedroom option in backlight for TH1145WF.
