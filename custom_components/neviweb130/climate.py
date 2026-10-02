@@ -4643,7 +4643,8 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_FLOOR_OUTPUT1]
-                    self._wattage = device_data.get(ATTR_WIFI_WATTAGE, self._wattage)
+                    wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
+                    self._wattage = wattage.get("value", self._wattage)
                     self._cycle_length = device_data.get(ATTR_CYCLE_LENGTH, self._cycle_length)
                     room_temp_display = device_data.get(ATTR_ROOM_TEMP_DISPLAY, {})
                     self._temp_display_status = room_temp_display.get("status", self._temp_display_status)
@@ -5347,7 +5348,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
-                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
+                    self._wattage = wattage.get("value", self._wattage)
                     self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -5635,7 +5637,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = device_data[ATTR_WIFI_KEYPAD]
                     self._rssi = device_data[ATTR_WIFI]
-                    self._wattage = device_data.get(ATTR_WIFI_WATTAGE, self._wattage)
+                    wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
+                    self._wattage = wattage.get("value", self._wattage)
                     self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
