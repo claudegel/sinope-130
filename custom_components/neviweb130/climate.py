@@ -5302,7 +5302,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     self._rssi = device_data[ATTR_WIFI]
-                    self._wattage = device_data[ATTR_WIFI_WATTAGE]
+                    wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
+                    self._wattage = wattage.get("value", self._wattage)
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -5575,7 +5576,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._occupancy = device_data[ATTR_OCCUPANCY]
                     self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
                     self._rssi = device_data[ATTR_WIFI]
-                    self._wattage = device_data.get(ATTR_WIFI_WATTAGE, self._wattage)
+                    wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
+                    self._wattage = wattage.get("value", self._wattage)
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
