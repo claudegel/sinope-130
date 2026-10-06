@@ -9,6 +9,7 @@ All modification for this custom_component will be added in this file.
 - Refactor wattage assignment to handle nested structure for some Wi-Fi devices.
 
 ### Doc
+- Add DVCERR error message description in readme.md.
 
 ## [v4.3.1] - 2026-09-30
 ### Added
