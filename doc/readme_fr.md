@@ -777,6 +777,7 @@ Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb�
 - DVCBUSY : Neviweb effectue une mise à jour et les appareils ne sont pas disponibles. Essayez plus tard.
 - DVCCOMMTO : Délai de communication de l'appareil : l'appareil ne répond pas assez rapidement ou vous interrogez cet appareil trop
   fréquemment.
+- DVCERR: L'appareil a rejeté la requête. La commande a envoyé une valeur au dessus ou en dessous des limites de l'appareil.
 - DVCNOTSYNC : L'appareil n'est pas synchronisé avec Neviweb. Vérifiez votre réseau, routeur et/ou passerelle Wi-Fi.
 - DVCUNVLB : Appareil indisponible. Neviweb ne parvient pas à se connecter à des appareils spécifiques, principalement des appareils Wi-Fi. 
 - MAINTENANCE : Accès Neviweb temporairement bloqué pour maintenance... Réessayez plus tard.
