@@ -3604,7 +3604,7 @@ class Neviweb130Thermostat(ClimateEntity):
             self._snooze = time.time()
         elif error_data == "DVCERR":
             _LOGGER.warning(
-                "Device error for %s (id: %s), service already active: %s... (SKU: %s)",
+                "Device error for %s (id: %s), commande/attribute rejected by device: %s... (SKU: %s)",
                 self._name,
                 self._id,
                 error_data,
@@ -6596,9 +6596,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 ATTR_FAN_SWING_VERT,
                 ATTR_HEAT_COOL,
                 ATTR_HEAT_LOCK_TEMP,
-                ATTR_INTERLOCK_HC_MODE,
                 ATTR_INTERLOCK_ID,
-                ATTR_INTERLOCK_PARTNER,
                 ATTR_MODEL,
                 ATTR_OCCUPANCY,
                 ATTR_ROOM_SETPOINT_AWAY,
@@ -6610,10 +6608,17 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 ATTR_WIFI,
                 ATTR_WIFI_KEYPAD,
             ]
+            if self._firmware == "1.0.2":
+                WHP_PARTNER = [
+                    ATTR_INTERLOCK_HC_MODE,
+                    ATTR_INTERLOCK_PARTNER,
+                ]
+            else:
+                WHP_PARTNER = []
 
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            attributes = UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES
+            attributes = UPDATE_HP_ATTRIBUTES + WHP_ATTRIBUTES + WHP_PARTNER
             _LOGGER.debug("Updated attributes for %s: %s", self._name, attributes)
             safe_mode = self.hass.data[DOMAIN]["safe_mode"]
 
@@ -6748,10 +6753,10 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         self._display_cap = device_data[ATTR_DISPLAY_CAP]
                         self._sound_conf = device_data[ATTR_SOUND_CONF]
                         self._sound_cap = device_data[ATTR_SOUND_CAP]
-                    if ATTR_INTERLOCK_ID in device_data:
-                        self._interlock_id = device_data[ATTR_INTERLOCK_ID]
-                        self._interlock_partner = device_data[ATTR_INTERLOCK_PARTNER]
-                        self._interlock_hc_mode = device_data[ATTR_INTERLOCK_HC_MODE]
+                    self._interlock_id = device_data.get(ATTR_INTERLOCK_ID, self._interlock_id)
+                    if self._interlock_id is not None and self._firmware == "1.0.2":
+                        self._interlock_partner = device_data.get(ATTR_INTERLOCK_PARTNER, self._interlock_partner)
+                        self._interlock_hc_mode = device_data.get(ATTR_INTERLOCK_HC_MODE, self._interlock_hc_mode)
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -7116,8 +7121,6 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "eco_setpoint_delta": self._drsetpoint_value,
                 "outdoor_temp": self._temperature,
                 "interlock_id": self._interlock_id,
-                "interlock_hc_mode": self._interlock_hc_mode,
-                "interlock_partner": self._interlock_partner,
                 "weather_icon": self._weather_icon,
                 "rssi": self._rssi,
                 "sku": self._sku,
@@ -7128,6 +7131,14 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "id": self._id,
             }
         )
+        if self._firmware == "1.0.2":
+            data.update(
+                {
+                    "interlock_hc_mode": self._interlock_hc_mode,
+                    "interlock_partner": self._interlock_partner,
+                }
+            )
+
         return data
 
 
