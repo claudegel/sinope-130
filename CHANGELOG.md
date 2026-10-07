@@ -7,6 +7,8 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Refactor wattage assignment to handle nested structure for some Wi-Fi devices.
+- Update error handling in devices update.
+- Fix interlock attributes for HP6000WF-MA.
 
 ### Doc
 - Add DVCERR error message description in readme.md.
