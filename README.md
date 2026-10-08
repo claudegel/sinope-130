@@ -762,7 +762,7 @@ In you log you can get those messages from Neviweb:
 - DVCBUSY: Neviweb is performing an update and devices are not available. Try later.
 - DVCCOMMTO: Device Communication Timeout: device do not respond fast enough, or you are polling that device too 
   frequently.
-- DVCERR: Device is rejecting the command. Commande sent is below or above a limit set in the device.
+- DVCERR: Device is rejecting the command. Commande sent contain invalid or undefined attributes.
 - DVCNOTSYNC: Device is not in sync with Neviweb. Check your network, router and/or Wi-Fi gateway.
 - DVCUNVLB: Device unavailable. Neviweb is unable to connect with specific device, mostly Wi-Fi devices. 
 - MAINTENANCE: Neviweb access temporary blocked for maintenance... Retry later.
