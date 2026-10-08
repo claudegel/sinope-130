@@ -6565,6 +6565,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         self._cool_target_temp_away = None
         self._display_cap = None
         self._fan_cap = None
+        self._fan_speed_nb = None
         self._heat_cool = None
         self._heatcool_setpoint_delta = 2
         self._interlock_hc_mode = None
@@ -6738,11 +6739,13 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             )
                         )
                     self._fan_swing_vert = device_data[ATTR_FAN_SWING_VERT]
-                    self._fan_cap = device_data[ATTR_FAN_CAP]
+                    fan_cap = device_data.get(ATTR_FAN_CAP, {})
+                    self._fan_cap = fan_cap.get("modeAvailable", self._fan_cap)
+                    self._fan_speed_nb = fan_cap.get("nbFanSpeed", self._fan_speed_nb)
                     self._system_mode_avail = device_data[ATTR_SYSTEM_MODE_AVAIL]
                     if ATTR_FAN_SWING_HORIZ in device_data:
                         self._fan_swing_horiz = device_data[ATTR_FAN_SWING_HORIZ]
-                        self._fan_swing_cap = device_data[ATTR_FAN_SWING_CAP]
+                        self._fan_swing_cap = device_data.get(ATTR_FAN_SWING_CAP, self._fan_swing_cap)
                         self._fan_swing_cap_horiz = device_data[ATTR_FAN_SWING_CAP_HORIZ]
                         self._fan_swing_cap_vert = device_data[ATTR_FAN_SWING_CAP_VERT]
                         self._balance_pt = device_data[ATTR_BALANCE_PT]
@@ -7095,6 +7098,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "temp_display_error": self._room_temp_error,
                 "keypad": lock_to_ha(self._keypad),
                 "fan_speed": self._fan_speed,
+                "fan_speed_nb": self._fan_speed_nb,
                 "fan_swing_vertical": self._fan_swing_vert,
                 "fan_capability": self._fan_cap,
                 "modes_availables": self._system_mode_avail,
