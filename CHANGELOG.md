@@ -4,11 +4,13 @@ All modification for this custom_component will be added in this file.
 
 ## [v4.3.2] - 2026-10-__
 ### Added
+- Add fan speed number for HP6000WF-MA.and update fan capabilities
 
 ### Fix
 - Refactor wattage assignment to handle nested structure for some Wi-Fi devices.
 - Update error handling in devices update.
 - Fix interlock attributes for HP6000WF-MA.
+- Update fan capabilities for HP6000WF-MA.
 
 ### Doc
 - Add DVCERR error message description in readme.md.
