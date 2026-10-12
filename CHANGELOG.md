@@ -2,7 +2,7 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.3.2] - 2026-10-__
+## [v4.3.2] - 2026-10-12
 ### Added
 - Add fan speed number for HP6000WF-MA.and update fan capabilities
 
