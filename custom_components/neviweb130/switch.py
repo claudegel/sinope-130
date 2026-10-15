@@ -804,6 +804,8 @@ async def async_setup_entry(
 
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
+    if voltage is None:
+        return None
     if num == 2:
         return int((min(voltage, 2.7) - 2.3) / (2.7 - 2.3) * 100)
     else:
@@ -993,7 +995,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._is_zb_control = device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
         self._active: bool = True
-        self._battery_voltage = None
+        self._battery_voltage = 0
         self._cold_load_remaining_time: int | None = None
         self._controlled_device: str | None = None
         self._cur_temp = None
@@ -1080,7 +1082,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                     if self._is_wall:
                         self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                     self._onoff = device_data[ATTR_ONOFF]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error reading device %s: (%s)",
@@ -1763,7 +1765,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                         if ATTR_RSSI in device_data:
                             self._rssi = device_data[ATTR_RSSI]
                         self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
@@ -1908,7 +1910,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self._error_code = 0
                     self._wifirssi = device_data.get(ATTR_WIFI, self._wifirssi)
                     self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
@@ -2054,7 +2056,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                         )
                         self._water_leak_status = water_leak_status
                     elif water_leak_status is not None:
-                        self._water_leak_status = STATE_WATER_LEAK if water_leak_status == STATE_WATER_LEAK else "ok"
+                        self._water_leak_status = (STATE_WATER_LEAK if water_leak_status == STATE_WATER_LEAK else "ok")
                     self._water_temp = device_data[ATTR_ROOM_TEMPERATURE]
                     if (
                         ATTR_ERROR_CODE_SET1 in device_data
@@ -2105,7 +2107,6 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._consumption = dr_protec.get("consumption", self._consumption)
                     self._consumption_time = dr_protec.get("consumptionOverTime", self._consumption_time)
 
-                    self.async_write_ha_state()
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
@@ -2328,7 +2329,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._water_temp_time = device_data[ATTR_WATER_TEMP_TIME]
                     self._water_temp_protec = device_data[ATTR_WATER_TEMP_PROTEC]
                     self._water_leak_closure_conf = device_data[ATTR_LEAK_CLOSURE_CONFIG]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
@@ -2514,7 +2515,9 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                     if self._is_zb_control or self._is_sedna_control:
                         self._onoff = device_data[ATTR_ONOFF]
                         self._input_status = device_data[ATTR_INPUT_STATUS]
-                        self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
+                        self._battery_voltage = (
+                            device_data[ATTR_BATTERY_VOLTAGE] if device_data[ATTR_BATTERY_VOLTAGE] is not None else 0
+                        )
                         self._batt_info = device_data.get(ATTR_BATT_INFO, self._batt_info)
                         self._input_name_1 = device_data[ATTR_NAME_1]
                         self._output_name_1 = device_data[ATTR_OUTPUT_NAME_1]
@@ -2552,7 +2555,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                         if ATTR_DRSTATUS in device_data:
                             self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                             self._drstatus_onOff = device_data[ATTR_DRSTATUS][ATTR_ONOFF]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
