@@ -141,7 +141,7 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
     Neviweb130SelectEntityDescription(
         key="hc_second_display",
         icon="mdi:fullscreen",
-        translation_key="second_display",
+        translation_key="hc_second_display",
         options=HC_DISPLAY_LIST,
     ),
     Neviweb130SelectEntityDescription(
@@ -159,25 +159,25 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
     Neviweb130SelectEntityDescription(
         key="lv_cycle_length",
         icon="mdi:reload",
-        translation_key="cycle_length",
+        translation_key="lv_cycle_length",
         options=LV_CYCLE,
     ),
     Neviweb130SelectEntityDescription(
         key="wifi_cycle_length",
         icon="mdi:reload",
-        translation_key="cycle_length",
+        translation_key="wifi_cycle_length",
         options=WIFI_CYCLE,
     ),
     Neviweb130SelectEntityDescription(
         key="wifi_aux_cycle_length",
         icon="mdi:reload",
-        translation_key="aux_cycle_length",
+        translation_key="wifi_aux_cycle_length",
         options=WIFI_CYCLE,
     ),
     Neviweb130SelectEntityDescription(
         key="pro_aux_cycle_length",
         icon="mdi:reload",
-        translation_key="aux_cycle_length",
+        translation_key="pro_aux_cycle_length",
         options=PRO_AUX_CYCLE,
     ),
     Neviweb130SelectEntityDescription(
@@ -214,7 +214,7 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
     Neviweb130SelectEntityDescription(
         key="power_timer",
         icon="mdi:timer-edit-outline",
-        translation_key="timer",
+        translation_key="power_timer",
         options=POWER_TIMER_LIST,
     ),
     Neviweb130SelectEntityDescription(
