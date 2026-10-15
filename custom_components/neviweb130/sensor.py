@@ -991,6 +991,8 @@ def neviweb_to_ha_level(value):
 
 def voltage_to_percentage(voltage, type_val):
     """Convert voltage level from volt to percentage."""
+    if voltage is None:
+        return None
     if type_val == "alkaline":
         return int((min(voltage, 3.0) - 2.0) / (3.0 - 2.0) * 100)
     else:
@@ -1036,7 +1038,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
     """Common base class for all Neviweb sensors."""
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator, entry):
-        super().__init__(data.coordinator)
+        super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._device = device_info
         self._name = name
@@ -1456,7 +1458,7 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
 
-            if "error" not in device_data or device_data is not None:
+            if device_data and "error" not in device_data:
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
@@ -1517,10 +1519,10 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
                             self._sensor_type = device_data.get(ATTR_SENSOR_TYPE, self._sensor_type)
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                         self._rssi = device_data.get(ATTR_RSSI, self._rssi)
-                    self.async_write_ha_state()
-                    return
-                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-                return
+
+                else:
+                    _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
+
             elif device_data is not None:
                 await self.async_log_error(device_data["error"]["code"])
         else:
@@ -1642,7 +1644,7 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
 
-            if "error" not in device_data or device_data is not None:
+            if device_data and "error" not in device_data:
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
                         if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
@@ -1681,11 +1683,8 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
                         self._battery_voltage = device_data[ATTR_BATTERY_VOLTAGE]
                         if self._is_new_connected:
                             self._sensor_type = device_data.get(ATTR_SENSOR_TYPE, self._sensor_type)
-
-                    self.async_write_ha_state()
-                    return
-                _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
-                return
+                else:
+                    _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             elif device_data is not None:
                 await self.async_log_error(device_data["error"]["code"])
         else:
@@ -1815,7 +1814,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                 device_data,
             )
 
-            if "error" not in device_data or device_data is not None:
+            if device_data and "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._angle = device_data[ATTR_ANGLE]["value"]
                     if self._angle == -2:
@@ -1865,14 +1864,14 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                                 title=f"Neviweb130 integration {VERSION}",
                                 notification_id="neviweb130_error_code",
                             )
-                    self.async_write_ha_state()
-                    return
-                _LOGGER.warning(
-                    "Error in reading device %s: (%s)",
-                    self._name,
-                    device_data,
-                )
-                return
+
+                else:
+                    _LOGGER.warning(
+                        "Error in reading device %s: (%s)",
+                        self._name,
+                        device_data,
+                    )
+
             elif device_data is not None:
                 await self.async_log_error(device_data["error"]["code"])
         else:
@@ -2096,7 +2095,7 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
             if "error" not in device_status or device_status is not None:
                 if "errorCode" not in device_status:
                     self._gateway_status = device_status[ATTR_STATUS]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device status for %s: (%s)",
@@ -2106,7 +2105,6 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
             elif device_status is not None:
                 await self.async_log_error(device_status["error"]["code"])
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
-            return
 
     @property
     def device_class(self):
