@@ -445,6 +445,8 @@ async def async_setup_entry(
 
 def voltage_to_percentage(voltage, num):
     """Convert voltage level from volt to percentage."""
+    if voltage is None:
+        return None
     if num == 2:
         return int((min(voltage, 2.7) - 2.3) / (2.7 - 2.3) * 100)
     else:
@@ -694,7 +696,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     self._rssi = device_data.get(ATTR_RSSI, self._rssi)
                     self._batt_percent_normal = device_data.get(ATTR_BATT_PERCENT_NORMAL, self._batt_percent_normal)
                     self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
@@ -1484,7 +1486,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                     self._batt_percent_normal = device_data.get(ATTR_BATT_PERCENT_NORMAL, self._batt_percent_normal)
                     self._batt_status_normal = device_data.get(ATTR_BATT_STATUS_NORMAL, self._batt_status_normal)
                     self._away_action = device_data.get(ATTR_AWAY_ACTION, self._away_action)
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
@@ -1734,7 +1736,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                         )
                     else:
                         self._error_code = 0
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error reading device %s: (%s)",
@@ -1953,7 +1955,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                     self._flow_alarm_2 = device_data.get(ATTR_FLOW_ALARM2, self._flow_alarm_2)
                     self._temp_action_low = device_data.get(ATTR_TEMP_ACTION_LOW, self._temp_action_low)
                     self._batt_action_low = device_data.get(ATTR_BATT_ACTION_LOW, self._batt_action_low)
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in reading device %s: (%s)",
