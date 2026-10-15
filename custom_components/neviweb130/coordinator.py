@@ -342,9 +342,9 @@ class Neviweb130Client:
         self._gateway_id = None
         self._gateway_id2 = None
         self._gateway_id3 = None
-        self.gateway_data: dict[str, Any] = {}
-        self.gateway_data2: dict[str, Any] = {}
-        self.gateway_data3: dict[str, Any] = {}
+        self.gateway_data: list[dict[str, Any]] = []
+        self.gateway_data2: list[dict[str, Any]] = []
+        self.gateway_data3: list[dict[str, Any]] = []
 
         # Session manager injection
         self._session_manager = session_manager
