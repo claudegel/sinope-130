@@ -167,20 +167,97 @@ async def async_remove_entry(hass, entry) -> None:
     _LOGGER.info(f"Successfully removed entry for {DOMAIN}")
 
 
-async def async_migrate_unique_ids(hass):
-    """Migrate numeric unique_ids to string in the entity registry."""
-    registry = er.async_get(hass)
+def _legacy_device_id(unique_id: str, account_id: str | None) -> str | None:
+    """Return the Neviweb device id of a pre-V2 unique_id, or None if it is not one.
 
-    for entity_id, entity in registry.entities.items():
-        if entity.platform == "neviweb130" and isinstance(entity.unique_id, int):
-            new_unique_id = str(entity.unique_id)
-            _LOGGER.info(
-                "Migrating unique_id for %s from %s to %s",
-                entity_id,
-                entity.unique_id,
-                new_unique_id,
+    Pre-V2 formats:
+    - "<device_id>": legacy single-account configuration
+    - "<account_id>_<device_id>": multi-account (accounts:) or prefixed single account
+    """
+    if unique_id.isdigit():
+        return unique_id
+    account, sep, device_id = unique_id.partition("_")
+    if sep and account == account_id and device_id.isdigit():
+        return device_id
+    return None
+
+
+async def async_migrate_unique_ids(hass: HomeAssistant, entry: ConfigEntry, client: Neviweb130Client) -> None:
+    """Migrate pre-V2 unique_ids to the V2 format and attach them to this config entry.
+
+    V2 uses f"{entry.entry_id}_{device_id}". Without this migration, HA creates new
+    entities (often with a "_2" suffix) and the old ones become orphans, losing their
+    entity_id, area and customizations.
+
+    Must run after the client has logged in and loaded the gateways, so only the orphans
+    of this entry's Neviweb account and devices are migrated (multi-account safe).
+    """
+    registry = er.async_get(hass)
+    device_registry = dr.async_get(hass)
+
+    account_id = client._account  # Neviweb account id, set at login
+    device_ids = {
+        str(device["id"])
+        for gateway_data in (client.gateway_data, client.gateway_data2, client.gateway_data3)
+        if gateway_data and gateway_data != "_"
+        for device in gateway_data
+    }
+
+    for reg_entry in list(registry.entities.values()):
+        if reg_entry.platform != DOMAIN:
+            continue
+
+        old_unique_id = str(reg_entry.unique_id)
+
+        # Already owned by a config entry, just make sure the unique_id is a string
+        if reg_entry.config_entry_id is not None:
+            if isinstance(reg_entry.unique_id, int):
+                registry.async_update_entity(reg_entry.entity_id, new_unique_id=old_unique_id)
+            continue
+
+        # Orphan: migrate it only if it belongs to one of this entry's devices
+        device_id = _legacy_device_id(old_unique_id, account_id)
+        if device_id is None or device_id not in device_ids:
+            continue
+
+        new_unique_id = f"{entry.entry_id}_{device_id}"
+
+        # A V2 entity may already exist if V2 was started before this fix.
+        # Keep the legacy one, it holds the user's entity_id, area and settings.
+        if duplicate := registry.async_get_entity_id(reg_entry.domain, DOMAIN, new_unique_id):
+            _LOGGER.info("Removing duplicate %s, replaced by legacy %s", duplicate, reg_entry.entity_id)
+            registry.async_remove(duplicate)
+
+        _LOGGER.info(
+            "Migrating unique_id for %s from %s to %s",
+            reg_entry.entity_id,
+            old_unique_id,
+            new_unique_id,
+        )
+
+        # The V2 main entity represents its device (no name of its own), so HA expects the area
+        # on the device and raises a repair if it is set on the entity. Move the legacy area to
+        # the device, creating it now with the same identifiers the platforms use; they will
+        # fill in its name, model, etc. If the device already has another area, leave both as is.
+        area_update = {}
+        if reg_entry.area_id:
+            device = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device_id)},
             )
-            registry.async_update_entity(entity_id, new_unique_id=new_unique_id)
+            if device.area_id is None:
+                _LOGGER.info("Moving area %s from %s to its device", reg_entry.area_id, reg_entry.entity_id)
+                device_registry.async_update_device(device.id, area_id=reg_entry.area_id)
+                area_update["area_id"] = None
+            elif device.area_id == reg_entry.area_id:
+                area_update["area_id"] = None
+
+        registry.async_update_entity(
+            reg_entry.entity_id,
+            new_unique_id=new_unique_id,
+            config_entry_id=entry.entry_id,
+            **area_update,
+        )
 
 
 async def async_migrate_device_models(hass):
@@ -305,9 +382,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN]["device_dict"] = device_dict
     _LOGGER.debug("device_dict = %s", device_dict)
 
-    # Call async_migrate_unique_ids and async_migrate_device_models before setting up devices
-    _LOGGER.info("Migrating neviweb130 unique_id and models to string...")
-    await async_migrate_unique_ids(hass)
+    # Call async_migrate_device_models before setting up devices
+    _LOGGER.info("Migrating neviweb130 device models to string...")
     await async_migrate_device_models(hass)
 
     username: str | None = entry.data.get("username")
@@ -376,6 +452,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         counter=counter,
     )
     initialized_coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
+
+    # Needs the logged-in client (account id and device list), before setting up the platforms
+    _LOGGER.info("Migrating neviweb130 unique_id...")
+    await async_migrate_unique_ids(hass, entry, client)
 
     hass.data[DOMAIN][entry.entry_id].update(
         {
