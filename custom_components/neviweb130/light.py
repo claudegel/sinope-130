@@ -678,7 +678,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                         )
                         self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
                         self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error in updating device %s: (%s)",
@@ -1290,7 +1290,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                         )
                         self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
                         self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error reading device %s: (%s)",
@@ -1457,7 +1457,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                         )
                         self._led_on_intensity = device_data[ATTR_LED_ON_INTENSITY]
                         self._led_off_intensity = device_data[ATTR_LED_OFF_INTENSITY]
-                    self.async_write_ha_state()
+
                 else:
                     _LOGGER.warning(
                         "Error reading device %s: (%s)",
