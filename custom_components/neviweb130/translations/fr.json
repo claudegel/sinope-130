@@ -240,6 +240,13 @@
           "off": "OK"
         }
       },
+      "low_temp_status": {
+        "name": "Alerte Basse température",
+        "state": {
+          "on": "Bas",
+          "off": "OK"
+        }
+      },
       "motor_jam_error": {
         "name": "Blocage moteur",
         "state": {
@@ -268,7 +275,7 @@
           "off": "Pas de changement"
         }
       },
-      "valve_temp_alert": {
+      "temp_alert": {
         "name": "Alerte Température",
         "state": {
           "on": "Température basse",
@@ -285,8 +292,14 @@
       "brightness": {
         "name": "Intensité"
       },
+      "cool_lockout_temp": {
+        "name": "Température Verrouillage Clim."
+      },
       "cool_setpoint_away": {
         "name": "Consigne Refroid. en Absence"
+      },
+      "heat_lockout_temp": {
+        "name": "Température Verrouillage Chauffage"
       },
       "intensity_min": {
         "name": "Intensité Minimum"
@@ -295,10 +308,10 @@
         "name": "Rappel Nettoyage Filtre"
       },
       "floor_max_temp": {
-        "name": "temp. maximale au sol"
+        "name": "Temp. Maximale au Sol"
       },
       "floor_min_temp": {
-        "name": "temp. minimale au sol"
+        "name": "Temp. Minimale au Sol"
       },
       "led_off_intensity": {
         "name": "Intensité DEL Off"
@@ -359,6 +372,14 @@
       },
       "flow_duration": {
         "name": "Durée du Débit"
+      },
+      "flowmeter_option": {
+        "name": "Options Débimètre",
+        "state": {
+          "close_valve_and_send_alert": "Fermer et Alerter",
+          "alert_only": "Alerter Seulement",
+          "no_action": "Ne Rien Faire"
+        }
       },
       "flowmeter_timer": {
         "name": "Minuterie Débitmètre"
@@ -424,6 +445,9 @@
           "green": "Vert"
         }
       },
+      "lv_cycle_length": {
+        "name": "Durée du Cycle"
+      },
       "occupancy_mode": {
         "name": "Présence Globale",
         "state": {
@@ -445,6 +469,12 @@
           "battery": "Batterie",
           "battery_acups_01": "Les deux"
         }
+      },
+      "power_timer": {
+        "name": "Minuterie"
+      },
+      "pro_aux_cycle_length": {
+        "name": "Durée du Cycle"
       },
       "second_display": {
         "name": "Affichage secondaire",
@@ -498,6 +528,12 @@
       },
       "timer2": {
         "name": "Minuterie 2"
+      },
+      "wifi_aux_cycle_length": {
+        "name": "Durée du Cycle"
+      },
+      "wifi_cycle_length": {
+        "name": "Durée du Cycle"
       }
     },
     "sensor": {
@@ -531,17 +567,14 @@
       "cool_stage2_hourly_total_count": {
         "name": "refroidissement étape 2 décompte horaire total"
       },
+      "current_temperature": {
+        "name": "Température"
+      },
       "daily_flow_count": {
-        "name": "Flux quotidien",
-        "state": {
-          "total": "Total"
-        }
+        "name": "Flux quotidien"
       },
       "daily_kwh_count": {
-        "name": "Énergie quotidienne",
-        "state": {
-          "total": "Total"
-        }
+        "name": "Énergie quotidienne"
       },
       "emergency_heat_hourly_count": {
         "name": "Chauffage d'urgence décompte horaire"
@@ -623,9 +656,15 @@
       },
       "weather_icon": {
         "name": "Icône météo"
+      },
+      "wifirssi": {
+        "name": "Signal Strength"
       }
     },
     "switch": {
+      "alert_temp": {
+        "name": "Alerte Température"
+      },
       "batt_alert": {
         "name": "Alerte Batterie"
       },
@@ -652,6 +691,9 @@
       },
       "temp_alert": {
         "name": "Alerte basse Température"
+      },
+      "valve_alert": {
+        "name": "Alerte Valve"
       }
     }
   },
