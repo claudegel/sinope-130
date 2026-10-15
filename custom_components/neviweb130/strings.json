@@ -240,6 +240,13 @@
           "off": "OK"
         }
       },
+      "low_temp_status": {
+        "name": "Low Temp Status",
+        "state": {
+          "on": "Low",
+          "off": "OK"
+        }
+      },
       "motor_jam_error": {
         "name": "Motor jam error",
         "state": {
@@ -268,7 +275,7 @@
           "off": "No change"
         }
       },
-      "valve_temp_alert": {
+      "temp_alert": {
         "name": "Temperature Alert",
         "state": {
           "on": "Low temperature",
@@ -285,11 +292,17 @@
       "brightness": {
         "name": "Brightness"
       },
+      "cool_lockout_temp": {
+        "name": "Cool Lockout Temp"
+      },
       "cool_setpoint_away": {
         "name": "Cool Setpoint Away",
         "state": {
           "measurement": "measurement"
         }
+      },
+      "heat_lockout_temp": {
+        "name": "Heat Lockout Temp"
       },
       "intensity_min": {
         "name": "Min Intensity"
@@ -378,6 +391,14 @@
       "flow_duration": {
         "name": "Flow Duration"
       },
+      "flowmeter_option": {
+        "name": "Flow Meter Option",
+        "state": {
+          "close_valve_and_send_alert": "Close And Alert",
+          "alert_only": "Alert Only",
+          "no_action": "No Action"
+        }
+      },
       "flowmeter_timer": {
         "name": "Flow_meter Timer"
       },
@@ -442,6 +463,9 @@
           "green": "Green"
         }
       },
+      "lv_cycle_length": {
+        "name": "Cycle Length"
+      },
       "occupancy_mode": {
         "name": "Global Occupancy Mode",
         "state": {
@@ -464,6 +488,12 @@
           "battery_acups_01": "Both"
         }
       },
+      "power_timer": {
+        "name": "Timer"
+      },
+      "pro_aux_cycle_length": {
+        "name": "Cycle Length"
+      },
       "second_display": {
         "name": "Second Display",
         "state": {
@@ -474,6 +504,9 @@
       },
       "sensor_mode": {
         "name": "Sensor Mode"
+      },
+      "switch_lock": {
+        "name": "Lock Keypad"
       },
       "tank_height": {
         "name": "Tank Height",
@@ -516,6 +549,12 @@
       },
       "timer2": {
         "name": "Timer 2"
+      },
+      "wifi_aux_cycle_length": {
+        "name": "Cycle Length"
+      },
+      "wifi_cycle_length": {
+        "name": "Cycle Length"
       }
     },
     "sensor": {
@@ -548,6 +587,12 @@
       },
       "cool_stage2_hourly_total_count": {
         "name": "CoolStage2 hourly total count"
+      },
+      "current_temperature": {
+        "name": "Temperature",
+        "state": {
+          "measurement": "measurement"
+        }
       },
       "daily_flow_count": {
         "name": "Daily Flow",
@@ -686,9 +731,18 @@
         "state": {
           "measurement": "measurement"
         }
+      },
+      "wifirssi": {
+        "name": "Signal Strength",
+        "state": {
+          "measurement": "Measurement value"
+        }
       }
     },
     "switch": {
+      "alert_temp": {
+        "name": "Temp Alert"
+      },
       "batt_alert": {
         "name": "Battery Alert"
       },
@@ -715,6 +769,9 @@
       },
       "temp_alert": {
         "name": "Low Temperature Alert"
+      },
+      "valve_alert": {
+        "name": "Valve Alert"
       }
     }
   },
