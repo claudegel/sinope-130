@@ -176,7 +176,23 @@ NEVIWEB_WEATHER = f"{HOST}/api/weather?code="
 
 
 def extract_device_attributes(dev) -> dict:
-    return {attr: value for attr in EXPOSED_ATTRIBUTES if (value := getattr(dev, attr, None)) is not None}
+    result = {}
+    for attr in EXPOSED_ATTRIBUTES:
+        try:
+            value = getattr(dev, attr, None)
+        except Exception as err:  # noqa: BLE001
+            # Individual attribute failures must not prevent coordinator updates.
+            _LOGGER.debug(
+                "Attribute %s failed for %s (%s): %s",
+                attr,
+                getattr(dev, "name", dev),
+                type(dev).__name__,
+                err,
+            )
+            continue
+        if value is not None:
+            result[attr] = value
+    return result
 
 
 def ha_to_neviweb(value: str | None) -> int:
