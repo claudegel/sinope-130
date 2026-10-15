@@ -376,9 +376,9 @@
       "flowmeter_option": {
         "name": "Flow Meter Option",
         "state": {
-          "close valve and send alert": "Close And Alert",
-          "alert only": "Alert Only",
-          "no action": "No Action"
+          "close_valve_and_send_alert": "Close And Alert",
+          "alert_only": "Alert Only",
+          "no_action": "No Action"
         }
       },
       "flowmeter_timer": {
