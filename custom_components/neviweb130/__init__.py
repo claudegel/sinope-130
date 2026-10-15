@@ -6,7 +6,7 @@ import logging
 import os
 from datetime import timedelta
 from functools import partial
-from typing import cast
+from typing import Any, cast
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
@@ -239,7 +239,7 @@ async def async_migrate_unique_ids(hass: HomeAssistant, entry: ConfigEntry, clie
         # on the device and raises a repair if it is set on the entity. Move the legacy area to
         # the device, creating it now with the same identifiers the platforms use; they will
         # fill in its name, model, etc. If the device already has another area, leave both as is.
-        area_update = {}
+        area_update: dict[str, Any] = {}
         if reg_entry.area_id:
             device = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
