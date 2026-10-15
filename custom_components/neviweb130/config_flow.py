@@ -17,7 +17,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
-from . import LOG_PATH, async_migrate_unique_ids, async_shutdown
+from . import LOG_PATH, async_shutdown
 from .const import (
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
@@ -613,7 +613,8 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def _trigger_migration(self):
         """Method to handle the migration."""
-        await async_migrate_unique_ids(self.hass)  # Call the migration function
+        # The migration needs the logged-in client, it runs in async_setup_entry
+        await self.hass.config_entries.async_reload(self._config_entry.entry_id)
         _LOGGER.info("Unique_id migration done")
         # Create a persistent notification
         msg = await translate_error(self.hass, "neviweb130_migrated")
