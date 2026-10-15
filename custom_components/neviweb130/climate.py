@@ -2078,7 +2078,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     if not self._is_low_voltage:
                         self._wattage = device_data[ATTR_WATTAGE]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -2810,7 +2810,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             else:
                 self._heat_level = 0
             self.async_write_ha_state()
-            # Coordinator refresh
 
     async def async_set_second_display(self, value):
         """Set thermostat second display between outside and setpoint temperature."""
@@ -3661,7 +3660,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._cycle_length = neviweb_to_ha(cycle_length)
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -3900,7 +3899,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                     else:
                         self._load2 = 0
                     self._gfci_alert = device_data[ATTR_GFCI_ALERT]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -4157,7 +4156,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._load2_status = floor_output.get("status", self._load2_status)
                     if self._load2_status == "on":
                         self._load2 = floor_output.get("value", self._load2)
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -4375,7 +4374,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                     self._rssi = device_data.get(ATTR_RSSI, self._rssi)
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -4587,8 +4586,10 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
-                    self._rssi = device_data[ATTR_WIFI]
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
+                    self._rssi = device_data.get(ATTR_WIFI, self._rssi)
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -4822,8 +4823,10 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
-                    self._rssi = device_data[ATTR_WIFI]
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
+                    self._rssi = device_data.get(ATTR_WIFI, self._rssi)
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -4836,7 +4839,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                     self._temp_display_value = room_display.get("value", self._temp_display_value)
                     self._interlock_id = device_data.get(ATTR_INTERLOCK_ID, self._interlock_id)
                     self._interlock_partner = device_data.get(ATTR_INTERLOCK_PARTNER, self._interlock_partner)
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5061,8 +5064,10 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self._heat_source_type = source_info["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
-                    self._rssi = device_data[ATTR_WIFI]
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
+                    self._rssi = device_data.get(ATTR_WIFI, self._rssi)
                     self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
@@ -5300,8 +5305,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
-                    self._rssi = device_data[ATTR_WIFI]
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
+                    self._rssi = device_data.get(ATTR_WIFI, self._rssi)
                     wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
                     self._wattage = wattage.get("value", self._wattage)
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
@@ -5325,7 +5332,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._pump_duration_value = device_data.get(ATTR_PUMP_PROTEC_DURATION, self._pump_duration_value)
                     self._em_heat = device_data.get(ATTR_FLOOR_AUX, self._em_heat)
                     self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5574,8 +5581,10 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
                     self._operation_mode = device_data[ATTR_SETPOINT_MODE]
                     self._occupancy = device_data[ATTR_OCCUPANCY]
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
-                    self._rssi = device_data[ATTR_WIFI]
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
+                    self._rssi = device_data.get(ATTR_WIFI, self._rssi)
                     wattage = device_data.get(ATTR_WIFI_WATTAGE, {})
                     self._wattage = wattage.get("value", self._wattage)
                     self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
@@ -5597,7 +5606,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._floor_min_status = floor_min.get("status", self._floor_min_status)
                     self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                     self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5888,7 +5897,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._display_conf = device_data[ATTR_DISPLAY_CONF]
                     self._sound_cap = device_data[ATTR_SOUND_CAP]
                     self._sound_conf = device_data[ATTR_SOUND_CONF]
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -6159,7 +6168,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                     self._display_cap = device_data.get(ATTR_DISPLAY_CAP, self._display_cap)
                     self._sound_conf = device_data.get(ATTR_SOUND_CONF, self._sound_conf)
                     self._sound_cap = device_data.get(ATTR_SOUND_CAP, self._sound_cap)
-                    self.async_write_ha_state()
+
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -6660,7 +6669,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
                     self._rssi = device_data.get(ATTR_WIFI, self._rssi)
                     try:
                         self._fan_speed = neviweb_to_ha_fan(device_data[ATTR_FAN_SPEED], self._device_model)
@@ -7091,7 +7102,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
         self._accessory_type = "none"
         self._air_curt_activation_temp = None
-        self._air_curt_activation_temp = None
         self._air_curt_conf = None
         self._air_curt_max_temp = None
         self._air_ex_min_time_on = None
@@ -7344,7 +7354,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._temp_display_value = room_display.get("value", self._temp_display_value)
                     self._language = device_data[ATTR_LANGUAGE]
                     self._occupancy = device_data.get(ATTR_OCCUPANCY, self._occupancy)
-                    self._keypad = lock_to_ha(device_data[ATTR_WIFI_KEYPAD])
+                    wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
+                    if wifi_keypad is not None:
+                        self._keypad = lock_to_ha(wifi_keypad)
                     back_light = device_data.get(ATTR_BACK_LIGHT)
                     if back_light is not None:
                         self._backlight = backlight_to_ha(back_light)
@@ -7401,12 +7413,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._dr_aux_config = device_data[ATTR_DRAUXCONF]
                     self._dr_fan_speed_conf = device_data[ATTR_DRFANCONF]
                     self._dr_accessory_conf = device_data[ATTR_DRACCESORYCONF]
-                    self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
-                    self._heat_purge_time = device_data[ATTR_HEAT_PURGE_TIME]
-                    self._cool_purge_time = device_data[ATTR_COOL_PURGE_TIME]
-                    self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
-                    self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
-                    self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
+                    self._heat_purge_time = device_data.get(ATTR_HEAT_PURGE_TIME, self._heat_purge_time)
+                    self._cool_purge_time = device_data.get(ATTR_COOL_PURGE_TIME, self._cool_purge_time)
                     self._aux_heat_min_time_off = device_data[ATTR_AUX_HEAT_MIN_TIME_OFF]
                     self._heat_min_time_on = device_data[ATTR_HEAT_MIN_TIME_ON]
                     self._heat_min_time_off = device_data[ATTR_HEAT_MIN_TIME_OFF]
@@ -7417,13 +7425,18 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     if self._firmware == "4.5.4":
                         self._humidity_setpoint_off = device_data[ATTR_HUMIDITY_SETPOINT_OFF]
                     if self._device_model in {"6727", "6731", "6734"}:
-                        self._air_curt_activation_temp = device_data[ATTR_AIR_ACTIVATION_TEMP]
-                        self._heat_output_polarity = device_data[ATTR_HEAT_OUTPUT_POLARITY]
-                        self._air_curt_conf = device_data[ATTR_AIR_CONFIG]
-                        self._air_curt_max_temp = device_data[ATTR_AIR_MAX_POWER_TEMP]
-                        self._dr_air_curt_conf = device_data[ATTR_DRAIR_CURT_CONF]
+                        self._air_curt_activation_temp = device_data.get(
+                            ATTR_AIR_ACTIVATION_TEMP,
+                            self._air_curt_activation_temp,
+                        )
+                        self._heat_output_polarity = device_data.get(
+                            ATTR_HEAT_OUTPUT_POLARITY,
+                            self._heat_output_polarity,
+                        )
+                        self._air_curt_conf = device_data.get(ATTR_AIR_CONFIG, self._air_curt_conf)
+                        self._air_curt_max_temp = device_data.get(ATTR_AIR_MAX_POWER_TEMP, self._air_curt_max_temp)
+                        self._dr_air_curt_conf = device_data.get(ATTR_DRAIR_CURT_CONF, self._dr_air_curt_conf)
 
-                    self.async_write_ha_state()
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occurred during data update. Device %s do not respond. Check your network... (%s)",
@@ -7735,6 +7748,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Check if device configuration allow turning on emergency heat. 'addOn' or 'conventional'."""
         if self._heat_installation_type == "conventional":
             return True
+        if self._temperature is None or self._balance_pt is None:
+            return False
         return self._temperature < self._balance_pt
 
     @override
