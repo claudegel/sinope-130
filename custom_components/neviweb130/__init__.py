@@ -182,6 +182,18 @@ def _legacy_device_id(unique_id: str, account_id: str | None) -> str | None:
     return None
 
 
+def _legacy_global_unique_id(unique_id: str, entry_id: str) -> str | None:
+    """Return the V2 unique_id of a pre-V2 integration-wide entity, or None if it is not one.
+
+    Pre-V2, the daily requests sensor and the update entity were global to the integration.
+    V2 creates them per config entry.
+    """
+    return {
+        f"{DOMAIN}_daily_requests": f"{entry_id}_daily_requests",
+        f"{DOMAIN}_update": f"{DOMAIN}_{entry_id}_update",
+    }.get(unique_id)
+
+
 async def async_migrate_unique_ids(hass: HomeAssistant, entry: ConfigEntry, client: Neviweb130Client) -> None:
     """Migrate pre-V2 unique_ids to the V2 format and attach them to this config entry.
 
@@ -215,12 +227,16 @@ async def async_migrate_unique_ids(hass: HomeAssistant, entry: ConfigEntry, clie
                 registry.async_update_entity(reg_entry.entity_id, new_unique_id=old_unique_id)
             continue
 
-        # Orphan: migrate it only if it belongs to one of this entry's devices
-        device_id = _legacy_device_id(old_unique_id, account_id)
-        if device_id is None or device_id not in device_ids:
-            continue
+        # Orphan integration-wide entity (daily requests, update): claimed by the first entry set up
+        device_id = None
+        new_unique_id = _legacy_global_unique_id(old_unique_id, entry.entry_id)
 
-        new_unique_id = f"{entry.entry_id}_{device_id}"
+        # Orphan device entity: migrate it only if it belongs to one of this entry's devices
+        if new_unique_id is None:
+            device_id = _legacy_device_id(old_unique_id, account_id)
+            if device_id is None or device_id not in device_ids:
+                continue
+            new_unique_id = f"{entry.entry_id}_{device_id}"
 
         # A V2 entity may already exist if V2 was started before this fix.
         # Keep the legacy one, it holds the user's entity_id, area and settings.
@@ -240,7 +256,7 @@ async def async_migrate_unique_ids(hass: HomeAssistant, entry: ConfigEntry, clie
         # the device, creating it now with the same identifiers the platforms use; they will
         # fill in its name, model, etc. If the device already has another area, leave both as is.
         area_update: dict[str, Any] = {}
-        if reg_entry.area_id:
+        if device_id is not None and reg_entry.area_id:
             device = device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
                 identifiers={(DOMAIN, device_id)},
