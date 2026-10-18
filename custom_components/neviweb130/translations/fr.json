@@ -73,7 +73,7 @@
       "entity_must_be_domain": "L'entité {entity} doit être un {domain} {platform}.",
       "missing_parameter": "Paramètre requis manquant: {param}.",
       "does_not_support": "L’entité {entity} est un thermostat {domain} {model} et ne prend pas en charge le format d’heure.",
-      "must_be_heat_cool": "L'entité {entity} doit être un thermostat {domain} du groupe heat-cool (TH6xxxWF) ou Wi-Fi HP (HP6000WF).",
+      "must_be_heat_cool": "L'entité {entity} doit être un thermostat {domain} du groupe heat-cool (TH6xxxWF).",
       "fan_model_not_supported": "La vitesse du ventilateur n’est pas supportée pour le modèle {model}.",
       "unknown_mode": "Mode heat-cool inconnu pour {model}: {mode}.",
       "fan_mode_not_supported": "Le mode de ventilation {mode} n’est pas supporté pour le modèle {model}.",
@@ -130,7 +130,12 @@
       "config_imported": "La configuration YAML de neviweb130 est désormais obsolète. La configuration du compte « {prefix} » a été importée automatiquement dans l’interface Home Assistant. Une fois tous vos comptes importés, veuillez retirer ou commenter la section `neviweb130:` de votre `configuration.yaml`, puis redémarrer Home Assistant.",
       "yaml_config_detected": "Une configuration YAML pour Neviweb130 a été détectée et l'importation automatique a démarré.",
       "duplicated_prefix": "Importation YAML: prefix = {prefix} est déjà configuré, importation avortée.",
-      "safe_mode_active": "Le mode sécurisé a été activé pour l’appareil {name} (ID : {id}) en raison d’un attribut non pris en charge. Rapporter au mainteneur."
+      "safe_mode_active": "Le mode sécurisé a été activé pour l’appareil {name} (ID : {id}) en raison d’un attribut non pris en charge. Rapporter au mainteneur.",
+      "not_supported": "Non pris en charge",
+      "empty_value": "Non configuré",
+      "not_available": "Non disponible",
+      "g_not_connected": "Appareil {name}, aucun cable connecté à la borne G, service non disponible.",
+      "must_support_fan_control": "L'entité {entity} ne prend pas en charge le contrôle de la vitesse du ventilateur."
     }
   },
   "options": {
@@ -334,6 +339,9 @@
       "setpoint_away": {
         "name": "Consigne en Absence"
       },
+      "temp_offset_heat": {
+        "name": "Étalonnage Température"
+      },
       "water_remaining_time": {
         "name": "Temps Restant",
         "state": {
@@ -392,6 +400,13 @@
       },
       "gauge_type": {
         "name": "Modèle de Jauge"
+      },
+      "hc_fan_speed": {
+        "name": "Vitesse ventilateur HC",
+        "state": {
+          "auto": "Auto",
+          "on": "On"
+        }
       },
       "hc_second_display": {
         "name": "Affichage secondaire",
@@ -528,6 +543,15 @@
       },
       "timer2": {
         "name": "Minuterie 2"
+      },
+      "whc_fan_speed": {
+        "name": "Vitesse ventilateur HP",
+        "state": {
+          "auto": "Auto",
+          "high": "Haut",
+          "medium": "Médium",
+          "low": "Bas"
+        }
       },
       "wifi_aux_cycle_length": {
         "name": "Durée du Cycle"
