@@ -37,6 +37,19 @@ from .const import (
 from .exceptions import SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
+_NOT_SUPPORTED = "[not supported]"
+_EMPTY_VALUE = "[empty value]"
+
+
+def set_validation_translations(
+    not_supported: str,
+    empty_value: str,
+) -> None:
+    """Initialize validation translations."""
+    global _NOT_SUPPORTED, _EMPTY_VALUE
+
+    _NOT_SUPPORTED = not_supported
+    _EMPTY_VALUE = empty_value
 
 REQUEST_STORE_VERSION = 1
 REQUEST_STORE_KEY = "neviweb130_daily_requests"
@@ -759,8 +772,9 @@ class Neviweb130SensorEntityDescription(SensorEntityDescription):
 def init_runtime_attributes(obj, modes: dict[str, str], prefix: str) -> None:
     """Initialize runtime statistics attributes dynamically."""
     for mode in modes:
-        setattr(obj, f"_{mode}_{prefix}_total_count", 0)
-        setattr(obj, f"_{mode}_{prefix}_count", 0)
+        # None until the first hourly stats fetch, so total_increasing sensors don't see a reset on restart
+        setattr(obj, f"_{mode}_{prefix}_total_count", None)
+        setattr(obj, f"_{mode}_{prefix}_count", None)
         setattr(obj, f"_{mode}_{prefix}_last_timestamp", None)
         setattr(obj, f"_{mode}_{prefix}_last_timestamp_local", None)
 
@@ -1353,6 +1367,23 @@ def safe_number(value) -> float:
 def parse_safe_mode(value: str) -> set[str]:
     """Convert safe mode configuration to a set of device IDs."""
     return {device_id.strip() for device_id in value.split(",") if device_id.strip() and device_id.strip() != "-"}
+
+
+# ─────────────────────────────────────────────
+# Manage attributes not availables
+# ─────────────────────────────────────────────
+
+
+def validate_value(value: object) -> object:
+    """Return translated text when value is unavailable or empty."""
+
+    if value is None:
+        return _NOT_SUPPORTED
+
+    if isinstance(value, str) and value == "":
+        return _EMPTY_VALUE
+
+    return value
 
 
 # await async_notify_throttled(
