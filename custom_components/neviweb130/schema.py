@@ -302,7 +302,8 @@ DELAY = [label for label, seconds in HA_TO_NEVIWEB_DELAY.items() if seconds <= 1
 DISPLAY_CAPABILITY = ["enable", "disable"]
 DISPLAY_LIST = ["exteriorTemperature", "setpoint", "default"]
 FAN_CAPABILITY = ["low", "med", "high", "auto"]
-FAN_SPEED = ["high", "medium", "low", "auto", "off"]
+FAN_SPEED = list(HA_TO_NEVIWEB_FAN_SPEED.keys())
+FAN_SPEED_5 = list(HA_TO_NEVIWEB_FAN_SPEED_5.keys())
 FAN_SWING_CAPABILITY = ["fullHorizontal", "autoHorizontal", "fullVertical", "autoVertical"]
 FLOOR_MODE = ["airByFloor", "roomByFloor", "floor"]
 FLOW_DURATION = list(HA_TO_NEVIWEB_DURATION.keys())
@@ -825,7 +826,7 @@ SET_FAN_FILTER_REMINDER_SCHEMA = vol.Schema(
 SET_TEMPERATURE_OFFSET_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_TEMP_OFFSET_HEAT): vol.All(vol.Coerce(int), vol.Range(min=-2, max=2)),
+        vol.Required(ATTR_TEMP_OFFSET_HEAT): vol.All(vol.Coerce(float), vol.Range(min=-2, max=2)),
     }
 )
 
