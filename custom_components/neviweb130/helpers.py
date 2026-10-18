@@ -51,6 +51,7 @@ def set_validation_translations(
     _NOT_SUPPORTED = not_supported
     _EMPTY_VALUE = empty_value
 
+
 REQUEST_STORE_VERSION = 1
 REQUEST_STORE_KEY = "neviweb130_daily_requests"
 
