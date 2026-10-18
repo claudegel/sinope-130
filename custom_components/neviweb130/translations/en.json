@@ -73,7 +73,7 @@
       "entity_must_be_domain": "Entity {entity} must be a {domain} {platform}.",
       "missing_parameter": "Missing required parameter: {param}.",
       "does_not_support": "Entity {entity} is {domain} {model} thermostat and does not support time format.",
-      "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool or Wi-Fi HP thermostat.",
+      "must_be_heat_cool": "Entity {entity} must be a {domain} heat-cool thermostat.",
       "fan_model_not_supported": "Fan speed is not supported for model {model}.",
       "unknown_mode": "Unknown heat-cool mode for {model}: {mode}.",
       "fan_mode_not_supported": "Fan mode {mode} is not supported for model {model}.",
@@ -130,7 +130,12 @@
       "config_imported": "The neviweb130 YAML configuration is now obsolete. The configuration for the « {prefix} » account has been automatically imported into the Home Assistant interface. Once all your accounts have been imported, please remove or comment out the `neviweb130:` section in your `configuration.yaml` file, then restart Home Assistant.",
       "yaml_config_detected": "Neviweb130 YAML configuration was detected and automatic import has started.",
       "duplicated_prefix": "YAML import: prefix = {prefix} already configured, aborting import",
-      "safe_mode_active": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute detected. Report to maintainer."
+      "safe_mode_active": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute detected. Report to maintainer.",
+      "not_supported": "Not supported",
+      "empty_value": "not configured",
+      "not_available": "Not available",
+      "g_not_connected": "Device {name}, no cable connected to terminal G, service not available.",
+      "must_support_fan_control": "Entity {entity} does not support fan speed control."
     }
   },
   "options": {
@@ -334,6 +339,9 @@
       "setpoint_away": {
         "name": "Setpoint Away"
       },
+      "temp_offset_heat": {
+        "name": "temperature Offset"
+      },
       "water_remaining_time": {
         "name": "remaining_time",
         "state": {
@@ -392,6 +400,13 @@
       },
       "gauge_type": {
         "name": "Gauge Model"
+      },
+      "hc_fan_speed": {
+        "name": "HeatCool Fan Speed",
+        "state": {
+          "auto": "Auto",
+          "on": "On"
+        }
       },
       "hc_second_display": {
         "name": "Second Display",
@@ -531,6 +546,15 @@
       },
       "timer2": {
         "name": "Timer 2"
+      },
+      "whc_fan_speed": {
+        "name": "HP Fan Speed",
+        "state": {
+          "auto": "Auto",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        }
       },
       "wifi_aux_cycle_length": {
         "name": "Cycle Length"
