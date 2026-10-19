@@ -1390,7 +1390,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     async def async_set_tank_size(self, value):
         """Set water tank size for RM3500ZB Calypso controller."""
         await self._client.async_set_tank_size(value["id"], value["val"])
-        self._tank_size = size
+        self._tank_size = value["val"]
 
     async def async_set_controlled_device(self, value):
         """Set device name controlled by RM3250ZB load controller."""
