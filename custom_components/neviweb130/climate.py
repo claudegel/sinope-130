@@ -7194,7 +7194,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._scheduled_peak_delay = None
         self._scheduled_peak_status = None
         self._temp_display_status = None
-        self._temp_offset_heat = None
+        self._temp_offset_heat = 0.0
         self._wifi_aux_cycle = None
         self._wifi_cycle = None
         for prefix in RUNTIME_PREFIXES:
