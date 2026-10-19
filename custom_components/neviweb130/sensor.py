@@ -266,6 +266,18 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         icon="mdi:thermometer",
     ),
     Neviweb130SensorEntityDescription(
+        key="current_humidity",
+        device_class=SensorDeviceClass.HUMIDITY,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="humidity",
+        value_fn=lambda data: data["current_humidity"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=PERCENTAGE,
+        unit_class="percentage",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        icon="mdi:water-percent",
+    ),
+    Neviweb130SensorEntityDescription(
         key="outdoor_temp",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -2063,7 +2075,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
         self._fuel_alert = value["fuel"]
 
 
-class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
+class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
     """Implementation of a Neviweb gateway sensor, GT130."""
 
     def __init__(self, data, device_info, name, device_type, sku, firmware, location, coordinator, entry):
@@ -2107,11 +2119,6 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
             self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
 
     @property
-    def device_class(self):
-        """Return the device class of this entity."""
-        return BinarySensorDeviceClass.CONNECTIVITY
-
-    @property
     def gateway_status(self) -> str | None:
         """Return current gateway status: 'online' or 'offline'."""
         return self._gateway_status if self._gateway_status is not None else None
@@ -2120,6 +2127,12 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, BinarySensorEntity):
     def native_value(self) -> str | None:
         """Return the state of the gateway."""
         return self._gateway_status
+
+    @property
+    def icon(self) -> str:
+        if self._gateway_status == "online":
+            return "mdi:lan-connect"
+        return "mdi:lan-disconnect"
 
     @property
     def occupancy_mode(self):
