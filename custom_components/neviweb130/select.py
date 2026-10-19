@@ -25,7 +25,6 @@ from .schema import (
     BATT_TYPE_LIST,
     COLOR_LIST,
     DISPLAY_LIST,
-    FAN_SPEED,
     FLOOR_MODE,
     FLOW_DURATION,
     FLOW_MODEL,
