@@ -25,6 +25,7 @@ from .schema import (
     BATT_TYPE_LIST,
     COLOR_LIST,
     DISPLAY_LIST,
+    FAN_SPEED,
     FLOOR_MODE,
     FLOW_DURATION,
     FLOW_MODEL,
@@ -32,6 +33,7 @@ from .schema import (
     GAUGE_LIST,
     HA_TO_NEVIWEB_OPTION,
     HC_DISPLAY_LIST,
+    HP_FAN_SPEED,
     LANGUAGE_LIST,
     LOCK_LIST,
     LOW_FUEL_LEVEL,
@@ -51,6 +53,7 @@ from .schema import (
     TIMER_LIST,
     WATER_TEMP,
     WIFI_CYCLE,
+    WIFI_FAN_SPEED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -143,6 +146,18 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         icon="mdi:fullscreen",
         translation_key="hc_second_display",
         options=HC_DISPLAY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="hc_fan_speed",
+        icon="mdi:fan",
+        translation_key="hc_fan_speed",
+        options=WIFI_FAN_SPEED,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="whp_fan_speed",
+        icon="mdi:fan",
+        translation_key="whp_fan_speed",
+        options=HP_FAN_SPEED,
     ),
     Neviweb130SelectEntityDescription(
         key="cycle_length",
@@ -407,6 +422,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         ),
         "flow_meter": lambda self, option: self._client.async_set_flow_meter_model(self._id, option),
         "gauge_type": lambda self, option: self._client.async_set_gauge_type(self._id, option),
+        "hc_fan_speed": lambda self, option: self._client.async_set_fan_mode(self._id, option, self.model),
         "hc_second_display": lambda self, option: self._client.async_set_hc_display(self._id, option),
         "heater_temp_min": lambda self, option: self._client.async_set_low_temp_protection(self._id, option),
         "keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
@@ -434,6 +450,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "timer2": lambda self, option: self._client.async_set_timer2(self._id, option),
         "wifi_aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         "wifi_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
+        "whp_fan_speed": lambda self, option: self._client.async_set_fan_mode(self._id, option, self.model),
         # ...
     }
 
