@@ -829,7 +829,7 @@ def alert_to_text(alert, value):
     return None
 
 
-def neviweb_to_ha(value):
+def neviweb_to_ha_size(value):
     keys = [k for k, v in HA_TO_NEVIWEB_SIZE.items() if v == value]
     if keys:
         return keys[0]
@@ -1389,8 +1389,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     async def async_set_tank_size(self, value):
         """Set water tank size for RM3500ZB Calypso controller."""
-        size = [v for k, v in HA_TO_NEVIWEB_SIZE.items() if k == value["val"]][0]
-        await self._client.async_set_tank_size(value["id"], size)
+        await self._client.async_set_tank_size(value["id"], value["val"])
         self._tank_size = size
 
     async def async_set_controlled_device(self, value):
@@ -2092,7 +2091,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     self._cold_load_status = device_data[ATTR_COLD_LOAD_PICKUP_STATUS]
                     self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
                     self._rssi = device_data[ATTR_RSSI]
-                    self._tank_size = device_data[ATTR_TANK_SIZE]
+                    self._tank_size = neviweb_to_ha_size(device_data[ATTR_TANK_SIZE])
                     if ATTR_DRSTATUS in device_data:
                         self._drstatus_active = device_data[ATTR_DRSTATUS][ATTR_DRACTIVE]
                         self._drstatus_optout = device_data[ATTR_DRSTATUS][ATTR_OPTOUT]
@@ -2154,7 +2153,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                     if self._cold_load_remaining_time is not None
                     else None
                 ),
-                "tank_size": neviweb_to_ha(self._tank_size),
+                "tank_size": self._tank_size,
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
                 "eco_onoff": self._drstatus_onoff,
@@ -2380,7 +2379,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     else None
                 ),
                 "cold_load_temperature": self._cold_load_temp,
-                "tank_size": neviweb_to_ha(self._tank_size),
+                "tank_size": neviweb_to_ha_size(self._tank_size),
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
                 "eco_onoff": self._drstatus_onoff,
