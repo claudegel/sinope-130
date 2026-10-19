@@ -42,6 +42,7 @@ from .helpers import (
     normalize_yaml_config,
     sanitize_entry_data,
     setup_logger,
+    set_validation_translations,
     translate_error,
     update_logger_config,
     update_logger_level,
@@ -343,6 +344,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up neviweb130 from a config entry."""
     counter = DailyRequestCounter(hass)
     await counter.async_load()
+
+    set_validation_translations(
+        await translate_error(hass, "not_supported"),
+        await translate_error(hass, "empty_value"),
+    )
 
     log_options = extract_log_options(entry)
 
