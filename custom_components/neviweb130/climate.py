@@ -285,10 +285,12 @@ from .helpers import (
     safe_number,
     translate_error,
     update_runtime_stats,
+    validate_value,
 )
 from .schema import (
     AUX_HEATING,
     FAN_SPEED,
+    FAN_SPEED_5,
     FULL_SWING,
     FULL_SWING_OFF,
     HA_TO_NEVIWEB_FAN_SPEED,
@@ -1311,8 +1313,14 @@ async def async_setup_entry(
     async def set_fan_speed_service(service: ServiceCall) -> None:
         """Set TH6500WF, TH6250WF fan speed, On or Auto."""
         thermostat = await get_thermostat(service)
-        if not isinstance(thermostat, Neviweb130HeatCoolThermostat):
-            msg = await translate_error(hass, "must_be_heat_cool", entity=thermostat.entity_id, domain=DOMAIN)
+        if not isinstance(
+            thermostat,
+            (
+                Neviweb130HeatCoolThermostat,
+                Neviweb130WifiHPThermostat,
+            ),
+        ):
+            msg = await translate_error(hass, "must_support_fan_control", entity=thermostat.entity_id)
             raise ServiceValidationError(msg)
         value = {
             "id": thermostat.id,
@@ -1723,7 +1731,7 @@ def neviweb_to_ha_fan(value: int, model: str) -> str:
     """Return fanSpeed value for model 6813 or 6814."""
     if model == "6813":
         mapping = HA_TO_NEVIWEB_FAN_SPEED
-    elif model == "6814":
+    elif model in ("6814", "6815"):
         mapping = HA_TO_NEVIWEB_FAN_SPEED_5
     else:
         raise ValueError(f"model not supported: {model}")
@@ -3160,7 +3168,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         raise NotImplementedError
 
     async def async_set_fan_speed(self, value: dict[str, Any]) -> bool:
-        """Set fan speed On or Auto."""
+        """Set fan speed according to device model."""
         raise NotImplementedError
 
     async def async_set_aux_heating_source(self, value: dict[str, Any]) -> bool:
@@ -3593,6 +3601,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 ATTR_CYCLE_LENGTH,
                 ATTR_COLD_LOAD_PICKUP,
                 ATTR_HEAT_LOCKOUT_TEMP,
+                ATTR_RSSI,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -3660,6 +3669,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._cycle_length = neviweb_to_ha(cycle_length)
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
+                    self._rssi = devive_data.get(ATTR_RSSI, self._rssi)
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
@@ -3758,8 +3768,8 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "eco_power_absolute": self._drstatus_abs,
                 "eco_setpoint_status": self._drsetpoint_status,
                 "eco_setpoint_delta": self._drsetpoint_value,
-                "cold_load_pickup": self._cold_load_pickup,
-                "heat_lockout_temp": self._heat_lockout_temp,
+                "cold_load_pickup": validate_value(self._cold_load_pickup),
+                "heat_lockout_temp": validate_value(self._heat_lockout_temp),
                 "total_kwh_count": self._total_kwh_count,
                 "monthly_kwh_count": self._monthly_kwh_count,
                 "daily_kwh_count": self._daily_kwh_count,
@@ -3770,6 +3780,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "last_energy_stat_update": self._mark,
                 "outdoor_temp": self._temperature,
                 "weather_icon": self._weather_icon,
+                "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": self._device_model,
                 "device_model_cfg": self._device_model_cfg,
@@ -7020,9 +7031,27 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         return success
 
+    @override
+    async def async_set_fan_speed(self, value: dict[str, Any]) -> bool:
+        """Set fan speed according to model options."""
+
+        success = await self._client.async_set_fan_mode(value["id"], value["speed"], self._device_model)
+
+        if success:
+            self._fan_speed = value["speed"]
+
+        return success
+
     @property
     def cool_setpoint_away(self):
         return self._cool_target_temp_away
+
+    @property
+    def whp_fan_speed(self):
+        """Return fan speed for HP6000WF thermostats."""
+        if self._fan_speed is not None:
+            return self._fan_speed
+        return "Not available"
 
     @property
     @override
@@ -7111,7 +7140,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         self._aux_heat_source_type = None
         self._aux_heat_start_delay = None
         self._reversing_valve_polarity = "cooling"
-        self._backlight_auto_dim = None
+        self._back_light = None
         self._cool_cycle_length = None
         self._cool_interstage_min_delay = None
         self._cool_max: float = 36
@@ -7357,10 +7386,10 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
                     if wifi_keypad is not None:
                         self._keypad = lock_to_ha(wifi_keypad)
-                    back_light = device_data.get(ATTR_BACK_LIGHT)
+                    self._back_light = device_data.get(ATTR_BACK_LIGHT, self._back_light)
+                    back_light = device_data.get(ATTR_BACKLIGHT_AUTO_DIM)
                     if back_light is not None:
                         self._backlight = backlight_to_ha(back_light)
-                    self._backlight_auto_dim = device_data[ATTR_BACKLIGHT_AUTO_DIM]
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._cool_target_temp_away = device_data[ATTR_COOL_SETPOINT_AWAY]
@@ -7985,8 +8014,17 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             self._aux_heat_source_type = equip
         return success
 
+    @override
     async def async_set_fan_speed(self, value: dict[str, Any]) -> bool:
         """Set fan speed On or Auto."""
+
+        can_control_fan = self._output_connect_state["G"]
+
+        if not can_control_fan:
+            msg = await translate_error(self.hass, "g_not_connected", name=self._name)
+            _LOGGER.warning(msg)
+            return False
+
         success = await self._client.async_set_fan_mode(value["id"], value["speed"], self._device_model)
 
         if success:
@@ -8107,6 +8145,18 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         return None
 
     @property
+    def temp_offset_heat(self) -> float:
+        """For all TH6xxxWF with a 0.5 oC step."""
+        return self._temp_offset_heat
+
+    @property
+    def hc_fan_speed(self) -> str:
+        """Return fan speed for TH6xxxWF if wire G is connected."""
+        if self._fan_speed is not None and self._output_connect_state["G"]:
+            return self._fan_speed
+        return "Not available"
+
+    @property
     def pro_aux_cycle_length(self):
         """For TH6250WF-PRO, TH6500WF and TH6510WF."""
         if self._sku != "TH6250WF_PRO" or self._sku != "TH6500WF" or self._sku != "TH6510WF":
@@ -8140,8 +8190,8 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "time_format": self._time_format,
                 "keypad": self._keypad,
                 "fan_speed": self._fan_speed,
+                "back_light": validate_value(self._back_light),
                 "backlight": self._backlight,
-                "backlight_auto_dim": self._backlight_auto_dim,
                 "early_start": self._early_start,
                 "target_temp_away": self._target_temp_away,
                 "cool_target_temp_away": self._cool_target_temp_away,
@@ -8153,7 +8203,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "heat_level_source_type": self._heat_level_source_type,
                 "aux_heat_source_type": self._aux_heat_source_type,
                 "fan_filter_remain": self._fan_filter_remain,
-                "sensor_temp_offset": self._temp_offset_heat,
                 "cycle": self._wifi_cycle,
                 "aux_cycle": self._wifi_aux_cycle,
                 "cool_cycle_length": self._cool_cycle_length,
