@@ -301,6 +301,7 @@ def ha_to_neviweb_timer(value: str | None) -> int:
         _LOGGER.warning("Unknown HA value for timer: %s, fallback to %s", value, result)
     return result
 
+
 def ha_to_neviweb_size(value: str | None) -> int:
     result = HA_TO_NEVIWEB_SIZE.get(value or "none", 0)
     if value not in HA_TO_NEVIWEB_SIZE and value is not None:
