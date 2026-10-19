@@ -157,6 +157,7 @@ from .schema import (
     HA_TO_NEVIWEB_LEVEL,
     HA_TO_NEVIWEB_MODE,
     HA_TO_NEVIWEB_PERIOD,
+    HA_TO_NEVIWEB_SIZE,
     HA_TO_NEVIWEB_SUPPLY,
     HA_TO_NEVIWEB_TEMPERATURE,
     HA_TO_NEVIWEB_TIMER,
@@ -223,7 +224,7 @@ def ha_to_neviweb_duration(value: str | None) -> int:
     return result
 
 
-def ha_to_neviweb_fan_speed(value: str | None, model: int) -> int:
+def ha_to_neviweb_fan_speed(value: str | None, model: str) -> int:
     """Convert HA fan speed value to Neviweb integer code for HP6000WF-xx."""
     if value is None:
         _LOGGER.debug("Fan speed value is None, fallback to 0")
@@ -298,6 +299,12 @@ def ha_to_neviweb_timer(value: str | None) -> int:
     result = HA_TO_NEVIWEB_TIMER.get(value or "off", 0)
     if value not in HA_TO_NEVIWEB_TIMER and value is not None:
         _LOGGER.warning("Unknown HA value for timer: %s, fallback to %s", value, result)
+    return result
+
+def ha_to_neviweb_size(value: str | None) -> int:
+    result = HA_TO_NEVIWEB_SIZE.get(value or "none", 0)
+    if value not in HA_TO_NEVIWEB_SIZE and value is not None:
+        _LOGGER.warning("Unknown HA value for tank size: %s, fallback to %s", value, result)
     return result
 
 
@@ -1508,7 +1515,8 @@ class Neviweb130Client:
 
     async def async_set_tank_size(self, device_id: str, val) -> bool:
         """Set water heater tank size for RM3500ZB."""
-        data = {ATTR_TANK_SIZE: val}
+        size = ha_to_neviweb_size(val)
+        data = {ATTR_TANK_SIZE: size}
         _LOGGER.debug("TankSize.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
@@ -2020,7 +2028,7 @@ class Neviweb130Client:
         _LOGGER.debug("Fan vertical swing value.data = %s", data)
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_fan_mode(self, device_id: str, speed: str | None, model: int) -> bool:
+    async def async_set_fan_mode(self, device_id: str, speed: str | None, model: str) -> bool:
         """Set fan speed (mode) for heat pump."""
 
         if speed is None:
@@ -2028,7 +2036,7 @@ class Neviweb130Client:
 
         speed_val: int | str
 
-        if model == 6813 or model == 6814:
+        if model in ("6813", "6814", "6815"):
             speed_val = ha_to_neviweb_fan_speed(speed, model)
         else:
             speed_val = speed
