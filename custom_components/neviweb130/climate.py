@@ -290,7 +290,6 @@ from .helpers import (
 from .schema import (
     AUX_HEATING,
     FAN_SPEED,
-    FAN_SPEED_5,
     FULL_SWING,
     FULL_SWING_OFF,
     HA_TO_NEVIWEB_FAN_SPEED,
