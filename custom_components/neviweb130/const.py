@@ -531,8 +531,6 @@ MODEL_ATTRIBUTES = {
             "weather_icon",
         ],
         "number": [
-            "cool_lockout_temp",
-            "heat_lockout_temp",
             "max_temp",
             "min_temp",
         ],
@@ -981,7 +979,7 @@ MODEL_ATTRIBUTES = {
     },
     6727: {  # TH6500WF, TH6510WF
         "sensor": [
-            ATTR_RSSI,
+            "current_humidity",
             "current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
@@ -998,10 +996,12 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_temp",
             "setpoint_away",
+            "temp_offset_heat",
         ],
         "select": [
             "backlight",
             "early_start",
+            "hc_fan_speed",
             "keypad_status",
             "language",
             "occupancy_mode",
@@ -1019,7 +1019,7 @@ MODEL_ATTRIBUTES = {
     },
     6730: {  # TH6250WF
         "sensor": [
-            ATTR_RSSI,
+            "current_humidity",
             "current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
@@ -1035,10 +1035,13 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_cool_temp",
             "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
         ],
         "select": [
             "backlight",
             "early_start",
+            "hc_fan_speed",
             "keypad_status",
             "language",
             "occupancy_mode",
@@ -1056,7 +1059,7 @@ MODEL_ATTRIBUTES = {
     },
     6731: {  # TH6250WF-PRO
         "sensor": [
-            ATTR_RSSI,
+            "current_humidity",
             "current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
@@ -1072,10 +1075,13 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_cool_temp",
             "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
         ],
         "select": [
             "backlight",
             "early_start",
+            "hc_fan_speed",
             "keypad_status",
             "language",
             "occupancy_mode",
@@ -1093,7 +1099,7 @@ MODEL_ATTRIBUTES = {
     },
     6734: {  # TH6251WF-PRO
         "sensor": [
-            ATTR_RSSI,
+            "current_humidity",
             "current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
@@ -1109,10 +1115,13 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_cool_temp",
             "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
         ],
         "select": [
             "backlight",
             "early_start",
+            "hc_fan_speed",
             "keypad_status",
             "language",
             "occupancy_mode",
@@ -1196,7 +1205,10 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_temp",
         ],
-        "select": ["keypad_status"],
+        "select": [
+            "keypad_status",
+            "whp_fan_speed",
+        ],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": ["safe_mode"],
@@ -1215,7 +1227,10 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_temp",
         ],
-        "select": ["keypad_status"],
+        "select": [
+            "keypad_status",
+            "whp_fan_speed",
+        ],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": ["safe_mode"],
@@ -1234,7 +1249,10 @@ MODEL_ATTRIBUTES = {
             "max_temp",
             "min_temp",
         ],
-        "select": ["keypad_status"],
+        "select": [
+            "keypad_status",
+            "whp_fan_speed",
+        ],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": ["safe_mode"],
@@ -1939,6 +1957,7 @@ EXPOSED_ATTRIBUTES = [
     "brightness",
     "cool_lockout_temp",
     "cool_setpoint_away",
+    "current_humidity",
     "current_temperature",
     "cycle_length",
     "daily_flow_count",
@@ -1957,6 +1976,7 @@ EXPOSED_ATTRIBUTES = [
     "gauge_angle",
     "gauge_error",
     "gauge_type",
+    "hc_fan_speed",
     "hc_second_display",
     "heater_temp_min",
     "heat_lockout_temp",
@@ -2018,6 +2038,7 @@ EXPOSED_ATTRIBUTES = [
     "temperature_alert",
     "temp_alert",
     "temp_format",
+    "temp_offset_heat",
     "time_format",
     "timer",
     "timer2",
@@ -2034,6 +2055,7 @@ EXPOSED_ATTRIBUTES = [
     "wifi_aux_cycle_length",
     "wifi_cycle",
     "wifirssi",
+    "whp_fan_speed",
     # Constants
     "model",
     "is_color_wifi",
