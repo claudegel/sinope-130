@@ -3668,7 +3668,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         self._cycle_length = neviweb_to_ha(cycle_length)
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
-                    self._rssi = devive_data.get(ATTR_RSSI, self._rssi)
+                    self._rssi = device_data.get(ATTR_RSSI, self._rssi)
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
