@@ -957,6 +957,7 @@ class Neviweb130Client:
         """Get device attributes."""
         increment_request_counter(self.hass)
         # Http requests
+
         try:
             raw_res = requests.get(
                 DEVICE_DATA_URL + device_id + "/attribute?attributes=" + ",".join(attributes),
