@@ -925,12 +925,12 @@ def file_exists(hass, path: str) -> bool:
 async def _t(hass, key: str) -> str:
     """Thread-safe translation lookup for notifications."""
     domain = "neviweb130"
-    full_key = f"component.{domain}.notifications.{key}"
+    full_key = f"component.{domain}.config.error.{key.lower()}"
 
     translations = await async_get_translations(
         hass,
         hass.config.language,
-        "notifications",
+        "config",
         integrations=["neviweb130"],
     )
 
