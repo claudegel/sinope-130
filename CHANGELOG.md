@@ -7,7 +7,8 @@ All modification for this custom_component will be added in this file.
 - Add rssi attribute for G2 thermostats.
 
 ### Fix
-- Fix typo in const.py for FlowModel -> flowModel
+- Fix typo in const.py for FlowModel -> flowModel.
+- Fix typo in service.yaml for FlowModel.
 
 ### Doc
 
