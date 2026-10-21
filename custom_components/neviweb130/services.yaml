@@ -473,7 +473,7 @@ set_flow_meter_model:
     entity_id:
       description: Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB).
       example: "valve.neviweb130_main_valve"
-    FlowModel:
+    flowModel:
       description: Set to FS4220, or FS4221 or  No flow meter.
       example: "No flow meter"
 
