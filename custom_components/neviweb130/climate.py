@@ -350,7 +350,7 @@ from .schema import (
 
 _LOGGER = logging.getLogger(__name__)
 
-HEAT_LEVEL_PROTECTION_DELAY = 10  # secondes
+UPDATE_PROTECTION_DELAY = 10  # seconds
 
 # Add runtime attribute
 for prefix in RUNTIME_PREFIXES:
@@ -2049,7 +2049,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -2072,7 +2074,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
 
                     percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
 
@@ -3238,18 +3240,19 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             # Refresh via coordinator
             await self.coordinator.async_request_refresh()
 
-    def ignore_heat_level(self, last_change: float | None, percent: int) -> bool:
+    def ignore_early_update(self, last_change: float | None, attrib: str, data: float | int) -> bool:
         """Return True if percent should be ignored because update is too early."""
         if last_change is None:
             return False
 
         elapsed = time.time() - last_change
 
-        if elapsed < HEAT_LEVEL_PROTECTION_DELAY:
+        if elapsed < UPDATE_PROTECTION_DELAY:
             _LOGGER.debug(
-                "Ignoring early heat_level update for %s: percent=%s (%.1f sec after setpoint change)",
+                "Ignoring early update for %s: %s=%s (%.1f sec after setpoint change)",
                 self._name,
-                percent,
+                attrib,
+                data,
                 elapsed,
             )
             return True
@@ -3635,7 +3638,9 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -3658,7 +3663,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._cold_load_pickup = device_data.get(ATTR_COLD_LOAD_PICKUP, self._cold_load_pickup)
                     self._heat_lockout_temp = device_data.get(ATTR_HEAT_LOCKOUT_TEMP, self._heat_lockout_temp)
                     percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -3859,7 +3864,9 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -3880,7 +3887,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -4109,7 +4116,9 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -4117,7 +4126,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]
                     self._display2 = device_data[ATTR_DISPLAY2]
                     percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -4352,7 +4361,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMPERATURE]["value"] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -4373,7 +4384,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -4569,7 +4580,9 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -4590,7 +4603,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
@@ -4808,7 +4821,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -4827,7 +4842,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
@@ -5046,7 +5061,9 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -5066,7 +5083,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                         self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     source_info = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {})
@@ -5287,7 +5304,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -5309,7 +5328,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
@@ -5565,7 +5584,9 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._room_temp_error = device_data[ATTR_ROOM_TEMPERATURE]["error"]
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -5585,7 +5606,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._heat_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
@@ -5856,7 +5877,9 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         if device_data[ATTR_ROOM_TEMP_DISPLAY] is not None
                         else self._cur_temp_before
                     )
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -5878,7 +5901,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
                         percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                        if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                        if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                             # Accept heat_level received (delay passed)
                             self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -6132,11 +6155,16 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._operation_mode = neviweb_to_ha_mode(device_data[ATTR_SYSTEM_MODE])
-                    self._target_temp = (
-                        float(device_data[ATTR_COOL_SETPOINT])
+                    setpoint_attr = (
+                        ATTR_COOL_SETPOINT
                         if self._operation_mode == "cool"
-                        else float(device_data[ATTR_ROOM_SETPOINT])
+                        else ATTR_ROOM_SETPOINT
                     )
+
+                    target = float(device_data[setpoint_attr])
+
+                    if not self.ignore_early_update(self._last_setpoint_change, setpoint_attr, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_cool = device_data[ATTR_COOL_SETPOINT]
@@ -6645,11 +6673,16 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             mode=device_data[ATTR_HEAT_COOL],
                         )
                         raise ServiceValidationError(msg)
-                    self._target_temp = (
-                        float(device_data[ATTR_COOL_SETPOINT])
-                        if self._heat_cool == "cool"
-                        else float(device_data[ATTR_ROOM_SETPOINT])
+                    setpoint_attr = (
+                        ATTR_COOL_SETPOINT
+                        if self._operation_mode == "cool"
+                        else ATTR_ROOM_SETPOINT
                     )
+
+                    target = float(device_data[setpoint_attr])
+
+                    if not self.ignore_early_update(self._last_setpoint_change, setpoint_attr, target):
+                        self._target_temp = target
                     self._temp_display_value = device_data[ATTR_ROOM_TEMP_DISPLAY]["value"]
                     self._temp_display_status = device_data[ATTR_ROOM_TEMP_DISPLAY]["status"]
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
@@ -7344,7 +7377,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                             notification_id="neviweb130_sensor_error",
                         )
                     self._heat_cool = device_data[ATTR_HEAT_COOL]
-                    self._target_temp = float(device_data[ATTR_ROOM_SETPOINT])
+                    target = float(device_data[ATTR_ROOM_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_ROOM_SETPOINT, target):
+                        self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
@@ -7355,7 +7390,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME_FORMAT]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
-                    if not self.ignore_heat_level(self._last_setpoint_change, percent):
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
                         # Accept heat_level received (delay passed)
                         self._heat_level = percent
                     self._heat_level_source_type = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]["sourceType"]
