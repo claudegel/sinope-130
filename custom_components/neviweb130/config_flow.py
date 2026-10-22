@@ -521,16 +521,20 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     @staticmethod
-    def _set_log_level(log_level):
+    def _set_log_level(log_level: str) -> None:
         """Set the log level for the neviweb130 component."""
+
         level = getattr(logging, log_level.upper(), logging.INFO)
 
         # Apply to global logger global
         logger = logging.getLogger("custom_components.neviweb130")
         logger.setLevel(level)
 
+        for handler in logger.handlers:
+            handler.setLevel(level)
+
         # Optional : confirmation log
-        logger.warning("neviweb130 log level set to %s", log_level)
+        logger.info("Neviweb130 log level changed to %s", log_level)
 
     def _validate_prefix(self, prefix: str) -> str | None:
         """Validate prefix format and uniqueness."""
