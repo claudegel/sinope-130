@@ -788,7 +788,7 @@ async def async_setup_entry(
                                 entry,
                             )
 
-                        _LOGGER.warning("Device registered = %s, name: %s", device_info["id"], device_name)
+                        _LOGGER.debug("Device registered = %s, name: %s", device_info["id"], device_name)
 
                         if device is not None:
                             entities.append(device)
@@ -2818,6 +2818,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 self._heat_level = temp_to_heat_level(gap)
             else:
                 self._heat_level = 0
+
             self.async_write_ha_state()
 
     async def async_set_second_display(self, value):
@@ -5911,7 +5912,9 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                     self._rssi = device_data.get(ATTR_RSSI, self._rssi)
                     self._wattage = device_data[ATTR_WATTAGE]
                     self._cycle_length = neviweb_to_ha(device_data[ATTR_CYCLE_LENGTH])
-                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                    cool = float(device_data[ATTR_COOL_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_COOL_SETPOINT, cool):
+                        self._target_cool = cool
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._HC_device = device_data[ATTR_HC_DEV]
@@ -6157,7 +6160,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._operation_mode = neviweb_to_ha_mode(device_data[ATTR_SYSTEM_MODE])
-                    setpoint_attr = ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT
+                    setpoint_attr = (ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT)
 
                     target = float(device_data[setpoint_attr])
 
@@ -6165,7 +6168,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         self._target_temp = target
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                    cool = float(device_data[ATTR_COOL_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_COOL_SETPOINT, cool):
+                        self._target_cool = cool
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
@@ -6419,16 +6424,25 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             temperature_low = min(temperature_low, self._max_temp)
 
             if self._target_temp != temperature_low:
-                await self._client.async_set_temperature(self._id, temperature_low)
-                self._target_temp = temperature_low
+                success = await self._client.async_set_temperature(self._id, temperature_low)
+
+                if success:
+                    # Local update
+                    self._target_temp = temperature_low
 
         if temperature_high is not None:
             temperature_high = min(temperature_high, self._cool_max)
             temperature_high = max(temperature_high, self._cool_min)
 
             if self._target_cool != temperature_high:
-                await self._client.async_set_cool_temperature(self._id, temperature_high)
-                self._target_cool = temperature_high
+                success = await self._client.async_set_cool_temperature(self._id, temperature_high)
+
+                if success:
+                    # Local update
+                    self._target_cool = temperature_high
+
+        if success:
+            self._last_setpoint_change = time.time()
 
         await self._delayed_refresh(wifi=self._is_wifi)
 
@@ -6671,7 +6685,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             mode=device_data[ATTR_HEAT_COOL],
                         )
                         raise ServiceValidationError(msg)
-                    setpoint_attr = ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT
+                    setpoint_attr = (ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT)
 
                     target = float(device_data[setpoint_attr])
 
@@ -6683,7 +6697,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                     self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
-                    self._target_cool = device_data[ATTR_COOL_SETPOINT]
+                    cool = float(device_data[ATTR_COOL_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_COOL_SETPOINT, cool):
+                        self._target_cool = cool
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._cool_target_temp_away = device_data[ATTR_COOL_SETPOINT_AWAY]
@@ -7038,17 +7054,23 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         # HEAT or AUTO → heating setpoint
         if mode in (HVACMode.HEAT, HVACMode.HEAT_COOL, HVACMode.AUTO):
-            await self._client.async_set_temperature(self._id, temp)
+            success = await self._client.async_set_temperature(self._id, temp)
 
         # COOL → cooling setpoint
         elif mode == HVACMode.COOL:
-            await self._client.async_set_cool_temperature(self._id, temp)
+            success = await self._client.async_set_cool_temperature(self._id, temp)
 
         # Other modes → fallback to heating
         else:
-            await self._client.async_set_temperature(self._id, temp)
+            success = await self._client.async_set_temperature(self._id, temp)
 
-        # await self._delayed_refresh(wifi=self._is_wifi)
+        if success:
+            # Local update
+            if mode == HVACMode.COOL:
+                self._target_cool = temp
+            else:
+                self._target_temp = temp
+            self._last_setpoint_change = time.time()
 
     async def async_set_cool_setpoint_away(self, value) -> bool:
         """Set device away cooling setpoint."""
@@ -7377,7 +7399,9 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                     self._min_temp = device_data[ATTR_ROOM_SETPOINT_MIN]
                     self._cur_temp = max(self._cur_temp, self._min_temp)
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
-                    self._target_cool = float(device_data[ATTR_COOL_SETPOINT])
+                    cool = float(device_data[ATTR_COOL_SETPOINT])
+                    if not self.ignore_early_update(self._last_setpoint_change, ATTR_COOL_SETPOINT, cool):
+                        self._target_cool = cool
                     self._cool_min = device_data[ATTR_COOL_SETPOINT_MIN]
                     self._cool_max = device_data[ATTR_COOL_SETPOINT_MAX]
                     self._heatcool_setpoint_delta = device_data[ATTR_HEATCOOL_SETPOINT_MIN_DELTA]
@@ -7891,8 +7915,11 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 temperature_low = min(temperature_low, self._max_temp)
 
             if self._target_temp != temperature_low:
-                await self._client.async_set_temperature(self._id, temperature_low)
-                self._target_temp = temperature_low
+                success = await self._client.async_set_temperature(self._id, temperature_low)
+                if success:
+                    # Local update
+                    self._target_temp = temperature_low
+                    self._last_setpoint_change = time.time()
 
         if temperature_high is not None:
             temperature_high = min(temperature_high, self._cool_max)
@@ -7902,8 +7929,12 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 temperature_high = max(temperature_high, self._cool_min)
 
             if self._target_cool != temperature_high:
-                await self._client.async_set_cool_temperature(self._id, temperature_high)
-                self._target_cool = temperature_high
+                success = await self._client.async_set_cool_temperature(self._id, temperature_high)
+                if success:
+                    # Local update
+                    self._target_cool = temperature_high
+                    self._last_setpoint_change = time.time()
+
         await self._delayed_refresh(wifi=self._is_wifi)
 
     async def async_set_min_time_on(self, value: dict[str, Any]) -> bool:
