@@ -6160,7 +6160,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._operation_mode = neviweb_to_ha_mode(device_data[ATTR_SYSTEM_MODE])
-                    setpoint_attr = (ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT)
+                    setpoint_attr = ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT
 
                     target = float(device_data[setpoint_attr])
 
@@ -6685,7 +6685,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             mode=device_data[ATTR_HEAT_COOL],
                         )
                         raise ServiceValidationError(msg)
-                    setpoint_attr = (ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT)
+                    setpoint_attr = ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT
 
                     target = float(device_data[setpoint_attr])
 
