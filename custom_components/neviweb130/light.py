@@ -223,7 +223,7 @@ async def async_setup_entry(
                                 entry,
                             )
 
-                        _LOGGER.warning("Device registered = %s, name: %s", device_info["id"], device_name)
+                        _LOGGER.debug("Device registered = %s, name: %s", device_info["id"], device_name)
 
                         if device is not None:
                             entities.append(device)
