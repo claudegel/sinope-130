@@ -342,6 +342,7 @@ class Neviweb130Client:
         self._ignore_miwi = ignore_miwi
         self._config_entry = config_entry
         self._safe_mode = parse_safe_mode(safe_mode)
+        self._reported_missing_attributes: set[tuple[str, str]] = set()
 
         # Device storage
         self._devices: dict[str, dict[str, Any]] = {}
@@ -735,15 +736,29 @@ class Neviweb130Client:
 
                     return raw
 
-                #                _LOGGER.debug("Attributes for device %s: %s", device_id, raw)
                 missing = [a for a in attributes if a not in raw]
+
                 if missing:
-                    _LOGGER.warning(
-                        "Device %s did not return all requested attributes (%s). Missing: %s",
-                        device_id,
-                        attributes,
-                        missing,
-                    )
+                    key = (str(device_id), tuple(missing))
+
+                    if key not in self._reported_missing_attributes:
+                        self._reported_missing_attributes.add(key)
+
+                        msg = await translate_error(
+                            self.hass,
+                            "missing_attributes",
+                            id=device_id,
+                            attrib=attributes,
+                            missing=missing,
+                        )
+
+                        _LOGGER.warning(msg)
+                        await async_notify_once_or_update(
+                            self.hass,
+                            msg,
+                            title=f"Neviweb130 integration {VERSION}",
+                            notification_id=f"missing_attr_{device_id}",
+                        )
 
                 return raw
 
