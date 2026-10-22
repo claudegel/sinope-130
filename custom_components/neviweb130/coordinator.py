@@ -736,29 +736,35 @@ class Neviweb130Client:
 
                     return raw
 
-                missing = [a for a in attributes if a not in raw]
+                missing: list[str] = [a for a in attributes if a not in raw]
 
-                if missing:
-                    key = (str(device_id), tuple(missing))
+                new_missing: list[str] = []
 
-                    if key not in self._reported_missing_attributes:
-                        self._reported_missing_attributes.add(key)
+                for attr in missing:
+                    key = (str(device_id), attr)
 
-                        msg = await translate_error(
-                            self.hass,
-                            "missing_attributes",
-                            id=device_id,
-                            attrib=attributes,
-                            missing=missing,
-                        )
+                    if key in self._reported_missing_attributes:
+                        continue
 
-                        _LOGGER.warning(msg)
-                        await async_notify_once_or_update(
-                            self.hass,
-                            msg,
-                            title=f"Neviweb130 integration {VERSION}",
-                            notification_id=f"missing_attr_{device_id}",
-                        )
+                    self._reported_missing_attributes.add(key)
+                    new_missing.append(attr)
+
+                if new_missing:
+                    msg = await translate_error(
+                        self.hass,
+                        "missing_attributes",
+                        id=device_id,
+                        attrib=attributes,
+                        missing=new_missing,
+                    )
+
+                    _LOGGER.warning(msg)
+                    await async_notify_once_or_update(
+                        self.hass,
+                        msg,
+                        title=f"Neviweb130 integration {VERSION}",
+                        notification_id=f"missing_attr_{device_id}",
+                    )
 
                 return raw
 
