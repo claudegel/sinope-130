@@ -577,7 +577,7 @@ def create_physical_sensors(data, entry, coordinator, device_registry):
                         entry,
                     )
 
-                _LOGGER.warning("Device registered = %s, name: %s", device_info["id"], device_name)
+                _LOGGER.debug("Device registered = %s, name: %s", device_info["id"], device_name)
 
                 if device is not None:
                     entities.append(device)
