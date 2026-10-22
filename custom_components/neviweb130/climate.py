@@ -5901,7 +5901,9 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
                     if ATTR_OUTPUT_PERCENT_DISPLAY in device_data:
                         percent = device_data[ATTR_OUTPUT_PERCENT_DISPLAY]
-                        if not self.ignore_early_update(self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent):
+                        if not self.ignore_early_update(
+                            self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent
+                        ):
                             # Accept heat_level received (delay passed)
                             self._heat_level = percent
                     self._keypad = device_data[ATTR_KEYPAD]
@@ -6155,11 +6157,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                         else self._cur_temp_before
                     )
                     self._operation_mode = neviweb_to_ha_mode(device_data[ATTR_SYSTEM_MODE])
-                    setpoint_attr = (
-                        ATTR_COOL_SETPOINT
-                        if self._operation_mode == "cool"
-                        else ATTR_ROOM_SETPOINT
-                    )
+                    setpoint_attr = ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT
 
                     target = float(device_data[setpoint_attr])
 
@@ -6673,11 +6671,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                             mode=device_data[ATTR_HEAT_COOL],
                         )
                         raise ServiceValidationError(msg)
-                    setpoint_attr = (
-                        ATTR_COOL_SETPOINT
-                        if self._operation_mode == "cool"
-                        else ATTR_ROOM_SETPOINT
-                    )
+                    setpoint_attr = ATTR_COOL_SETPOINT if self._operation_mode == "cool" else ATTR_ROOM_SETPOINT
 
                     target = float(device_data[setpoint_attr])
 
