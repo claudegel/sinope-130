@@ -6,3 +6,4 @@
 - [Ben Lofo](https://github.com/lamungu)
 - [Vincent Labonté](https://github.com/vincentlabonte)
 - [Simon Boudrias](https://github.com/SBoudrias)
+- [S. Therien](https://github.com/stherien)
