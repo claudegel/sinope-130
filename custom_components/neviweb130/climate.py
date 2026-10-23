@@ -3669,6 +3669,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 ATTR_CYCLE_LENGTH,
                 ATTR_COLD_LOAD_PICKUP,
                 ATTR_HEAT_LOCKOUT_TEMP,
+                ATTR_RSSI,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -3736,6 +3737,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                     self._cycle_length = device_data.get(ATTR_CYCLE_LENGTH, self._cycle_length)
                     self._operation_mode = device_data[ATTR_SYSTEM_MODE]
                     self._wattage = device_data[ATTR_WATTAGE]
+                    self._rssi = device_data.get(ATTR_RSSI, self._rssi)
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -3838,6 +3840,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "last_energy_stat_update": self._mark,
                 "outdoor_temp": self._temperature,
                 "weather_icon": self._weather_icon,
+                "rssi": self._rssi,
                 "sku": self._sku,
                 "device_model": str(self._device_model),
                 "device_model_cfg": self._device_model_cfg,
@@ -7153,7 +7156,6 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
         """Initialize."""
         super().__init__(device_info, name, sku, firmware, location, client)
         self._accessory_type = "none"
-        self._air_curt_activation_temp = None
         self._air_curt_activation_temp = None
         self._air_curt_conf = None
         self._air_curt_max_temp = None

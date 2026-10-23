@@ -2,6 +2,16 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.3] - 2026-10-__
+### Added
+- Add rssi attribute for G2 thermostats.
+
+### Fix
+- Fix typo in const.py for FlowModel -> flowModel.
+- Fix typo in service.yaml for FlowModel.
+
+### Doc
+
 ## [v4.3.2] - 2026-10-12
 ### Added
 - Add fan speed number for HP6000WF-MA.and update fan capabilities
