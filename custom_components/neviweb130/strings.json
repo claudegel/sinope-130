@@ -136,7 +136,7 @@
       "not_available": "Not available",
       "g_not_connected": "Device {name}, no cable connected to terminal G, service not available.",
       "must_support_fan_control": "Entity {entity} does not support fan speed control.",
-      "missing_attributes": "Warning: Device {id} did not return all requested attributes ({attrib}). Missing: {missing}. Check in documentation for missing attributes and report to maintainer if it's not already in the list."
+      "missing_attributes": "Warning: Device {id} did not return all requested attributes. Missing: {missing}. Check in documentation for missing attributes and report to maintainer if it's not already in the list."
     }
   },
   "options": {
