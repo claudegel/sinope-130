@@ -6407,39 +6407,30 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     @override
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature, routing to coolSetpoint or roomSetpoint based on mode."""
-        temperature_low = None
-        temperature_high = None
 
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
             return
 
+        success = False
+
         if self.hvac_mode == HVACMode.COOL:
-            temperature_high = temperature
+            target = min(max(temperature, self._cool_min), self._cool_max)
+
+            if self._target_cool != target:
+                success = await self._client.async_set_cool_temperature(self._id, target)
+
+                if success:
+                    self._target_cool = target
+
         else:
-            temperature_low = temperature
+            target = min(max(temperature, self._min_temp), self._max_temp)
 
-        if temperature_low is not None:
-            temperature_low = max(temperature_low, self._min_temp)
-            temperature_low = min(temperature_low, self._max_temp)
-
-            if self._target_temp != temperature_low:
-                success = await self._client.async_set_temperature(self._id, temperature_low)
+            if self._target_temp != target:
+                success = await self._client.async_set_temperature(self._id, target)
 
                 if success:
-                    # Local update
-                    self._target_temp = temperature_low
-
-        if temperature_high is not None:
-            temperature_high = min(temperature_high, self._cool_max)
-            temperature_high = max(temperature_high, self._cool_min)
-
-            if self._target_cool != temperature_high:
-                success = await self._client.async_set_cool_temperature(self._id, temperature_high)
-
-                if success:
-                    # Local update
-                    self._target_cool = temperature_high
+                    self._target_temp = target
 
         if success:
             self._last_setpoint_change = time.time()
@@ -7052,15 +7043,11 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
         mode = self.hvac_mode
 
-        # HEAT or AUTO → heating setpoint
-        if mode in (HVACMode.HEAT, HVACMode.HEAT_COOL, HVACMode.AUTO):
-            success = await self._client.async_set_temperature(self._id, temp)
-
-        # COOL → cooling setpoint
-        elif mode == HVACMode.COOL:
+        # COOL → cooling setpoint only
+        if mode == HVACMode.COOL:
             success = await self._client.async_set_cool_temperature(self._id, temp)
 
-        # Other modes → fallback to heating
+        # # All other modes -> heating setpoint
         else:
             success = await self._client.async_set_temperature(self._id, temp)
 
