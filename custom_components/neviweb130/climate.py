@@ -7059,6 +7059,8 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 self._target_temp = temp
             self._last_setpoint_change = time.time()
 
+        await self._delayed_refresh(wifi=self._is_wifi)
+
     async def async_set_cool_setpoint_away(self, value) -> bool:
         """Set device away cooling setpoint."""
         success = await self._client.async_set_cool_setpoint_away(value["id"], value["temp"], self._is_WHP)
