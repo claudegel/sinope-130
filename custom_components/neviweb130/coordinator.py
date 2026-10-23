@@ -439,7 +439,7 @@ class Neviweb130Client:
                         )
                     else:
                         _LOGGER.debug("Fail login status: %s", response.status)
-                    msg = await translate_error(self.hass, "login_failed", code=response.json())
+                    msg = await translate_error(self.hass, "login_failed", code=f"HTTP {response.status}")
                     raise PyNeviweb130Error(msg)
 
                 raw_cookies = response.cookies
@@ -750,12 +750,13 @@ class Neviweb130Client:
                     new_missing.append(attr)
 
                 if new_missing:
+                    # Short message for the log and the notification, full request list only in debug
+                    _LOGGER.debug("Attributes requested for device %s: %s", device_id, attributes)
                     msg = await translate_error(
                         self.hass,
                         "missing_attributes",
                         id=device_id,
-                        attrib=attributes,
-                        missing=new_missing,
+                        missing=", ".join(new_missing),
                     )
 
                     _LOGGER.warning(msg)
