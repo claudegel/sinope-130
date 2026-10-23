@@ -377,6 +377,13 @@ class Neviweb130Client:
         """Return a valid aiohttp session from the session manager."""
         return await self._session_manager.create_session()
 
+    def _device_label(self, device_id: str) -> str:
+        """Return 'Name (id)' from the Neviweb device lists, or the id if not found."""
+        for device in (*self.gateway_data, *self.gateway_data2, *self.gateway_data3):
+            if str(device.get("id")) == str(device_id) and device.get("name"):
+                return f"{device['name']} ({device_id})"
+        return str(device_id)
+
     async def async_initialize(self):
         """Asynchronously initialize the client."""
         _LOGGER.debug("Initializing Neviweb130Client...")
@@ -755,7 +762,7 @@ class Neviweb130Client:
                     msg = await translate_error(
                         self.hass,
                         "missing_attributes",
-                        id=device_id,
+                        id=self._device_label(device_id),
                         missing=", ".join(new_missing),
                     )
 
