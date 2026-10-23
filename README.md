@@ -885,7 +885,7 @@ messages.
 
 ### Turning on Neviweb130-V2 debug log level messages in 'neviweb130_log.txt'
 
-To change the logging level in V2, go to Settings / Devices & Services. Click on Neviweb130, then select the gear icon (configuration).
+To change the logging level in V2, go to Settings / Devices & Services. Click on Neviweb130, then select the gear icon, ⚙️ (configuration).
 From there, simply choose the desired logging level and clic 'Validate' at the bottom. No restart of HA is required. In the same location,
 you also have the option to download your log file (neviweb130_log.txt), should you wish to send it to me to assist with debugging.
 
