@@ -146,7 +146,7 @@ ATTR_FLOW_ALARM2 = "flowMeterAlarm2Config"
 ATTR_FLOW_ALARM_TIMER = "flowMeterAlarmDisableTimer"
 ATTR_FLOW_ENABLED = "flowMeterEnabled"
 ATTR_FLOW_METER_CONFIG = "flowMeterMeasurementConfig"
-ATTR_FLOW_MODEL_CONFIG = "FlowModel"
+ATTR_FLOW_MODEL_CONFIG = "flowModel"
 ATTR_FLOW_THRESHOLD = "alarm1FlowThreshold"
 ATTR_FUEL_ALERT = "alertLowFuel"
 ATTR_FUEL_PERCENT_ALERT = "alertLowFuelPercent"
@@ -173,6 +173,7 @@ ATTR_HUMIDITY = "humidity"
 ATTR_HUMIDITY_DISPLAY = "humidityDisplay"
 ATTR_HUMIDITY_SETPOINT = "humiditySetpoint"
 ATTR_HUMIDITY_SETPOINT_MODE = "humiditySetpointMode"
+ATTR_HUMIDITY_SETPOINT_OFF = "humiditySetpoint.off"
 ATTR_HUMIDITY_SETPOINT_OFFSET = "humiditySetpointOffset"
 ATTR_HVAC_INPUT_1_FUNCTION = "hvacInput1Function"
 ATTR_INPUT2_STATUS = "input2Status"
@@ -295,7 +296,7 @@ MODE_MANUAL = "manual"
 MODE_OFF = "off"
 
 STATE_KEYPAD_STATUS = "unlocked"
-STATE_VALVE_STATUS = "open"
+STATE_VALVE_STATUS = "opened"
 STATE_WATER_LEAK = "water"
 
 SERVICE_SET_ACCESSORY_TYPE = "set_accessory_type"
@@ -386,3 +387,49 @@ SERVICE_SET_TIME_FORMAT = "set_time_format"
 SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
+
+# Descriptions of the Neviweb error messages received.
+NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
+    "ACCDAYREQMAX": ("Maximum daily request reached (30000 requests/day). Reduce polling frequency."),
+    "ACCSESSEXC": (
+        "Too many open sessions. This commonly occurs after multiple "
+        "Home Assistant restarts or when Neviweb is open elsewhere."
+    ),
+    "ACCRATELIMIT": (
+        "Maximum login rate reached. Too many authentication attempts. Wait a few minutes before retrying."
+    ),
+    "DVCACTNSPTD": ("Device action not supported. This service call is not available for the selected device."),
+    "DVCATTRNSPTD": ("Device attribute not supported. The device firmware does not support the requested attribute."),
+    "DVCBUSY": ("Device busy. Neviweb is currently performing an update."),
+    "DVCCOMMTO": ("Device communication timeout. The device did not respond in time."),
+    "DVCNOTSYNC": ("Device not synchronized with Neviweb."),
+    "DVCUNVLB": ("Device unavailable. Neviweb cannot communicate with the device."),
+    "MAINTENANCE": ("Neviweb is temporarily unavailable for maintenance."),
+    "SVCERR": ("Service unavailable."),
+    "SVCINVREQ": ("Invalid request sent to Neviweb."),
+    "SVCUNAUTH": ("Bad or malformed service request rejected by Neviweb server."),
+    "USRBADLOGIN": ("Invalid username or password."),
+    "USRSESSEXP": ("User session expired. Reduce scan_interval below 10 minutes."),
+    "VALINVLD": ("Invalid value sent to Neviweb."),
+    "ReadTimeout": ("The request was sent but no response was received from the device."),
+    "TimeoutError": ("Request timeout."),
+}
+
+# Thermostats supporting backlightAdaptive="bedroom"
+HAVE_BEDROOM_BACKLIGHT: set[int] = {
+    300,
+    336,
+    343,
+    348,
+    350,
+    354,
+    738,
+    739,
+    742,
+    1510,
+    1512,
+    6727,
+    6730,
+    6731,
+    6734,
+}

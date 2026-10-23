@@ -1,17 +1,18 @@
 """Helpers for debugging and logger setup in neviweb130"""
 
 import asyncio
-import datetime
 import logging
 import os
 import shutil
 from logging.handlers import RotatingFileHandler
 
-import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
+from requests.exceptions import RequestException
 
 from .const import DOMAIN
+from .exceptions import SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,12 +57,14 @@ def setup_logger(
 
 
 def clear_log_file(log_path: str):
-    if os.path.exists(log_path):
-        try:
-            with open(log_path, "w", encoding="utf-8") as f:
-                f.write("")
-        except Exception as e:
-            print(f"Failed to clear log file: {e}")
+    if not os.path.exists(log_path):
+        return
+
+    try:
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write("")
+    except (OSError, PermissionError) as err:
+        print(f"Failed to clear log file: {err}")
 
 
 def update_logger_level(name: str, level: str):
@@ -102,25 +105,27 @@ def expose_log_file(hass, log_path: str, public_name: str = "neviweb130.log", ex
 
     try:
         shutil.copy2(log_path, www_path)
-        _LOGGER.debug("Log file copied to %s", www_path)
-
-        # Schedule deletion
-        hass.loop.create_task(_delete_file_later(www_path, expire_after))
-        return www_path
-    except Exception as e:
-        _LOGGER.warning("Cannot expose log file: %s", e)
+    except (OSError, PermissionError) as err:
+        _LOGGER.warning("Cannot expose log file: %s", err)
         return None
+
+    _LOGGER.debug("Log file copied to %s", www_path)
+    hass.loop.create_task(_delete_file_later(www_path, expire_after))
+    return www_path
 
 
 async def _delete_file_later(path: str, delay: int):
     """Wait for delay seconds then delete the file if it exists."""
     await asyncio.sleep(delay)
+
+    if not os.path.exists(path):
+        return
+
     try:
-        if os.path.exists(path):
-            os.remove(path)
-            _LOGGER.info("Log file deleted after %s seconds : %s", delay, path)
-    except Exception as e:
-        _LOGGER.warning("Error during log file delete process : %s", e)
+        os.remove(path)
+        _LOGGER.info("Log file deleted after %s seconds : %s", delay, path)
+    except (OSError, PermissionError) as err:
+        _LOGGER.warning("Error during log file delete process : %s", err)
 
 
 # ─────────────────────────────────────────────
@@ -153,24 +158,6 @@ def has_breaking_changes(notes: str | None) -> bool:
     return any(k in text for k in keywords)
 
 
-async def fetch_release_notes(version: str) -> tuple[str, str] | None:
-    # We put back the "v" because GitHub still use vX.Y.Z
-    tag = f"v{version}" if not version.startswith("v") else version
-    url = f"https://api.github.com/repos/claudegel/sinope-130/releases/tags/{tag}"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            if resp.status != 200:
-                _LOGGER.warning("Failed to fetch release notes for %s: HTTP %s", tag, resp.status)
-                return None
-
-            data = await resp.json()
-            title = (data.get("name") or "").strip()
-            body = (data.get("body") or "").strip()
-            _LOGGER.debug("Raw release notes for %s (len=%d): %r", tag, len(body), body)
-            return title, body
-
-
 def build_update_summary(installed: str, latest: str, notes: str) -> str:
     """Build a full update summary for Neviweb130 V1."""
     if not installed or not latest:
@@ -184,6 +171,10 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
     compare_link = f"{base_url}/compare/{tag_installed}...{tag_latest}"
 
     safe_notes = str(notes or "").strip()
+
+    if not safe_notes:
+        safe_notes = f"## Version {latest}\n\nNo release notes available."
+
     section = ""
 
     if "## What's Changed" in safe_notes:
@@ -199,9 +190,6 @@ def build_update_summary(installed: str, latest: str, notes: str) -> str:
     else:
         section = "No 'What's Changed' section found."
     _LOGGER.debug("Release notes = %s", section)
-
-    if not safe_notes:
-        safe_notes = f"## Version {latest}\n\nNo release notes available."
 
     return f"Available versions :\n- [{tag_installed} -> {tag_latest}]({compare_link})\n\n{section}"
 
@@ -221,9 +209,10 @@ def init_request_counter(hass):
 
     if not data:
         data = {
-            "date": datetime.date.today().isoformat(),
+            "date": dt_util.now().date().isoformat(),
             "count": 0,
         }
+
         future = asyncio.run_coroutine_threadsafe(store.async_save(data), hass.loop)
         future.result()
 
@@ -234,7 +223,7 @@ def init_request_counter(hass):
 def increment_request_counter(hass):
     """Increase counter by one."""
     data = hass.data[DOMAIN]["request_data"]
-    today = datetime.date.today().isoformat()
+    today = dt_util.now().date().isoformat()
 
     # Reset if day change
     if data["date"] != today:
@@ -244,7 +233,10 @@ def increment_request_counter(hass):
     data["count"] += 1
 
     # Persistent saving
-    future = asyncio.run_coroutine_threadsafe(hass.data[DOMAIN]["request_store"].async_save(data), hass.loop)
+    future = asyncio.run_coroutine_threadsafe(
+        hass.data[DOMAIN]["request_store"].async_save(data),
+        hass.loop,
+    )
     future.result()
 
     return data["count"]
@@ -285,11 +277,12 @@ def notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integratio
 
 def file_exists(hass, path: str) -> bool:
     """Return True if a /local/ file exists."""
+    local_path = path.replace("/local/", "www/")
+    full_path = os.path.join(hass.config.path(), local_path)
+
     try:
-        local_path = path.replace("/local/", "www/")
-        full_path = os.path.join(hass.config.path(), local_path)
         return os.path.isfile(full_path)
-    except Exception:
+    except (OSError, PermissionError):
         return False
 
 
@@ -359,7 +352,7 @@ def safe_get_device_attributes(
         logger.debug("client result = %s", result)
         # If Neviweb silently ignore → result == {} or incomplete
         if not result or any(attr not in result for attr in filtered_attrs):
-            raise Exception("Silent attribute ignore")
+            raise SilentAttributeIgnoreError(f"Missing attributes: {filtered_attrs} for device {device_id}")
 
         # Inject UNSUPPORTED_ATTRS with None into the result
         for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
@@ -367,10 +360,12 @@ def safe_get_device_attributes(
 
         return result
 
-    except Exception as e:
-        if "DVCATTRNSPTD" not in str(e) and "Silent attribute ignore" not in str(e):
+    except (RequestException, OSError, SilentAttributeIgnoreError) as err:
+        # if not a DVCATTRNSPTD → we restart
+        if "DVCATTRNSPTD" not in str(err):
             raise
 
+        # here we know it is an unsupported attribute
         model_info = f"Model: {device_model}" if device_model else "Model: unknown"
         fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
         sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
@@ -437,9 +432,9 @@ def safe_get_device_attributes(
                 )
                 continue
 
-            except Exception as e_attr:
+            except (RequestException, OSError, SilentAttributeIgnoreError) as err:
                 # 5. if we get DVCATTRNSPTD → this attribute is not supported, add None
-                if "DVCATTRNSPTD" in str(e_attr):
+                if "DVCATTRNSPTD" in str(err):
                     logger.warning(
                         "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
                         attr,
@@ -447,7 +442,7 @@ def safe_get_device_attributes(
                         sku_info,
                         model_info,
                         fw_info,
-                        e_attr,
+                        err,
                     )
 
                     if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
@@ -456,6 +451,15 @@ def safe_get_device_attributes(
                     UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
                     device_data[attr] = None
                     continue
+
+                # Other network errors / I/O
+                logger.error(
+                    "Error while fetching attribute '%s' for device %s: %s",
+                    attr,
+                    device_id,
+                    err,
+                )
+                continue
 
         # Reinject UNSUPPORTED_ATTRS with None into fallback result
         for attr in UNSUPPORTED_ATTRS.get(device_id, set()):

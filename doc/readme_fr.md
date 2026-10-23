@@ -72,9 +72,10 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé TH1134CR, Thermostat à tension de ligne – édition Lite Sinopé Evo 4000w
   - Sinopé TH1143WF, thermostat à deux fils, écran couleur Wi-Fi 3000W
   - Sinopé TH1144WF, thermostat à deux fils, écran couleur WI-Fi 4000W
-  - Sinopé TH1145WF, thermostat à deux fils, écran couleur Wi-Fi ?
+  - Sinopé TH1145WF, thermostat à deux fils, écran couleur Wi-Fi 4000W
   - Sinopé TH1300WF, thermostat au sol Wi-Fi 3600W
   - Sinopé TH1310WF, thermostat au sol Wi-Fi 3600W
+  - Sinopé TH1315WF, thermostat au sol W--Fi, sans capteur de mesure de consommation d'énergie, seulement une consommation calculée
   - Sinopé TH1325WF, thermostat au sol Wi-Fi 3600W
   - Sinopé TH1400WF, thermostat basse tension Wi-Fi 
   - Sinopé TH1500WF, thermostat bipolaire Wi-Fi 3600W 
@@ -82,6 +83,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé TH6510WF, thermostat Wi-Fi chauffage/climatisation
   - Sinopé TH6250WF, thermostat Wi-Fi chauffage/climatisation
   - Sinopé TH6250WF_PRO, thermostat Wi-Fi chauffage/climatisation PRO
+  - Sinopé TH6251WF-PRO, thermostat Wi-Fi chauffage/climatisation PRO
   - Sinopé THEWF01, thermostat de ligne, édition lite Wi-Fi
   - Flextherm concerto connect FLP55 thermostat de sol (sku FLP55 ne fourni pas de statistique énergétique dans Neviweb)
   - Flextherm True Comfort, thermostat de sol
@@ -93,8 +95,8 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
   - Sinopé PH6000ZB-HS, pour les thermopompes Hisense, Haxxair et Zephyr
 - **Contrôleur de pompe à chaleur Wi-Fi**:
   - Sinopé HP6000WF-MA, pour les thermopompes Ouellet, Convectair avec connecteur Midea
-  - Sinopé HP6000WF-GE, pour les thermopompes Ouellet avec connecteur Gree
-  - Sinopé HP6000WF-TCL, pour les thermopompes Runtru/Ameristar
+  - Sinopé HP6000WF-HA, pour les thermopompes Hotpoint
+  - Sinopé HP6000WF-TCL, pour les thermopompes Runtru/Ameristar et Nirvana
 - **éclairage Zigbee**:
   - Sinopé SW2500ZB, Interrupteur
   - Sinopé SW2500ZB-G2, Interrupteur nouvelle génération
@@ -120,7 +122,7 @@ Voici une liste des appareils actuellement pris en charge. En gros, c'est tout c
 - **Contrôle spécialisé Wi-Fi**:
   - Sinopé RM3500WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
   - Sinopé RM3510WF, Contrôleur de charge pour chauffe-eau, Wi-Fi
-  - Sinopé RM3250WF, Contrôleur de charge 50A, Wi-Fi
+  - Sinopé RM3250WF, Contrôleur de charge 40A, Wi-Fi
 - **Water leak detector and valves**:
   - Sinopé VA4201WZ, VA4221WZ, valve sedna 1 pouce
   - Sinopé VA4200WZ, VA4220WZ, valve sedna 3/4 pouce, Wi-Fi
@@ -915,10 +917,10 @@ souhaitez me l'envoyer pour faciliter le débogage.
 ### Messages d'erreur reçus de Neviweb
 Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb :
 - ACCDAYREQMAX : Requête quotidienne maximale atteinte (« quotidienne » : 30000)... Réduire la fréquence d'interrogation (scan_interval).
-- ACCRATELIMIT: Limite maximale de tentatives de connexion atteinte lors de la connexion à Neviweb. Connexions trop fréquentes.
-  Veuillez patienter quelques minutes avant le redémarrage de HA.
 - ACCSESSEXC : Plusieurs sessions ouvertes en même temps. Ceci est courant si vous redémarrez Home Assistant plusieurs fois et/ou si vous 
   ayez également une session ouverte sur Neviweb.
+- ACCRATELIMIT: Limite maximale de tentatives de connexion atteinte lors de la connexion à Neviweb. Connexions trop fréquentes.
+  Veuillez patienter quelques minutes avant le redémarrage de HA.
 - DVCACTNSPTD : Action du périphérique non prise en charge. L'appel de service n'est pas pris en charge pour cet appareil spécifique.
 - DVCATTRNSPTD : Attribut de périphérique non pris en charge. Le périphérique que vous avez installé possède un firmware plus ancien et ne prend pas en charge 
   certains attributs. Attendez la mise à jour du firmware dans Neviweb et l'erreur devrait disparaître ou signalez un problème afin que nous puissions mettre un 
@@ -926,11 +928,13 @@ Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb�
 - DVCBUSY : Neviweb effectue une mise à jour et les appareils ne sont pas disponibles. Essayez plus tard.
 - DVCCOMMTO : Délai de communication de l'appareil : l'appareil ne répond pas assez rapidement ou vous interrogez cet appareil trop
   fréquemment.
+- DVCERR: L'appareil a rejeté la requête. La commande a envoyé un attribut invalide ou non défini.
 - DVCNOTSYNC : L'appareil n'est pas synchronisé avec Neviweb. Vérifiez votre réseau, routeur et/ou passerelle Wi-Fi.
 - DVCUNVLB : Appareil indisponible. Neviweb ne parvient pas à se connecter à des appareils spécifiques, principalement des appareils Wi-Fi. 
 - MAINTENANCE : Accès Neviweb temporairement bloqué pour maintenance... Réessayez plus tard.
 - SVCERR : Erreur de service. Service non disponible. Essayez plus tard.
 - SVCINVREQ : Demande invalide envoyée à Neviweb, service inexistant ou demande mal formée.
+- SVCUNAUTH: Mauvaise requête de service ou requête mal formée rejetée par le serveur Neviweb.
 - USRBADLOGIN : votre login et/ou mot de passe fourni dans la configuration de Neviweb ne sont pas les bons.
 - USRSESSEXP : Session utilisateur expirée. Réduisez votre scan_interval en dessous de 10 minutes ou votre session sera terminée.
 - VALINVLD : Valeur non valide envoyée à Neviweb.
