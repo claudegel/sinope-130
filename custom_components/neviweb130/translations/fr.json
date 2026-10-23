@@ -136,7 +136,7 @@
       "not_available": "Non disponible",
       "g_not_connected": "Appareil {name}, aucun cable connecté à la borne G, service non disponible.",
       "must_support_fan_control": "L'entité {entity} ne prend pas en charge le contrôle de la vitesse du ventilateur.",
-      "missing_attributes": "Avertissement : L'appareil {id} n'a pas renvoyé tous les attributs demandés ({attrib}). Éléments manquants : {missing}. Vérifiez dans la documentation pour les attributs manquents et signalez-le au responsable si ces derniers ne figurent pas déjà dans la liste."
+      "missing_attributes": "Avertissement : L'appareil {id} n'a pas renvoyé tous les attributs demandés. Éléments manquants : {missing}. Vérifiez dans la documentation pour les attributs manquents et signalez-le au responsable si ces derniers ne figurent pas déjà dans la liste."
     }
   },
   "options": {
