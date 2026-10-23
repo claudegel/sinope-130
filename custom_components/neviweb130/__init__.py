@@ -12,7 +12,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryError
+from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -32,7 +32,7 @@ from .const import (
     STARTUP_MESSAGE,
     VERSION,
 )
-from .coordinator import Neviweb130Client, async_setup_coordinator
+from .coordinator import Neviweb130Client, PyNeviweb130Error, async_setup_coordinator
 from .devices import load_devices, save_devices
 from .helpers import (
     DailyRequestCounter,
@@ -473,7 +473,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         session_manager=session_manager,
         counter=counter,
     )
-    initialized_coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
+
+    try:
+        initialized_coordinator = await async_setup_coordinator(hass, client, SCAN_INTERVAL)
+    except (PyNeviweb130Error, TimeoutError) as err:
+        # Neviweb unreachable or login refused (e.g. HTTP 429): let HA retry the setup later
+        await session_manager.close_session()
+        raise ConfigEntryNotReady(str(err)) from err
 
     # Needs the logged-in client (account id and device list), before setting up the platforms
     _LOGGER.info("Migrating neviweb130 unique_id...")
