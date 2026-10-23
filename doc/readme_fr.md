@@ -888,7 +888,7 @@ Vous pouvez également poster sur l'un de ces forum pour obtenir de l'aide :
 - https://community.home-assistant.io/t/sinope-line-voltage-thermostats
 - https://community.home-assistant.io/t/adding-support-for-sinope-light-switch-and-dimmer
 
-### Activation des messages de débogage Neviweb130 dans le fichier `neviweb130_log.txt`
+### Activation des messages de journalisation Neviweb130 dans le fichier `neviweb130_log.txt`
 
 Pour avoir un maximum d'informations pour vous aider, merci de fournir un extrait de votre fichier `neviweb130_log.txt`. j'ai ajouté 
 quelques messages du journal de débogage qui pourraient aider à diagnostiquer le problème.
@@ -903,6 +903,14 @@ Ajoutez ces lignes à votre fichier `configuration.yaml`
    ```
 Cela définira le niveau de journalisation par défaut sur `warning` pour tous vos composants, à l'exception de Neviweb130 qui affichera des 
 informations plus détaillées.
+
+### Activation des messages de journalisation neviweb130-V2 niveau 'debug' dans le fichier `neviweb130_log.txt`
+
+Pour modifier le niveau de journalisation dans la V2, rendez-vous dans Paramètres / Appareils et services. Cliquez sur Neviweb130, puis sur 
+l'icône en forme d'engrenage (configuration).
+Il vous suffit ensuite de sélectionner le niveau de journalisation souhaité. Aucun redémarrage de HA n'est nécessaire.
+Au même endroit, vous avez également la possibilité de télécharger votre fichier de journalisation (neviweb130_log.txt), si jamais vous 
+souhaitez me l'envoyer pour faciliter le débogage. 
 
 ### Messages d'erreur reçus de Neviweb
 Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb :
@@ -931,6 +939,19 @@ Dans votre journal, à l'occasion, vous pouvez recevoir ces messages de Neviweb�
 
 Si vous trouvez d'autres codes d'erreur, veuillez me les transmettre.
 
+### Attributs manquants non renvoyés par Neviweb
+
+Lors de la mise à jour d'un appareil, il est possible que certains attributs soient simplement ignorés par Neviweb, même s'ils figurent dans 
+la liste des attributs associés à cet appareil. Au démarrage de Neviweb130-V2, une notification sera envoyée pour lister ces attributs manquants,
+et leur valeur sera définie sur « non pris en charge » (not supported). Veuillez consulter cette liste et signaler tout nouvel attribut manquant
+en ouvrant un ticket (issue).
+
+| Devices | missing attributes |
+| --- | --- |
+| **TH1123ZB-G2** | coldLoadPickup, heatLockoutTemp |
+| **TH1124ZB-G2** | coldLoadPickup, heatLockoutTemp |
+| **TH6250WF** | backlight |
+
 ## Personnalisation
 L'interface utilisateur personnalisée est quasiment obsolète et difficile à configurer. J'ai donc opté pour la carte Lovelace moderne afin 
 de simplifier le processus et d'obtenir de meilleurs résultats.
@@ -941,7 +962,7 @@ Prérequis :
 - Installez la carte Lovelace via HACS : card-mod, mushroom et stack-in-card.
 - Assurez-vous d'avoir au moins la version 4.1.2 de neviweb130.
 
-Neviweb130 gère l'icône affichée pour les thermostats en fonction du niveau de température grâce à l'attribut **icon_type**.
+Neviweb130 gère l'icône affichée pour les thermostats en fonction du niveau de chauffe grâce à l'attribut **icon_type**.
 Pour les capteurs, les moniteurs et les vannes, l'icône de batterie est gérée via l'attribut **battery_icon** en fonction du niveau de batterie.
 Vous pouvez récupérer le nom de l'icône à l'aide d'un modèle comme dans cet exemple :
 
