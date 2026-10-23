@@ -800,7 +800,7 @@ template:
 ## Localisation
 Neviweb130 is now translated in French for the errors and notifications messages. The translation is done automatically based
 on your HA configuration for language. Now French and English are supported. Any language can be added by translating 
-en.json file located in translations directory into other language.
+en.json file located in the translations folder into other language.
 
 If you modify translations files you will need to not only reload HA but also restart the HA server to force HA to reload 
 translations properly.
