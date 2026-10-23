@@ -883,7 +883,7 @@ Add those lines to your `configuration.yaml` file
 This will set default log level to warning for all your components, except for Neviweb130 which will display more detailed 
 messages.
 
-### Turning on Neviweb130-V2 debug log level messages in 'neviweb130_log.txt'
+### Turning on Neviweb130-V2 debug log level messages in neviweb130_log.txt file
 
 To change the logging level in V2, go to Settings / Devices & Services. Click on Neviweb130, then select the gear icon, ⚙️ (configuration).
 From there, simply choose the desired logging level and clic 'Validate' at the bottom. No restart of HA is required. In the same location,
