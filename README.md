@@ -883,6 +883,12 @@ Add those lines to your `configuration.yaml` file
 This will set default log level to warning for all your components, except for Neviweb130 which will display more detailed 
 messages.
 
+### Turning on Neviweb130-V2 debug log level messages in 'neviweb130_log.txt'
+
+To change the logging level in V2, go to Settings / Devices & Services. Click on Neviweb130, then select the gear icon (configuration).
+From there, simply choose the desired logging level and clic 'Validate' at the bottom. No restart of HA is required. In the same location,
+you also have the option to download your log file (neviweb130_log.txt), should you wish to send it to me to assist with debugging.
+
 ### Error messages received from Neviweb
 In you log you can get those messages from Neviweb:
 - ACCDAYREQMAX: Maximum daily request reached ('daily': 30000)... Reduce polling frequency.
@@ -908,6 +914,18 @@ In you log you can get those messages from Neviweb:
 - TimeoutError: Timeout error detected... Retry later.
 
 If you find other error code, please forward them to me.
+
+### Missing attributs not returned by Neviweb during update
+
+During device update it is possible that some attribute are just dropped by Neviweb even if they are listed as attribute
+for a device. During Neviweb130-V2 startup, a notification will be sent to list those missing attributes and there value
+will be set to 'not supported'. Please refer to this list and report new missing attributes by opening an issue.
+
+| Devices	| missing attributes |
+| --- | --- |
+| **TH1123ZB-G2** |	coldLoadPickup, heatLockoutTemp |
+| **TH1124ZB-G2** |	coldLoadPickup, heatLockoutTemp |
+| **TH6250WF** | backlight |
 
 ## Customization
 Custom-ui is almost deprecated and hard to configure. So I've switch to modern lovelace card to ease the process 
