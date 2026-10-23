@@ -907,7 +907,7 @@ informations plus détaillées.
 ### Activation des messages de journalisation neviweb130-V2 niveau 'debug' dans le fichier `neviweb130_log.txt`
 
 Pour modifier le niveau de journalisation dans la V2, rendez-vous dans Paramètres / Appareils et services. Cliquez sur Neviweb130, puis sur 
-l'icône en forme d'engrenage (configuration).
+l'icône en forme d'engrenage ⚙️ (configuration).
 Il vous suffit ensuite de sélectionner le niveau de journalisation souhaité. Aucun redémarrage de HA n'est nécessaire.
 Au même endroit, vous avez également la possibilité de télécharger votre fichier de journalisation (neviweb130_log.txt), si jamais vous 
 souhaitez me l'envoyer pour faciliter le débogage. 
