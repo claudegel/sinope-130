@@ -2023,7 +2023,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -3630,7 +3630,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -3859,7 +3859,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -4114,7 +4114,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -4362,7 +4362,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -4583,7 +4583,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -4827,7 +4827,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -5071,7 +5071,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -5316,7 +5316,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -5599,7 +5599,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -5896,7 +5896,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -6180,7 +6180,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -6674,7 +6674,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
@@ -7385,7 +7385,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
-                _LOGGER.debug("Safe mode activ for %s", self._id)
+                _LOGGER.debug("Safe mode active for %s", self._id)
                 device_data = await async_safe_get_device_attributes(
                     self.hass,
                     self._client,
