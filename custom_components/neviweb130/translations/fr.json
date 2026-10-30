@@ -1830,7 +1830,7 @@
 
     "set_heat_lockout_temperature": {
       "name": "Température de verrouillage du chauffage",
-      "description": "Ne pas autoriser le chauffage pour les thermostats enregistrés si la température extérieure est supérieure à ce seuil. Selon le modèle de thermostat, utilisez soit `heatLockoutTemp` (G2), soit `heatLockoutTemperature`.",
+      "description": "Ne pas autoriser le chauffage pour les thermostats enregistrés si la température extérieure est supérieure à ce seuil.",
       "fields": {
         "entity_id": {
           "name": "Entité",
