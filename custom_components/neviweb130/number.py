@@ -336,9 +336,7 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
             value,
             self.is_HC or self.is_WHP,
         ),
-        "heat_lockout_temp": lambda self, value: self._client.async_set_heat_lockout(
-            self._id, value, self.is_gen2
-        ),
+        "heat_lockout_temp": lambda self, value: self._client.async_set_heat_lockout(self._id, value, self.is_gen2),
         "led_on_intensity": lambda self, value: self._client.async_set_led_on_intensity(self._id, value),
         "led_off_intensity": lambda self, value: self._client.async_set_led_off_intensity(self._id, value),
         "fan_filter_remain": lambda self, value: self._client.async_set_fan_filter_reminder(
