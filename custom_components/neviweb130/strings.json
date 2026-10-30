@@ -452,7 +452,7 @@
           "unlock": "Unlocked",
           "unlocked": "Unlocked",
           "partial_lock": "Tamper protection",
-          "partially_locked": "Tamper protection"
+          "partiallylocked": "Tamper protection"
         }
       },
       "language": {
@@ -535,7 +535,7 @@
         "state": {
           "locked": "Locked",
           "unlocked": "Unlocked",
-          "partiallyLocked": "Tamper Protection"
+          "partiallylocked": "Tamper Protection"
         }
       },
       "tank_height": {
@@ -578,17 +578,17 @@
         "name": "Temperature Protection",
         "state": {
           "off": "Off",
-          "45_C": "45°C",
-          "46_C": "46°C",
-          "47_C": "47°C",
-          "48_C": "48°C",
-          "49_C": "49°C",
-          "50_C": "50°C",
-          "51_C": "51°C",
-          "52_C": "52°C",
-          "53_C": "53°C",
-          "54_C": "54°C",
-          "55_C": "55°C"
+          "45": "45°C",
+          "46": "46°C",
+          "47": "47°C",
+          "48": "48°C",
+          "49": "49°C",
+          "50": "50°C",
+          "51": "51°C",
+          "52": "52°C",
+          "53": "53°C",
+          "54": "54°C",
+          "55": "55°C"
         }
       },
       "time_format": {
