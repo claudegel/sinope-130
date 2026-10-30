@@ -851,13 +851,13 @@ async def async_setup_entry(
     async def set_battery_alert_service(service: ServiceCall) -> None:
         """Set battery alert for LM4110-ZB."""
         sensor = await get_sensor(service)
-        if not isinstance(sensor, Neviweb130TankSensor):
+        if isinstance(sensor, Neviweb130GatewaySensor):
             msg = await translate_error(
                 hass,
                 "entity_must_be_domain",
                 entity=sensor.entity_id,
                 domain=DOMAIN,
-                platform="tank sensor",
+                platform="tank sensor or leak sensor",
             )
             raise ServiceValidationError(msg)
         value = {"id": sensor.id, "batt": service.data[ATTR_BATT_ALERT]}
@@ -2104,19 +2104,25 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
             end = time.time()
             elapsed = round(end - start, 3)
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_status)
-            if "error" not in device_status or device_status is not None:
-                if "errorCode" not in device_status:
-                    self._gateway_status = device_status[ATTR_STATUS]
-
-                else:
-                    _LOGGER.warning(
-                        "Error in reading device status for %s: (%s)",
-                        self._name,
-                        device_status,
-                    )
-            elif device_status is not None:
+            if not device_status:
+                _LOGGER.warning("No status received for gateway %s", self._name)
+            elif "error" in device_status:
                 await self.async_log_error(device_status["error"]["code"])
-            self._occupancy_mode = neviweb_status[ATTR_OCCUPANCY]
+            elif "errorCode" in device_status:
+                _LOGGER.warning(
+                    "Error in reading device status for %s: (%s)",
+                    self._name,
+                    device_status,
+                )
+            elif ATTR_STATUS not in device_status:
+                _LOGGER.warning("Gateway status missing for %s: (%s)", self._name, device_status)
+            else:
+                self._gateway_status = device_status[ATTR_STATUS]
+
+            # Neviweb can return an error dict instead of the status
+            occupancy = neviweb_status.get(ATTR_OCCUPANCY)
+            if isinstance(occupancy, str):
+                self._occupancy_mode = occupancy
 
     @property
     def gateway_status(self) -> str | None:
