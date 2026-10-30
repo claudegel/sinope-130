@@ -3,3 +3,7 @@
 
 class SilentAttributeIgnoreError(Exception):
     """Raised when Neviweb silently ignores requested attributes."""
+
+
+class NeviwebUnsupportedAttributeError(Exception):
+    """Raised when Neviweb returns DVCATTRNSPTD."""
