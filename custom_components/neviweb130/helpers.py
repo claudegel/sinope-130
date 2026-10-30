@@ -1238,13 +1238,8 @@ async def async_safe_get_device_attributes(
     try:
         result = await client.async_get_device_attributes(device_id, filtered_attrs)
 
-        if (
-            isinstance(result, dict)
-            and result.get("error", {}).get("code") == "DVCATTRNSPTD"
-        ):
-            raise NeviwebUnsupportedAttributeError(
-                result["error"]["code"]
-            )
+        if isinstance(result, dict) and result.get("error", {}).get("code") == "DVCATTRNSPTD":
+            raise NeviwebUnsupportedAttributeError(result["error"]["code"])
 
         logger.debug("client result = %s", result)
 
@@ -1305,10 +1300,7 @@ async def async_safe_get_device_attributes(
             result = await client.async_get_device_attributes(device_id, [attr])
             logger.debug("Result for '%s': %s", attr, result)
 
-            if (
-                isinstance(result, dict)
-                and result.get("error", {}).get("code") == "DVCATTRNSPTD"
-            ):
+            if isinstance(result, dict) and result.get("error", {}).get("code") == "DVCATTRNSPTD":
                 unsupported_attrs.add(attr)
                 device_data[attr] = None
                 continue
