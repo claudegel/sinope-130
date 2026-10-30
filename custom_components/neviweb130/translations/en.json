@@ -1830,7 +1830,7 @@
 
     "set_heat_lockout_temperature": {
       "name": "Set heat lockout temperature",
-      "description": "Do not allow heating for registered thermostats, if outside temperature is above this temperature. Depending on the thermostat model, use either heatLockoutTemp, (G2) or heatLockoutTemperature.",
+      "description": "Do not allow heating for registered thermostats, if outside temperature is above this temperature.",
       "fields": {
         "entity_id": {
           "name": "Entity",
