@@ -228,9 +228,7 @@ def ha_to_neviweb_fan_speed(value: str | None, model: str) -> int:
     """Convert HA fan speed value to Neviweb integer code for HP6000WF-xx."""
 
     if value is None:
-        raise ServiceValidationError(
-            f"Fan speed is required for model {model}"
-        )
+        raise ServiceValidationError(f"Fan speed is required for model {model}")
 
     normalized = value.strip().lower()
     if model in ("6810", "6811", "6812", "6813"):
