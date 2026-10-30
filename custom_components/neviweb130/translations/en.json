@@ -1026,7 +1026,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device to set the wattage override."
         },
-        "loadWattOutput1": {
+        "loadwattoutput1": {
           "name": "Wattage",
           "description": "Wattage to set, 0-1800w light, 0-600w dimmer."
         }
@@ -1041,7 +1041,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device thermostat."
         },
-        "roomSetpointMax": {
+        "roomsetpointmax": {
           "name": "Setpoint max",
           "description": "Maximum setpoint temperature settable."
         }
@@ -1056,7 +1056,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device thermostat."
         },
-        "roomSetpointMax": {
+        "roomsetpointmin": {
           "name": "Setpoint min",
           "description": "Minimum setpoint temperature settable."
         }
@@ -1071,7 +1071,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device thermostat."
         },
-        "roomSetpointAway": {
+        "roomsetpointaway": {
           "name": "Away Setpoint",
           "description": "Possible setpoint values between 5 and 30."
         }
@@ -1086,7 +1086,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130  heat/cool device thermostat."
         },
-        "coolSetpointAway": {
+        "coolsetpointaway": {
           "name": "Cool Away Setpoint",
           "description": "Possible cooling setpoint values between 16 and 30."
         }
@@ -1101,7 +1101,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130  floor device thermostat."
         },
-        "floorMaxAirTemperature": {
+        "floormaxairtemperature": {
           "name": "Max room temperature",
           "description": "Maximum air temperature limit to set."
         }
@@ -1116,7 +1116,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 water leak sensor."
         },
-        "cfgValveClosure": {
+        "cfgvalveclosure": {
           "name": "Closure action configuration",
           "description": "Set to «on», close the valve when leak is detected or «off», do nothing. Leak sensor not connected to Sedna valve will not close the valve on leak detection. You will need to catch that alert and make an automation to close the valve."
         }
@@ -1131,7 +1131,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 water leak sensor."
         },
-        "alertWaterLeak": {
+        "alertwaterleak": {
           "name": "Leak alert configuration",
           "description": "Set to True or « true » send alert or False, « false » do nothing."
         }
@@ -1146,7 +1146,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 water leak sensor."
         },
-        "alertLowTemp": {
+        "alertlowtemp": {
           "name": "Low temp alert configuration",
           "description": "Set to True or « true » send alert, False or « false » do nothing."
         }
@@ -1161,7 +1161,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 Sedna water valve."
         },
-        "alertLowBatt": {
+        "alertlowbatt": {
           "name": "Low battery alert configuration",
           "description": "Set to «true», send battery alert or «false», do nothing."
         }
@@ -1176,7 +1176,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 Sedna water valve."
         },
-        "alertLowBatt": {
+        "alertlowbatt": {
           "name": "Low temperature alert configuration",
           "description": "Set to 1 = «true», send alert or to 0 = «false», do nothing."
         }
@@ -1191,7 +1191,7 @@
           "name": "Entity",
           "description": "Name of neviweb130 thermostat Wi-Fi device."
         },
-        "earlyStartCfg": {
+        "earlystartcfg": {
           "name": "Early start configuration",
           "description": "Set to «on», or to «off» to start/stop early heating on thermostat."
         }
@@ -1206,7 +1206,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 floor thermostat."
         },
-        "airFloorMode": {
+        "airfloormode": {
           "name": "Air/floor mode configuration",
           "description": "Set to «airByFloor» (Zigbee) or «roomByFloor» (Wi-Fi) for ambient temperature sensor or to «floor» for floor temperature sensor."
         }
@@ -1221,7 +1221,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 dimmer light."
         },
-        "phaseControl": {
+        "phasecontrol": {
           "name": "Phase control",
           "description": "Set to «reverse» or to «forward» for dimmer light phase control."
         }
@@ -1236,11 +1236,11 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 heat/cool thermostats."
         },
-        "drActive": {
+        "dractive": {
           "name": "drActive activation",
           "description": "Set to «on» or «off» to activate Éco Sinopé mode."
         },
-        "optOut": {
+        "optout": {
           "name": "optOut option",
           "description": "Set to «on» or « off » to bypass Éco Sinopé mode."
         },
@@ -1248,11 +1248,11 @@
           "name": "Setpoint activation",
           "description": "Set to «on» or «off» to activate Éco Sinopé setpoint reduction control."
         },
-        "auxOptim": {
+        "auxoptim": {
           "name": "Auxiliary Optimisation",
           "description": "Activate or deactivate Éco Sinopé auxiliary heater optimization on TH6500WF and TH6250WF. This option is only useful if the auxiliary heater does not consume electricity (e.g. fuel-based heaters)."
         },
-        "fanSpeedOptim": {
+        "fanspeedoptim": {
           "name": "Fan Speed Optimisation",
           "description": "Activate or deactivate Éco Sinopé fan optimization on TH6500WF and TH6250WF. When enabled, the fan will automatically switch to « auto » mode during Eco periods to reduce electrical consumption."
         }
@@ -1286,15 +1286,15 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 load controller."
         },
-        "drActive": {
+        "dractive": {
           "name": "DR activation",
           "description": "Set to «on» or « off » to activate Éco Sinopé mode."
         },
-        "optOut": {
+        "optout": {
           "name": "optOut option",
           "description": "Set to «on» or « off » to bypass Éco Sinopé mode."
         },
-        "onOff": {
+        "onoff": {
           "name": "onOff",
           "description": "Set to «on» or « off » to activate Éco Sinopé power on/off control."
         }
@@ -1313,7 +1313,7 @@
           "name": "Status",
           "description": "Set to «on» or « off » to change status of output valve controller."
         },
-        "onOff_num": {
+        "onoff_num": {
           "name": "Output number",
           "description": "Select the output1, (1) or output2, (2) of the controller."
         }
@@ -1377,7 +1377,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 leak sensor."
         },
-        "batteryType": {
+        "batterytype": {
           "name": "Battery type",
           "description": "Set to «alkaline» or to «lithium». Original battery type is alkaline for leak sensors."
         }
@@ -1437,7 +1437,7 @@
           "name": "Entity",
           "description": "Name(s) of compatible neviweb130 device thermostat."
         },
-        "coolSetpointMax": {
+        "coolsetpointmax": {
           "name": "Cool Setpoint Max",
           "description": "Maximum cooling setpoint temperature to set."
         }
@@ -1452,7 +1452,7 @@
           "name": "Entity",
           "description": "Name(s) of compatible neviweb130 device thermostat."
         },
-        "coolSetpointMin": {
+        "coolsetpointmin": {
           "name": "Cool Setpoint Min",
           "description": "Minimum cooling setpoint temperature to set."
         }
@@ -1467,7 +1467,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 Calypso device (RM3500ZB)."
         },
-        "drConfigWaterTempMin": {
+        "drconfigwatertempmin": {
           "name": "Water temp Min",
           "description": "Set to 0, turn off protection or from 45 to 55 oC, to turn on protection level."
         }
@@ -1482,7 +1482,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB)."
         },
-        "flowModel": {
+        "flowmodel": {
           "name": "Flow meter model",
           "description": "Set to « FS4222 » for 1.5 inch, « FS4221 » for 1 inch, « FS4220 » for 3/4 inch or « No flow » (No flow meter)."
         }
@@ -1497,7 +1497,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB)."
         },
-        "alarm1Period": {
+        "alarm1period": {
           "name": "Flow meter delay",
           "description": "Set to 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h, and 24 h."
         }
@@ -1512,11 +1512,11 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 Sedna 2nd gen device (VA4220ZB)."
         },
-        "triggerAlarm": {
+        "triggeralarm": {
           "name": "Trigger alarm",
           "description": "Send leak alert, on/off."
         },
-        "closeValve": {
+        "closevalve": {
           "name": "Close valve",
           "description": "close the valve, on/off."
         }
@@ -1531,7 +1531,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device floor thermostat (TH1300ZB)."
         },
-        "floorLimitHigh": {
+        "floorlimithigh": {
           "name": "Floor limit high",
           "description": "Maximum floor heating temperature to set. Between 7 and 36 oC. (0 = off)."
         }
@@ -1546,7 +1546,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device floor thermostat (TH1300ZB)."
         },
-        "floorLimitLow": {
+        "floorlimitlow": {
           "name": "Floor limit low",
           "description": "Minimum floor heating temperature to set. Between 5 and 34 oC. (0 = off)."
         }
@@ -1561,7 +1561,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB."
         },
-        "tankType": {
+        "tanktype": {
           "name": "Tank type",
           "description": "Possible values, « propane » or « oil »."
         }
@@ -1576,7 +1576,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB."
         },
-        "gaugeType": {
+        "gaugetype": {
           "name": "Gauge type",
           "description": "Possible values, 595 or 1080."
         }
@@ -1591,7 +1591,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB."
         },
-        "alertLowFuelPercent": {
+        "alertlowfuelpercent": {
           "name": "Low fuel percent",
           "description": "Possible values, 0 (off), 10, 20, 30."
         }
@@ -1606,7 +1606,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB."
         },
-        "tankHeight": {
+        "tankheight": {
           "name": "Tank height",
           "description": "Possible values, 23, 24, 35, 38, 47, 48, 50."
         }
@@ -1621,7 +1621,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB."
         },
-        "alertLowFuel": {
+        "alertlowfuel": {
           "name": "Set refuel alert",
           "description": "Set to « True » to activate alert, or « False »."
         }
@@ -1636,7 +1636,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB."
         },
-        "alertRefuel": {
+        "alertrefuel": {
           "name": "Refuel alert",
           "description": "Set to « True » to activate alert, or « False »."
         }
@@ -1651,7 +1651,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device LM4110-ZB or WL42xxx to set the battery alert."
         },
-        "alertLowBatt": {
+        "alertlowbatt": {
           "name": "Battery alert",
           "description": "Set to « True » to activate alert, or « False »."
         }
@@ -1666,7 +1666,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device Sedna valve."
         },
-        "backupPowerSupply": {
+        "backuppowersupply": {
           "name": "Backup Power Supply",
           "description": "Set to « batt » for battery only, « power » for ACUPS-01 power supply only and « both » for battery and power supply together."
         }
@@ -1738,7 +1738,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device thermostat (TH1300ZB)."
         },
-        "floorSensorType": {
+        "floorsensortype": {
           "name": "Floor sensor type",
           "description": "Set to « 10k » or « 12k »."
         }
@@ -1753,7 +1753,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 device thermostat (TH1300ZB)."
         },
-        "coldLoadPickupRemainingTime": {
+        "coldloadpickupremainingtime": {
           "name": "Restart remaining time",
           "description": "Value in seconds, 900 sec (15 min), 10800 for 3 hrs, 14400 for 4 hrs, 65535 for « off », (0 to 65535)."
         }
@@ -1772,7 +1772,7 @@
           "name": "Input number",
           "description": "Choose between input/output 1 or 2."
         },
-        "onOff": {
+        "onoff": {
           "name": "On off",
           "description": "Set to « on », (on delay) or « off » (off delay)."
         },
@@ -1806,7 +1806,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device."
         },
-        "balancePoint": {
+        "balancepoint": {
           "name": "Balance point",
           "description": "Possible values, from 10 to 30°C, or « off »."
         }
@@ -1821,7 +1821,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 thermostat HP6000, TH6500WF or TH6250WF device."
         },
-        "coolLockoutTemperature": {
+        "coollockouttemperature": {
           "name": "Cool lockout temperature",
           "description": "Possible values, from 0 to 30°C, or « off »."
         }
@@ -1836,7 +1836,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 thermostat HP6000, TH6xxxWF or G2 device."
         },
-        "heatLockoutTemp": {
+        "heatlockouttemp": {
           "name": "Heat lockout temperature",
           "description": "Possible values, from 10 to 30°C, or off."
         }
@@ -1851,7 +1851,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 thermostat HP6000 device."
         },
-        "displayConfig": {
+        "displayconfig": {
           "name": "Display config",
           "description": "Possible values, « enabled », « disabled »."
         }
@@ -1866,7 +1866,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 thermostat HP6000 device."
         },
-        "soundConfig": {
+        "soundconfig": {
           "name": "Sound config",
           "description": "Possible values, « enabled », « disabled »."
         }
@@ -1881,7 +1881,7 @@
           "name": "Entity",
           "description": "Name(s) of neviweb130 TH1134ZB-HC device to set the second display."
         },
-        "config2ndDisplay": {
+        "config2nddisplay": {
           "name": "Config second display",
           "description": "« exteriorTemperature » = Time and outdoor temperature, « setpoint » for Time and Setpoint value or « none » = Ambient Temperature Only."
         }
