@@ -1435,7 +1435,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     # Switch
-    346: {  # RM3250WF, 50A, Wi-Fi
+    346: {  # RM3250WF, 40A, Wi-Fi
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
