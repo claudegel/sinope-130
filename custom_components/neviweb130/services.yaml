@@ -734,7 +734,6 @@ set_cool_lockout_temperature:
 set_heat_lockout_temperature:
   description: >
     Do not allow heating for registered thermostats, if outside temperature is above this temperature.
-    Depending on the thermostat model, use either heatLockoutTemp, (G2) or heatLockoutTemperature.
   fields:
     entity_id:
       description: Name(s) of neviweb130 thermostat HP6000, TH6xxxWF or G2 device.
