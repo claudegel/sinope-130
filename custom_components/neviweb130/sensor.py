@@ -849,8 +849,9 @@ async def async_setup_entry(
         hass.async_create_task(coordinator.async_request_refresh())
 
     async def set_battery_alert_service(service: ServiceCall) -> None:
-        """Set battery alert for LM4110-ZB."""
+        """Set battery alert for LM4110-ZB and leak sensors."""
         sensor = await get_sensor(service)
+        typed_sensor = cast(Neviweb130BaseSensor, sensor)
         if isinstance(sensor, Neviweb130GatewaySensor):
             msg = await translate_error(
                 hass,
@@ -860,8 +861,8 @@ async def async_setup_entry(
                 platform="tank sensor or leak sensor",
             )
             raise ServiceValidationError(msg)
-        value = {"id": sensor.id, "batt": service.data[ATTR_BATT_ALERT]}
-        await sensor.async_set_battery_alert(value)
+        value = {"id": typed_sensor.id, "batt": service.data[ATTR_BATT_ALERT]}
+        await typed_sensor.async_set_battery_alert(value)
         sensor.async_schedule_update_ha_state(True)
         hass.async_create_task(coordinator.async_request_refresh())
 
