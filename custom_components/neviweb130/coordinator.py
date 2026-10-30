@@ -6,10 +6,10 @@ from typing import Any, Mapping, Union
 
 import aiohttp
 from aiohttp import ClientSession
-from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, HVACMode
+from homeassistant.components.climate.const import PRESET_AWAY, PRESET_HOME, PRESET_NONE, HVACMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ServiceValidationError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
@@ -226,18 +226,19 @@ def ha_to_neviweb_duration(value: str | None) -> int:
 
 def ha_to_neviweb_fan_speed(value: str | None, model: str) -> int:
     """Convert HA fan speed value to Neviweb integer code for HP6000WF-xx."""
+
     if value is None:
-        _LOGGER.debug("Fan speed value is None, fallback to 0")
-        return 0
+        raise ServiceValidationError(f"Fan speed is required for model {model}")
 
-    if model == 6813:
-        result = HA_TO_NEVIWEB_FAN_SPEED.get(value)
+    normalized = value.strip().lower()
+    if model in ("6810", "6811", "6812", "6813"):
+        result = HA_TO_NEVIWEB_FAN_SPEED.get(normalized)
     else:
-        result = HA_TO_NEVIWEB_FAN_SPEED_5.get(value)
+        result = HA_TO_NEVIWEB_FAN_SPEED_5.get(normalized)
 
-    if result is None:
-        _LOGGER.warning("Unknown HA value for fan speed: %s, fallback to 0", value)
-        return 0
+    # No fallback to 0, it would turn the fan off. The 6813 doesn't support "off" (same as V1).
+    if result is None or (model == "6813" and result == 0):
+        raise ServiceValidationError(f"Fan speed '{value}' is not supported by model {model}")
 
     return result
 
@@ -1200,6 +1201,10 @@ class Neviweb130Client:
             else:
                 return False
         else:
+            if mode == PRESET_NONE:
+                # Zigbee has no "none" systemMode (Neviweb answers VALINVLD).
+                # Leaving away is done by re-applying the hvac mode in async_set_preset_mode.
+                return True
             data = {ATTR_SYSTEM_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
 
@@ -1219,7 +1224,7 @@ class Neviweb130Client:
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_cool_setpoint_away(self, device_id: str, temperature, HC) -> bool:
-        """Set device away cooling temperature target for TH6500WF and TH6250WF."""
+        """Set device away cooling temperature target for TH6500WF and TH6250WF and HP6000WF."""
         if HC:
             data = {ATTR_COOL_SETPOINT_AWAY: temperature}
             return await self.async_set_device_attributes(device_id, data)
@@ -1661,7 +1666,16 @@ class Neviweb130Client:
         """Set flow meter model connected to the Sedna valve 2e gen."""
         data: dict[str, Union[dict[str, int], bool]]
         model_val = ha_to_neviweb_flow(model)
-        if model_val == "FS4221":
+        if model_val == "FS4222":
+            data = {
+                ATTR_FLOW_METER_CONFIG: {
+                    "multiplier": 1,
+                    "offset": 0,
+                    "divisor": 1,
+                },
+                ATTR_FLOW_ENABLED: True,
+            }
+        elif model_val == "FS4221":
             data = {
                 ATTR_FLOW_METER_CONFIG: {
                     "multiplier": 9887,
@@ -2066,9 +2080,12 @@ class Neviweb130Client:
 
         speed_val: int | str
 
-        if model in ("6813", "6814", "6815"):
+        if model in ("6810", "6811", "6812", "6813", "6814", "6815"):
             speed_val = ha_to_neviweb_fan_speed(speed, model)
         else:
+            if speed == "off":
+                return False
+
             speed_val = speed
 
         data: dict[str, Any] = {ATTR_FAN_SPEED: speed_val}

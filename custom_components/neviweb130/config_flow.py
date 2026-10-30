@@ -208,9 +208,9 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 info = await async_validate_input(user_input)
             except InvalidUserEmail:
-                errors["base"] = "Invalid_User_Email"
+                errors["base"] = "invalid_user_email"
             except CannotConnect:
-                errors["base"] = "Cannot_Connect"
+                errors["base"] = "cannot_connect"
             except (vol.MultipleInvalid, vol.ValueInvalid):
                 errors["base"] = "bad_data_entry"
             except Exception:
@@ -320,9 +320,9 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
                 session_manager = entry_data.get("session")
 
             except InvalidUserEmail:
-                errors["base"] = "Invalid_User_Email"
+                errors["base"] = "invalid_user_email"
             except CannotConnect:
-                errors["base"] = "Cannot_Connect"
+                errors["base"] = "cannot_connect"
             except (vol.MultipleInvalid, vol.ValueInvalid):
                 errors["base"] = "bad_data_entry"
             except Exception:

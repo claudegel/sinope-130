@@ -34,7 +34,7 @@ from .const import (
     VALVE_MODEL,
     VERSION,
 )
-from .exceptions import SilentAttributeIgnoreError
+from .exceptions import NeviwebUnsupportedAttributeError, SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
 _NOT_SUPPORTED = "[not supported]"
@@ -1063,6 +1063,26 @@ async def translate_neviweb_error(self, err, **placeholders):
 
 
 # ─────────────────────────────────────────────
+# Report service failure
+# ─────────────────────────────────────────────
+
+
+async def _async_report_service_failure(entity, service_name: str, error: str, critical: bool) -> None:
+    """Log (and notify if critical) a failed service call."""
+    key = "critical_service_failed" if critical else "service_failed"
+    msg = await translate_error(entity.hass, key, service=service_name, error=error)
+    if critical:
+        await async_notify_critical(
+            entity.hass,
+            msg,
+            title=f"Neviweb130 integration {VERSION}",
+            notification_id="neviweb130_service_error",
+        )
+    else:
+        _LOGGER.error(msg)
+
+
+# ─────────────────────────────────────────────
 # Apply devices update from service (action)
 # ─────────────────────────────────────────────
 
@@ -1090,38 +1110,19 @@ async def async_apply_device_update(
 
         # Case 1 : Neviweb structured response {"error": {...}}
         if isinstance(resp, dict) and "error" in resp:
-            translated = entity.translate_neviweb_error(resp)
-            full_msg = entity.hass.helpers.translation.async_translate(
-                "component.neviweb130.errors.service_failed",
-                {"service": service_name, "error": translated},
-            )
-            _LOGGER.error(full_msg)
+            translated = await translate_neviweb_error(entity, resp)
+            await _async_report_service_failure(entity, service_name, translated, critical)
             return False
 
     except Exception as err:
         # Cas 2 : Python or API error exception
-        translated = entity.translate_neviweb_error(err)
-        full_msg = entity.hass.helpers.translation.async_translate(
-            "component.neviweb130.errors.service_failed",
-            {"service": service_name, "error": translated},
-        )
-        _LOGGER.error(full_msg)
+        translated = await translate_neviweb_error(entity, err)
+        await _async_report_service_failure(entity, service_name, translated, critical)
         return False
-
-    if resp:
-        # Success → local update
-        if attr_name is not None:
-            setattr(entity, attr_name, new_value)
-        return True
 
     # Case 3 : Logical fail (resp=False)
     if resp is False:
-        translated = entity.translate_error("update_failed")
-        full_msg = entity.hass.helpers.translation.async_translate(
-            "component.neviweb130.errors.service_failed",
-            {"service": service_name, "error": translated},
-        )
-        _LOGGER.error(full_msg)
+        await _async_report_service_failure(entity, service_name, "no confirmation from Neviweb", critical)
         return False
 
     # Success → local update
@@ -1227,84 +1228,88 @@ async def async_safe_get_device_attributes(
     device_model: str | None = None,
     firmware: str | None = None,
 ):
-    logger.warning("Running async update helper")
+    logger.debug("Running async update helper")
+
+    unsupported_attrs = UNSUPPORTED_ATTRS.setdefault(device_id, set())
 
     # Filter out blacklisted attributes
-    filtered_attrs = [attr for attr in attributes if attr not in UNSUPPORTED_ATTRS.get(device_id, set())]
+    filtered_attrs = [attr for attr in attributes if attr not in unsupported_attrs]
 
     try:
         result = await client.async_get_device_attributes(device_id, filtered_attrs)
+
+        if isinstance(result, dict) and result.get("error", {}).get("code") == "DVCATTRNSPTD":
+            raise NeviwebUnsupportedAttributeError(result["error"]["code"])
 
         logger.debug("client result = %s", result)
 
         if not result or any(attr not in result for attr in filtered_attrs):
             raise SilentAttributeIgnoreError(f"Missing attributes: {filtered_attrs} for device {device_id}")
 
-        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+        for attr in unsupported_attrs:
             result[attr] = None
 
         return result
 
-    except (ClientError, OSError, SilentAttributeIgnoreError) as err:
-        # if not a DVCATTRNSPTD → we restart
-        if "DVCATTRNSPTD" not in str(err):
-            raise
-
-        # here we know it is an unsupported attribute
-        model_info = f"Model: {device_model}" if device_model else "Model: unknown"
-        fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
-        sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
-
-        logger.warning(
-            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+    except NeviwebUnsupportedAttributeError:
+        logger.debug(
+            "Device %s returned DVCATTRNSPTD, switching to attribute-by-attribute discovery",
             device_id,
-            sku_info,
-            model_info,
-            fw_info,
         )
 
-        await async_notify_ha(
-            hass,
-            (
-                f"Some attributes requested for device {device_id} are not supported.\n"
-                f"{model_info}\n{fw_info}\n{sku_info}\n"
-                "Check your logs to identify which attributes failed and report to maintainer."
-            ),
-            title="Neviweb130: Unsupported attributes detected",
-            notification_id="Attr_not_supported",
+    except SilentAttributeIgnoreError:
+        logger.debug(
+            "Device %s returned incomplete attributes, switching to attribute-by-attribute discovery",
+            device_id,
         )
 
-        device_data: dict[str, object] = {}
+    except (ClientError, OSError):
+        raise
 
-        # Test each attribute individually
-        for attr in attributes:
-            logger.debug("Testing attribute %s for %s", attr, model_info)
+    # here we know it is an unsupported attribute
+    model_info = f"Model: {device_model}" if device_model else "Model: unknown"
+    fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
+    sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
 
-            try:
-                result = await client.async_get_device_attributes(device_id, [attr])
-                logger.debug("Result for '%s': %s", attr, result)
+    logger.warning(
+        "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+        device_id,
+        sku_info,
+        model_info,
+        fw_info,
+    )
 
-                if result and attr in result:
-                    device_data[attr] = result[attr]
-                    continue
+    await async_notify_ha(
+        hass,
+        (
+            f"Some attributes requested for device {device_id} are not supported.\n"
+            f"{model_info}\n{fw_info}\n{sku_info}\n"
+            "Check your logs to identify which attributes failed and report to maintainer."
+        ),
+        title="Neviweb130: Unsupported attributes detected",
+        notification_id="Attr_not_supported",
+    )
 
-                if result == {}:
-                    logger.warning(
-                        "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                    )
-                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
-                    device_data[attr] = None
-                    continue
+    device_data: dict[str, object] = {}
 
-                if attr in result and result[attr] is None:
-                    device_data[attr] = None
-                    continue
+    # Test each attribute individually
+    for attr in attributes:
+        logger.debug("Testing attribute %s for %s", attr, model_info)
 
+        try:
+            result = await client.async_get_device_attributes(device_id, [attr])
+            logger.debug("Result for '%s': %s", attr, result)
+
+            if isinstance(result, dict) and result.get("error", {}).get("code") == "DVCATTRNSPTD":
+                unsupported_attrs.add(attr)
+                device_data[attr] = None
+                continue
+
+            if result and attr in result:
+                device_data[attr] = result[attr]
+                continue
+
+            if not result:
                 logger.warning(
                     "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
                     attr,
@@ -1314,35 +1319,28 @@ async def async_safe_get_device_attributes(
                     fw_info,
                 )
 
-            except (ClientError, OSError, SilentAttributeIgnoreError) as err:
-                if "DVCATTRNSPTD" in str(err):
-                    logger.warning(
-                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                        err,
-                    )
-
-                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
-                    device_data[attr] = None
-                    continue
-
-                logger.error(
-                    "Error while fetching attribute '%s' for device %s: %s",
-                    attr,
-                    device_id,
-                    err,
-                )
+                unsupported_attrs.add(attr)
+                device_data[attr] = None
                 continue
 
-        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
-            device_data.setdefault(attr, None)
+            logger.debug(
+                "Attribute '%s' not returned by device %s",
+                attr,
+                device_id,
+            )
+            unsupported_attrs.add(attr)
+            device_data[attr] = None
+            continue
 
-        logger.debug("Returned device_data = %s", device_data)
-        return device_data
+        except (ClientError, OSError) as err:
+            logger.error("Error in device update: %s", err)
+            raise
+
+    for attr in unsupported_attrs:
+        device_data.setdefault(attr, None)
+
+    logger.debug("Returned device_data = %s", device_data)
+    return device_data
 
 
 # ─────────────────────────────────────────────

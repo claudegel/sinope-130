@@ -415,7 +415,13 @@
         "name": "Flow Meter Timer"
       },
       "flow_meter": {
-        "name": "Flow Meter"
+        "name": "Flow Meter",
+        "state": {
+          "no_flow": "No flow meter",
+          "fs4220": "FS4220",
+          "fs4221": "FS4221",
+          "fs4222": "FS4222"
+        }
       },
       "fuel_alert": {
         "name": "Fuel Alert"
@@ -446,7 +452,7 @@
           "unlock": "Unlocked",
           "unlocked": "Unlocked",
           "partial_lock": "Tamper protection",
-          "partially_locked": "Tamper protection"
+          "partiallylocked": "Tamper protection"
         }
       },
       "language": {
@@ -525,7 +531,12 @@
         "name": "Sensor Mode"
       },
       "switch_lock": {
-        "name": "Lock Keypad"
+        "name": "Lock Keypad",
+        "state": {
+          "locked": "Locked",
+          "unlocked": "Unlocked",
+          "partiallylocked": "Tamper Protection"
+        }
       },
       "tank_height": {
         "name": "Tank Height",
@@ -541,7 +552,13 @@
         }
       },
       "tank_size": {
-        "name": "Tank Size"
+        "name": "Tank Size",
+        "state": {
+          "40_gal": "40 gal",
+          "50_gal": "50 gal",
+          "60_gal": "60 gal",
+          "80_gal": "80 gal"
+        }
       },
       "tank_type": {
         "name": "Tank Type",
@@ -558,10 +575,28 @@
         }
       },
       "temp_protection": {
-        "name": "Temperature Protection"
+        "name": "Temperature Protection",
+        "state": {
+          "off": "Off",
+          "45": "45°C",
+          "46": "46°C",
+          "47": "47°C",
+          "48": "48°C",
+          "49": "49°C",
+          "50": "50°C",
+          "51": "51°C",
+          "52": "52°C",
+          "53": "53°C",
+          "54": "54°C",
+          "55": "55°C"
+        }
       },
       "time_format": {
-        "name": "Time Format"
+        "name": "Time Format",
+        "state": {
+          "12h": "12 hours",
+          "24h": "24 hours"
+        }
       },
       "timer": {
         "name": "Timer"
@@ -579,10 +614,22 @@
         }
       },
       "wifi_aux_cycle_length": {
-        "name": "Cycle Length"
+        "name": "Auxiliary Cycle Length",
+        "state": {
+          "10_min": "10 min",
+          "15_min": "15 min",
+          "20_min": "20 min",
+          "25_min": "25 min"
+        }
       },
       "wifi_cycle_length": {
-        "name": "Cycle Length"
+        "name": "Cycle Length",
+        "state": {
+          "10_min": "10 min",
+          "15_min": "15 min",
+          "20_min": "20 min",
+          "25_min": "25 min"
+        }
       }
     },
     "sensor": {
@@ -893,10 +940,6 @@
       "name": "Set floor air limit",
       "description": "Configure floor thermostat air temperature limit."
     },
-    "set_sensor_batt_alert": {
-      "name": "Set sensor battery alert",
-      "description": "Enable or disable battery alert for leak sensor."
-    },
     "set_sensor_closure_action": {
       "name": "Set sensor closure action",
       "description": "Configure closure action for leak sensor."
@@ -919,7 +962,7 @@
     },
     "set_early_start": {
       "name": "Set early start",
-      "description": "Enable or disable early heating start."
+      "description": "Enable or disable early heating start (Wi-Fi thermostats)."
     },
     "set_air_floor_mode": {
       "name": "Set air/floor mode",
@@ -1046,7 +1089,7 @@
       "description": "Activate or deactivate unavailable devices."
     },
     "set_key_double_up": {
-      "name": "Set double-up key action",
+      "name": "Set key double up action",
       "description": "Enable or disable double-up key press."
     },
     "set_sensor_type": {
