@@ -198,8 +198,9 @@ HA_TO_NEVIWEB_FAN_SPEED_5: dict[str, int] = {
 
 HA_TO_NEVIWEB_FLOW = {
     "No flow": "No flow meter",
-    "FS4220 3/4 inch": "FS4220",
-    "FS4221 1 inch": "FS4221",
+    "FS4220": "FS4220",
+    "FS4221": "FS4221",
+    "FS4222": "FS4222",
 }
 
 HA_TO_NEVIWEB_GAUGE = {"R3D 5-95": 595, "R3D 10-80": 1080}
@@ -251,24 +252,24 @@ HA_TO_NEVIWEB_SUPPLY = {"battery": "batt", "acups_01": "power", "battery_acups_0
 
 HA_TO_NEVIWEB_TEMPERATURE = {
     "off": 0,
-    "45°C": 45,
-    "46°C": 46,
-    "47°C": 47,
-    "48°C": 48,
-    "49°C": 49,
-    "50°C": 50,
-    "51°C": 51,
-    "52°C": 52,
-    "53°C": 53,
-    "54°C": 54,
-    "55°C": 55,
+    "45": 45,
+    "46": 46,
+    "47": 47,
+    "48": 48,
+    "49": 49,
+    "50": 50,
+    "51": 51,
+    "52": 52,
+    "53": 53,
+    "54": 54,
+    "55": 55,
 }
 
 HA_TO_NEVIWEB_TIMER = {
     "off": 0,
-    "1 min": 1,
-    "2 min": 2,
-    "5 min": 5,
+    "1 min": 60,
+    "2 min": 120,
+    "5 min": 300,
     "10 min": 600,
     "15 min": 900,
     "30 min": 1800,
@@ -840,7 +841,7 @@ SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema(
 SET_FAN_SPEED_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FAN_SPEED): vol.In(["On", "Auto"]),
+        vol.Required(ATTR_FAN_SPEED): vol.In(["on", "auto"]),
     }
 )
 
