@@ -3143,7 +3143,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     async def async_set_cool_setpoint_away(self, value: dict[str, Any]) -> bool:
         """Set device away cooling setpoint for HC and WHP devices."""
-        success = await self._client.async_set_cool_setpoint_away(value["id"], value["temp"], self._is_HC or self._is_WHP)
+        success = await self._client.async_set_cool_setpoint_away(
+            value["id"], value["temp"], self._is_HC or self._is_WHP
+        )
         if success:
             self._cool_target_temp_away = value["temp"]
         return success
