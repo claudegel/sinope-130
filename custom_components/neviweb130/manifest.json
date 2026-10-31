@@ -2,6 +2,7 @@
   "domain": "neviweb130",
   "name": "Sinope Neviweb130",
   "after_dependencies": ["recorder"],
+  "dependencies": ["http"],
   "codeowners": [
     "@claudegel"
   ],

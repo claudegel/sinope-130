@@ -82,6 +82,7 @@ from .const import (
     ATTR_WATER_LEAK_STATUS,
     ATTR_WIFI,
     DOMAIN,
+    ICON_URL,
     MODE_AUTO,
     MODE_MANUAL,
     MODE_OFF,
@@ -823,25 +824,25 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     def icon_type(self) -> str:
         """Select valve icon based on valve state and leak status."""
         if self._water_leak_status == "water":
-            return "/local/neviweb130/leak.png"
-        return "/local/neviweb130/valve-open.png" if self.is_open else "/local/neviweb130/valve-close.png"
+            return f"{ICON_URL}/leak.png"
+        return f"{ICON_URL}/valve-open.png" if self.is_open else f"{ICON_URL}/valve-close.png"
 
     @property
     def leak_icon(self) -> str | None:
         """Select icon file based on valve leak_status value."""
         if self._water_leak_status is not None:
-            return "/local/neviweb130/drop.png" if self._water_leak_status == "ok" else "/local/neviweb130/leak.png"
+            return f"{ICON_URL}/drop.png" if self._water_leak_status == "ok" else f"{ICON_URL}/leak.png"
         return None
 
     @property
     def battery_icon(self) -> str:
         """Return battery icon file based on battery voltage."""
         if self._battery_voltage is None or self._battery_voltage == 0:
-            return "/local/neviweb130/battery-unknown.png"
+            return f"{ICON_URL}/battery-unknown.png"
 
         batt = voltage_to_percentage(self._battery_voltage, 4)
         level = min(batt // 20 + 1, 5)
-        return f"/local/neviweb130/battery-{level}.png"
+        return f"{ICON_URL}/battery-{level}.png"
 
     @property
     def rssi(self):
