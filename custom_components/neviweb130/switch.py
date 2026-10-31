@@ -2320,7 +2320,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     self._cold_load_remaining_time = device_data[ATTR_COLD_LOAD_PICKUP_REMAIN_TIME]
                     self._rssi = device_data[ATTR_WIFI]
                     self._mode = device_data[ATTR_SYSTEM_MODE]
-                    self._tank_size = device_data[ATTR_TANK_SIZE]
+                    self._tank_size = neviweb_to_ha_size(device_data[ATTR_TANK_SIZE])
                     self._away_action = device_data[ATTR_AWAY_ACTION]["action"]
                     self._away_payload = device_data[ATTR_AWAY_ACTION]["actionPayload"]
                     self._leg_status_temp = device_data[ATTR_LEG_PROTEC_STATUS]["temperature"]
@@ -2382,7 +2382,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                     else None
                 ),
                 "cold_load_temperature": self._cold_load_temp,
-                "tank_size": neviweb_to_ha_size(self._tank_size),
+                "tank_size": self._tank_size,
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
                 "eco_onoff": self._drstatus_onoff,
