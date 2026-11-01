@@ -321,7 +321,7 @@ class Neviweb130Client:
         ignore_miwi: bool,
         username: str,
         password: str,
-        network: str | None,
+        network: str | None = None,
         network2: str | None = None,
         network3: str | None = None,
         safe_mode: str = "-",
@@ -522,7 +522,7 @@ class Neviweb130Client:
                 _LOGGER.debug("networks: %s", networks)
 
                 # Auto selection mode
-                if self._network_name is None and self._network_name2 is None and self._network_name3 is None:
+                if not self._network_name and not self._network_name2 and not self._network_name3:
                     # Use 1st network found, second or third if found
                     self._gateway_id = networks[0]["id"]
                     self._network_name = networks[0]["name"]
