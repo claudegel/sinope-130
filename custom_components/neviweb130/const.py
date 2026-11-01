@@ -1808,9 +1808,8 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
-    5050: {  # WL4200, WL4210 and WL4200S,
+    5050: {  # WL4200, WL4210 and WL4200S, connected via Sedna valve
         "sensor": [
-            ATTR_RSSI,
             "battery_level",
             "current_temperature",
         ],
@@ -1851,9 +1850,8 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
-    5052: {  # WL4200C, perimeter cable water leak detector connected to Sedna
+    5052: {  # WL4200C, perimeter cable water leak detector connected via Sedna valve
         "sensor": [
-            ATTR_RSSI,
             "battery_level",
             "current_temperature",
         ],
