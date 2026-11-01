@@ -1366,7 +1366,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 ATTR_BATTERY_VOLTAGE,
                 ATTR_BATTERY_STATUS,
                 ATTR_POWER_SUPPLY,
-                ATTR_VALVE_CLOSURE,
                 ATTR_BATT_ALERT,
                 ATTR_STM8_ERROR,
                 ATTR_FLOW_METER_CONFIG,
@@ -1380,9 +1379,14 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 ATTR_WATER_LEAK_STATUS,
                 ATTR_AWAY_ACTION,
             ]
+            if self._sku in ("VA4200WZ", "VA4201WZ", "VA4220WZ", "VA4221WZ"):
+                WIZI_ATTRIBUTES = [ATTR_VALVE_CLOSURE]
+            else:
+                WIZI_ATTRIBUTES = []
+
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            attributes = UPDATE_ATTRIBUTES + LOAD_ATTRIBUTES
+            attributes = LOAD_ATTRIBUTES + WIZI_ATTRIBUTES
             _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
             device_data: dict[str, Any]
             if self.safe_mode:
@@ -1447,8 +1451,9 @@ class Neviweb130WifiValve(Neviweb130Valve):
                         )
                     self._motor_position = device_data[ATTR_MOTOR_POS]
                     self._motor_target = device_data.get(ATTR_MOTOR_TARGET, self._motor_target)
-                    closure = device_data.get(ATTR_VALVE_CLOSURE, {})
-                    self._valve_closure = closure.get("source", self._valve_closure)
+                    if self._sku in ("VA4200WZ", "VA4201WZ", "VA4220WZ", "VA4221WZ"):
+                        closure = device_data.get(ATTR_VALVE_CLOSURE, {})
+                        self._valve_closure = closure.get("source", self._valve_closure)
                     stm8_error = device_data.get(ATTR_STM8_ERROR, {})
                     if stm8_error:
                         self._stm8Error_motorJam = stm8_error.get("motorJam", self._stm8Error_motorJam)
@@ -1531,7 +1536,6 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "battery_status": self._battery_status,
                 "battery_icon": self.battery_icon,
                 "power_supply": self._power_supply,
-                "valve_closure_source": self._valve_closure,
                 "battery_alert": self._battery_alert,
                 "motor_position": self._motor_position,
                 "motor_target_position": self._motor_target,
@@ -1578,6 +1582,12 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "id": self._id,
             }
         )
+        if self._sku in ("VA4200WZ", "VA4201WZ", "VA4220WZ", "VA4221WZ"):
+            data.update(
+                {
+                    "valve_closure_source": self._valve_closure,
+                }
+            )
         return data
 
 
