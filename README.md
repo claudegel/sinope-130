@@ -442,21 +442,19 @@ In you log you can get those messages from Neviweb:
 ## Customization
 Install  [Custom-Ui](https://github.com/Mariusthvdb/custom-ui) custom_component via HACS and add the following in your code:
 
-Icons for heat level: create folder www in the root folder .homeassistant/www
-copy the six icons there. You can find them under local/www
-feel free to improve my icons and let me know. (See icon_view2.png)
+Icons for heat level, battery and leak are included in the integration and served at `/neviweb130/icons/`. There is nothing to copy. Feel free to improve the icons and let me know. (See icon_view2.png)
 
 For each thermostat add this code in `customize.yaml`
 ```yaml
 climate.neviweb_climate_thermostat_name:
   templates:
     entity_picture: >
-      if (attributes.heat_level < 1) return '/local/heat-0.png';
-      if (attributes.heat_level < 21) return '/local/heat-1.png';
-      if (attributes.heat_level < 41) return '/local/heat-2.png';
-      if (attributes.heat_level < 61) return '/local/heat-3.png';
-      if (attributes.heat_level < 81) return '/local/heat-4.png';
-      return '/local/heat-5.png';
+      if (attributes.heat_level < 1) return '/neviweb130/icons/heat-0.png';
+      if (attributes.heat_level < 21) return '/neviweb130/icons/heat-1.png';
+      if (attributes.heat_level < 41) return '/neviweb130/icons/heat-2.png';
+      if (attributes.heat_level < 61) return '/neviweb130/icons/heat-3.png';
+      if (attributes.heat_level < 81) return '/neviweb130/icons/heat-4.png';
+      return '/neviweb130/icons/heat-5.png';
  ```  
  In `configuration.yaml` add this
 ```yaml
@@ -478,16 +476,16 @@ battery_spa:
 sensor.battery_spa:
   templates:
     entity_picture: >
-      if (entity.state < 10) return '/local/battery-1.png';
-      if (entity.state < 30) return '/local/battery-2.png';
-      if (entity.state < 50) return '/local/battery-3.png';
-      if (entity.state < 70) return '/local/battery-4.png';
-      return '/local/battery-5.png';
+      if (entity.state < 10) return '/neviweb130/icons/battery-1.png';
+      if (entity.state < 30) return '/neviweb130/icons/battery-2.png';
+      if (entity.state < 50) return '/neviweb130/icons/battery-3.png';
+      if (entity.state < 70) return '/neviweb130/icons/battery-4.png';
+      return '/neviweb130/icons/battery-5.png';
 sensor.neviweb130_sensor_spa:    
-      if (attributes.Leak_status == "ok") return ''/local/drop.png'';
-      return ''/local/leak.png'';'
+      if (attributes.Leak_status == "ok") return ''/neviweb130/icons/drop.png'';
+      return ''/neviweb130/icons/leak.png'';'
 ```
-Icons are available from www directory. copy them in config/www
+The icons are served by the integration at `/neviweb130/icons/`.
 
 # Device hard reset:
 - Thermostats:
