@@ -203,6 +203,7 @@ async def async_setup_entry(
                         device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
                         device_firmware = get_firmware(device_info)
+                        device_family = device_info["family"]
                         # Ensure the device is registered in the device registry
                         device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
@@ -222,6 +223,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 device_type,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -234,6 +236,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 device_type,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -246,6 +249,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 device_type,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -258,6 +262,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 device_type,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -560,7 +565,7 @@ async def async_add_data(conf_dir, device_dict, id, data, mark):
 class Neviweb130Valve(CoordinatorEntity, ValveEntity):
     """Implementation of a Neviweb valve."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", name, device_info)
@@ -570,6 +575,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         self._name = name
         self._sku = sku
         self._firmware = firmware
+        self._family = str(family)
         self._client = data["neviweb130_client"]
         self._stat_interval = data["stat_interval"]
         self._notify = data["notify"]
@@ -990,6 +996,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1330,9 +1337,9 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 class Neviweb130WifiValve(Neviweb130Valve):
     """Implementation of a Neviweb Wi-Fi valve, VA4200WZ, VA4201WZ, VA4220WZ, VA4221WZ, VA4220WF, VA4221WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._away_action = None
         self._batt_action_low = None
         self._flowmeter_divisor = 1
@@ -1580,6 +1587,7 @@ class Neviweb130WifiValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1595,9 +1603,9 @@ class Neviweb130WifiValve(Neviweb130Valve):
 class Neviweb130MeshValve(Neviweb130Valve):
     """Implementation of a Neviweb mesh valve VA4220ZB and ACT4220ZB-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._error_code = None
         self._flowmeter_divisor = 1
         self._flowmeter_enabled = None
@@ -1824,6 +1832,7 @@ class Neviweb130MeshValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1833,9 +1842,9 @@ class Neviweb130MeshValve(Neviweb130Valve):
 class Neviweb130WifiMeshValve(Neviweb130Valve):
     """Implementation of a Neviweb Wi-Fi mesh valve, ACT4220WF-M, ACT4221WF-M."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._batt_action_low = None
         self._flow_alarm_1 = None
         self._flow_alarm_2 = None
@@ -2045,6 +2054,7 @@ class Neviweb130WifiMeshValve(Neviweb130Valve):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
