@@ -402,6 +402,7 @@ def create_physical_switch(data, entry, coordinator, device_registry):
             model = device_info["signature"]["model"]
             device_name = naming.device_name(platform, index, device_info)
             device_type = determine_device_type(model)
+            device_family = device_info["family"]
 
             device_id = str(device_info["id"])
 
@@ -423,6 +424,7 @@ def create_physical_switch(data, entry, coordinator, device_registry):
                     device_info["sku"],
                     get_firmware(device_info),
                     device_type,
+                    device_family,
                     coordinator,
                     entry,
                 )
@@ -960,7 +962,7 @@ async def async_add_data(conf_dir, device_dict, id, data, mark):
 class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
     """Implementation of a Neviweb switch, SP2600ZB and SP2610ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", name, device_info)
@@ -974,6 +976,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._name = name
         self._sku = sku
         self._firmware = firmware
+        self._family = str(family)
         self._client = data["neviweb130_client"]
         self._notify = data["notify"]
         self._prefix = data["prefix"]
@@ -1303,6 +1306,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1686,15 +1690,15 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 class Neviweb130PowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb power controller switch, RM3250ZB connected to GT130 or Sedna."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._error_code = None
 
     @override
     async def async_update(self) -> None:
         if self._active:
-            if self._is_load:
+            if self._is_load and self._family == "2506":
                 LOAD_ATTRIBUTES = [
                     ATTR_WATTAGE,
                     ATTR_WATTAGE_INSTANT,
@@ -1826,6 +1830,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1836,9 +1841,9 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 class Neviweb130WifiPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb power controller switch, RM3250WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._error_code = None
         self._wifirssi = None
 
@@ -1971,6 +1976,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1980,9 +1986,9 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
 class Neviweb130TankPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb water heater power controller switch, RM3500ZB."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._cold_load_status = None
         self._consumption = None
         self._consumption_time = None
@@ -2176,6 +2182,7 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -2185,9 +2192,9 @@ class Neviweb130TankPowerSwitch(Neviweb130Switch):
 class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb Wi-Fi power controller switch, RM3500WF and RM3510WF."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._away_action = None
         self._away_payload = None
         self._cold_load_status = None
@@ -2407,6 +2414,7 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -2416,9 +2424,9 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 class Neviweb130ControllerSwitch(Neviweb130Switch):
     """Implementation of a Neviweb multi controller switch, MC3100ZB connected to GT130 or Sedna."""
 
-    def __init__(self, data, device_info, name, sku, firmware, device_type, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, device_type, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._batt_info = None
         self._batt_percent_normal = None
         self._batt_status_normal = None
@@ -2654,6 +2662,7 @@ class Neviweb130ControllerSwitch(Neviweb130Switch):
                 "firmware": self._firmware,
                 "activation": self._active,
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
