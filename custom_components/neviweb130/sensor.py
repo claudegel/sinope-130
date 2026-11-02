@@ -540,6 +540,7 @@ def create_physical_sensors(data, entry, coordinator, device_registry):
             model = device_info["signature"]["model"]
             device_name = naming.device_name(platform, index, device_info)
             device_type = determine_device_type(model)
+            device_family = device_info["family"]
 
             device_id = str(device_info["id"])
 
@@ -563,6 +564,7 @@ def create_physical_sensors(data, entry, coordinator, device_registry):
                         device_info["sku"],
                         get_firmware(device_info),
                         device_info["location$id"],
+                        device_family,
                         coordinator,
                         entry,
                     )
@@ -574,6 +576,7 @@ def create_physical_sensors(data, entry, coordinator, device_registry):
                         device_type,
                         device_info["sku"],
                         get_firmware(device_info),
+                        device_family,
                         coordinator,
                         entry,
                     )
@@ -1051,13 +1054,14 @@ def convert_to_percent(angle, low, high):
 class Neviweb130BaseSensor(CoordinatorEntity):
     """Common base class for all Neviweb sensors."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, coordinator, entry):
+    def __init__(self, data, device_info, name, device_type, sku, firmware, family, coordinator, entry):
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", name, device_info)
         self._device = device_info
         self._name = name
         self._sku = sku
         self._firmware = firmware
+        self._family = str(family)
         self._client = data["neviweb130_client"]
         self._notify = data["notify"]
         self._prefix = data["prefix"]
@@ -1586,6 +1590,7 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
                 "battery_alert": self._battery_alert,
                 "battery_type": self._battery_type,
                 "battery_icon": self.battery_icon,
+                "family": self._family,
                 "rssi": self._rssi,
             }
         )
@@ -1764,6 +1769,7 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -2040,6 +2046,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                 "firmware": self._firmware,
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -2080,7 +2087,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
 class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
     """Implementation of a Neviweb gateway sensor, GT130."""
 
-    def __init__(self, data, device_info, name, device_type, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, device_type, sku, firmware, location, family, coordinator, entry):
         super().__init__(
             data=data,
             device_info=device_info,
@@ -2168,6 +2175,7 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
                 "activation": "Active" if self._active else "Inactive",
                 "device_type": self._device_type,
                 "neviweb_location": self._location,
+                "family": self._family,
                 "id": self._id,
             }
         )
