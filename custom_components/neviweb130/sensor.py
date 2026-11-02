@@ -2095,6 +2095,8 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
             device_type=device_type,
             sku=sku,
             firmware=firmware,
+            location=location,
+            family=family,
             coordinator=coordinator,
             entry=entry,
         )
