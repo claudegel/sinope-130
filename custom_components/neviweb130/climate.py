@@ -624,6 +624,7 @@ async def async_setup_entry(
                         device_sku = device_info["sku"]
                         location_id = device_info["location$id"]
                         device_firmware = get_firmware(device_info)
+                        device_family = device_info["family"]
                         # Ensure the device is registered in the device registry
                         device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
@@ -642,6 +643,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -653,6 +655,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -664,6 +667,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -675,6 +679,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -686,6 +691,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -697,6 +703,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -708,6 +715,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -719,6 +727,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -730,6 +739,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -741,6 +751,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -752,6 +763,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -763,6 +775,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -774,6 +787,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -785,6 +799,7 @@ async def async_setup_entry(
                                 device_sku,
                                 device_firmware,
                                 location_id,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -1858,7 +1873,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     _attr_precision = 0.1
     _attr_target_temperature_step = 0.5
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", name, device_info)
@@ -1873,6 +1888,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._location = str(location)
         self._sku = sku
         self._firmware = firmware
+        self._family = str(family)
         self._client = data["neviweb130_client"]
         self._homekit_mode = data["homekit_mode"]
         self._stat_interval = data["stat_interval"]
@@ -2430,6 +2446,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -3606,9 +3623,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 class Neviweb130G2Thermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1123ZB-G2, TH1124ZB-G2 thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._cold_load_pickup = None
 
     @override
@@ -3814,6 +3831,7 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -3823,9 +3841,9 @@ class Neviweb130G2Thermostat(Neviweb130Thermostat):
 class Neviweb130FloorThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1300ZB thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
         self._floor_min_status = "off"
@@ -4068,6 +4086,7 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -4077,9 +4096,9 @@ class Neviweb130FloorThermostat(Neviweb130Thermostat):
 class Neviweb130LowThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1400ZB low voltage thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._floor_air_limit_status = "off"
         self._floor_max_status = "off"
         self._floor_min_status = "off"
@@ -4336,6 +4355,7 @@ class Neviweb130LowThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -4542,6 +4562,7 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -4551,9 +4572,9 @@ class Neviweb130DoubleThermostat(Neviweb130Thermostat):
 class Neviweb130WifiThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1123WF, TH1124WF, TH1500WF thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -4782,6 +4803,7 @@ class Neviweb130WifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -4794,9 +4816,9 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
     _attr_precision = 1.0
     _attr_target_temperature_step = 1.0
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -5030,6 +5052,7 @@ class Neviweb130WifiLiteThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -5042,9 +5065,9 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
     _attr_precision = 0.5
     _attr_target_temperature_step = 0.5
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._early_start = "off"
         self._heat_source_type = None
         self._load1 = 0
@@ -5261,6 +5284,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -5270,9 +5294,9 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
 class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1400WF thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._early_start = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
@@ -5543,6 +5567,7 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -5552,9 +5577,9 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat and FLP55."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._early_start = "off"
         self._floor_air_limit_status = None
         self._floor_max_status = "off"
@@ -5824,6 +5849,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -5847,9 +5873,9 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
 class Neviweb130HcThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH1134ZB-HC thermostat."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._cool_max: float = 30
         self._cool_min: float = 16
         self._display_cap = None
@@ -6124,6 +6150,7 @@ class Neviweb130HcThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -6134,9 +6161,9 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb heat pump interface thermostats:
     HP6000ZB-GE, HP6000ZB-GE-RS485, HP6000ZB-MA and HP6000ZB-HS."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._cool_max: float = 30
         self._cool_min: float = 16
         self._display_cap = None
@@ -6548,6 +6575,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -6610,9 +6638,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     This class implements all these rules explicitly.
     """
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._cool_max: float = 31
         self._cool_min: float = 16
         self._cool_target_temp_away = None
@@ -7195,6 +7223,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -7212,9 +7241,9 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
     """Implementation of Neviweb TH6500WF, TH6510WF, TH6250WF, TH6250WF-PRO, TH6251WF-PRO heat cool thermostats."""
 
-    def __init__(self, data, device_info, name, sku, firmware, location, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, location, family, coordinator, entry):
         """Initialize."""
-        super().__init__(data, device_info, name, sku, firmware, location, coordinator, entry)
+        super().__init__(data, device_info, name, sku, firmware, location, family, coordinator, entry)
         self._accessory_type = "none"
         self._air_curt_activation_temp = None
         self._air_curt_conf = None
@@ -8327,6 +8356,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
                 "device_model_cfg": self._device_model_cfg,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
