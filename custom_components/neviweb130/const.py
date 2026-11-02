@@ -1340,8 +1340,6 @@ MODEL_ATTRIBUTES = {
             "wattage",
         ],
         "number": [
-            "brightness",
-            "intensity_min",
             "led_off_intensity",
             "led_on_intensity",
         ],
@@ -1356,9 +1354,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21212: {  # SW2500ZB, SW2500ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1391,9 +1387,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21312: {  # DM2500ZB, DM2500ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1427,9 +1421,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21322: {  # DM2550ZB, DM2550ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
