@@ -215,6 +215,7 @@ from .const import (
     ATTR_WIFI_WATTAGE,
     DOMAIN,
     EXPOSED_ATTRIBUTES,
+    ICON_URL,
     MODE_AUTO_BYPASS,
     MODE_EM_HEAT,
     MODE_MANUAL,
@@ -2447,7 +2448,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
         # OFF mode set off icon
         if self.hvac_mode == HVACMode.OFF:
-            return f"/local/neviweb130/{base}-off.png"
+            return f"{ICON_URL}/{base}-off.png"
 
         # AUTO mode → change prefix
         if self.hvac_mode == HVACMode.AUTO:
@@ -2465,9 +2466,9 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
         for limit, suffix in thresholds:
             if demand < limit:
-                return f"/local/neviweb130/{base}{suffix}.png"
+                return f"{ICON_URL}/{base}{suffix}.png"
 
-        return f"/local/neviweb130/{base}-5.png"
+        return f"{ICON_URL}/{base}-5.png"
 
     @property
     @override

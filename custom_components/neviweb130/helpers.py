@@ -15,8 +15,8 @@ from aiohttp import ClientError
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfTime
-from homeassistant.core import CoreState, HomeAssistant
+from homeassistant.const import UnitOfTime
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
@@ -26,6 +26,8 @@ from homeassistant.util import dt as dt_util
 from .const import (
     CLIMATE_MODEL,
     DOMAIN,
+    ICON_DIR,
+    ICON_URL,
     LIGHT_MODEL,
     RISKY_ATTRIBUTES,
     SENSOR_MODEL,
@@ -907,80 +909,13 @@ def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
 
 
 def file_exists(hass, path: str) -> bool:
-    """Return True if a /local/ file exists."""
-    local_path = path.replace("/local/", "www/")
-    full_path = os.path.join(hass.config.path(), local_path)
+    """Return True if an icon served under ICON_URL exists."""
+    full_path = os.path.join(ICON_DIR, path.removeprefix(f"{ICON_URL}/"))
 
     try:
         return os.path.isfile(full_path)
     except (OSError, PermissionError):
         return False
-
-
-# ─────────────────────────────────────────────
-# Check icon folder presence and content
-# ─────────────────────────────────────────────
-
-
-async def _t(hass, key: str) -> str:
-    """Thread-safe translation lookup for notifications."""
-    domain = "neviweb130"
-    full_key = f"component.{domain}.config.error.{key.lower()}"
-
-    translations = await async_get_translations(
-        hass,
-        hass.config.language,
-        "config",
-        integrations=["neviweb130"],
-    )
-
-    return translations.get(full_key, key)
-
-
-async def notify_after_startup(hass, coro_factory):
-    """Schedule a coroutine to run safely after HA is fully started."""
-
-    def _schedule():
-        # execute factory to get the coroutine
-        coro = coro_factory()
-        hass.loop.call_soon_threadsafe(hass.async_create_task, coro)
-
-    if hass.state == CoreState.running:
-        _schedule()
-    else:
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, lambda event: _schedule())
-
-
-async def check_weather_icons_folder(hass):
-    """Check that the weather and icon folder are presents."""
-    folder = hass.config.path("www/neviweb130/weather")
-
-    exists = await hass.async_add_executor_job(os.path.isdir, folder)
-    if not exists:
-        message = await _t(hass, "weather_icons_folder_missing")
-        await notify_after_startup(
-            hass,
-            lambda: async_notify_critical(
-                hass,
-                message,
-                title="Neviweb130 – weather icon",
-                notification_id="neviweb130_missing_folder",
-            ),
-        )
-        return
-
-    files = await hass.async_add_executor_job(os.listdir, folder)
-    if not files:
-        message = await _t(hass, "weather_icons_folder_empty")
-        await notify_after_startup(
-            hass,
-            lambda: async_notify_critical(
-                hass,
-                message,
-                title="Neviweb130 – weather icon",
-                notification_id="neviweb130_empty_folder",
-            ),
-        )
 
 
 # ─────────────────────────────────────────────

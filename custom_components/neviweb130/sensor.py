@@ -76,6 +76,7 @@ from .const import (
     ATTR_WATER_LEAK_STATUS,
     DOMAIN,
     FULL_MODEL,
+    ICON_URL,
     MODEL_ATTRIBUTES,
     RUNTIME_COMPATIBLE_MODELS,
     RUNTIME_PREFIXES,
@@ -1173,7 +1174,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
 
         is_water_sensor = self._is_leak or self._is_connected
         if is_water_sensor:
-            return "/local/neviweb130/drop.png" if self.leak_status == "ok" else "/local/neviweb130/leak.png"
+            return f"{ICON_URL}/drop.png" if self.leak_status == "ok" else f"{ICON_URL}/leak.png"
         return None
 
     @property
@@ -1187,10 +1188,10 @@ class Neviweb130BaseSensor(CoordinatorEntity):
         )
 
         if batt is None:
-            return "/local/neviweb130/battery-unknown.png"
+            return f"{ICON_URL}/battery-unknown.png"
 
         level = min(batt // 20 + 1, 5)
-        return f"/local/neviweb130/battery-{level}.png"
+        return f"{ICON_URL}/battery-{level}.png"
 
     @property
     def rssi(self):
@@ -1927,7 +1928,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
             return None
 
         if self._tank_percent is None:
-            return f"/local/neviweb130/{base}-unknown.png"
+            return f"{ICON_URL}/{base}-unknown.png"
 
         demand = self._tank_percent
 
@@ -1944,9 +1945,9 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
 
         for limit, suffix in thresholds:
             if demand < limit:
-                return f"/local/neviweb130/{base}{suffix}.png"
+                return f"{ICON_URL}/{base}{suffix}.png"
 
-        return f"/local/neviweb130/{base}-8.png"
+        return f"{ICON_URL}/{base}-8.png"
 
     @property
     def level_status(self) -> str | None:
@@ -2296,7 +2297,7 @@ class Neviweb130DeviceAttributeSensor(CoordinatorEntity[Neviweb130Coordinator], 
 
             icon_name = WEATHER_ICON_MAP.get(code)
             if icon_name:
-                path = f"/local/neviweb130/weather/{icon_name}.png"
+                path = f"{ICON_URL}/weather/{icon_name}.png"
                 if file_exists(self.hass, path):
                     return path
 
