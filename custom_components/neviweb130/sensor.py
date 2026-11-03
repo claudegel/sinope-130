@@ -370,7 +370,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         mean_type=StatisticMeanType.NONE,
         icon="mdi:valve",
     ),
-    #  Real sensor attributes
+    #  Real sensors attributes
     Neviweb130SensorEntityDescription(
         key="gauge_angle",
         device_class=None,
@@ -409,6 +409,18 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         mean_type=StatisticMeanType.ARITHMETIC,
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:meter-electric",
+    ),
+    Neviweb130SensorEntityDescription(
+        key="sensor_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="sensor_temperature",
+        value_fn=lambda data: data["sensor_temperature"],
+        signal=SIGNAL_EVENTS_CHANGED,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        unit_class="temperature",
+        mean_type=StatisticMeanType.ARITHMETIC,
+        icon="mdi:thermometer",
     ),
     #  Switch attributes
     Neviweb130SensorEntityDescription(
@@ -1161,11 +1173,6 @@ class Neviweb130BaseSensor(CoordinatorEntity):
         return None
 
     @property
-    def current_temperature(self):
-        """Return the current sensor temperature."""
-        return self._cur_temp
-
-    @property
     def leak_status(self):
         """Return current sensor leak status: 'water' or 'ok'."""
         return self._leak_status
@@ -1263,6 +1270,11 @@ class Neviweb130BaseSensor(CoordinatorEntity):
     def safe_mode(self) -> bool:
         """Return whether safe mode is active for this device."""
         return self._id in self._client.safe_mode
+
+    @property
+    def sensor_temperature(self):
+        """Return sensor room temperature."""
+        return self._cur_temp
 
     async def async_set_sensor_leak_alert(self, value):
         """Set water leak sensor leak alert action."""
