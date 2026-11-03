@@ -712,6 +712,9 @@
       "rssi": {
         "name": "Force du signal"
       },
+      "sensor_temperature": {
+        "name": "Température détecteur"
+      },
       "total_flow_count": {
         "name": "Débit Total"
       },
