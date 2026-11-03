@@ -769,6 +769,12 @@
           "measurement": "Measurement value"
         }
       },
+      "sensor_temperature": {
+        "name": "Sensor Temperature",
+        "state": {
+          "measurement": "measurement"
+        }
+      },
       "total_flow_count": {
         "name": "Total Flow",
         "state": {
