@@ -70,6 +70,7 @@ NETWORK_MAP = {
 
 _rotate_lock = asyncio.Lock()
 
+
 async def async_write(hass, path, text):
     def _write():
         with open(path, "a", encoding="utf-8") as f:
@@ -80,6 +81,7 @@ async def async_write(hass, path, text):
 
 async def async_rotate(hass, path, max_bytes, backup_count):
     async with _rotate_lock:
+
         def _rotate():
             try:
                 if not os.path.exists(path):
