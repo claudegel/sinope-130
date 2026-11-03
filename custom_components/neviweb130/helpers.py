@@ -68,6 +68,8 @@ NETWORK_MAP = {
 # ─────────────────────────────────────────────
 
 
+_rotate_lock = asyncio.Lock()
+
 async def async_write(hass, path, text):
     def _write():
         with open(path, "a", encoding="utf-8") as f:
@@ -77,24 +79,31 @@ async def async_write(hass, path, text):
 
 
 async def async_rotate(hass, path, max_bytes, backup_count):
-    def _rotate():
-        if not os.path.exists(path):
-            return
+    async with _rotate_lock:
+        def _rotate():
+            try:
+                if not os.path.exists(path):
+                    return
 
-        if os.path.getsize(path) < max_bytes:
-            return
+                if os.path.getsize(path) < max_bytes:
+                    return
 
-        # Rotate backups
-        for i in range(backup_count - 1, 0, -1):
-            src = f"{path}.{i}"
-            dst = f"{path}.{i + 1}"
-            if os.path.exists(src):
-                os.replace(src, dst)
+                # Rotate backups
+                for i in range(backup_count - 1, 0, -1):
+                    src = f"{path}.{i}"
+                    dst = f"{path}.{i + 1}"
 
-        # Move current log to .1
-        os.replace(path, f"{path}.1")
+                    if os.path.exists(src):
+                        os.replace(src, dst)
 
-    return hass.async_add_executor_job(_rotate)
+                # Move current log to .1
+                os.replace(path, f"{path}.1")
+
+            except FileNotFoundError:
+                # File already rotated by another task.
+                pass
+
+        return hass.async_add_executor_job(_rotate)
 
 
 class AsyncRotatingHandler(logging.Handler):
