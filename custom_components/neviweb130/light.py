@@ -1387,7 +1387,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
             ]
             start = time.time()
             device_data: dict[str, Any]
-            if self._is_new_dimmer:
+            if self._is_new_dimmer and self._family == "2132":
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
                 if self.safe_mode:
