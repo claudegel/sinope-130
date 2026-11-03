@@ -1763,7 +1763,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1784,7 +1784,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1805,7 +1805,7 @@ MODEL_ATTRIBUTES = {
     5050: {  # WL4200, WL4210 and WL4200S, connected via Sedna valve
         "sensor": [
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1827,7 +1827,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1847,7 +1847,7 @@ MODEL_ATTRIBUTES = {
     5052: {  # WL4200C, perimeter cable water leak detector connected via Sedna valve
         "sensor": [
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1869,7 +1869,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -2019,6 +2019,7 @@ EXPOSED_ATTRIBUTES = [
     "safe_mode",
     "second_display",
     "sensor_mode",
+    "sensor_temperature",
     "setpoint_away",
     "stm8Error_motorJam",
     "stm8Error_motorLimit",
