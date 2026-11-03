@@ -641,7 +641,7 @@
         "name": "CoolStage2 hourly total count"
       },
       "current_temperature": {
-        "name": "Température"
+        "name": "Temperature"
       },
       "daily_flow_count": {
         "name": "Daily Flow"
@@ -711,6 +711,9 @@
       },
       "rssi": {
         "name": "Signal Strength"
+      },
+      "sensor_temperature": {
+        "name": "Sensor Temperature"
       },
       "total_flow_count": {
         "name": "Total Flow"
