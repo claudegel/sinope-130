@@ -955,14 +955,14 @@ en ouvrant un ticket (issue).
 | **TH1123ZB-G2** | coldLoadPickup, heatLockoutTemp |
 | **TH1124ZB-G2** | coldLoadPickup, heatLockoutTemp |
 | **TH6250WF** | backlight |
+| **TH1400WF** | auxHeatConfig, pumpProtectDuration |
 
 ## Personnalisation
-L'interface utilisateur personnalisée est quasiment obsolète et difficile à configurer. J'ai donc opté pour la carte Lovelace moderne afin 
-de simplifier le processus et d'obtenir de meilleurs résultats.
 
 Prérequis :
-- Les icônes se trouvent dans le dossier www de ce dépôt. Copiez-les dans config/www/neviweb130/. Vous devez créer le répertoire
-  neviweb130 sous config/www (appelé /local dans HA).
+- Des icônes correspondant au niveau de chauffe, à l’état de la pile et aux fuites etc, sont désormais incluses dans l’intégration et
+  accessibles via `/neviweb130/icons/`. Aucune copie de fichier n’est nécessaire. N’hésitez pas à améliorer ces icônes et à m’en faire part.
+  (Voir icon_view2.png)
 - Installez la carte Lovelace via HACS : card-mod, mushroom et stack-in-card.
 - Assurez-vous d'avoir au moins la version 4.1.2 de neviweb130.
 
@@ -1078,7 +1078,8 @@ Idem comme ci-dessus.
 Pour l'icône de fuite détectée, il s'agit de l'attribut **icon_type**.
 Pour le niveau de batterie, c'est la même chose avec **battery_icon**.
 
-Les icônes sont disponibles dans le sous-répertoire [www](https://github.com/claudegel/sinope-130/tree/master/www). Copiez-les dans config/www
+Les icônes sont disponibles dans `neviweb130/icons/`, pas besoin des les télécharger. Elle sont incluses avec 
+l'installation de neviwen130.
 
 ### Personnalisation du niveau de batterie du moniteur et de la valve Sedna :
 
@@ -1098,6 +1099,4 @@ Identique à ci-dessus avec l’attribut **battery_icon**, **leak_icon** and **i
     - Attendez le redémarrage de l'appareil.
 
 ## A FAIRE
-- Ce composant personnalisé sera bientôt mis à jour vers neviweb130-V2. Cela implique un config_flow, coordinateur, attributs personnalisés
-  des entités, traduction anglais/français et bien d’autres fonctionnalités.
 - Améliorer la récupération des statistiques énergétiques de Neviweb.
