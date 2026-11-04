@@ -1051,7 +1051,7 @@ Same as above.
 For leak detected icon it is the **icon_type** attribute.
 For battery level it's the same as above with **battery_icon**.
 
-Icons are available from [www](https://github.com/claudegel/sinope-130/tree/master/www) sub-directory. 
+Icons are available from `neviweb130/icons/`, no need to download. They are installed by HACS at each update. 
 Copy them in config/www/neviweb130 in your HA.
 
 ## Customization for battery level for monitor and valve:
