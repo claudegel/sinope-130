@@ -930,14 +930,13 @@ will be set to 'not supported'. Please refer to this list and report new missing
 | **TH1123ZB-G2** |	coldLoadPickup, heatLockoutTemp |
 | **TH1124ZB-G2** |	coldLoadPickup, heatLockoutTemp |
 | **TH6250WF** | backlight |
+| **TH1400WF** | auxHeatConfig, pumpProtectDuration |
 
 ## Customization
-Custom-ui is almost deprecated and hard to configure. So I've switch to modern lovelace card to ease the process 
-and get better results.
 
 Prerequisites:
-- The icons are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
-  neviweb130 under config/www. (called /local in HA)
+- Icons for heat level, battery and leak are now included in the integration and served at `/neviweb130/icons/`.
+  There is nothing to copy. Feel free to improve the icons and let me know. (See icon_view2.png)
 - Install via HACS the lovelace card: card-mod, mushroom and for stack-in-card.
 - Make sure you have at least neviweb130 v4.1.2
 
@@ -951,7 +950,7 @@ leak detection: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'icon_type') }
 
 battery level: `{{ state_attr('sensor.neviweb130_sensor_wl2010', 'battery_icon') }}`
 
-Those template point directly to /local/neviweb130/(icons)
+Those template point directly to `/neviweb130/icons/`
 
 Old style: (Many examples)
 
