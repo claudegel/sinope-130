@@ -367,6 +367,15 @@
           "lithium": "Lithium"
         }
       },
+      "controlled_device": {
+        "name": "Dispositif contrôlé",
+        "state": {
+          "hot_water_heater": "Chauffe-eau",
+          "pool_pump": "Pompe de piscine",
+          "electric_vehicle_charger": "Borne de recharge",
+          "other": "Autre"
+        }
+      },
       "cycle_length": {
         "name": "Durée du cycle"
       },
