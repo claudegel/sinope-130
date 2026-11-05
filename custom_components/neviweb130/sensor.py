@@ -408,7 +408,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         unit_class=None,
         mean_type=StatisticMeanType.ARITHMETIC,
         entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:meter-electric",
+        icon="mdi:battery-high",
     ),
     Neviweb130SensorEntityDescription(
         key="sensor_temperature",
@@ -1628,7 +1628,7 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
 
 
 class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
-    """Implementation of a Neviweb sensor connected to Sedna valve."""
+    """Implementation of a Neviweb leak sensors connected to Sedna valve."""
 
     @override
     async def async_update(self) -> None:
