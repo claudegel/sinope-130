@@ -1571,7 +1571,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self._error_code = 0
                     self._wifirssi = device_data.get(ATTR_WIFI, self._wifirssi)
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
-                    self._timer - device_data[ATTR_TIMER]
+                    self._timer = device_data[ATTR_TIMER]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
