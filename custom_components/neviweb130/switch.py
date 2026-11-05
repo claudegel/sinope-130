@@ -1274,6 +1274,13 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         return None
 
     @property
+    def controlled_device(self):
+        """Return name of controlled device."""
+        if self._controlled_device is not None:
+            return self._controlled_device
+        return None
+
+    @property
     def safe_mode(self) -> bool:
         """Return whether safe mode is active for this device."""
         return self._id in self._client.safe_mode
@@ -1364,9 +1371,12 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     async def async_set_timer(self, value):
         """Set device timer, 0 = off, 1 to 10800 sec = timer length.
-        For RM3250WF, RM3250ZB max is 86400 sec"""
+        For RM3250WF, RM3250ZB max is 86400 sec."""
         await self._client.async_set_timer(value["id"], value["time"])
-        self._timer = value["time"]
+        if self._model in ("2180", "2181"):
+            self._timer = value["time"]
+        else:
+            self._power_timer = value["time"]
 
     async def async_set_timer2(self, value):
         """Set device timer 2 for Multi controller, 0 = off, 1 to 255 = timer length."""
@@ -1739,7 +1749,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     if not self._is_sedna_load:
                         self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
                         self._wattage = device_data[ATTR_WATTAGE]
-                        self._keypad = (
+                        self._keypad = lock_to_ha(
                             STATE_KEYPAD_STATUS if device_data[ATTR_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
                         )
                         self._power_timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
@@ -1813,7 +1823,7 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
                     "daily_kwh": self._today_kwh,
                     "monthly_kwh": self._month_kwh,
                     "last_energy_stat_update": self._mark,
-                    "keypad": lock_to_ha(self._keypad),
+                    "keypad": self._keypad,
                     "power_timer": self._power_timer,
                     "eco_status": self._drstatus_active,
                     "eco_optOut": self._drstatus_optout,
@@ -1839,25 +1849,28 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130WifiPowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb power controller switch, RM3250WF."""
+    """Implementation of a Neviweb power controller switch, RM3250WF 40A."""
 
     def __init__(self, data, device_info, name, sku, firmware, device_type, family, coordinator, entry):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._error_code = None
+        self._mode = None
         self._wifirssi = None
 
     @override
     async def async_update(self) -> None:
         if self._active:
             LOAD_ATTRIBUTES = [
-                ATTR_WATTAGE_INSTANT,
-                ATTR_WIFI_WATTAGE,
-                ATTR_WIFI_KEYPAD,
-                ATTR_DRSTATUS,
-                ATTR_WIFI,
                 ATTR_CONTROLLED_DEVICE,
+                ATTR_DRSTATUS,
                 ATTR_ERROR_CODE_SET1,
+                ATTR_SYSTEM_MODE,
+                ATTR_TIMER,
+                ATTR_WIFI,
+                ATTR_WIFI_KEYPAD,
+                ATTR_WIFI_WATT_NOW,
+                ATTR_WIFI_WATTAGE,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -1883,9 +1896,11 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                    self._mode = device_data[ATTR_SYSTEM_MODE]
+                    wattage = device_data.get(ATTR_WIFI_WATT_NOW)
+                    self._current_power_w = wattage.get("value")
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
-                    self._keypad = (
+                    self._keypad = lock_to_ha(
                         STATE_KEYPAD_STATUS if device_data[ATTR_WIFI_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
                     )
                     if ATTR_DRSTATUS in device_data:
@@ -1917,6 +1932,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self._error_code = 0
                     self._wifirssi = device_data.get(ATTR_WIFI, self._wifirssi)
                     self._controlled_device = neviweb_to_ha_controlled(device_data[ATTR_CONTROLLED_DEVICE])
+                    self._power_timer = neviweb_to_ha_timer(device_data[ATTR_TIMER])
 
                 else:
                     _LOGGER.warning(
@@ -1953,6 +1969,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         data.update(
             {
                 "onOff": self._onoff,
+                "mode": self._mode,
                 "controlled_device": self._controlled_device,
                 "wattage": self._wattage,
                 "wattage_instant": self._current_power_w,
@@ -1964,7 +1981,8 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                 "daily_kwh": self._today_kwh,
                 "monthly_kwh": self._month_kwh,
                 "last_energy_stat_update": self._mark,
-                "keypad": lock_to_ha(self._keypad),
+                "keypad": self._keypad,
+                "power_timer": self._power_timer,
                 "eco_status": self._drstatus_active,
                 "eco_optOut": self._drstatus_optout,
                 "eco_onoff": self._drstatus_onoff,
