@@ -166,7 +166,6 @@ class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
     """Sinope Neviweb130 config flow."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     hass: HomeAssistant
 
