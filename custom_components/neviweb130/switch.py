@@ -1373,7 +1373,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         """Set device timer, 0 = off, 1 to 10800 sec = timer length.
         For RM3250WF, RM3250ZB max is 86400 sec."""
         await self._client.async_set_timer(value["id"], value["time"])
-        if self._model in ("2180", "2181"):
+        if self._is_sedna_control or self._is_zb_control:
             self._timer = value["time"]
         else:
             self._power_timer = value["time"]
