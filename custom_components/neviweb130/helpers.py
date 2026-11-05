@@ -119,10 +119,25 @@ class AsyncRotatingHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        # rotation async
-        self.hass.async_create_task(async_rotate(self.hass, self.path, self.max_bytes, self.backup_count))
-        # écriture async
-        self.hass.async_create_task(async_write(self.hass, self.path, msg))
+        # Async rotation
+        self.hass.loop.call_soon_threadsafe(
+            self.hass.async_create_task,
+            async_rotate(
+                self.hass,
+                self.path,
+                self.max_bytes,
+                self.backup_count,
+            ),
+        )
+        # Async write
+        self.hass.loop.call_soon_threadsafe(
+            self.hass.async_create_task,
+            async_write(
+                self.hass,
+                self.path,
+                msg,
+            ),
+        )
 
 
 def setup_logger(hass, name, log_path, level="INFO", max_bytes=2 * 1024 * 1024, backup_count=2, reset_on_start=True):
