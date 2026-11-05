@@ -1823,7 +1823,6 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "action_close",
             "batt_alert",
-            "leak_alert",
             "safe_mode",
             "temp_alert",
         ],
@@ -1865,7 +1864,6 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "action_close",
             "batt_alert",
-            "leak_alert",
             "safe_mode",
             "temp_alert",
         ],
