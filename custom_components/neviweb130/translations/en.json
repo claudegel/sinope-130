@@ -367,6 +367,15 @@
           "lithium": "Lithium"
         }
       },
+      "controlled_device": {
+        "name": "Controlled device",
+        "state": {
+          "hot_water_heater": "Hot water heater",
+          "pool_pump": "Pool pump",
+          "electric_vehicle_charger": "Electric vehicle charger",
+          "other": "Other"
+        }
+      },
       "cycle_length": {
         "name": "Cycle Length"
       },
