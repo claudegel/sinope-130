@@ -5315,7 +5315,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
             LOW_WIFI_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_FLOOR_OUTPUT2,
-                ATTR_FLOOR_AUX,
                 ATTR_ROOM_SETPOINT_AWAY,
                 ATTR_EARLY_START,
                 ATTR_BACKLIGHT_AUTO_DIM,
@@ -5327,7 +5326,6 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 ATTR_WIFI_WATTAGE,
                 ATTR_FLOOR_OUTPUT1,
                 ATTR_PUMP_PROTEC,
-                ATTR_PUMP_PROTEC_DURATION,
                 ATTR_FLOOR_AIR_LIMIT,
                 ATTR_FLOOR_MODE,
                 ATTR_FLOOR_SENSOR,
@@ -5335,6 +5333,10 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                 ATTR_CYCLE_LENGTH,
                 ATTR_FLOOR_MAX,
                 ATTR_FLOOR_MIN,
+            ]
+            IGNORED_ATTRIBUTES = [
+                ATTR_FLOOR_AUX,
+                ATTR_PUMP_PROTEC_DURATION,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -5420,13 +5422,14 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     self._floor_min_status = device_data[ATTR_FLOOR_MIN]["status"]
                     self._floor_air_limit = device_data[ATTR_FLOOR_AIR_LIMIT]["value"]
                     self._floor_air_limit_status = device_data[ATTR_FLOOR_AIR_LIMIT]["status"]
-                    self._pump_protec_status = device_data[ATTR_PUMP_PROTEC]["status"]
-                    if device_data[ATTR_PUMP_PROTEC]["status"] == "on":
-                        self._pump_protec_period = device_data[ATTR_PUMP_PROTEC]["frequency"]
-                        self._pump_protec_duration = device_data[ATTR_PUMP_PROTEC]["duration"]
+                    pump_protec = device_data.get(ATTR_PUMP_PROTEC)
+                    self._pump_protec_status = pump_protec.get("status")
+                    if self._pump_protec_status == "on":
+                        self._pump_protec_period = pump_protec.get("frequency")
+                        self._pump_protec_duration = pump_protec.get("duration")
+                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                     self._pump_duration_value = device_data.get(ATTR_PUMP_PROTEC_DURATION, self._pump_duration_value)
                     self._em_heat = device_data.get(ATTR_FLOOR_AUX, self._em_heat)
-                    self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
 
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
