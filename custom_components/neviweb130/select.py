@@ -24,6 +24,7 @@ from .schema import (
     BACKLIGHT_LIST,
     BATT_TYPE_LIST,
     COLOR_LIST,
+    CONTROLLED_VALUE,
     DISPLAY_LIST,
     FLOOR_MODE,
     FLOW_DURATION,
@@ -243,6 +244,12 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         translation_key="switch_lock",
         options=LOCK_LIST,
     ),
+    Neviweb130SelectEntityDescription(
+        key="controlled_device",
+        icon="mdi:dialpad",
+        translation_key="controlled_device",
+        options=CONTROLLED_VALUE,
+    ),
     #  sensor attributes
     Neviweb130SelectEntityDescription(
         key="batt_type",
@@ -412,6 +419,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi, self.model),
         "batt_type": lambda self, option: self._client.async_set_battery_type(self._id, option),
+        "controlled_device": lambda self, option: self._clientasync_set_controlled_device(self._id, option),
         "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option, self.is_HC),
         "early_start": lambda self, option: self._client.async_set_early_start(self._id, option),
         "flowmeter_timer": lambda self, option: self._client.async_set_flow_alarm_timer(self._id, option),
