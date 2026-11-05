@@ -5426,11 +5426,12 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
                     pump_protec = device_data.get(ATTR_PUMP_PROTEC)
 
                     if isinstance(pump_protec, dict):
-                        self._pump_protec_status = pump_protec.get("status")
-
-                        if self._pump_protec_status == "on":
-                            self._pump_protec_period = pump_protec.get("frequency")
-                            self._pump_protec_duration = pump_protec.get("duration")
+                        status = pump_protec.get("status")
+                        if isinstance(status, str):
+                            self._pump_protec_status = status
+                            if status == "on":
+                                self._pump_protec_period = pump_protec.get("frequency")
+                                self._pump_protec_duration = pump_protec.get("duration")
                     self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
                     self._pump_duration_value = device_data.get(ATTR_PUMP_PROTEC_DURATION, self._pump_duration_value)
                     self._em_heat = device_data.get(ATTR_FLOOR_AUX, self._em_heat)
