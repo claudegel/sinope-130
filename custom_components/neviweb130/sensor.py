@@ -3,7 +3,7 @@ Support for Neviweb sensors connected via GT130 Zigbee.
 model 5051 = WL4200, WL4200C and WL4200S water leak detector connected to GT130.
 model 5053 = WL4200C, perimeter cable water leak detector connected to GT130 (will be removed).
 model 5050 = WL4200, WL4210 and WL4200S, water leak detector connected to Sedna valve.
-model 5052 = WL4200C, perimeter cable water leak detector connected to sedna 2 gen.
+model 5052 = WL4200, WL4200C perimeter cable water leak detector connected to sedna 2 gen.
 model 4210 = WL4210, WL4210S connected to GT130.
 model 42102 = WL4210, WL4210S connected to sedna valve.
 model 5056 = LM4110-ZB, level monitor (SE500ZB).
@@ -22,7 +22,6 @@ import time
 from threading import Lock
 from typing import Any, Mapping, cast, override
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -1115,7 +1114,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
         self._fuel_percent_alert: int | None = None
         self._gauge_type: str | None = None
         self._leak_alert: bool | None = None
-        self._leak_status: str = ""
+        self._leak_status: str = "ok"
         self._rssi = None
         self._sampling = None
         self._sensor_type = None
@@ -1173,7 +1172,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
         return None
 
     @property
-    def leak_status(self):
+    def leak_status(self) -> str:
         """Return current sensor leak status: 'water' or 'ok'."""
         return self._leak_status
 
@@ -1273,7 +1272,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
 
     @property
     def sensor_temperature(self):
-        """Return sensor room temperature."""
+        """Return leak sensor room temperature."""
         return self._cur_temp
 
     async def async_set_sensor_leak_alert(self, value):
@@ -1440,7 +1439,7 @@ class Neviweb130BaseSensor(CoordinatorEntity):
             _LOGGER.warning(msg)
 
 
-class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
+class Neviweb130Sensor(Neviweb130BaseSensor, SensorEntity):
     """Implementation of a Neviweb sensor connected to GT130."""
 
     async def async_update(self) -> None:
@@ -1568,15 +1567,17 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
                     )
 
     @property
-    def statistic_mean_type(self):
-        return None
-
-    @property
+    @override
     def device_class(self):
         """Return the device class of this entity."""
-        return BinarySensorDeviceClass.MOISTURE
+        return SensorDeviceClass.ENUM
 
     @property
+    def options(self) -> list[str]:
+        return ["ok", "water", "probe"]
+
+    @property
+    @override
     def native_value(self) -> str:
         """Return the state of the sensor."""
         return self._leak_status
@@ -1627,7 +1628,7 @@ class Neviweb130Sensor(Neviweb130BaseSensor, BinarySensorEntity):
         return data
 
 
-class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
+class Neviweb130ConnectedSensor(Neviweb130BaseSensor, SensorEntity):
     """Implementation of a Neviweb leak sensors connected to Sedna valve."""
 
     @override
@@ -1731,15 +1732,17 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, BinarySensorEntity):
                     )
 
     @property
-    def statistic_mean_type(self):
-        return None
-
-    @property
+    @override
     def device_class(self):
         """Return the device class of this entity."""
-        return BinarySensorDeviceClass.MOISTURE
+        return SensorDeviceClass.ENUM
 
     @property
+    def options(self) -> list[str]:
+        return ["ok", "water", "probe"]
+
+    @property
+    @override
     def native_value(self) -> str:
         """Return the state of the sensor."""
         return self._leak_status
@@ -1919,6 +1922,7 @@ class Neviweb130TankSensor(Neviweb130BaseSensor, SensorEntity):
                     )
 
     @property
+    @override
     def device_class(self) -> SensorDeviceClass | None:
         return None
 
@@ -2113,7 +2117,7 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
         )
 
         self._location: str = str(location)
-        self._gateway_status: str = ""
+        self._gateway_status: str = "online"
         self._occupancy_mode: str = "home"
 
     @override
@@ -2152,6 +2156,7 @@ class Neviweb130GatewaySensor(Neviweb130BaseSensor, SensorEntity):
         return self._gateway_status if self._gateway_status is not None else None
 
     @property
+    @override
     def native_value(self) -> str | None:
         """Return the state of the gateway."""
         return self._gateway_status
