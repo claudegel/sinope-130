@@ -1209,7 +1209,7 @@ class Neviweb130Client:
             data = {ATTR_SYSTEM_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
 
-    async def async_set_system_mode(self, device_id: str, mode, WRM) ->bool:
+    async def async_set_system_mode(self, device_id: str, mode, WRM) -> bool:
         """Set system mode for Wi-Fi switch, RM3250WF, RM3500WF and RM3510WF."""
         if not WRM:
             msg = await translate_error(self.hass, "system_mode_error")
