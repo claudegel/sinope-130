@@ -1020,6 +1020,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         raw_mark = retrieve_data(self._id, self._device_dict, 2)
         self._mark: str | float | int | None = raw_mark
         self._marker: str | float | None = None
+        self._mode: str | None = None
         self._month_kwh: float = 0.0
         self._monthly_kwh_count: float = 0.0
         self._onoff = None
@@ -1202,6 +1203,17 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         if self._hourly_kwh_count is not None:
             return self._hourly_kwh_count
         return None
+
+    @property
+    def system_mode(self):
+        if self._mode is not None:
+            return self._mode
+        return None
+
+    @property
+    def is_WRM_like(self) -> bool:
+        """Return True if device is a Wi-Fi RM device."""
+        return self._is_wifi_load or self._is_wifi_tank_load
 
     @property
     def timer(self):
@@ -1855,7 +1867,6 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         """Initialize."""
         super().__init__(data, device_info, name, sku, firmware, device_type, family, coordinator, entry)
         self._error_code = None
-        self._mode = None
         self._wifirssi = None
 
     @override
@@ -2224,7 +2235,6 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
         self._leg_status_consumption = None
         self._leg_status_over_time = None
         self._leg_status_temp = None
-        self._mode = None
         self._water_leak_closure_conf = None
         self._water_leak_disconnected_status = None
         self._water_leak_status = None
