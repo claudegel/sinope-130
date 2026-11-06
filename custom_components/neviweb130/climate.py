@@ -2394,7 +2394,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     @property
     def is_HC_like(self) -> bool:
         """Return True if device is a Zigbee heat pump device, HC or WHP."""
-        return self._is_HC_like
+        return self._is_HC or self._is_WHP
 
     @property
     def is_color_wifi(self) -> bool:
