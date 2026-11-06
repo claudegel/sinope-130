@@ -324,6 +324,7 @@ LOW_FUEL_LEVEL = list(HA_TO_NEVIWEB_LEVEL.keys())
 LV_AUX_CYCLE = ["off", "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"]
 LV_CYCLE = ["15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"]
 MIN_TIME = [120, 180, 240, 300, 600]
+MODE_LIST = ["auto", "manual", "autoBypass"]
 OCCUPANCY_LIST = ["home", "away"]
 ON_OFF = ["off", "on"]
 PHASE_LIST = ["reverse", "forward"]
