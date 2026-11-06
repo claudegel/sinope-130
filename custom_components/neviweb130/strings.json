@@ -134,7 +134,8 @@
       "not_available": "Not available",
       "g_not_connected": "Device {name}, no cable connected to terminal G, service not available.",
       "must_support_fan_control": "Entity {entity} does not support fan speed control.",
-      "missing_attributes": "Warning: Device {id} did not return all requested attributes. Missing: {missing}. Check in documentation for missing attributes and report to maintainer if it's not already in the list."
+      "missing_attributes": "Warning: Device {id} did not return all requested attributes. Missing: {missing}. Check in documentation for missing attributes and report to maintainer if it's not already in the list.",
+      "system_mode_error": "Warning: Service set_system_mode is only for RM3250WF, RM3500WF and RM3510WF switch."
     }
   },
   "options": {
@@ -536,6 +537,14 @@
       },
       "sensor_mode": {
         "name": "Sensor Mode"
+      },
+      "system_mode": {
+        "name": "System mode",
+        "state": {
+          "auto": "Auto",
+          "manual": "Manual",
+          "autobypass": "Auto Bypass"
+        }
       },
       "switch_lock": {
         "name": "Lock Keypad",
