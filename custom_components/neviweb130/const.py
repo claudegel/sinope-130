@@ -1444,6 +1444,7 @@ MODEL_ATTRIBUTES = {
         "select": [
             "controlled_device",
             "power_timer",
+            "system_mode",
             "switch_keypad",
         ],
         "binary_sensor": ["activation"],
@@ -1486,8 +1487,9 @@ MODEL_ATTRIBUTES = {
         ],
         "number": ["water_remaining_time"],
         "select": [
-            "tank_size",
             "heater_temp_min",
+            "system_mode",
+            "tank_size",
         ],
         "binary_sensor": [
             "activation",
@@ -2028,6 +2030,7 @@ EXPOSED_ATTRIBUTES = [
     "stm8Error_motorJam",
     "stm8Error_motorLimit",
     "stm8Error_motorPosition",
+    "system_mode",
     "switch_keypad",
     "tank_height",
     "tank_size",
@@ -2064,6 +2067,7 @@ EXPOSED_ATTRIBUTES = [
     "is_WHP",
     "is_wifi",
     "is_wifi_floor",
+    "is_WRM_like",
     "is_zb_valve",
     "is_zb_mesh_valve",
     "sku",
