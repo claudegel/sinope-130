@@ -134,6 +134,7 @@ from .const import (
     CONF_SAFE_MODE,
     EXPOSED_ATTRIBUTES,
     HAVE_BEDROOM_BACKLIGHT,
+    MODE_AUTO_BYPASS,
     MODE_EM_HEAT,
     MODE_MANUAL,
     NEVIWEB_ERROR_MESSAGES,
@@ -1206,6 +1207,30 @@ class Neviweb130Client:
                 # Leaving away is done by re-applying the hvac mode in async_set_preset_mode.
                 return True
             data = {ATTR_SYSTEM_MODE: mode}
+        return await self.async_set_device_attributes(device_id, data)
+
+    async def async_set_system_mode(self, device_id: str, mode, WRM) ->bool:
+        """Set system mode for Wi-Fi switch, RM3250WF, RM3500WF and RM3510WF."""
+        if not WRM:
+            msg = await translate_error(self.hass, "system_mode_error")
+            await async_notify_once_or_update(
+                self.hass,
+                msg,
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id="neviweb130_service_error",
+            )
+            return False
+
+        # autoBypass is a read-only state returned by Neviweb.
+        # It cannot be written back to the device.
+        if mode == MODE_AUTO_BYPASS:
+            _LOGGER.warning(
+                "Mode '%s' is a read-only state and cannot be sent to Neviweb",
+                mode,
+            )
+            return True
+
+        data = {ATTR_SYSTEM_MODE: mode}
         return await self.async_set_device_attributes(device_id, data)
 
     async def async_set_temperature(self, device_id: str, temperature) -> bool:
