@@ -18,10 +18,10 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescr
 from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -1361,7 +1361,7 @@ def validate_value(value: object) -> object:
 
 
 async def async_delayed_refresh(
-    entity: Entity,
+    entity: CoordinatorEntity,
     delay: float = 2.0,
     wifi: bool = False,
     write_state: bool = True,
