@@ -10,6 +10,8 @@ with _MANIFEST_PATH.open(encoding="utf-8") as json_file:
     data = json.load(json_file)
 NAME = f"{data['name']}"
 DOMAIN = f"{data['domain']}"
+ICON_URL = "/neviweb130/icons"
+ICON_DIR = str(_LOADER_PATH.parent / "icons")
 VERSION = f"{data['version']}"
 ISSUE_URL = f"{data['issue_tracker']}"
 REQUIRE = "2025.1.1"
@@ -55,6 +57,8 @@ CONF_REQUEST_LIMIT = "request_limit"
 CONF_UPDATE_INTERVAL = "update_check_interval"
 DEFAULT_REQUEST_LIMIT = 25000
 DEFAULT_UPDATE_INTERVAL = "6h"
+# Delay (seconds) during which device attributes updates are ignored after a local change.
+UPDATE_PROTECTION_DELAY = 10  # seconds
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
@@ -784,10 +788,10 @@ MODEL_ATTRIBUTES = {
             "setpoint_away",
         ],
         "select": [
+            "aux_cycle_length",
             "backlight",
             "early_start",
             "keypad_status",
-            "lv_cycle_length",
             "lv_cycle_length",
             "occupancy_mode",
             "second_display",
@@ -1338,8 +1342,6 @@ MODEL_ATTRIBUTES = {
             "wattage",
         ],
         "number": [
-            "brightness",
-            "intensity_min",
             "led_off_intensity",
             "led_on_intensity",
         ],
@@ -1354,9 +1356,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21212: {  # SW2500ZB, SW2500ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1389,9 +1389,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21312: {  # DM2500ZB, DM2500ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1425,9 +1423,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21322: {  # DM2550ZB, DM2550ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1435,7 +1431,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     # Switch
-    346: {  # RM3250WF, 50A, Wi-Fi
+    346: {  # RM3250WF, 40A, Wi-Fi
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -1447,7 +1443,12 @@ MODEL_ATTRIBUTES = {
             "wifirssi",
         ],
         "number": [],
-        "select": ["switch_keypad"],
+        "select": [
+            "controlled_device",
+            "power_timer",
+            "system_mode",
+            "switch_keypad",
+        ],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": ["safe_mode"],
@@ -1488,8 +1489,9 @@ MODEL_ATTRIBUTES = {
         ],
         "number": ["water_remaining_time"],
         "select": [
-            "tank_size",
             "heater_temp_min",
+            "system_mode",
+            "tank_size",
         ],
         "binary_sensor": [
             "activation",
@@ -1549,6 +1551,7 @@ MODEL_ATTRIBUTES = {
         ],
         "number": [],
         "select": [
+            "controlled_device",
             "power_timer",
             "switch_keypad",
         ],
@@ -1769,7 +1772,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1790,7 +1793,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1808,11 +1811,10 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
-    5050: {  # WL4200, WL4210 and WL4200S,
+    5050: {  # WL4200, WL4210 and WL4200S, connected via Sedna valve
         "sensor": [
-            ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1825,7 +1827,6 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "action_close",
             "batt_alert",
-            "leak_alert",
             "safe_mode",
             "temp_alert",
         ],
@@ -1834,7 +1835,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1851,11 +1852,10 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
-    5052: {  # WL4200C, perimeter cable water leak detector connected to Sedna
+    5052: {  # WL4200C, perimeter cable water leak detector connected via Sedna valve
         "sensor": [
-            ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1868,7 +1868,6 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "action_close",
             "batt_alert",
-            "leak_alert",
             "safe_mode",
             "temp_alert",
         ],
@@ -1877,7 +1876,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1955,6 +1954,7 @@ EXPOSED_ATTRIBUTES = [
     "battery_status",
     "battery_voltage",
     "brightness",
+    "controlled_device",
     "cool_lockout_temp",
     "cool_setpoint_away",
     "current_humidity",
@@ -2027,10 +2027,12 @@ EXPOSED_ATTRIBUTES = [
     "safe_mode",
     "second_display",
     "sensor_mode",
+    "sensor_temperature",
     "setpoint_away",
     "stm8Error_motorJam",
     "stm8Error_motorLimit",
     "stm8Error_motorPosition",
+    "system_mode",
     "switch_keypad",
     "tank_height",
     "tank_size",
@@ -2067,6 +2069,7 @@ EXPOSED_ATTRIBUTES = [
     "is_WHP",
     "is_wifi",
     "is_wifi_floor",
+    "is_WRM_like",
     "is_zb_valve",
     "is_zb_mesh_valve",
     "sku",

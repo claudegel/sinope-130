@@ -24,6 +24,7 @@ from .schema import (
     BACKLIGHT_LIST,
     BATT_TYPE_LIST,
     COLOR_LIST,
+    CONTROLLED_VALUE,
     DISPLAY_LIST,
     FLOOR_MODE,
     FLOW_DURATION,
@@ -38,6 +39,7 @@ from .schema import (
     LOW_FUEL_LEVEL,
     LV_AUX_CYCLE,
     LV_CYCLE,
+    MODE_LIST,
     OCCUPANCY_LIST,
     ON_OFF,
     PHASE_LIST,
@@ -243,6 +245,12 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         translation_key="switch_lock",
         options=LOCK_LIST,
     ),
+    Neviweb130SelectEntityDescription(
+        key="controlled_device",
+        icon="mdi:dialpad",
+        translation_key="controlled_device",
+        options=CONTROLLED_VALUE,
+    ),
     #  sensor attributes
     Neviweb130SelectEntityDescription(
         key="batt_type",
@@ -273,6 +281,12 @@ SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
         icon="mdi:cup-water",
         translation_key="tank_type",
         options=BATT_TYPE_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="system_mode",
+        icon="mdi:home-automation",
+        translation_key="system_mode",
+        options=MODE_LIST,
     ),
     #  valve attributes
     Neviweb130SelectEntityDescription(
@@ -412,6 +426,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi, self.model),
         "batt_type": lambda self, option: self._client.async_set_battery_type(self._id, option),
+        "controlled_device": lambda self, option: self._clientasync_set_controlled_device(self._id, option),
         "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option, self.is_HC),
         "early_start": lambda self, option: self._client.async_set_early_start(self._id, option),
         "flowmeter_timer": lambda self, option: self._client.async_set_flow_alarm_timer(self._id, option),
@@ -439,6 +454,7 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         "pro_aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
         "second_display": lambda self, option: self._client.async_set_second_display(self._id, option),
         "sensor_mode": lambda self, option: self._client.async_set_air_floor_mode(self._id, option),
+        "system_mode": lambda self, option: self._client.async_set_system_mode(self._id, option, self.is_WRM_like),
         "switch_keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
         "temp_format": lambda self, option: self._client.async_set_temperature_format(self._id, option),
         "time_format": lambda self, option: self._client.async_set_time_format(self._id, option),
@@ -517,6 +533,12 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         """Return True if device is a HC device"""
         device_obj = self.coordinator.data.get(self._id)
         return device_obj.get("is_HC_like", False) if device_obj else False
+
+    @property
+    def is_WRM_like(self):
+        """Return True if device is a Wi-Fi RM device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_WRM_like", False) if device_obj else False
 
     @property
     def is_WHP(self):
