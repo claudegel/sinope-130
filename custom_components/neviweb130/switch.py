@@ -145,10 +145,12 @@ from .exceptions import SilentAttributeIgnoreError
 from .helpers import (
     NamingHelper,
     async_apply_device_update,
+    async_delayed_refresh,
     async_notify_critical,
     async_notify_once_or_update,
     async_safe_get_device_attributes,
     create_risky_issue,
+    ignore_early_update,
     safe_number,
     translate_error,
 )
@@ -997,6 +999,10 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._is_wifi_tank_load = device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
         self._is_zb_control = device_info["signature"]["model"] in IMPLEMENTED_ZB_DEVICE_CONTROL
         self._is_sedna_control = device_info["signature"]["model"] in IMPLEMENTED_SED_DEVICE_CONTROL
+        self._is_wifi = (
+            device_info["signature"]["model"] in IMPLEMENTED_WIFI_LOAD_DEVICES
+            or device_info["signature"]["model"] in IMPLEMENTED_WIFI_WATER_HEATER_LOAD_MODEL
+        )
         self._active: bool = True
         self._battery_voltage = 0
         self._cold_load_remaining_time: int | None = None
@@ -1017,6 +1023,7 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
         self._input_name_1 = "Not set"
         self._input_name_2 = "Not set"
         self._keypad = None
+        self._last_change: float | None = None
         raw_mark = retrieve_data(self._id, self._device_dict, 2)
         self._mark: str | float | int | None = raw_mark
         self._marker: str | float | None = None
@@ -1153,13 +1160,25 @@ class Neviweb130Switch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs):
         """Turn the device on."""
-        await self._client.async_set_onoff(self._id, "on")
-        self._onoff = "on"
+        success = await self._client.async_set_onoff(self._id, "on")
+
+        if success:
+            # Local update
+            self._onoff = "on"
+            self._last_change = time.time()
+
+            await async_delayed_refresh(self, wifi=self._is_wifi)
 
     async def async_turn_off(self, **kwargs):
         """Turn the device off."""
-        await self._client.async_set_onoff(self._id, "off")
-        self._onoff = MODE_OFF
+        success = await self._client.async_set_onoff(self._id, "off")
+
+        if success:
+            # Local update
+            self._onoff = MODE_OFF
+            self._last_change = time.time()
+
+            await async_delayed_refresh(self, wifi=self._is_wifi)
 
     @property
     def switch_keypad(self):
@@ -1906,7 +1925,9 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             _LOGGER.debug("Updating %s (%s sec): %s", self._name, elapsed, device_data)
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._onoff = device_data[ATTR_ONOFF]
+                    onoff = device_data[ATTR_ONOFF]
+                    if not ignore_early_update(self._name, self._last_change, ATTR_ONOFF, onoff):
+                        self._onoff = onoff
                     self._mode = device_data[ATTR_SYSTEM_MODE]
                     wattage = device_data.get(ATTR_WIFI_WATT_NOW)
                     self._current_power_w = wattage.get("value")
@@ -2291,7 +2312,9 @@ class Neviweb130WifiTankPowerSwitch(Neviweb130Switch):
 
             if "error" not in device_data:
                 if "errorCode" not in device_data:
-                    self._onoff = device_data[ATTR_ONOFF]
+                    onoff = device_data[ATTR_ONOFF]
+                    if not ignore_early_update(self._name, self._last_change, ATTR_ONOFF, onoff):
+                        self._onoff = onoff
                     self._water_leak_status = device_data[ATTR_WATER_LEAK_ALARM_STATUS]
                     if device_data[ATTR_WATER_LEAK_DISCONNECTED_STATUS] == "probe":
                         msg = await translate_error(
