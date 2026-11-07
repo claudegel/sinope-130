@@ -18,6 +18,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescr
 from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
@@ -33,6 +34,7 @@ from .const import (
     SENSOR_MODEL,
     SIGNAL_EVENTS_CHANGED,
     SWITCH_MODEL,
+    UPDATE_PROTECTION_DELAY,
     VALVE_MODEL,
     VERSION,
 )
@@ -1351,6 +1353,57 @@ def validate_value(value: object) -> object:
         return _EMPTY_VALUE
 
     return value
+
+
+# ─────────────────────────────────────────────
+# manage delayed refresh and early update for climate and switch Wi-Fi devices
+# ─────────────────────────────────────────────
+
+
+async def async_delayed_refresh(
+    entity: Entity,
+    delay: float = 2.0,
+    wifi: bool = False,
+    write_state: bool = True,
+) -> None:
+    """Push state immediately and optionally refresh coordinator."""
+
+    if write_state:
+        entity.async_write_ha_state()
+
+    # Only Wi-Fi devices need a delayed refresh
+    if wifi:
+        # Wait to let Neviweb apply the changes
+        await asyncio.sleep(delay)
+
+        # Refresh via coordinator
+        await entity.coordinator.async_request_refresh()
+
+
+def ignore_early_update(
+    name: str,
+    last_change: float | None,
+    attrib: str,
+    data: float | int | str | bool,
+) -> bool:
+    """Return True if attribute update should be ignored because update is too early."""
+
+    if last_change is None:
+        return False
+
+    elapsed = time.time() - last_change
+
+    if elapsed < UPDATE_PROTECTION_DELAY:
+        _LOGGER.debug(
+            "Ignoring early update for %s: %s=%s (%.1f sec after local change)",
+            name,
+            attrib,
+            data,
+            elapsed,
+        )
+        return True
+
+    return False
 
 
 # await async_notify_throttled(
