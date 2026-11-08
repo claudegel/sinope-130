@@ -497,8 +497,8 @@ A few attribute entities may be missing. They can easily be added once I am noti
 
 Here is a sample device page:
 
-![Page appareil](www/device_page.jpg)
-![Page appareil suite](www/device_page_continued.jpg)
+![Device page](www/device_page.jpg)
+![Device page continued](www/device_page_continued.jpg)
 
 ## Sedna valve
 For Sedna valves there are two ways to connect it to Neviweb:
