@@ -910,7 +910,7 @@ set_accessory_type:
       description: Name(s) of neviweb130 TH6500WF device to set the second display.
       example: "climate.neviweb130_climate_office"
     accessoryType:
-      description: Possible values are "none", "humOnHeat", "humOnFan", "dehum", "airExchanger",.
+      description: Possible values are "none", "humOnHeat", "humOnFan", "dehum", "airExchanger".
       example: "none"
 
 set_schedule_mode:

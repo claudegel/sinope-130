@@ -1487,25 +1487,28 @@ class Neviweb130PowerSwitch(Neviweb130Switch):
 
 
 class Neviweb130WifiPowerSwitch(Neviweb130Switch):
-    """Implementation of a Neviweb power controller switch, RM3250WF."""
+    """Implementation of a Neviweb power controller switch, RM3250WF 40A."""
 
     def __init__(self, device_info, name, sku, firmware, device_type, client):
         """Initialize."""
         super().__init__(device_info, name, sku, firmware, device_type, client)
         self._error_code = None
+        self._mode = None
         self._wattage = 0
         self._wifirssi = None
 
     def update(self):
         if self._active:
             LOAD_ATTRIBUTES = [
-                ATTR_WATTAGE_INSTANT,
-                ATTR_WIFI_WATTAGE,
-                ATTR_WIFI_KEYPAD,
-                ATTR_DRSTATUS,
-                ATTR_WIFI,
                 ATTR_CONTROLLED_DEVICE,
+                ATTR_DRSTATUS,
                 ATTR_ERROR_CODE_SET1,
+                ATTR_SYSTEM_MODE,
+                ATTR_TIMER,
+                ATTR_WIFI,
+                ATTR_WIFI_KEYPAD,
+                ATTR_WIFI_WATT_NOW,
+                ATTR_WIFI_WATTAGE,
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
@@ -1531,7 +1534,9 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
             if "error" not in device_data:
                 if "errorCode" not in device_data:
                     self._onoff = device_data[ATTR_ONOFF]
-                    self._current_power_w = device_data[ATTR_WATTAGE_INSTANT]
+                    self._mode = device_data[ATTR_SYSTEM_MODE]
+                    wattage = device_data.get(ATTR_WIFI_WATT_NOW)
+                    self._current_power_w = wattage.get("value")
                     self._wattage = device_data[ATTR_WIFI_WATTAGE]
                     self._keypad = (
                         STATE_KEYPAD_STATUS if device_data[ATTR_WIFI_KEYPAD] == STATE_KEYPAD_STATUS else "locked"
@@ -1566,6 +1571,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
                         self._error_code = 0
                     self._wifirssi = device_data.get(ATTR_WIFI, self._wifirssi)
                     self._controlled_device = device_data[ATTR_CONTROLLED_DEVICE]
+                    self._timer = device_data[ATTR_TIMER]
                 else:
                     _LOGGER.warning("Error in reading device %s: (%s)", self._name, device_data)
             else:
@@ -1592,6 +1598,7 @@ class Neviweb130WifiPowerSwitch(Neviweb130Switch):
         data.update(
             {
                 "onOff": self._onoff,
+                "mode": self._mode,
                 "controlled_device": neviweb_to_ha_controlled(self._controlled_device),
                 "wattage": self._wattage,
                 "wattage_instant": self._current_power_w,
