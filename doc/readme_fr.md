@@ -510,8 +510,8 @@ Il est possible qu'il manque quelques entités d'attributs. Ils seront facilemen
 
 Voici une page d'appareil type:
 
-![Page appareil](../www/page_appareil.jpg)
-![Page appareil suite](../www/page_appareil_suite.jpg)
+![Page appareil](../www/device_page.jpg)
+![Page appareil suite](../www/device_page_continued.jpg)
 
 ## Valve Sedna
 Pour les valves Sedna, il existe deux façons de les connecter à Neviweb :
