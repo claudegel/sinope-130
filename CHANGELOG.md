@@ -2,13 +2,15 @@
 
 All modification for this custom_component will be added in this file.
 
-## [v4.3.3] - 2026-10-__
+## [v4.3.3] - 2026-11-08
 ### Added
 - Add rssi attribute for G2 thermostats.
+- Add auto/manual systemMode for Wi-Fi switch.
 
 ### Fix
 - Fix typo in const.py for FlowModel -> flowModel.
 - Fix typo in service.yaml for FlowModel.
+- Improve support for RM3250WF.
 
 ### Doc
 
