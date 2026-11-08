@@ -919,7 +919,7 @@ In you log you can get those messages from Neviweb:
 
 If you find other error code, please forward them to me.
 
-### Missing attributs not returned by Neviweb during update
+### Missing attributes not returned by Neviweb during update
 
 During device update it is possible that some attribute are just dropped by Neviweb even if they are listed as attribute
 for a device. During Neviweb130-V2 startup, a notification will be sent to list those missing attributes and there value
