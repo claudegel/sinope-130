@@ -587,8 +587,6 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
         self._hard_rev = str(device_info["signature"]["hardRev"])
         self._identifier = device_info["identifier"]
         self._device_type = device_type
-        self._is_sedna_control = None
-        self._is_zb_control = None
         self._is_zb_valve = device_info["signature"]["model"] in IMPLEMENTED_ZB_VALVE_MODEL
         self._is_wifi_valve = device_info["signature"]["model"] in IMPLEMENTED_WIFI_VALVE_MODEL
         self._is_zb_mesh_valve = device_info["signature"]["model"] in IMPLEMENTED_ZB_MESH_VALVE_MODEL
@@ -1009,7 +1007,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     @property
     def battery_level(self):
-        return voltage_to_percentage(self._battery_voltage, 2 if self._is_zb_control or self._is_sedna_control else 4)
+        return voltage_to_percentage(self._battery_voltage, 4)
 
     @property
     def battery_voltage(self):
