@@ -2214,7 +2214,6 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return self._name
 
     @property
-    @override
     def native_temperature_unit(self) -> UnitOfTemperature:
         """Return the unit of measurement of this entity, if any."""
         # Will always send Celsius values even if it's configured to display in Fahrenheit
@@ -2601,13 +2600,11 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
             return SUPPORTED_HVAC_MODES
 
     @property
-    @override
     def native_current_temperature(self) -> float | None:
         """Return the room current temperature."""
         return self._cur_temp
 
     @property
-    @override
     def native_target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self._target_temp is not None:
