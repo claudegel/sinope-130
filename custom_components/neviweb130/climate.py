@@ -1868,7 +1868,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     """Implementation of Neviweb TH1123ZB, TH1124ZB thermostat."""
 
     _enable_turn_on_off_backwards_compatibility = False
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_precision = 0.1
     _attr_target_temperature_step = 0.5
 
@@ -2215,7 +2215,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     @override
-    def temperature_unit(self) -> UnitOfTemperature:
+    def native_temperature_unit(self) -> UnitOfTemperature:
         """Return the unit of measurement of this entity, if any."""
         # Will always send Celsius values even if it's configured to display in Fahrenheit
         return UnitOfTemperature.CELSIUS
@@ -2511,14 +2511,14 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         return slave or output2 or aux or lv_aux
 
     @property
-    def target_temperature_low(self) -> float | None:
+    def native_target_temperature_low(self) -> float | None:
         """Return the minimum target heating temperature for heat-cool devices only."""
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return self._min_temp
         return None
 
     @property
-    def target_temperature_high(self) -> float | None:
+    def native_target_temperature_high(self) -> float | None:
         """Return the maximum target heating temperature for heat-cool devices only."""
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return self._max_temp
@@ -2602,13 +2602,13 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
 
     @property
     @override
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         """Return the room current temperature."""
         return self._cur_temp
 
     @property
     @override
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self._target_temp is not None:
             temp = self._target_temp + self._drsetpoint_value
@@ -6360,7 +6360,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
     def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
         mode = self.hvac_mode
-        temp = self.current_temperature
+        temp = self.native_current_temperature
 
         if temp is None:
             return HVACAction.IDLE
@@ -6408,17 +6408,17 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
 
         # Default temp
         temp = self._target_temp
 
-        # If HVACMode.heat, apply target_temperature_low
+        # If HVACMode.heat, apply native_target_temperature_low
         if self.hvac_mode == HVACMode.HEAT and self._target_temp is not None:
             temp = self._target_temp + self._drsetpoint_value
 
-        # If HVACMode.cool, apply target_temperature_high
+        # If HVACMode.cool, apply native_target_temperature_high
         elif self.hvac_mode == HVACMode.COOL:
             temp = self._target_cool
 
@@ -6440,7 +6440,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature_low(self) -> float | None:
+    def native_target_temperature_low(self) -> float | None:
         """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             if self._target_temp is not None:
@@ -6451,7 +6451,7 @@ class Neviweb130HPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature_high(self) -> float | None:
+    def native_target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
             return self._target_cool
@@ -6619,7 +6619,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
         - setpointMode.auto  → HA PRESET_SCHEDULE (calendar)
 
     • In heatCoolMode.auto, the thermostat uses ONE setpoint only.
-      HA must NOT expose target_temperature_low / high.
+      HA must NOT expose native_target_temperature_low / high.
 
     • DR (Demand Response) applies ONLY to heating setpoint.
 
@@ -6931,7 +6931,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
     def hvac_action(self) -> HVACAction | None:
         """Return current HVAC action."""
         mode = self.hvac_mode
-        temp = self.current_temperature
+        temp = self.native_current_temperature
 
         # Single setpoint for HEAT and AUTO
         target_heat = None
@@ -7013,7 +7013,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Return the effective target temperature (single setpoint logic for WHP)."""
 
         mode = self.hvac_mode
@@ -7802,7 +7802,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Return the temperature we try to reach less Eco Sinope dr_setpoint delta."""
         if self.hvac_mode == HVACMode.COOL:
             return self._target_cool
@@ -7814,7 +7814,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature_low(self) -> float | None:
+    def native_target_temperature_low(self) -> float | None:
         """Return the heating temperature we try to reach less Eco Sinope dr_setpoint delta."""
         # Must return a value only if we are in heat_cool or auto mode
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
@@ -7826,7 +7826,7 @@ class Neviweb130HeatCoolThermostat(Neviweb130Thermostat):
 
     @property
     @override
-    def target_temperature_high(self) -> float | None:
+    def native_target_temperature_high(self) -> float | None:
         """Return the cooling temperature we try to reach."""
         # Must return a value only if we are in heat_cool or auto mode
         if self.hvac_mode in (HVACMode.HEAT_COOL, HVACMode.AUTO):
