@@ -679,12 +679,6 @@
       "cool_stage2_hourly_total_count": {
         "name": "CoolStage2 hourly total count"
       },
-      "current_temperature": {
-        "name": "Temperature",
-        "state": {
-          "measurement": "measurement"
-        }
-      },
       "daily_flow_count": {
         "name": "Daily Flow",
         "state": {
@@ -762,6 +756,12 @@
       },
       "motor_target": {
         "name": "Motor target"
+      },
+      "native_current_temperature": {
+        "name": "Temperature",
+        "state": {
+          "measurement": "measurement"
+        }
       },
       "outdoor_temp": {
         "name": "Outdoor temperature",
