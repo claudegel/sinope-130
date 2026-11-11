@@ -476,11 +476,12 @@
           "lime": "Lime",
           "amber": "Amber",
           "fuchsia": "Fuchsia",
-          "perle": "Perle",
+          "pearl": "Pearl",
           "blue": "Blue",
           "red": "Red",
           "orange": "Orange",
-          "green": "Green"
+          "green": "Green",
+          "white": "White"
         }
       },
       "led_on_color": {
@@ -489,11 +490,12 @@
           "lime": "Lime",
           "amber": "Amber",
           "fuchsia": "Fuchsia",
-          "perle": "Perle",
+          "pearl": "Pearl",
           "blue": "Blue",
           "red": "Red",
           "orange": "Orange",
-          "green": "Green"
+          "green": "Green",
+          "white": "White"
         }
       },
       "lv_cycle_length": {
