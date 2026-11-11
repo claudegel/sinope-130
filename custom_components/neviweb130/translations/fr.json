@@ -455,11 +455,12 @@
           "lime": "Lime",
           "amber": "Ambre",
           "fuchsia": "Fuchsia",
-          "perle": "Perle",
+          "pearl": "Perle",
           "blue": "Bleu",
           "red": "Rouge",
           "orange": "Orange",
-          "green": "Vert"
+          "green": "Vert",
+          "white": "Blanc"
         }
       },
       "led_on_color": {
@@ -468,11 +469,12 @@
           "lime": "Lime",
           "amber": "Ambre",
           "fuchsia": "Fuchsia",
-          "perle": "Perle",
+          "pearl": "Perle",
           "blue": "Bleu",
           "red": "Rouge",
           "orange": "Orange",
-          "green": "Vert"
+          "green": "Vert",
+          "white": "Blanc"
         }
       },
       "lv_cycle_length": {
