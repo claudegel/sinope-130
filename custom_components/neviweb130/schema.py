@@ -297,7 +297,7 @@ ALERT_LIST = [0, 5]
 AUX_HEATING = {"Electric": "hvacElectrique", "Fossil": "hvacGaz"}
 BACKLIGHT_LIST = ["auto", "on", "bedroom"]
 BATT_TYPE_LIST = ["alkaline", "lithium"]
-COLOR_LIST = ["lime", "amber", "fuchsia", "perle", "blue", "red", "orange", "green"]
+COLOR_LIST = ["lime", "amber", "fuchsia", "pearl", "blue", "red", "orange", "green", "white"]
 CONTROLLED_VALUE = list(HA_TO_NEVIWEB_CONTROLLED.keys())
 DELAY = [label for label, seconds in HA_TO_NEVIWEB_DELAY.items() if seconds <= 10800]
 DISPLAY_CAPABILITY = ["enable", "disable"]
@@ -440,16 +440,18 @@ def color_to_rgb(color):
             return "75,10,0"
         case "fuchsia":
             return "165,0,10"
-        case "perle":
+        case "pearl":
             return "255,255,100"
         case "blue":
             return "0,255,255"
         case "red":
             return "255,0,0"
         case "orange":
-            return "255,165,0"
+            return "252,106,3"
         case "green":
             return "0,255,0"
+        case "white":
+            return "255,255,255"
         case _:
             return None
 
@@ -464,13 +466,17 @@ def rgb_to_color(rgb):
         case "165,0,10":
             return "fuchsia"
         case "255,255,100":
-            return "perle"
+            return "pearl"
         case "0,255,255":
             return "blue"
         case "255,0,0":
             return "red"
-        case "255,165,0":
+        case "252,106,3":
             return "orange"
+        case "0,255,0":
+            return "green"
+        case "255,255,255":
+            return "white"
         case _:
             return None
 
