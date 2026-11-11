@@ -254,7 +254,7 @@ SENSOR_TYPES: tuple[Neviweb130SensorEntityDescription, ...] = (
         icon="mdi:thermometer",
     ),
     Neviweb130SensorEntityDescription(
-        key="current_temperature",
+        key="native_current_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         translation_key="current_temperature",
