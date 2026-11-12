@@ -239,6 +239,8 @@ Il existe deux méthodes pour installer ce composant personnalisé :
       configuration.yaml
       custom_components/
         neviweb130/
+          icons/
+            weather/
           translations/
             en.json
             fr.json
@@ -430,8 +432,9 @@ La configuration dans **configuration.yaml** est maintenant obsolète.
   peuvent être enlevés ou commentés sans risque. Les noms d'appareils sont conservés. Les attributs sont toujours accessibles.
   On peut retrouver la configuration dans Paramètres / Appareils et services / Neviweb130. On y retrouve tous les appareils et chacun d'eux a
   maintenant une page de configuration graphique dédiée.
-  Neviweb130-V2 est maintenant en français ou en anglais selon votre configuration de HA. Les services. les entités, les attributs, tout est traduit
-  automatiquement.
+  Neviweb130-V2 est maintenant en français ou en anglais selon votre configuration de HA. Les services. Les messages d'erreurs, les entités, les attributs,
+  tout est traduit automatiquement. Des notification sont produites pour les informations importantes en français ou en anglais selon votre configuration
+  de Home Assistant.
 
   La configuration de Neviweb130-V2 se retrouve ici:
   
