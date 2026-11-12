@@ -419,7 +419,8 @@ Home Assistant standards. Configuration via **configuration.yaml** is now obsole
   `configuration.yaml` can be safely removed or commented out. Device names are preserved, and attributes remain accessible.
   The configuration can be found under Settings > Devices & Services > Neviweb130. All devices are listed there, and each one
   now has a dedicated graphical configuration page. Neviweb130-V2 now supports French or English, depending on your HA
-  configuration; services, entities, and attributes are all automatically translated.
+  configuration; error messages, services, entities, and attributes are all automatically translated. many notification are sent
+  for error message or important informations in French or English. 
 
   The configuration for the Neviweb130-V2 can be found here:
 
