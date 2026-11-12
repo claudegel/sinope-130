@@ -235,6 +235,8 @@ There are two methods to install this custom component:
       configuration.yaml
       custom_components/
         neviweb130/
+          icons/
+            weather/
           translations/
             en.json
             fr.json
