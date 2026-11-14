@@ -123,6 +123,8 @@ from .schema import (
 _LOGGER = logging.getLogger(__name__)
 
 SNOOZE_TIME = 1200
+ZIGBEE_STAT_DIVISOR = 1
+WIFI_STAT_DIVISOR = 1000
 
 SUPPORT_FLAGS = ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
 
@@ -1104,6 +1106,7 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
 
     async def async_do_stat(self, start):
         """Get device flow statistic."""
+        divisor = WIFI_STAT_DIVISOR if self._is_wifi else ZIGBEE_STAT_DIVISOR
         if self._flowmeter_multiplier != 0:
             if start - self._energy_stat_time > self._stat_interval and self._energy_stat_time != 0:
                 today = dt_util.now().astimezone(dt_util.DEFAULT_TIME_ZONE).date()
@@ -1116,10 +1119,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     monthly_kwh_count = 0.0
                     k = 0
                     while k < n:
-                        monthly_kwh_count += safe_number(device_monthly_stats[k]["period"])  # / 1000
+                        monthly_kwh_count += safe_number(device_monthly_stats[k]["period"]) / divisor
                         k += 1
                     self._monthly_kwh_count = round(monthly_kwh_count, 2)
-                    self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]), 2)
+                    self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]), 2) / divisor
                     dt_month = dt_util.parse_datetime(device_monthly_stats[n - 1]["date"])
                     if dt_month is not None:
                         dt_month = dt_util.as_local(dt_month)
@@ -1139,10 +1142,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     while k < n:
                         dt = dt_util.parse_datetime(device_daily_stats[k]["date"])
                         if dt and dt_util.as_local(dt).month == current_month:
-                            daily_kwh_count += safe_number(device_daily_stats[k]["period"])  # / 1000
+                            daily_kwh_count += safe_number(device_daily_stats[k]["period"]) / divisor
                         k += 1
                     self._daily_kwh_count = round(daily_kwh_count, 2)
-                    self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]), 2)
+                    self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]), 2) / divisor
                     dt_day = dt_util.parse_datetime(device_daily_stats[n - 1]["date"])
                     if dt_day is not None:
                         dt_day = dt_util.as_local(dt_day)
@@ -1162,10 +1165,10 @@ class Neviweb130Valve(CoordinatorEntity, ValveEntity):
                     while k < n:
                         dt = dt_util.parse_datetime(device_hourly_stats[k]["date"])
                         if dt and dt_util.as_local(dt).day == current_day:
-                            hourly_kwh_count += safe_number(device_hourly_stats[k]["period"])  # / 1000
+                            hourly_kwh_count += safe_number(device_hourly_stats[k]["period"]) / divisor
                         k += 1
                     self._hourly_kwh_count = round(hourly_kwh_count, 2)
-                    self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]), 2)
+                    self._hour_kwh = round(safe_number(device_hourly_stats[n - 1]["period"]), 2) / divisor
                     self._marker = device_hourly_stats[n - 1]["date"]
                     dt_hour = dt_util.parse_datetime(device_hourly_stats[n - 1]["date"])
                     if dt_hour is not None:
