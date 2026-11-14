@@ -2,6 +2,15 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.4] - 2026-11-13
+### Added
+
+### Fix
+- Fix Wi-Fi valve flow meter statistics.
+- Fix Zigbee valve flow meter statistics.
+
+### Doc
+
 ## [v4.3.3] - 2026-11-08
 ### Added
 - Add rssi attribute for G2 thermostats.
