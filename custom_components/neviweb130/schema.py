@@ -198,8 +198,9 @@ HA_TO_NEVIWEB_FAN_SPEED_5: dict[str, int] = {
 
 HA_TO_NEVIWEB_FLOW = {
     "No flow": "No flow meter",
-    "FS4220 3/4 inch": "FS4220",
-    "FS4221 1 inch": "FS4221",
+    "FS4220": "FS4220",
+    "FS4221": "FS4221",
+    "FS4222": "FS4222",
 }
 
 HA_TO_NEVIWEB_GAUGE = {"R3D 5-95": 595, "R3D 10-80": 1080}
@@ -251,24 +252,24 @@ HA_TO_NEVIWEB_SUPPLY = {"battery": "batt", "acups_01": "power", "battery_acups_0
 
 HA_TO_NEVIWEB_TEMPERATURE = {
     "off": 0,
-    "45°C": 45,
-    "46°C": 46,
-    "47°C": 47,
-    "48°C": 48,
-    "49°C": 49,
-    "50°C": 50,
-    "51°C": 51,
-    "52°C": 52,
-    "53°C": 53,
-    "54°C": 54,
-    "55°C": 55,
+    "45": 45,
+    "46": 46,
+    "47": 47,
+    "48": 48,
+    "49": 49,
+    "50": 50,
+    "51": 51,
+    "52": 52,
+    "53": 53,
+    "54": 54,
+    "55": 55,
 }
 
 HA_TO_NEVIWEB_TIMER = {
     "off": 0,
-    "1 min": 1,
-    "2 min": 2,
-    "5 min": 5,
+    "1 min": 60,
+    "2 min": 120,
+    "5 min": 300,
     "10 min": 600,
     "15 min": 900,
     "30 min": 1800,
@@ -296,7 +297,7 @@ ALERT_LIST = [0, 5]
 AUX_HEATING = {"Electric": "hvacElectrique", "Fossil": "hvacGaz"}
 BACKLIGHT_LIST = ["auto", "on", "bedroom"]
 BATT_TYPE_LIST = ["alkaline", "lithium"]
-COLOR_LIST = ["lime", "amber", "fuchsia", "perle", "blue", "red", "orange", "green"]
+COLOR_LIST = ["lime", "amber", "fuchsia", "pearl", "blue", "red", "orange", "green", "white"]
 CONTROLLED_VALUE = list(HA_TO_NEVIWEB_CONTROLLED.keys())
 DELAY = [label for label, seconds in HA_TO_NEVIWEB_DELAY.items() if seconds <= 10800]
 DISPLAY_CAPABILITY = ["enable", "disable"]
@@ -323,6 +324,7 @@ LOW_FUEL_LEVEL = list(HA_TO_NEVIWEB_LEVEL.keys())
 LV_AUX_CYCLE = ["off", "15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"]
 LV_CYCLE = ["15 sec", "5 min", "10 min", "15 min", "20 min", "25 min", "30 min"]
 MIN_TIME = [120, 180, 240, 300, 600]
+MODE_LIST = ["auto", "manual", "autoBypass"]
 OCCUPANCY_LIST = ["home", "away"]
 ON_OFF = ["off", "on"]
 PHASE_LIST = ["reverse", "forward"]
@@ -438,16 +440,18 @@ def color_to_rgb(color):
             return "75,10,0"
         case "fuchsia":
             return "165,0,10"
-        case "perle":
+        case "pearl":
             return "255,255,100"
         case "blue":
             return "0,255,255"
         case "red":
             return "255,0,0"
         case "orange":
-            return "255,165,0"
+            return "252,106,3"
         case "green":
             return "0,255,0"
+        case "white":
+            return "255,255,255"
         case _:
             return None
 
@@ -462,13 +466,17 @@ def rgb_to_color(rgb):
         case "165,0,10":
             return "fuchsia"
         case "255,255,100":
-            return "perle"
+            return "pearl"
         case "0,255,255":
             return "blue"
         case "255,0,0":
             return "red"
-        case "255,165,0":
+        case "252,106,3":
             return "orange"
+        case "0,255,0":
+            return "green"
+        case "255,255,255":
+            return "white"
         case _:
             return None
 
@@ -840,7 +848,7 @@ SET_AUX_HEATING_SOURCE_SCHEMA = vol.Schema(
 SET_FAN_SPEED_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Required(ATTR_FAN_SPEED): vol.In(["On", "Auto"]),
+        vol.Required(ATTR_FAN_SPEED): vol.In(["on", "auto"]),
     }
 )
 

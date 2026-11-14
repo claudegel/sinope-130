@@ -100,8 +100,6 @@ _LOGGER = logging.getLogger(__name__)
 SNOOZE_TIME = 1200
 
 UPDATE_ATTRIBUTES = [
-    ATTR_INTENSITY,
-    ATTR_INTENSITY_MIN,
     ATTR_ONOFF,
     ATTR_KEYPAD,
     ATTR_TIMER,
@@ -173,6 +171,7 @@ async def async_setup_entry(
                         device_name = naming.device_name(platform, index, device_info)
                         device_sku = device_info["sku"]
                         device_firmware = get_firmware(device_info)
+                        device_family = device_info["family"]
                         # Ensure the device is registered in the device registry
                         device_registry.async_get_or_create(
                             config_entry_id=entry.entry_id,
@@ -193,6 +192,7 @@ async def async_setup_entry(
                                 device_name,
                                 device_sku,
                                 device_firmware,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -206,6 +206,7 @@ async def async_setup_entry(
                                 device_name,
                                 device_sku,
                                 device_firmware,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -219,6 +220,7 @@ async def async_setup_entry(
                                 device_name,
                                 device_sku,
                                 device_firmware,
+                                device_family,
                                 coordinator,
                                 entry,
                             )
@@ -512,7 +514,7 @@ async def async_add_data(conf_dir, device_dict, id, data, mark):
 class Neviweb130Light(CoordinatorEntity, LightEntity):
     """Implementation of a neviweb light, SW2500ZB, SW2500ZB-G2."""
 
-    def __init__(self, data, device_info, name, sku, firmware, coordinator, entry):
+    def __init__(self, data, device_info, name, sku, firmware, family, coordinator, entry):
         """Initialize."""
         super().__init__(coordinator)
         _LOGGER.debug("Setting up %s: %s", name, device_info)
@@ -526,6 +528,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
         self._name = name
         self._sku = sku
         self._firmware = firmware
+        self._family = str(family)
         self._client = data["neviweb130_client"]
         self._stat_interval = data["stat_interval"]
         self._notify = data["notify"]
@@ -596,7 +599,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
             ]
             start = time.time()
             device_data: dict[str, Any]
-            if self._is_light:
+            if self._is_light and self._family == "2121":
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
                 if self.safe_mode:
@@ -861,6 +864,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 "rssi": self._rssi,
                 "firmware": self._firmware,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -983,6 +987,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 self._month_kwh = round(safe_number(device_monthly_stats[n - 1]["period"]) / 1000, 3)
                 dt_month = dt_util.parse_datetime(device_monthly_stats[n - 1]["date"])
                 if dt_month is not None:
+                    dt_month = dt_util.as_local(dt_month)
                     _LOGGER.debug("stat month = %s", dt_month.month)
                 else:
                     _LOGGER.debug("stat month = unknown (invalid date from Neviweb)")
@@ -998,13 +1003,14 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 k = 0
                 while k < n:
                     dt = dt_util.parse_datetime(device_daily_stats[k]["date"])
-                    if dt and dt.month == current_month:
+                    if dt and dt_util.as_local(dt).month == current_month:
                         daily_kwh_count += safe_number(device_daily_stats[k]["period"]) / 1000
                     k += 1
                 self._daily_kwh_count = round(daily_kwh_count, 3)
                 self._today_kwh = round(safe_number(device_daily_stats[n - 1]["period"]) / 1000, 3)
                 dt_day = dt_util.parse_datetime(device_daily_stats[n - 1]["date"])
                 if dt_day is not None:
+                    dt_day = dt_util.as_local(dt_day)
                     _LOGGER.debug("stat day = %s", dt_day.day)
                 else:
                     _LOGGER.debug("stat day = unknown (invalid date from Neviweb)")
@@ -1020,7 +1026,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 k = 0
                 while k < n:
                     dt = dt_util.parse_datetime(device_hourly_stats[k]["date"])
-                    if dt and dt.day == current_day:
+                    if dt and dt_util.as_local(dt).day == current_day:
                         hourly_kwh_count += safe_number(device_hourly_stats[k]["period"]) / 1000
                     k += 1
                 self._hourly_kwh_count = round(hourly_kwh_count, 3)
@@ -1028,6 +1034,7 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 self._marker = device_hourly_stats[n - 1]["date"]
                 dt_hour = dt_util.parse_datetime(device_hourly_stats[n - 1]["date"])
                 if dt_hour is not None:
+                    dt_hour = dt_util.as_local(dt_hour)
                     _LOGGER.debug("stat hour = %s", dt_hour.hour)
                 else:
                     _LOGGER.debug("stat hour = unknown (invalid date from Neviweb)")
@@ -1200,10 +1207,15 @@ class Neviweb130Dimmer(Neviweb130Light):
     async def async_update(self) -> None:
         if self._active:
             """Get the latest data from neviweb and update the state."""
-            WATT_ATTRIBUTE = [ATTR_LIGHT_WATTAGE, ATTR_ERROR_CODE_SET1]
+            WATT_ATTRIBUTE = [
+                ATTR_INTENSITY,
+                ATTR_INTENSITY_MIN,
+                ATTR_ERROR_CODE_SET1,
+                ATTR_LIGHT_WATTAGE,
+            ]
             start = time.time()
             device_data: dict[str, Any]
-            if self._is_dimmer:
+            if self._is_dimmer and self._family == "2131":
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
                 if self.safe_mode:
@@ -1351,6 +1363,7 @@ class Neviweb130Dimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )
@@ -1365,14 +1378,16 @@ class Neviweb130NewDimmer(Neviweb130Light):
         if self._active:
             """Get the latest data from neviweb and update the state."""
             WATT_ATTRIBUTE = [
-                ATTR_PHASE_CONTROL,
-                ATTR_KEY_DOUBLE_UP,
-                ATTR_WATTAGE_INSTANT,
                 ATTR_ERROR_CODE_SET1,
+                ATTR_INTENSITY,
+                ATTR_INTENSITY_MIN,
+                ATTR_KEY_DOUBLE_UP,
+                ATTR_PHASE_CONTROL,
+                ATTR_WATTAGE_INSTANT,
             ]
             start = time.time()
             device_data: dict[str, Any]
-            if self._is_new_dimmer:
+            if self._is_new_dimmer and self._family == "2132":
                 attributes = UPDATE_ATTRIBUTES + WATT_ATTRIBUTE
                 _LOGGER.debug("Updated attributes for %s (firmware: %s): %s", self._name, self._firmware, attributes)
                 if self.safe_mode:
@@ -1524,6 +1539,7 @@ class Neviweb130NewDimmer(Neviweb130Light):
                 "firmware": self._firmware,
                 "rssi": self._rssi,
                 "activation": self._active,
+                "family": self._family,
                 "id": self._id,
             }
         )

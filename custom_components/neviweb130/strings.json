@@ -123,8 +123,6 @@
       "neviweb130_reloaded": "Integration neviweb130 have been reloaded.",
       "neviweb130_log_ready": "Download log file at /local/neviweb130.log. It will be deleted after 30 minutes.",
       "configuration_reloaded": "Configuration have been updated and neviweb130 restarted successfully.",
-      "weather_icons_folder_missing": "The directory /local/neviweb130/weather is missing. Weather and devices icons png files won't be displayed. Read documentation for help on how to add icons directory.",
-      "weather_icons_folder_empty": "The directory /local/neviweb130/weather is empty. No weather and device icon will be displayed. Read documentation for help on how to add icons in directory.",
       "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}.",
       "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model}).",
       "config_imported": "The neviweb130 YAML configuration is now obsolete. The configuration for the « {prefix} » account has been automatically imported into the Home Assistant interface. Once all your accounts have been imported, please remove or comment out the `neviweb130:` section in your `configuration.yaml` file, then restart Home Assistant.",
@@ -136,7 +134,8 @@
       "not_available": "Not available",
       "g_not_connected": "Device {name}, no cable connected to terminal G, service not available.",
       "must_support_fan_control": "Entity {entity} does not support fan speed control.",
-      "missing_attributes": "Warning: Device {id} did not return all requested attributes. Missing: {missing}. Check in documentation for missing attributes and report to maintainer if it's not already in the list."
+      "missing_attributes": "Warning: Device {id} did not return all requested attributes. Missing: {missing}. Check in documentation for missing attributes and report to maintainer if it's not already in the list.",
+      "system_mode_error": "Warning: Service set_system_mode is only for RM3250WF, RM3500WF and RM3510WF switch."
     }
   },
   "options": {
@@ -390,6 +389,15 @@
           "lithium": "Lithium"
         }
       },
+      "controlled_device": {
+        "name": "Controlled device",
+        "state": {
+          "hot_water_heater": "Hot water heater",
+          "pool_pump": "Pool pump",
+          "electric_vehicle_charger": "Electric vehicle charger",
+          "other": "Other"
+        }
+      },
       "cycle_length": {
         "name": "Cycle Length"
       },
@@ -415,7 +423,13 @@
         "name": "Flow Meter Timer"
       },
       "flow_meter": {
-        "name": "Flow Meter"
+        "name": "Flow Meter",
+        "state": {
+          "no_flow": "No flow meter",
+          "fs4220": "FS4220",
+          "fs4221": "FS4221",
+          "fs4222": "FS4222"
+        }
       },
       "fuel_alert": {
         "name": "Fuel Alert"
@@ -446,7 +460,7 @@
           "unlock": "Unlocked",
           "unlocked": "Unlocked",
           "partial_lock": "Tamper protection",
-          "partially_locked": "Tamper protection"
+          "partiallylocked": "Tamper protection"
         }
       },
       "language": {
@@ -462,11 +476,12 @@
           "lime": "Lime",
           "amber": "Amber",
           "fuchsia": "Fuchsia",
-          "perle": "Perle",
+          "pearl": "Pearl",
           "blue": "Blue",
           "red": "Red",
           "orange": "Orange",
-          "green": "Green"
+          "green": "Green",
+          "white": "White"
         }
       },
       "led_on_color": {
@@ -475,11 +490,12 @@
           "lime": "Lime",
           "amber": "Amber",
           "fuchsia": "Fuchsia",
-          "perle": "Perle",
+          "pearl": "Pearl",
           "blue": "Blue",
           "red": "Red",
           "orange": "Orange",
-          "green": "Green"
+          "green": "Green",
+          "white": "White"
         }
       },
       "lv_cycle_length": {
@@ -524,8 +540,21 @@
       "sensor_mode": {
         "name": "Sensor Mode"
       },
+      "system_mode": {
+        "name": "System mode",
+        "state": {
+          "auto": "Auto",
+          "manual": "Manual",
+          "autobypass": "Auto Bypass"
+        }
+      },
       "switch_lock": {
-        "name": "Lock Keypad"
+        "name": "Lock Keypad",
+        "state": {
+          "locked": "Locked",
+          "unlocked": "Unlocked",
+          "partiallylocked": "Tamper Protection"
+        }
       },
       "tank_height": {
         "name": "Tank Height",
@@ -541,7 +570,13 @@
         }
       },
       "tank_size": {
-        "name": "Tank Size"
+        "name": "Tank Size",
+        "state": {
+          "40_gal": "40 gal",
+          "50_gal": "50 gal",
+          "60_gal": "60 gal",
+          "80_gal": "80 gal"
+        }
       },
       "tank_type": {
         "name": "Tank Type",
@@ -558,10 +593,28 @@
         }
       },
       "temp_protection": {
-        "name": "Temperature Protection"
+        "name": "Temperature Protection",
+        "state": {
+          "off": "Off",
+          "45": "45°C",
+          "46": "46°C",
+          "47": "47°C",
+          "48": "48°C",
+          "49": "49°C",
+          "50": "50°C",
+          "51": "51°C",
+          "52": "52°C",
+          "53": "53°C",
+          "54": "54°C",
+          "55": "55°C"
+        }
       },
       "time_format": {
-        "name": "Time Format"
+        "name": "Time Format",
+        "state": {
+          "12h": "12 hours",
+          "24h": "24 hours"
+        }
       },
       "timer": {
         "name": "Timer"
@@ -579,10 +632,22 @@
         }
       },
       "wifi_aux_cycle_length": {
-        "name": "Cycle Length"
+        "name": "Auxiliary Cycle Length",
+        "state": {
+          "10_min": "10 min",
+          "15_min": "15 min",
+          "20_min": "20 min",
+          "25_min": "25 min"
+        }
       },
       "wifi_cycle_length": {
-        "name": "Cycle Length"
+        "name": "Cycle Length",
+        "state": {
+          "10_min": "10 min",
+          "15_min": "15 min",
+          "20_min": "20 min",
+          "25_min": "25 min"
+        }
       }
     },
     "sensor": {
@@ -615,12 +680,6 @@
       },
       "cool_stage2_hourly_total_count": {
         "name": "CoolStage2 hourly total count"
-      },
-      "current_temperature": {
-        "name": "Temperature",
-        "state": {
-          "measurement": "measurement"
-        }
       },
       "daily_flow_count": {
         "name": "Daily Flow",
@@ -700,6 +759,12 @@
       "motor_target": {
         "name": "Motor target"
       },
+      "native_current_temperature": {
+        "name": "Temperature",
+        "state": {
+          "measurement": "measurement"
+        }
+      },
       "outdoor_temp": {
         "name": "Outdoor temperature",
         "state": {
@@ -722,6 +787,12 @@
         "name": "Signal Strength",
         "state": {
           "measurement": "Measurement value"
+        }
+      },
+      "sensor_temperature": {
+        "name": "Sensor Temperature",
+        "state": {
+          "measurement": "measurement"
         }
       },
       "total_flow_count": {
@@ -893,10 +964,6 @@
       "name": "Set floor air limit",
       "description": "Configure floor thermostat air temperature limit."
     },
-    "set_sensor_batt_alert": {
-      "name": "Set sensor battery alert",
-      "description": "Enable or disable battery alert for leak sensor."
-    },
     "set_sensor_closure_action": {
       "name": "Set sensor closure action",
       "description": "Configure closure action for leak sensor."
@@ -919,7 +986,7 @@
     },
     "set_early_start": {
       "name": "Set early start",
-      "description": "Enable or disable early heating start."
+      "description": "Enable or disable early heating start (Wi-Fi thermostats)."
     },
     "set_air_floor_mode": {
       "name": "Set air/floor mode",
@@ -1046,7 +1113,7 @@
       "description": "Activate or deactivate unavailable devices."
     },
     "set_key_double_up": {
-      "name": "Set double-up key action",
+      "name": "Set key double up action",
       "description": "Enable or disable double-up key press."
     },
     "set_sensor_type": {

@@ -15,26 +15,30 @@ from aiohttp import ClientError
 from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
 from homeassistant.components.recorder.models import StatisticMeanType
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, UnitOfTime
-from homeassistant.core import CoreState, HomeAssistant
+from homeassistant.const import UnitOfTime
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import (
     CLIMATE_MODEL,
     DOMAIN,
+    ICON_DIR,
+    ICON_URL,
     LIGHT_MODEL,
     RISKY_ATTRIBUTES,
     SENSOR_MODEL,
     SIGNAL_EVENTS_CHANGED,
     SWITCH_MODEL,
+    UPDATE_PROTECTION_DELAY,
     VALVE_MODEL,
     VERSION,
 )
-from .exceptions import SilentAttributeIgnoreError
+from .exceptions import NeviwebUnsupportedAttributeError, SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
 _NOT_SUPPORTED = "[not supported]"
@@ -66,6 +70,9 @@ NETWORK_MAP = {
 # ─────────────────────────────────────────────
 
 
+_rotate_lock = asyncio.Lock()
+
+
 async def async_write(hass, path, text):
     def _write():
         with open(path, "a", encoding="utf-8") as f:
@@ -75,24 +82,32 @@ async def async_write(hass, path, text):
 
 
 async def async_rotate(hass, path, max_bytes, backup_count):
-    def _rotate():
-        if not os.path.exists(path):
-            return
+    async with _rotate_lock:
 
-        if os.path.getsize(path) < max_bytes:
-            return
+        def _rotate():
+            try:
+                if not os.path.exists(path):
+                    return
 
-        # Rotate backups
-        for i in range(backup_count - 1, 0, -1):
-            src = f"{path}.{i}"
-            dst = f"{path}.{i + 1}"
-            if os.path.exists(src):
-                os.replace(src, dst)
+                if os.path.getsize(path) < max_bytes:
+                    return
 
-        # Move current log to .1
-        os.replace(path, f"{path}.1")
+                # Rotate backups
+                for i in range(backup_count - 1, 0, -1):
+                    src = f"{path}.{i}"
+                    dst = f"{path}.{i + 1}"
 
-    return hass.async_add_executor_job(_rotate)
+                    if os.path.exists(src):
+                        os.replace(src, dst)
+
+                # Move current log to .1
+                os.replace(path, f"{path}.1")
+
+            except FileNotFoundError:
+                # File already rotated by another task.
+                pass
+
+        return hass.async_add_executor_job(_rotate)
 
 
 class AsyncRotatingHandler(logging.Handler):
@@ -106,10 +121,25 @@ class AsyncRotatingHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        # rotation async
-        self.hass.async_create_task(async_rotate(self.hass, self.path, self.max_bytes, self.backup_count))
-        # écriture async
-        self.hass.async_create_task(async_write(self.hass, self.path, msg))
+        # Async rotation
+        self.hass.loop.call_soon_threadsafe(
+            self.hass.async_create_task,
+            async_rotate(
+                self.hass,
+                self.path,
+                self.max_bytes,
+                self.backup_count,
+            ),
+        )
+        # Async write
+        self.hass.loop.call_soon_threadsafe(
+            self.hass.async_create_task,
+            async_write(
+                self.hass,
+                self.path,
+                msg,
+            ),
+        )
 
 
 def setup_logger(hass, name, log_path, level="INFO", max_bytes=2 * 1024 * 1024, backup_count=2, reset_on_start=True):
@@ -907,80 +937,13 @@ def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
 
 
 def file_exists(hass, path: str) -> bool:
-    """Return True if a /local/ file exists."""
-    local_path = path.replace("/local/", "www/")
-    full_path = os.path.join(hass.config.path(), local_path)
+    """Return True if an icon served under ICON_URL exists."""
+    full_path = os.path.join(ICON_DIR, path.removeprefix(f"{ICON_URL}/"))
 
     try:
         return os.path.isfile(full_path)
     except (OSError, PermissionError):
         return False
-
-
-# ─────────────────────────────────────────────
-# Check icon folder presence and content
-# ─────────────────────────────────────────────
-
-
-async def _t(hass, key: str) -> str:
-    """Thread-safe translation lookup for notifications."""
-    domain = "neviweb130"
-    full_key = f"component.{domain}.config.error.{key.lower()}"
-
-    translations = await async_get_translations(
-        hass,
-        hass.config.language,
-        "config",
-        integrations=["neviweb130"],
-    )
-
-    return translations.get(full_key, key)
-
-
-async def notify_after_startup(hass, coro_factory):
-    """Schedule a coroutine to run safely after HA is fully started."""
-
-    def _schedule():
-        # execute factory to get the coroutine
-        coro = coro_factory()
-        hass.loop.call_soon_threadsafe(hass.async_create_task, coro)
-
-    if hass.state == CoreState.running:
-        _schedule()
-    else:
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, lambda event: _schedule())
-
-
-async def check_weather_icons_folder(hass):
-    """Check that the weather and icon folder are presents."""
-    folder = hass.config.path("www/neviweb130/weather")
-
-    exists = await hass.async_add_executor_job(os.path.isdir, folder)
-    if not exists:
-        message = await _t(hass, "weather_icons_folder_missing")
-        await notify_after_startup(
-            hass,
-            lambda: async_notify_critical(
-                hass,
-                message,
-                title="Neviweb130 – weather icon",
-                notification_id="neviweb130_missing_folder",
-            ),
-        )
-        return
-
-    files = await hass.async_add_executor_job(os.listdir, folder)
-    if not files:
-        message = await _t(hass, "weather_icons_folder_empty")
-        await notify_after_startup(
-            hass,
-            lambda: async_notify_critical(
-                hass,
-                message,
-                title="Neviweb130 – weather icon",
-                notification_id="neviweb130_empty_folder",
-            ),
-        )
 
 
 # ─────────────────────────────────────────────
@@ -1063,6 +1026,26 @@ async def translate_neviweb_error(self, err, **placeholders):
 
 
 # ─────────────────────────────────────────────
+# Report service failure
+# ─────────────────────────────────────────────
+
+
+async def _async_report_service_failure(entity, service_name: str, error: str, critical: bool) -> None:
+    """Log (and notify if critical) a failed service call."""
+    key = "critical_service_failed" if critical else "service_failed"
+    msg = await translate_error(entity.hass, key, service=service_name, error=error)
+    if critical:
+        await async_notify_critical(
+            entity.hass,
+            msg,
+            title=f"Neviweb130 integration {VERSION}",
+            notification_id="neviweb130_service_error",
+        )
+    else:
+        _LOGGER.error(msg)
+
+
+# ─────────────────────────────────────────────
 # Apply devices update from service (action)
 # ─────────────────────────────────────────────
 
@@ -1090,38 +1073,19 @@ async def async_apply_device_update(
 
         # Case 1 : Neviweb structured response {"error": {...}}
         if isinstance(resp, dict) and "error" in resp:
-            translated = entity.translate_neviweb_error(resp)
-            full_msg = entity.hass.helpers.translation.async_translate(
-                "component.neviweb130.errors.service_failed",
-                {"service": service_name, "error": translated},
-            )
-            _LOGGER.error(full_msg)
+            translated = await translate_neviweb_error(entity, resp)
+            await _async_report_service_failure(entity, service_name, translated, critical)
             return False
 
     except Exception as err:
         # Cas 2 : Python or API error exception
-        translated = entity.translate_neviweb_error(err)
-        full_msg = entity.hass.helpers.translation.async_translate(
-            "component.neviweb130.errors.service_failed",
-            {"service": service_name, "error": translated},
-        )
-        _LOGGER.error(full_msg)
+        translated = await translate_neviweb_error(entity, err)
+        await _async_report_service_failure(entity, service_name, translated, critical)
         return False
-
-    if resp:
-        # Success → local update
-        if attr_name is not None:
-            setattr(entity, attr_name, new_value)
-        return True
 
     # Case 3 : Logical fail (resp=False)
     if resp is False:
-        translated = entity.translate_error("update_failed")
-        full_msg = entity.hass.helpers.translation.async_translate(
-            "component.neviweb130.errors.service_failed",
-            {"service": service_name, "error": translated},
-        )
-        _LOGGER.error(full_msg)
+        await _async_report_service_failure(entity, service_name, "no confirmation from Neviweb", critical)
         return False
 
     # Success → local update
@@ -1227,84 +1191,95 @@ async def async_safe_get_device_attributes(
     device_model: str | None = None,
     firmware: str | None = None,
 ):
-    logger.warning("Running async update helper")
+    logger.debug("Running async update helper")
+
+    unsupported_attrs = UNSUPPORTED_ATTRS.setdefault(device_id, set())
 
     # Filter out blacklisted attributes
-    filtered_attrs = [attr for attr in attributes if attr not in UNSUPPORTED_ATTRS.get(device_id, set())]
+    filtered_attrs = [attr for attr in attributes if attr not in unsupported_attrs]
 
     try:
         result = await client.async_get_device_attributes(device_id, filtered_attrs)
+
+        if isinstance(result, dict) and "error" in result:
+            if result["error"].get("code") == "DVCATTRNSPTD":
+                raise NeviwebUnsupportedAttributeError(result["error"]["code"])
+            # Not an attribute problem (session expired, etc.), the caller handles it
+            return result
 
         logger.debug("client result = %s", result)
 
         if not result or any(attr not in result for attr in filtered_attrs):
             raise SilentAttributeIgnoreError(f"Missing attributes: {filtered_attrs} for device {device_id}")
 
-        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+        for attr in unsupported_attrs:
             result[attr] = None
 
         return result
 
-    except (ClientError, OSError, SilentAttributeIgnoreError) as err:
-        # if not a DVCATTRNSPTD → we restart
-        if "DVCATTRNSPTD" not in str(err):
-            raise
-
-        # here we know it is an unsupported attribute
-        model_info = f"Model: {device_model}" if device_model else "Model: unknown"
-        fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
-        sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
-
-        logger.warning(
-            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+    except NeviwebUnsupportedAttributeError:
+        logger.debug(
+            "Device %s returned DVCATTRNSPTD, switching to attribute-by-attribute discovery",
             device_id,
-            sku_info,
-            model_info,
-            fw_info,
         )
 
-        await async_notify_ha(
-            hass,
-            (
-                f"Some attributes requested for device {device_id} are not supported.\n"
-                f"{model_info}\n{fw_info}\n{sku_info}\n"
-                "Check your logs to identify which attributes failed and report to maintainer."
-            ),
-            title="Neviweb130: Unsupported attributes detected",
-            notification_id="Attr_not_supported",
+    except SilentAttributeIgnoreError:
+        logger.debug(
+            "Device %s returned incomplete attributes, switching to attribute-by-attribute discovery",
+            device_id,
         )
 
-        device_data: dict[str, object] = {}
+    except (ClientError, OSError):
+        raise
 
-        # Test each attribute individually
-        for attr in attributes:
-            logger.debug("Testing attribute %s for %s", attr, model_info)
+    # here we know it is an unsupported attribute
+    model_info = f"Model: {device_model}" if device_model else "Model: unknown"
+    fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
+    sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
 
-            try:
-                result = await client.async_get_device_attributes(device_id, [attr])
-                logger.debug("Result for '%s': %s", attr, result)
+    logger.warning(
+        "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+        device_id,
+        sku_info,
+        model_info,
+        fw_info,
+    )
 
-                if result and attr in result:
-                    device_data[attr] = result[attr]
-                    continue
+    await async_notify_ha(
+        hass,
+        (
+            f"Some attributes requested for device {device_id} are not supported.\n"
+            f"{model_info}\n{fw_info}\n{sku_info}\n"
+            "Check your logs to identify which attributes failed and report to maintainer."
+        ),
+        title="Neviweb130: Unsupported attributes detected",
+        notification_id="Attr_not_supported",
+    )
 
-                if result == {}:
-                    logger.warning(
-                        "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                    )
-                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
-                    device_data[attr] = None
-                    continue
+    device_data: dict[str, object] = {}
 
-                if attr in result and result[attr] is None:
-                    device_data[attr] = None
-                    continue
+    # Test each attribute individually
+    for attr in attributes:
+        logger.debug("Testing attribute %s for %s", attr, model_info)
 
+        try:
+            result = await client.async_get_device_attributes(device_id, [attr])
+            logger.debug("Result for '%s': %s", attr, result)
+
+            if isinstance(result, dict) and result.get("error", {}).get("code") == "DVCATTRNSPTD":
+                unsupported_attrs.add(attr)
+                device_data[attr] = None
+                continue
+
+            if isinstance(result, dict) and "error" in result:
+                # Not an attribute problem (session expired, etc.), don't blacklist, the caller handles it
+                return result
+
+            if result and attr in result:
+                device_data[attr] = result[attr]
+                continue
+
+            if not result:
                 logger.warning(
                     "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
                     attr,
@@ -1314,35 +1289,28 @@ async def async_safe_get_device_attributes(
                     fw_info,
                 )
 
-            except (ClientError, OSError, SilentAttributeIgnoreError) as err:
-                if "DVCATTRNSPTD" in str(err):
-                    logger.warning(
-                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                        err,
-                    )
-
-                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
-                    device_data[attr] = None
-                    continue
-
-                logger.error(
-                    "Error while fetching attribute '%s' for device %s: %s",
-                    attr,
-                    device_id,
-                    err,
-                )
+                unsupported_attrs.add(attr)
+                device_data[attr] = None
                 continue
 
-        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
-            device_data.setdefault(attr, None)
+            logger.debug(
+                "Attribute '%s' not returned by device %s",
+                attr,
+                device_id,
+            )
+            unsupported_attrs.add(attr)
+            device_data[attr] = None
+            continue
 
-        logger.debug("Returned device_data = %s", device_data)
-        return device_data
+        except (ClientError, OSError) as err:
+            logger.error("Error in device update: %s", err)
+            raise
+
+    for attr in unsupported_attrs:
+        device_data.setdefault(attr, None)
+
+    logger.debug("Returned device_data = %s", device_data)
+    return device_data
 
 
 # ─────────────────────────────────────────────
@@ -1385,6 +1353,57 @@ def validate_value(value: object) -> object:
         return _EMPTY_VALUE
 
     return value
+
+
+# ─────────────────────────────────────────────
+# manage delayed refresh and early update for climate and switch Wi-Fi devices
+# ─────────────────────────────────────────────
+
+
+async def async_delayed_refresh(
+    entity: CoordinatorEntity,
+    delay: float = 2.0,
+    wifi: bool = False,
+    write_state: bool = True,
+) -> None:
+    """Push state immediately and optionally refresh coordinator."""
+
+    if write_state:
+        entity.async_write_ha_state()
+
+    # Only Wi-Fi devices need a delayed refresh
+    if wifi:
+        # Wait to let Neviweb apply the changes
+        await asyncio.sleep(delay)
+
+        # Refresh via coordinator
+        await entity.coordinator.async_request_refresh()
+
+
+def ignore_early_update(
+    name: str,
+    last_change: float | None,
+    attrib: str,
+    data: float | int | str | bool,
+) -> bool:
+    """Return True if attribute update should be ignored because update is too early."""
+
+    if last_change is None:
+        return False
+
+    elapsed = time.time() - last_change
+
+    if elapsed < UPDATE_PROTECTION_DELAY:
+        _LOGGER.debug(
+            "Ignoring early update for %s: %s=%s (%.1f sec after local change)",
+            name,
+            attrib,
+            data,
+            elapsed,
+        )
+        return True
+
+    return False
 
 
 # await async_notify_throttled(
