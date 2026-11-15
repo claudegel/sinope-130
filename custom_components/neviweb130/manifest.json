@@ -6,6 +6,7 @@
     "@claudegel"
   ],
   "config_flow": true,
+  "dependencies": ["http"],
   "documentation": "https://github.com/claudegel/sinope-130",
   "integration_type": "hub",
   "iot_class": "cloud_polling",

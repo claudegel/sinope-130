@@ -10,6 +10,8 @@ with _MANIFEST_PATH.open(encoding="utf-8") as json_file:
     data = json.load(json_file)
 NAME = f"{data['name']}"
 DOMAIN = f"{data['domain']}"
+ICON_URL = "/neviweb130/icons"
+ICON_DIR = str(_LOADER_PATH.parent / "icons")
 VERSION = f"{data['version']}"
 ISSUE_URL = f"{data['issue_tracker']}"
 REQUIRE = "2025.1.1"
@@ -55,6 +57,8 @@ CONF_REQUEST_LIMIT = "request_limit"
 CONF_UPDATE_INTERVAL = "update_check_interval"
 DEFAULT_REQUEST_LIMIT = 25000
 DEFAULT_UPDATE_INTERVAL = "6h"
+# Delay (seconds) during which device attributes updates are ignored after a local change.
+UPDATE_PROTECTION_DELAY = 10  # seconds
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
@@ -520,10 +524,10 @@ MODEL_ATTRIBUTES = {
     300: {  # TH1123ZB-G2 3000W, TH1124ZB-G2 4000W
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -553,7 +557,7 @@ MODEL_ATTRIBUTES = {
     336: {  # TH1133WF, TH1134WF
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "weather_icon",
@@ -578,7 +582,7 @@ MODEL_ATTRIBUTES = {
     343: {  # THEWF01
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "weather_icon",
@@ -603,7 +607,7 @@ MODEL_ATTRIBUTES = {
     348: {  # TH1133CR, TH1134CR
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "weather_icon",
@@ -628,10 +632,10 @@ MODEL_ATTRIBUTES = {
     350: {  # TH1143WF, TH1144WF color screen
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -661,10 +665,10 @@ MODEL_ATTRIBUTES = {
     354: {  # TH1145WF color screen
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -694,10 +698,10 @@ MODEL_ATTRIBUTES = {
     737: {  # TH1300ZB 3600W, TH1320ZB-04, OTH3600-GA-ZB
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -729,10 +733,10 @@ MODEL_ATTRIBUTES = {
     738: {  # TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort, concerto connect FLP55
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -766,10 +770,10 @@ MODEL_ATTRIBUTES = {
     739: {  # TH1400WF low voltage
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -784,10 +788,10 @@ MODEL_ATTRIBUTES = {
             "setpoint_away",
         ],
         "select": [
+            "aux_cycle_length",
             "backlight",
             "early_start",
             "keypad_status",
-            "lv_cycle_length",
             "lv_cycle_length",
             "occupancy_mode",
             "second_display",
@@ -805,10 +809,10 @@ MODEL_ATTRIBUTES = {
     742: {  # TH1500WF double pole
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -840,10 +844,10 @@ MODEL_ATTRIBUTES = {
     1123: {  # TH1123ZB 3000W
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -874,10 +878,10 @@ MODEL_ATTRIBUTES = {
     1124: {  # TH1124ZB 4000W, OTH4000-ZB
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -908,10 +912,10 @@ MODEL_ATTRIBUTES = {
     1510: {  # TH1123WF 3000W, TH1124WF 4000W
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -943,10 +947,10 @@ MODEL_ATTRIBUTES = {
     1512: {  # TH1134ZB-HC
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -980,7 +984,7 @@ MODEL_ATTRIBUTES = {
     6727: {  # TH6500WF, TH6510WF
         "sensor": [
             "current_humidity",
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -1020,7 +1024,7 @@ MODEL_ATTRIBUTES = {
     6730: {  # TH6250WF
         "sensor": [
             "current_humidity",
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -1060,7 +1064,7 @@ MODEL_ATTRIBUTES = {
     6731: {  # TH6250WF-PRO
         "sensor": [
             "current_humidity",
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -1100,7 +1104,7 @@ MODEL_ATTRIBUTES = {
     6734: {  # TH6251WF-PRO
         "sensor": [
             "current_humidity",
-            "current_temperature",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -1140,6 +1144,7 @@ MODEL_ATTRIBUTES = {
     6810: {  # HP6000ZB-GE
         "sensor": [
             ATTR_RSSI,
+            "native_current_temperature",
             "occupancy_mode",
             "outdoor_temp",
             "weather_icon",
@@ -1158,6 +1163,7 @@ MODEL_ATTRIBUTES = {
     6811: {  # HP6000ZB-MA
         "sensor": [
             ATTR_RSSI,
+            "native_current_temperature",
             "occupancy_mode",
             "outdoor_temp",
             "weather_icon",
@@ -1176,6 +1182,7 @@ MODEL_ATTRIBUTES = {
     6812: {  # HP6000ZB-HS
         "sensor": [
             ATTR_RSSI,
+            "native_current_temperature",
             "occupancy_mode",
             "outdoor_temp",
             "weather_icon",
@@ -1194,6 +1201,7 @@ MODEL_ATTRIBUTES = {
     6813: {  # HP6000WF-MA
         "sensor": [
             ATTR_RSSI,
+            "native_current_temperature",
             "occupancy_mode",
             "outdoor_temp",
             "weather_icon",
@@ -1216,6 +1224,7 @@ MODEL_ATTRIBUTES = {
     6814: {  # HP6000WF-TCL
         "sensor": [
             ATTR_RSSI,
+            "native_current_temperature",
             "occupancy_mode",
             "outdoor_temp",
             "weather_icon",
@@ -1238,6 +1247,7 @@ MODEL_ATTRIBUTES = {
     6815: {  # HP6000WF-HA
         "sensor": [
             ATTR_RSSI,
+            "native_current_temperature",
             "occupancy_mode",
             "outdoor_temp",
             "weather_icon",
@@ -1260,10 +1270,10 @@ MODEL_ATTRIBUTES = {
     7372: {  # TH1400ZB low voltage, TH1420ZB-01 Nordik
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -1296,10 +1306,10 @@ MODEL_ATTRIBUTES = {
     7373: {  # TH1500ZB double pole
         "sensor": [
             ATTR_RSSI,
-            "current_temperature",
             "daily_kwh_count",
             "hourly_kwh_count",
             "monthly_kwh_count",
+            "native_current_temperature",
             "outdoor_temp",
             "pi_heating_demand",
             "total_kwh_count",
@@ -1338,8 +1348,6 @@ MODEL_ATTRIBUTES = {
             "wattage",
         ],
         "number": [
-            "brightness",
-            "intensity_min",
             "led_off_intensity",
             "led_on_intensity",
         ],
@@ -1354,9 +1362,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21212: {  # SW2500ZB, SW2500ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1389,9 +1395,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21312: {  # DM2500ZB, DM2500ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1425,9 +1429,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     21322: {  # DM2550ZB, DM2550ZB-G2 connected to Sedna valve
-        "sensor": [
-            ATTR_RSSI,
-        ],
+        "sensor": [],
         "number": [],
         "select": [],
         "binary_sensor": ["activation"],
@@ -1435,7 +1437,7 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     # Switch
-    346: {  # RM3250WF, 50A, Wi-Fi
+    346: {  # RM3250WF, 40A, Wi-Fi
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -1447,7 +1449,12 @@ MODEL_ATTRIBUTES = {
             "wifirssi",
         ],
         "number": [],
-        "select": ["switch_keypad"],
+        "select": [
+            "controlled_device",
+            "power_timer",
+            "system_mode",
+            "switch_keypad",
+        ],
         "binary_sensor": ["activation"],
         "button": [],
         "switch": ["safe_mode"],
@@ -1488,8 +1495,9 @@ MODEL_ATTRIBUTES = {
         ],
         "number": ["water_remaining_time"],
         "select": [
-            "tank_size",
             "heater_temp_min",
+            "system_mode",
+            "tank_size",
         ],
         "binary_sensor": [
             "activation",
@@ -1549,6 +1557,7 @@ MODEL_ATTRIBUTES = {
         ],
         "number": [],
         "select": [
+            "controlled_device",
             "power_timer",
             "switch_keypad",
         ],
@@ -1769,7 +1778,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1790,7 +1799,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1808,11 +1817,10 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
-    5050: {  # WL4200, WL4210 and WL4200S,
+    5050: {  # WL4200, WL4210 and WL4200S, connected via Sedna valve
         "sensor": [
-            ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1825,7 +1833,6 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "action_close",
             "batt_alert",
-            "leak_alert",
             "safe_mode",
             "temp_alert",
         ],
@@ -1834,7 +1841,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1851,11 +1858,10 @@ MODEL_ATTRIBUTES = {
             "temp_alert",
         ],
     },
-    5052: {  # WL4200C, perimeter cable water leak detector connected to Sedna
+    5052: {  # WL4200C, perimeter cable water leak detector connected via Sedna valve
         "sensor": [
-            ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1868,7 +1874,6 @@ MODEL_ATTRIBUTES = {
         "switch": [
             "action_close",
             "batt_alert",
-            "leak_alert",
             "safe_mode",
             "temp_alert",
         ],
@@ -1877,7 +1882,7 @@ MODEL_ATTRIBUTES = {
         "sensor": [
             ATTR_RSSI,
             "battery_level",
-            "current_temperature",
+            "sensor_temperature",
         ],
         "number": [],
         "select": ["batt_type"],
@@ -1955,10 +1960,10 @@ EXPOSED_ATTRIBUTES = [
     "battery_status",
     "battery_voltage",
     "brightness",
+    "controlled_device",
     "cool_lockout_temp",
     "cool_setpoint_away",
     "current_humidity",
-    "current_temperature",
     "cycle_length",
     "daily_flow_count",
     "daily_kwh_count",
@@ -2012,6 +2017,7 @@ EXPOSED_ATTRIBUTES = [
     "monthly_kwh_count",
     "motor_position",
     "motor_target",
+    "native_current_temperature",
     "occupancy_mode",
     "outdoor_temp",
     "phase_control",
@@ -2027,10 +2033,12 @@ EXPOSED_ATTRIBUTES = [
     "safe_mode",
     "second_display",
     "sensor_mode",
+    "sensor_temperature",
     "setpoint_away",
     "stm8Error_motorJam",
     "stm8Error_motorLimit",
     "stm8Error_motorPosition",
+    "system_mode",
     "switch_keypad",
     "tank_height",
     "tank_size",
@@ -2067,6 +2075,7 @@ EXPOSED_ATTRIBUTES = [
     "is_WHP",
     "is_wifi",
     "is_wifi_floor",
+    "is_WRM_like",
     "is_zb_valve",
     "is_zb_mesh_valve",
     "sku",

@@ -9,6 +9,7 @@ from functools import partial
 from typing import Any, cast
 
 from homeassistant import config_entries
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL, CONF_USERNAME, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, callback
@@ -29,6 +30,8 @@ from .const import (
     CONF_STAT_INTERVAL,
     DEFAULT_REQUEST_LIMIT,
     DOMAIN,
+    ICON_DIR,
+    ICON_URL,
     STARTUP_MESSAGE,
     VERSION,
 )
@@ -37,7 +40,6 @@ from .devices import load_devices, save_devices
 from .helpers import (
     DailyRequestCounter,
     async_notify_once_or_update,
-    check_weather_icons_folder,
     extract_log_options,
     normalize_yaml_config,
     sanitize_entry_data,
@@ -71,6 +73,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     neviweb130_config: ConfigType | None = config.get(DOMAIN)
     hass.data.setdefault(DOMAIN, {})
+    await hass.http.async_register_static_paths([StaticPathConfig(ICON_URL, ICON_DIR, True)])
 
     if neviweb130_config is None:
         return True
@@ -498,9 +501,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "prefix": prefix,
         }
     )
-
-    # Check weather and customization icons availability
-    hass.async_create_task(check_weather_icons_folder(hass))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

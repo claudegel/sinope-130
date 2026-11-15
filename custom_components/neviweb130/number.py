@@ -330,13 +330,13 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
     _ATTRIBUTE_METHODS = {
         "brightness": lambda self, value: self._client.async_set_brightness(self._id, value),
         "intensity_min": lambda self, value: self._client.async_set_light_min_intensity(self._id, value),
-        "cool_lockout_temp": lambda self, value: self._client.async_set_cool_lockout_temp(
-            self._id, value, self.is_gen2
+        "cool_lockout_temp": lambda self, value: self._client.async_set_cool_lockout(self._id, value),
+        "cool_setpoint_away": lambda self, value: self._client.async_set_cool_setpoint_away(
+            self._id,
+            value,
+            self.is_HC or self.is_WHP,
         ),
-        "cool_setpoint_away": lambda self, value: self._client.async_set_cool_setpoint_away(self._id, value),
-        "heat_lockout_temp": lambda self, value: self._client.async_set_heat_lockout_temp(
-            self._id, value, self.is_gen2
-        ),
+        "heat_lockout_temp": lambda self, value: self._client.async_set_heat_lockout(self._id, value, self.is_gen2),
         "led_on_intensity": lambda self, value: self._client.async_set_led_on_intensity(self._id, value),
         "led_off_intensity": lambda self, value: self._client.async_set_led_off_intensity(self._id, value),
         "fan_filter_remain": lambda self, value: self._client.async_set_fan_filter_reminder(
@@ -422,6 +422,12 @@ class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], 
         """Return True if device is a Wi-Fi floor device"""
         device_obj = self.coordinator.data.get(self._id)
         return device_obj.get("is_wifi_floor", False) if device_obj else False
+
+    @property
+    def is_WHP(self):
+        """Return True if device is a Wi-Fi HP device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_WHP", False) if device_obj else False
 
     @property
     def native_value(self) -> float | None:
