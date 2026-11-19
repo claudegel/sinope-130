@@ -1,0 +1,594 @@
+"""
+Support for Neviweb attributes select for devices connected via GT130 and Wi-Fi devices.
+"""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass
+from typing import Final
+
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from .const import ALL_MODEL, DOMAIN, MODEL_ATTRIBUTES, RISKY_ATTRIBUTES
+from .coordinator import Neviweb130Client, Neviweb130Coordinator
+from .helpers import NamingHelper, create_risky_issue
+from .schema import (
+    BACKLIGHT_LIST,
+    BATT_TYPE_LIST,
+    COLOR_LIST,
+    CONTROLLED_VALUE,
+    DISPLAY_LIST,
+    FLOOR_MODE,
+    FLOW_DURATION,
+    FLOW_MODEL,
+    FLOW_OPTION,
+    GAUGE_LIST,
+    HA_TO_NEVIWEB_OPTION,
+    HC_DISPLAY_LIST,
+    HP_FAN_SPEED,
+    LANGUAGE_LIST,
+    LOCK_LIST,
+    LOW_FUEL_LEVEL,
+    LV_AUX_CYCLE,
+    LV_CYCLE,
+    MODE_LIST,
+    OCCUPANCY_LIST,
+    ON_OFF,
+    PHASE_LIST,
+    POWER_TIMER_LIST,
+    PRO_AUX_CYCLE,
+    STD_CYCLE,
+    SUPPLY_LIST,
+    TANK_HEIGHT,
+    TANK_VALUE,
+    TEMP_LIST,
+    TIME_LIST,
+    TIMER_LIST,
+    WATER_TEMP,
+    WIFI_CYCLE,
+    WIFI_FAN_SPEED,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class Neviweb130SelectEntityDescription(SelectEntityDescription):
+    """Class describing Neviweb130 select entities."""
+
+    data_key: str | None = None
+
+
+SELECT_TYPES: Final[tuple[Neviweb130SelectEntityDescription, ...]] = (
+    #  Light attributes
+    Neviweb130SelectEntityDescription(
+        key="keypad",
+        icon="mdi:dialpad",
+        translation_key="keypad_lock",
+        options=LOCK_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="led_on_color",
+        icon="mdi:palette",
+        translation_key="led_on_color",
+        options=COLOR_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="led_off_color",
+        icon="mdi:palette-outline",
+        translation_key="led_off_color",
+        options=COLOR_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="light_timer",
+        icon="mdi:timer-edit-outline",
+        translation_key="timer",
+        options=TIMER_LIST,
+    ),
+    #  Thermostat attributes
+    Neviweb130SelectEntityDescription(
+        key="backlight",
+        icon="mdi:fullscreen",
+        translation_key="backlight",
+        options=BACKLIGHT_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="keypad_status",
+        icon="mdi:dialpad",
+        translation_key="keypad_lock",
+        options=LOCK_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="language",
+        icon="mdi:projector-screen-outline",
+        translation_key="language",
+        options=LANGUAGE_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="occupancy_mode",
+        icon="mdi:home",
+        translation_key="occupancy_mode",
+        options=OCCUPANCY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="phase_control",
+        icon="mdi:tune",
+        translation_key="phase",
+        options=PHASE_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="time_format",
+        icon="mdi:camera-timer",
+        translation_key="time_format",
+        options=TIME_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="temp_format",
+        icon="mdi:thermometer",
+        translation_key="temp_format",
+        options=TEMP_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="second_display",
+        icon="mdi:fullscreen",
+        translation_key="second_display",
+        options=DISPLAY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="hc_second_display",
+        icon="mdi:fullscreen",
+        translation_key="hc_second_display",
+        options=HC_DISPLAY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="hc_fan_speed",
+        icon="mdi:fan",
+        translation_key="hc_fan_speed",
+        options=WIFI_FAN_SPEED,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="whp_fan_speed",
+        icon="mdi:fan",
+        translation_key="whp_fan_speed",
+        options=HP_FAN_SPEED,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="cycle_length",
+        icon="mdi:reload",
+        translation_key="cycle_length",
+        options=STD_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="aux_cycle_length",
+        icon="mdi:reload",
+        translation_key="aux_cycle_length",
+        options=LV_AUX_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="lv_cycle_length",
+        icon="mdi:reload",
+        translation_key="lv_cycle_length",
+        options=LV_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="wifi_cycle_length",
+        icon="mdi:reload",
+        translation_key="wifi_cycle_length",
+        options=WIFI_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="wifi_aux_cycle_length",
+        icon="mdi:reload",
+        translation_key="wifi_aux_cycle_length",
+        options=WIFI_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="pro_aux_cycle_length",
+        icon="mdi:reload",
+        translation_key="pro_aux_cycle_length",
+        options=PRO_AUX_CYCLE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="sensor_mode",
+        icon="mdi:home-modern",
+        translation_key="sensor_mode",
+        options=FLOOR_MODE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="early_start",
+        icon="mdi:selection-off",
+        translation_key="early_start",
+        options=ON_OFF,
+    ),
+    #  switch attributes
+    Neviweb130SelectEntityDescription(
+        key="heater_temp_min",
+        icon="mdi:timer-edit-outline",
+        translation_key="temp_protection",
+        options=WATER_TEMP,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="timer",
+        icon="mdi:timer-edit-outline",
+        translation_key="timer",
+        options=TIMER_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="timer2",
+        icon="mdi:timer-edit-outline",
+        translation_key="timer2",
+        options=TIMER_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="power_timer",
+        icon="mdi:timer-edit-outline",
+        translation_key="power_timer",
+        options=POWER_TIMER_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="tank_size",
+        icon="mdi:cup-water",
+        translation_key="tank_size",
+        options=TANK_VALUE,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="switch_keypad",
+        icon="mdi:dialpad",
+        translation_key="switch_lock",
+        options=LOCK_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="controlled_device",
+        icon="mdi:dialpad",
+        translation_key="controlled_device",
+        options=CONTROLLED_VALUE,
+    ),
+    #  sensor attributes
+    Neviweb130SelectEntityDescription(
+        key="batt_type",
+        icon="mdi:battery",
+        translation_key="battery_type",
+        options=BATT_TYPE_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="gauge_type",
+        icon="mdi:battery",
+        translation_key="gauge_type",
+        options=GAUGE_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="low_fuel_alert",
+        icon="mdi:alert",
+        translation_key="fuel_alert",
+        options=LOW_FUEL_LEVEL,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="tank_height",
+        icon="mdi:cup-water",
+        translation_key="tank_height",
+        options=TANK_HEIGHT,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="tank_type",
+        icon="mdi:cup-water",
+        translation_key="tank_type",
+        options=BATT_TYPE_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="system_mode",
+        icon="mdi:home-automation",
+        translation_key="system_mode",
+        options=MODE_LIST,
+    ),
+    #  valve attributes
+    Neviweb130SelectEntityDescription(
+        key="power_supply",
+        icon="mdi:cup-water",
+        translation_key="power_supply",
+        options=SUPPLY_LIST,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="flow_meter",
+        icon="mdi:water",
+        translation_key="flow_meter",
+        options=FLOW_MODEL,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="flow_duration",
+        icon="mdi:timer-edit-outline",
+        translation_key="flow_duration",
+        options=FLOW_DURATION,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="flowmeter_timer",
+        icon="mdi:timer-edit-outline",
+        translation_key="flowmeter_timer",
+        options=FLOW_DURATION,
+    ),
+    Neviweb130SelectEntityDescription(
+        key="flowmeter_option",
+        icon="mdi:timer-edit-outline",
+        translation_key="flowmeter_option",
+        options=FLOW_OPTION,
+    ),
+)
+
+
+def get_attributes_for_model(model):
+    return MODEL_ATTRIBUTES.get(model, {}).get("select", [])
+
+
+def create_attribute_selects(hass, entry, data, coordinator, device_registry):
+    entities = []
+    client = data["neviweb130_client"]
+
+    config_prefix = data["prefix"]
+    naming = NamingHelper(domain=DOMAIN, prefix=config_prefix)
+
+    _LOGGER.debug("Keys in coordinator.data : %s", list(coordinator.data.keys()))
+
+    for index, gateway_data in enumerate(
+        [
+            data["neviweb130_client"].gateway_data,
+            data["neviweb130_client"].gateway_data2,
+            data["neviweb130_client"].gateway_data3,
+        ],
+        start=1,
+    ):
+        if not gateway_data or gateway_data == "_":
+            continue
+
+        for device_info in gateway_data:
+            model = device_info["signature"]["model"]
+            if model not in ALL_MODEL:
+                continue
+
+            device_id = str(device_info["id"])
+            if device_id not in coordinator.data:
+                _LOGGER.debug("Device %s coordinator.data not yet initialized", device_id)
+
+            device_platform = naming.get_device_platform(int(model))
+            device_name = naming.device_name(device_platform, index, device_info)
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, device_id)},
+                manufacturer="claudegel",
+                name=device_name,
+                model=str(model),
+                sw_version="{major}.{middle}.{minor}".format(**device_info["signature"]["softVersion"]),
+            )
+
+            attributes_name = get_attributes_for_model(model)
+            for attribute in attributes_name:
+                for desc in SELECT_TYPES:
+                    if desc.key == attribute:
+                        entities.append(
+                            Neviweb130DeviceAttributeSelect(
+                                client=client,
+                                device=device_info,
+                                device_name=device_name,
+                                attribute=attribute,
+                                device_id=device_id,
+                                attr_info={
+                                    "identifiers": device_entry.identifiers,
+                                    "name": device_entry.name,
+                                    "manufacturer": device_entry.manufacturer,
+                                    "model": device_entry.model,
+                                },
+                                coordinator=coordinator,
+                                entity_description=desc,
+                                entry=entry,
+                            )
+                        )
+
+    return entities
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info=None,
+) -> None:
+    """Set up the Neviweb select entities."""
+    data = hass.data[DOMAIN][entry.entry_id]
+
+    if "neviweb130_client" not in data:
+        _LOGGER.error("Neviweb130 client initialization failed.")
+        return
+
+    coordinator = data["coordinator"]
+
+    device_registry = dr.async_get(hass)
+
+    entities = create_attribute_selects(hass, entry, data, coordinator, device_registry)
+
+    async_add_entities(entities)
+    hass.async_create_task(coordinator.async_request_refresh())
+
+
+class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], SelectEntity):
+    """Representation of a specific Neviweb130 select entity."""
+
+    _attr_has_entity_name = True
+    _attr_should_poll = True
+    _attr_entity_category = EntityCategory.CONFIG
+
+    _ATTRIBUTE_METHODS = {
+        "aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
+        "backlight": lambda self, option: self._client.async_set_backlight(self._id, option, self.is_wifi, self.model),
+        "batt_type": lambda self, option: self._client.async_set_battery_type(self._id, option),
+        "controlled_device": lambda self, option: self._clientasync_set_controlled_device(self._id, option),
+        "cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option, self.is_HC),
+        "early_start": lambda self, option: self._client.async_set_early_start(self._id, option),
+        "flowmeter_timer": lambda self, option: self._client.async_set_flow_alarm_timer(self._id, option),
+        "flow_duration": lambda self, option: self._client.async_set_flow_meter_delay(self._id, option),
+        "flowmeter_option": lambda self, option: self._client.async_set_flow_meter_options(
+            self._id, *HA_TO_NEVIWEB_OPTION[option]
+        ),
+        "flow_meter": lambda self, option: self._client.async_set_flow_meter_model(self._id, option),
+        "gauge_type": lambda self, option: self._client.async_set_gauge_type(self._id, option),
+        "hc_fan_speed": lambda self, option: self._client.async_set_fan_mode(self._id, option, self.model),
+        "hc_second_display": lambda self, option: self._client.async_set_hc_display(self._id, option),
+        "heater_temp_min": lambda self, option: self._client.async_set_low_temp_protection(self._id, option),
+        "keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "keypad_status": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "language": lambda self, option: self._client.async_set_language(self._id, option),
+        "led_off_color": lambda self, option: self._client.async_set_led_indicator(self._id, 0, option),
+        "led_on_color": lambda self, option: self._client.async_set_led_indicator(self._id, 1, option),
+        "light_timer": lambda self, option: self._client.async_set_timer(self._id, option),
+        "low_fuel_alert": lambda self, option: self._client.async_set_low_fuel_alert(self._id, option),
+        "lv_cycle_length": lambda self, option: self._client.async_set_cycle_output(self._id, option),
+        "occupancy_mode": lambda self, option: self._client.async_post_neviweb_status(self.location, option),
+        "phase_control": lambda self, option: self._client.async_set_phase(self._id, option),
+        "power_supply": lambda self, option: self._client.async_set_power_supply(self._id, option),
+        "power_timer": lambda self, option: self._client.async_set_timer(self._id, option),
+        "pro_aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
+        "second_display": lambda self, option: self._client.async_set_second_display(self._id, option),
+        "sensor_mode": lambda self, option: self._client.async_set_air_floor_mode(self._id, option),
+        "system_mode": lambda self, option: self._client.async_set_system_mode(self._id, option, self.is_WRM_like),
+        "switch_keypad": lambda self, option: self._client.async_set_keypad_lock(self._id, option, self.is_wifi),
+        "temp_format": lambda self, option: self._client.async_set_temperature_format(self._id, option),
+        "time_format": lambda self, option: self._client.async_set_time_format(self._id, option),
+        "tank_height": lambda self, option: self._client.async_set_tank_height(self._id, option),
+        "tank_size": lambda self, option: self._client.async_set_tank_size(self._id, option),
+        "tank_type": lambda self, option: self._client.async_set_tank_type(self._id, option),
+        "timer": lambda self, option: self._client.async_set_timer(self._id, option),
+        "timer2": lambda self, option: self._client.async_set_timer2(self._id, option),
+        "wifi_aux_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
+        "wifi_cycle_length": lambda self, option: self._client.async_set_aux_cycle_output(self._id, option),
+        "whp_fan_speed": lambda self, option: self._client.async_set_fan_mode(self._id, option, self.model),
+        # ...
+    }
+
+    def __init__(
+        self,
+        client: Neviweb130Client,
+        device: dict,
+        device_name: str,
+        attribute: str,
+        device_id: str,
+        attr_info: DeviceInfo,
+        coordinator,
+        entity_description: Neviweb130SelectEntityDescription,
+        entry: ConfigEntry,
+    ):
+        """Initialize the select entity."""
+        super().__init__(coordinator)
+        self._client = client
+        self._device = device
+        self._id = str(device.get("id"))
+        self._device_name = device_name
+        self._device_id = device_id
+        self._attribute = attribute
+        self._attr_unique_id = f"{entry.entry_id}_{self._device_id}_{entity_description.key}"
+        self._attr_device_info = attr_info
+        self._current_option: str | None = None
+        self.entity_description = entity_description
+        self._attr_icon = entity_description.icon
+        self._attr_translation_key = entity_description.translation_key
+        if entity_description.options is not None:
+            self._attr_options = entity_description.options
+
+    @property
+    def unique_id(self):
+        """Return a unique ID."""
+        return self._attr_unique_id
+
+    @property
+    def model(self) -> str | None:
+        """Return device model."""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("model") if device_obj else None
+
+    @property
+    def is_wifi(self):
+        """Return True if device is a Wi-Fi device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_wifi", False) if device_obj else False
+
+    @property
+    def location(self) -> str | None:
+        """Return location id"""
+        device_obj = self.coordinator.data.get(self._id)
+        loc = device_obj.get("location", None) if device_obj else None
+        return str(loc) if loc is not None else None
+
+    @property
+    def is_HC(self):
+        """Return True if device is a HC device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_HC", False) if device_obj else False
+
+    @property
+    def is_HC_like(self):
+        """Return True if device is a HC device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_HC_like", False) if device_obj else False
+
+    @property
+    def is_WRM_like(self):
+        """Return True if device is a Wi-Fi RM device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_WRM_like", False) if device_obj else False
+
+    @property
+    def is_WHP(self):
+        """Return True if device is a HP6000WF-xx device"""
+        device_obj = self.coordinator.data.get(self._id)
+        return device_obj.get("is_WHP", False) if device_obj else False
+
+    @property
+    def current_option(self):
+        """Return the current selected option."""
+        if self.coordinator.data is None:
+            return None
+        device_obj = self.coordinator.data.get(self._id)
+        if device_obj and self._attribute in device_obj:
+            return device_obj[self._attribute]
+        else:
+            _LOGGER.debug(
+                "AttributeSelect: %s attribute %s not found for device: %s.",
+                self._attr_unique_id,
+                self._attribute,
+                self._id,
+            )
+            return None
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the select."""
+        return {"device_id": self._attr_unique_id}
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected select option if Neviweb accepts it."""
+        attribute = self._attribute
+
+        # Fire an issue if attribute is risky
+        if attribute in RISKY_ATTRIBUTES:
+            create_risky_issue(self.hass, self.entity_id, attribute, option)
+
+        handler = self._ATTRIBUTE_METHODS.get(self._attribute)
+        if handler:
+            success = await handler(self, option)
+            if success:
+                self._current_option = option
+                self._device[self._attribute] = option
+                self.async_write_ha_state()
+                await self.coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning(
+                    "Failed to update select attribute '%s' with option '%s'",
+                    self._attribute,
+                    option,
+                )
+        else:
+            _LOGGER.warning("No handler for select attribute: %s", self._attribute)
