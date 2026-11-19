@@ -4,12 +4,14 @@ import json
 import pathlib
 
 # Base component constants, some loaded directly from the manifest
-_LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore[name-defined]
+_LOADER_PATH = pathlib.Path(__loader__.path)  # type: ignore
 _MANIFEST_PATH = _LOADER_PATH.parent / "manifest.json"
-with pathlib.Path.open(_MANIFEST_PATH, encoding="Latin1") as json_file:
+with _MANIFEST_PATH.open(encoding="utf-8") as json_file:
     data = json.load(json_file)
 NAME = f"{data['name']}"
 DOMAIN = f"{data['domain']}"
+ICON_URL = "/neviweb130/icons"
+ICON_DIR = str(_LOADER_PATH.parent / "icons")
 VERSION = f"{data['version']}"
 ISSUE_URL = f"{data['issue_tracker']}"
 REQUIRE = "2025.1.1"
@@ -24,6 +26,8 @@ This is a custom integration!
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 Documentation: {DOC_URL}
+
+If not done yet, you can delete or comment out the neviweb130 config in configuration.yaml.
 
 To disable update tracking in HACS:
 HACS → Integrations → Sinope Neviweb130 → 3-dot menu → 2 entities →
@@ -49,6 +53,13 @@ CONF_PREFIX = "prefix"
 CONF_SAFE_MODE = "safe_mode"
 CONF_STAT_INTERVAL = "stat_interval"
 
+CONF_REQUEST_LIMIT = "request_limit"
+CONF_UPDATE_INTERVAL = "update_check_interval"
+DEFAULT_REQUEST_LIMIT = 25000
+DEFAULT_UPDATE_INTERVAL = "6h"
+# Delay (seconds) during which device attributes updates are ignored after a local change.
+UPDATE_PROTECTION_DELAY = 10  # seconds
+
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
 ATTR_AIR_ACTIVATION_TEMP = "airCurtainActivationTemperature"
@@ -68,8 +79,8 @@ ATTR_AUX_OPTIM = "auxOptim"
 ATTR_AVAIL_MODE = "availableMode"
 ATTR_AWAY_ACTION = "awayAction"
 ATTR_BACKLIGHT = "backlightAdaptive"
-ATTR_BACKLIGHT_AUTO_DIM = "backlightAutoDim"
 ATTR_BACK_LIGHT = "backlight"
+ATTR_BACKLIGHT_AUTO_DIM = "backlightAutoDim"
 ATTR_BALANCE_PT = "balancePoint"
 ATTR_BALANCE_PT_TEMP_HIGH = "balancePointTempHigh"
 ATTR_BALANCE_PT_TEMP_LOW = "balancePointTempLow"
@@ -87,6 +98,7 @@ ATTR_COLD_LOAD_PICKUP = "coldLoadPickup"
 ATTR_COLD_LOAD_PICKUP_REMAIN_TIME = "coldLoadPickupRemainingTime"
 ATTR_COLD_LOAD_PICKUP_STATUS = "coldLoadPickupStatus"
 ATTR_COLD_LOAD_PICKUP_TEMP = "coldLoadPickupTemperature"
+ATTR_COLOR = "color"
 ATTR_CONF_CLOSURE = "cfgValveClosure"
 ATTR_CONTROLLED_DEVICE = "controlledDevice"
 ATTR_COOL_CYCLE_LENGTH = "coolCycleLength"
@@ -276,7 +288,7 @@ ATTR_WATER_LEAK_STATUS = "waterLeakStatus"
 ATTR_WATER_TANK_ON = "waterTankTimeOn"
 ATTR_WATER_TEMPERATURE = "waterTemperature"
 ATTR_WATER_TEMP_MIN = "drConfigWaterTempMin"
-ATTR_WATER_TEMP_PROTECT = "waterTempProtectionType"
+ATTR_WATER_TEMP_PROTEC = "waterTempProtectionType"
 ATTR_WATER_TEMP_TIME = "waterTempTime"
 ATTR_WATTAGE = "loadConnected"
 ATTR_WATTAGE_INSTANT = "wattageInstant"
@@ -284,8 +296,10 @@ ATTR_WATTAGE_OVERRIDE = "wattageOverride"
 ATTR_WATT_TIME_ON = "drWTTimeOn"
 ATTR_WIFI = "wifiRssi"
 ATTR_WIFI_KEYPAD = "keyboardLock"
-ATTR_WIFI_WATTAGE = "loadWatt"
+ATTR_WIFI_WATTAGE = "loadWatt"  # value
 ATTR_WIFI_WATT_NOW = "loadWattNow"
+
+SIGNAL_EVENTS_CHANGED = f"{DOMAIN}_events_changed"
 
 MODE_AUTO = "auto"
 MODE_AUTO_BYPASS = "autoBypass"
@@ -294,6 +308,9 @@ MODE_EM_HEAT = "emergencyHeat"
 MODE_HOME = "home"
 MODE_MANUAL = "manual"
 MODE_OFF = "off"
+
+PRESET_MANUAL = "manual"
+PRESET_SCHEDULE = "schedule"
 
 STATE_KEYPAD_STATUS = "unlocked"
 STATE_VALVE_STATUS = "opened"
@@ -305,7 +322,6 @@ SERVICE_SET_AIR_FLOOR_MODE = "set_air_floor_mode"
 SERVICE_SET_AUXILIARY_LOAD = "set_auxiliary_load"
 SERVICE_SET_AUX_CYCLE_OUTPUT = "set_aux_cycle_output"
 SERVICE_SET_AUX_HEATING_SOURCE = "set_aux_heating_source"
-SERVICE_SET_AUX_HEAT_START_DELAY = "set_aux_heat_start_delay"
 SERVICE_SET_BACKLIGHT = "set_backlight"
 SERVICE_SET_BATTERY_ALERT = "set_battery_alert"
 SERVICE_SET_BATTERY_TYPE = "set_battery_type"
@@ -337,7 +353,6 @@ SERVICE_SET_GAUGE_TYPE = "set_gauge_type"
 SERVICE_SET_HC_SECOND_DISPLAY = "set_hc_second_display"
 SERVICE_SET_HEATCOOL_SETPOINT_DELTA = "set_heatcool_setpoint_delta"
 SERVICE_SET_HEAT_DISSIPATION_TIME = "set_heat_dissipation_time"
-SERVICE_SET_HEAT_INSTALLATION_TYPE = "set_heat_installation_type"
 SERVICE_SET_HEAT_INTERSTAGE_DELAY = "set_heat_interstage_delay"
 SERVICE_SET_HEAT_LOCKOUT_TEMPERATURE = "set_heat_lockout_temperature"
 SERVICE_SET_HEAT_PUMP_OPERATION_LIMIT = "set_heat_pump_operation_limit"
@@ -369,12 +384,15 @@ SERVICE_SET_REVERSING_VALVE_POLARITY = "set_reversing_valve_polarity"
 SERVICE_SET_ROOM_SETPOINT_AWAY = "set_room_setpoint_away"
 SERVICE_SET_SCHEDULE_MODE = "set_schedule_mode"
 SERVICE_SET_SECOND_DISPLAY = "set_second_display"
-SERVICE_SET_SENSOR_ALERT = "set_sensor_alert"
+SERVICE_SET_SENSOR_CLOSURE_ACTION = "set_sensor_closure_action"
+SERVICE_SET_SENSOR_LEAK_ALERT = "set_sensor_leak_alert"
+SERVICE_SET_SENSOR_TEMP_ALERT = "set_sensor_temp_alert"
 SERVICE_SET_SENSOR_TYPE = "set_sensor_type"
 SERVICE_SET_SETPOINT_MAX = "set_setpoint_max"
 SERVICE_SET_SETPOINT_MIN = "set_setpoint_min"
 SERVICE_SET_SOUND_CONFIG = "set_sound_config"
 SERVICE_SET_SWITCH_KEYPAD_LOCK = "set_switch_keypad_lock"
+SERVICE_SET_SWITCH_POWER_TIMER = "set_switch_power_timer"
 SERVICE_SET_SWITCH_TEMP_ALERT = "set_switch_temp_alert"
 SERVICE_SET_SWITCH_TIMER = "set_switch_timer"
 SERVICE_SET_SWITCH_TIMER_2 = "set_switch_timer2"
@@ -388,7 +406,7 @@ SERVICE_SET_VALVE_ALERT = "set_valve_alert"
 SERVICE_SET_VALVE_TEMP_ALERT = "set_valve_temp_alert"
 SERVICE_SET_WATTAGE = "set_wattage"
 
-# Descriptions of the Neviweb error messages received.
+# Descriptions of the neviweb error messages received.
 NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
     "ACCDAYREQMAX": ("Maximum daily request reached (30000 requests/day). Reduce polling frequency."),
     "ACCSESSEXC": (
@@ -416,20 +434,1650 @@ NEVIWEB_ERROR_MESSAGES: dict[str, str] = {
 }
 
 # Thermostats supporting backlightAdaptive="bedroom"
-HAVE_BEDROOM_BACKLIGHT: set[int] = {
+HAVE_BEDROOM_BACKLIGHT: set[str] = {
+    "300",
+    "336",
+    "343",
+    "348",
+    "350",
+    "354",
+    "738",
+    "739",
+    "742",
+    "1510",
+    "1512",
+    "6727",
+    "6730",
+    "6731",
+    "6734",
+}
+
+CLIMATE_MODEL = [
     300,
     336,
     343,
     348,
     350,
     354,
+    737,
     738,
     739,
     742,
+    1123,
+    1124,
     1510,
     1512,
     6727,
     6730,
     6731,
     6734,
+    6810,
+    6811,
+    6812,
+    6813,
+    6814,
+    6815,
+    7372,
+    7373,
+]
+LIGHT_MODEL = [2121, 21212, 2131, 21312, 2132, 21322]
+SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 25062, 2600, 2610, 26002, 26102]
+VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
+SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
+ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
+FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
+
+TH6_MODES_VALUES: dict[str, str] = {
+    "heat_stage1": "heatStage1RuntimeAndTimestamp",
+    "heat_stage2": "heatStage2RuntimeAndTimestamp",
+    "cool_stage1": "coolStage1RuntimeAndTimestamp",
+    "cool_stage2": "coolStage2RuntimeAndTimestamp",
+    "aux_heat_stage1": "auxHeatStage1RuntimeAndTimestamp",
+    "aux_heat_stage2": "auxHeatStage2RuntimeAndTimestamp",
+    "fan": "fanRuntimeAndTimestamp",
+    "emergency_heat": "emergencyHeatRuntimeAndTimestamp",
 }
+
+RUNTIME_COMPATIBLE_MODELS = {
+    "TH6": [6727, 6730, 6731],  # TH6500WF, TH6250WF
+}
+
+RUNTIME_PREFIXES = ["hourly"]
+
+RISKY_ATTRIBUTES = [
+    "aux_cycle_length",
+    "cool_lockout_temp",
+    "cycle_length",
+    "flowmeter_timer",
+    "flow_duration",
+    "heat_lockout_temp",
+    "lv_cycle_length",
+    "phase_control",
+    "pro_aux_cycle_length",
+    "wifi_aux_cycle_length",
+    "wifi_cycle_length",
+]
+
+# list attributes available for each device model
+MODEL_ATTRIBUTES = {
+    # thermostats
+    300: {  # TH1123ZB-G2 3000W, TH1124ZB-G2 4000W
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    336: {  # TH1133WF, TH1134WF
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "temp_format",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    343: {  # THEWF01
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "temp_format",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    348: {  # TH1133CR, TH1134CR
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "temp_format",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    350: {  # TH1143WF, TH1144WF color screen
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    354: {  # TH1145WF color screen
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    737: {  # TH1300ZB 3600W, TH1320ZB-04, OTH3600-GA-ZB
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "floor_setpoint_max",
+            "floor_setpoint_min",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "backlight",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "sensor_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    738: {  # TH1300WF 3600W, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort, concerto connect FLP55
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "floor_setpoint_max",
+            "floor_setpoint_min",
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "sensor_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    739: {  # TH1400WF low voltage
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "floor_setpoint_max",
+            "floor_setpoint_min",
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "aux_cycle_length",
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "lv_cycle_length",
+            "occupancy_mode",
+            "second_display",
+            "sensor_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    742: {  # TH1500WF double pole
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "temp_format",
+            "time_format",
+            "wifi_cycle_length",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    1123: {  # TH1123ZB 3000W
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "aux_cycle_length",
+            "backlight",
+            "cycle_length",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    1124: {  # TH1124ZB 4000W, OTH4000-ZB
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "aux_cycle_length",
+            "backlight",
+            "cycle_length",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    1510: {  # TH1123WF 3000W, TH1124WF 4000W
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+        ],
+        "select": [
+            "backlight",
+            "cycle_length",
+            "early_start",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    1512: {  # TH1134ZB-HC
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "aux_cycle_length",
+            "backlight",
+            "cycle_length",
+            "hc_second_display",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6727: {  # TH6500WF, TH6510WF
+        "sensor": [
+            "current_humidity",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "fan_filter_remain",
+            "heat_lockout_temp",
+            "max_cool_temp",
+            "min_cool_temp",
+            "max_temp",
+            "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "hc_fan_speed",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+            "pro_aux_cycle_length",
+            "wifi_cycle",
+        ],
+        "binary_sensor": [
+            "activation",
+            "emergency_heat_allowed",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6730: {  # TH6250WF
+        "sensor": [
+            "current_humidity",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "fan_filter_remain",
+            "heat_lockout_temp",
+            "max_cool_temp",
+            "max_temp",
+            "min_cool_temp",
+            "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "hc_fan_speed",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+            "wifi_aux_cycle_length",
+            "wifi_cycle",
+        ],
+        "binary_sensor": [
+            "activation",
+            "emergency_heat_allowed",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6731: {  # TH6250WF-PRO
+        "sensor": [
+            "current_humidity",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "fan_filter_remain",
+            "heat_lockout_temp",
+            "max_cool_temp",
+            "max_temp",
+            "min_cool_temp",
+            "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "hc_fan_speed",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+            "pro_aux_cycle_length",
+            "wifi_cycle",
+        ],
+        "binary_sensor": [
+            "activation",
+            "emergency_heat_allowed",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6734: {  # TH6251WF-PRO
+        "sensor": [
+            "current_humidity",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "fan_filter_remain",
+            "heat_lockout_temp",
+            "max_cool_temp",
+            "max_temp",
+            "min_cool_temp",
+            "min_temp",
+            "setpoint_away",
+            "temp_offset_heat",
+        ],
+        "select": [
+            "backlight",
+            "early_start",
+            "hc_fan_speed",
+            "keypad_status",
+            "language",
+            "occupancy_mode",
+            "temp_format",
+            "time_format",
+            "pro_aux_cycle_length",
+            "wifi_cycle",
+        ],
+        "binary_sensor": [
+            "activation",
+            "emergency_heat_allowed",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6810: {  # HP6000ZB-GE
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad_status"],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6811: {  # HP6000ZB-MA
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad_status"],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6812: {  # HP6000ZB-HS
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": ["keypad_status"],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6813: {  # HP6000WF-MA
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "keypad_status",
+            "whp_fan_speed",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6814: {  # HP6000WF-TCL
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "keypad_status",
+            "whp_fan_speed",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    6815: {  # HP6000WF-HA
+        "sensor": [
+            ATTR_RSSI,
+            "native_current_temperature",
+            "occupancy_mode",
+            "outdoor_temp",
+            "weather_icon",
+        ],
+        "number": [
+            "cool_lockout_temp",
+            "cool_setpoint_away",
+            "heat_lockout_temp",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "keypad_status",
+            "whp_fan_speed",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    7372: {  # TH1400ZB low voltage, TH1420ZB-01 Nordik
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "weather_icon",
+        ],
+        "number": [
+            "floor_setpoint_max",
+            "floor_setpoint_min",
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "aux_cycle_length",
+            "backlight",
+            "keypad_status",
+            "lv_cycle_length",
+            "occupancy_mode",
+            "second_display",
+            "sensor_mode",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    7373: {  # TH1500ZB double pole
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "native_current_temperature",
+            "outdoor_temp",
+            "pi_heating_demand",
+            "total_kwh_count",
+            "wattage",
+            "weather_icon",
+        ],
+        "number": [
+            "max_temp",
+            "min_temp",
+        ],
+        "select": [
+            "aux_cycle_length",
+            "backlight",
+            "cycle_length",
+            "keypad_status",
+            "occupancy_mode",
+            "second_display",
+            "temp_format",
+            "time_format",
+        ],
+        "binary_sensor": [
+            "activation",
+            "is_heating",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    # Lights
+    2121: {  # SW2500ZB, SW2500ZB-G2
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+        ],
+        "number": [
+            "led_off_intensity",
+            "led_on_intensity",
+        ],
+        "select": [
+            "keypad",
+            "led_off_color",
+            "led_on_color",
+            "light_timer",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    21212: {  # SW2500ZB, SW2500ZB-G2 connected to Sedna valve
+        "sensor": [],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2131: {  # DM2500ZB, DM2500ZB-G2
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+        ],
+        "number": [
+            "brightness",
+            "intensity_min",
+            "led_off_intensity",
+            "led_on_intensity",
+        ],
+        "select": [
+            "keypad",
+            "led_off_color",
+            "led_on_color",
+            "light_timer",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    21312: {  # DM2500ZB, DM2500ZB-G2 connected to Sedna valve
+        "sensor": [],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2132: {  # DM2550ZB, DM2550ZB-G2
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+        ],
+        "number": [
+            "brightness",
+            "intensity_min",
+            "led_off_intensity",
+            "led_on_intensity",
+        ],
+        "select": [
+            "keypad",
+            "led_off_color",
+            "led_on_color",
+            "light_timer",
+            "phase_control",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    21322: {  # DM2550ZB, DM2550ZB-G2 connected to Sedna valve
+        "sensor": [],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    # Switch
+    346: {  # RM3250WF, 40A, Wi-Fi
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+            "wattage_instant",
+            "wifirssi",
+        ],
+        "number": [],
+        "select": [
+            "controlled_device",
+            "power_timer",
+            "system_mode",
+            "switch_keypad",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2151: {  # RM3500ZB 20,8A, Zigbee
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "water_temperature",
+            "wattage",
+            "wattage_instant",
+        ],
+        "number": ["water_remaining_time"],
+        "select": [
+            "tank_size",
+            "heater_temp_min",
+        ],
+        "binary_sensor": [
+            "activation",
+            "water_leak_status",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2152: {  # RM3500WF 20,8A, Wi-Fi, RM3510WF 20,8A, Wi-Fi
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "water_temperature",
+            "wattage",
+            "wattage_instant",
+        ],
+        "number": ["water_remaining_time"],
+        "select": [
+            "heater_temp_min",
+            "system_mode",
+            "tank_size",
+        ],
+        "binary_sensor": [
+            "activation",
+            "water_leak_status",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2180: {  # MC3100ZB connected to GT130
+        "sensor": [
+            ATTR_RSSI,
+            "battery_voltage",
+            "room_humidity",
+            "room_temperature",
+            "extern_temperature",
+        ],
+        "number": [],
+        "select": [
+            "timer",
+            "timer2",
+        ],
+        "binary_sensor": [
+            "activation",
+            "low_temp_status",
+            "input1_status",
+            "input2_status",
+        ],
+        "button": [],
+        "switch": [
+            "alert_temp",
+            "onoff2",
+            "safe_mode",
+        ],
+    },
+    2181: {  # MC3100ZB connected to Sedna valve
+        "sensor": [
+            "battery_voltage",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "activation",
+            "input1_status",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2506: {  # RM3250ZB, 50A, Zigbee
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+            "wattage_instant",
+        ],
+        "number": [],
+        "select": [
+            "controlled_device",
+            "power_timer",
+            "switch_keypad",
+        ],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    25062: {  # RM3250ZB-VA, 50A, Zigbee connected via Sedna valve
+        "sensor": [],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2600: {  # SP2600ZB
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+            "wattage_instant",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    26002: {  # SP2600ZB connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    2610: {  # SP2610ZB
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "wattage",
+            "wattage_instant",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    26102: {  # SP2610ZB connected to Sedna valve
+        "sensor": [
+            ATTR_RSSI,
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    # Valves
+    3150: {  # VA4201WZ, VA4200WZ, VA4220WZ, VA4220WF, VA4221WZ, VA4221WF
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "motor_position",
+            "motor_target",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": [
+            "activation",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    3151: {  # VA4200ZB
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+        ],
+        "number": [],
+        "select": [],
+        "binary_sensor": ["activation"],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    3153: {  # VA4220ZB 2e gen
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [
+            "flowmeter_timer",
+            "flow_duration",
+            "flow_meter",
+            "power_supply",
+        ],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
+            "valve_temp_alert",
+            "water_leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "safe_mode",
+            "temperature_alert",
+            "valve_alert",
+        ],
+    },
+    3155: {  # ACT4221WF-M, ACT4220WF-M
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "motor_position",
+            "motor_target",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [
+            "flowmeter_timer",
+            "flow_duration",
+            "flow_meter",
+            "power_supply",
+        ],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
+            "valve_temp_alert",
+            "water_leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "safe_mode",
+            "temperature_alert",
+            "valve_alert",
+        ],
+    },
+    31532: {  # ACT4221ZB-M, ACT4220ZB-M
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+        ],
+        "number": [],
+        "select": [
+            "flowmeter_timer",
+            "flow_duration",
+            "flow_meter",
+            "power_supply",
+        ],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "stm8Error_motorJam",
+            "stm8Error_motorLimit",
+            "stm8Error_motorPosition",
+            "valve_temp_alert",
+            "water_leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "safe_mode",
+            "temperature_alert",
+            "valve_alert",
+        ],
+    },
+    # sensors
+    130: {  # GT130
+        "sensor": [],
+        "number": [],
+        "select": ["occupancy_mode"],
+        "binary_sensor": [
+            "activation",
+            "gateway_status",
+        ],
+        "button": [],
+        "switch": [],
+    },
+    4210: {  # WL4210, WL4210S connected to GT130
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "sensor_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "batt_alert",
+            "leak_alert",
+            "safe_mode",
+            "temp_alert",
+        ],
+    },
+    42102: {  # WL4210, WL4210S connected to sedna valve
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "sensor_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "action_close",
+            "batt_alert",
+            "leak_alert",
+            "safe_mode",
+            "temp_alert",
+        ],
+    },
+    5050: {  # WL4200, WL4210 and WL4200S, connected via Sedna valve
+        "sensor": [
+            "battery_level",
+            "sensor_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "action_close",
+            "batt_alert",
+            "safe_mode",
+            "temp_alert",
+        ],
+    },
+    5051: {  # WL4200, WL4200C and WL4200S
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "sensor_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "batt_alert",
+            "leak_alert",
+            "safe_mode",
+            "temp_alert",
+        ],
+    },
+    5052: {  # WL4200C, perimeter cable water leak detector connected via Sedna valve
+        "sensor": [
+            "battery_level",
+            "sensor_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "action_close",
+            "batt_alert",
+            "safe_mode",
+            "temp_alert",
+        ],
+    },
+    5053: {  # WL4200C, perimeter cable water leak detector connected to GT130
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "sensor_temperature",
+        ],
+        "number": [],
+        "select": ["batt_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "leak_status",
+        ],
+        "button": [],
+        "switch": [
+            "batt_alert",
+            "leak_alert",
+            "safe_mode",
+            "temp_alert",
+        ],
+    },
+    5055: {  # LM4110-LTE
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+        ],
+        "number": ["gauge_angle"],
+        "select": ["gauge_type"],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "gauge_error",
+            "level_status",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
+    5056: {  # LM4110-ZB
+        "sensor": [
+            ATTR_RSSI,
+            "battery_level",
+            "battery_voltage",
+            "gauge_angle",
+        ],
+        "number": ["gauge_angle"],
+        "select": [
+            "gauge_type",
+            "low_fuel_alert",
+            "tank_height",
+            "tank_type",
+        ],
+        "binary_sensor": [
+            "activation",
+            "battery_status",
+            "gauge_error",
+            "level_status",
+            "refuel_status",
+        ],
+        "button": [],
+        "switch": [
+            "batt_alert",
+            "fuel_alert",
+            "refuel_alert",
+            "safe_mode",
+        ],
+    },
+}
+
+# Managed device attributes by alphabetical order
+EXPOSED_ATTRIBUTES = [
+    "action_close",
+    "activation",
+    "alert_temp",
+    "aux_cycle_length",
+    "backlight",
+    "batt_alert",
+    "batt_type",
+    "battery_icon",
+    "battery_level",
+    "battery_status",
+    "battery_voltage",
+    "brightness",
+    "controlled_device",
+    "cool_lockout_temp",
+    "cool_setpoint_away",
+    "current_humidity",
+    "cycle_length",
+    "daily_flow_count",
+    "daily_kwh_count",
+    "early_start",
+    "emergency_heat_allowed",
+    "extern_temperature",
+    "fan_filter_remain",
+    "floor_setpoint_max",
+    "floor_setpoint_min",
+    "flow_duration",
+    "flow_meter",
+    "flowmeter_timer",
+    "fuel_alert",
+    "gateway_status",
+    "gauge_angle",
+    "gauge_error",
+    "gauge_type",
+    "hc_fan_speed",
+    "hc_second_display",
+    "heater_temp_min",
+    "heat_lockout_temp",
+    "hourly_flow_count",
+    "hourly_kwh_count",
+    "icon_type",
+    "input1_status",
+    "input2_status",
+    "intensity_min",
+    "is_em_heat",
+    "is_heating",
+    "keypad",
+    "keypad_status",
+    "language",
+    "leak_alert",
+    "leak_icon",
+    "leak_status",
+    "led_off_color",
+    "led_off_intensity",
+    "led_on_color",
+    "led_on_intensity",
+    "level_status",
+    "light_timer",
+    "location",
+    "low_fuel_alert",
+    "low_temp_status",
+    "lv_cycle_length",
+    "max_cool_temp",
+    "max_temp",
+    "min_cool_temp",
+    "min_temp",
+    "monthly_flow_count",
+    "monthly_kwh_count",
+    "motor_position",
+    "motor_target",
+    "native_current_temperature",
+    "occupancy_mode",
+    "outdoor_temp",
+    "phase_control",
+    "pi_heating_demand",
+    "power_supply",
+    "power_timer",
+    "pro_aux_cycle_length",
+    "refuel_alert",
+    "refuel_status",
+    "room_humidity",
+    "room_temperature",
+    "rssi",
+    "safe_mode",
+    "second_display",
+    "sensor_mode",
+    "sensor_temperature",
+    "setpoint_away",
+    "stm8Error_motorJam",
+    "stm8Error_motorLimit",
+    "stm8Error_motorPosition",
+    "system_mode",
+    "switch_keypad",
+    "tank_height",
+    "tank_size",
+    "tank_type",
+    "temperature_alert",
+    "temp_alert",
+    "temp_format",
+    "temp_offset_heat",
+    "time_format",
+    "timer",
+    "timer2",
+    "total_flow_count",
+    "total_kwh_count",
+    "valve_alert",
+    "valve_temp_alert",
+    "wattage",
+    "wattage_instant",
+    "water_leak_status",
+    "water_remaining_time",
+    "water_temperature",
+    "weather_icon",
+    "wifi_aux_cycle_length",
+    "wifi_cycle",
+    "wifirssi",
+    "whp_fan_speed",
+    # Constants
+    "model",
+    "is_color_wifi",
+    "is_gen2",
+    "is_HC_like",
+    "is_HC",
+    "is_heating",
+    "is_HP",
+    "is_WHP",
+    "is_wifi",
+    "is_wifi_floor",
+    "is_WRM_like",
+    "is_zb_valve",
+    "is_zb_mesh_valve",
+    "sku",
+    # ... etc.
+]
