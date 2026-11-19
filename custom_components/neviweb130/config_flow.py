@@ -1,0 +1,673 @@
+"""Config flow for neviweb130 integration"""
+
+from __future__ import annotations
+
+# import json
+import logging
+import os
+from typing import Any, cast
+
+import aiohttp
+import voluptuous as vol
+from homeassistant import config_entries, exceptions
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
+
+from . import LOG_PATH, async_shutdown
+from .const import (
+    CONF_HOMEKIT_MODE,
+    CONF_IGNORE_MIWI,
+    CONF_NETWORK,
+    CONF_NETWORK2,
+    CONF_NETWORK3,
+    CONF_NOTIFY,
+    CONF_PREFIX,
+    CONF_REQUEST_LIMIT,
+    CONF_SAFE_MODE,
+    CONF_STAT_INTERVAL,
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_REQUEST_LIMIT,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+    STARTUP_MESSAGE,
+    VERSION,
+)
+from .coordinator import PyNeviweb130Error
+from .helpers import (
+    async_notify_critical,
+    async_notify_once_or_update,
+    expose_log_file,
+    translate_error,
+)
+from .schema import (
+    HOMEKIT_MODE,
+    IGNORE_MIWI,
+    NOTIFY,
+    PREFIX,
+)
+from .schema import SAFE_MODE as DEFAULT_SAFE_MODE
+from .schema import (
+    SCAN_INTERVAL_SCHEMA,
+    STAT_INTERVAL,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+HOST = "https://neviweb.com"
+LOGIN_URL = f"{HOST}/api/login"
+
+FLOW_SCHEMA = vol.Schema(
+    {
+        vol.Optional(CONF_PREFIX, default=PREFIX): cv.string,
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_NETWORK, default=""): cv.string,
+        vol.Optional(CONF_NETWORK2, default=""): cv.string,
+        vol.Optional(CONF_NETWORK3, default=""): cv.string,
+        vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL_SCHEMA): vol.All(
+            vol.Coerce(int), vol.Range(min=300, max=600)
+        ),
+        vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
+        vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,
+        vol.Optional(CONF_STAT_INTERVAL, default=STAT_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
+        vol.Optional(CONF_NOTIFY, default=NOTIFY): vol.In(["nothing", "logging", "notification", "both"]),
+        vol.Optional(CONF_SAFE_MODE, default="-"): cv.string,
+    }
+)
+
+
+async def async_validate_email(user: str | None) -> None:
+    """Validate the username as email."""
+    if user is None:
+        raise InvalidUserEmail("Empty user.")
+
+    try:
+        vol.Email()(user)
+    except vol.Invalid as exc:
+        raise InvalidUserEmail(f"Invalid email format: {user}") from exc
+
+
+async def async_test_connect(user: str | None, passwd: str | None) -> None:
+    """Validate Neviweb connection with supplied parameters."""
+    data = {
+        "username": user,
+        "password": passwd,
+        "interface": "neviweb",
+        "stayConnected": 0,
+    }
+
+    timeout = aiohttp.ClientTimeout(total=30)
+    _LOGGER.debug("Using timeout: %s", timeout.total)
+
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(
+                LOGIN_URL,
+                json=data,
+                cookies=None,
+                allow_redirects=False,
+                timeout=timeout,
+            ) as response:
+                _LOGGER.debug("Validate login status: %s", response.status)
+                if response.status != 200:
+                    raise CannotConnect("Cannot log in to Neviweb")
+        except aiohttp.ClientError as e:
+            raise PyNeviweb130Error("Cannot submit test login form... Check your network or firewall.") from e
+
+
+async def async_validate_input(data: dict[str, Any]) -> dict[str, Any]:
+    """Validate the user input configuration."""
+    prefi = data.get(CONF_PREFIX)
+    user: str | None = data.get(CONF_USERNAME)
+    passwd: str | None = data.get(CONF_PASSWORD)
+    net = data.get(CONF_NETWORK)
+    net2 = data.get(CONF_NETWORK2)
+    net3 = data.get(CONF_NETWORK3)
+    homekit = data.get(CONF_HOMEKIT_MODE)
+    ignore = data.get(CONF_IGNORE_MIWI)
+    scan = data.get(CONF_SCAN_INTERVAL)
+    stat = data.get(CONF_STAT_INTERVAL)
+    notif = data.get(CONF_NOTIFY)
+    safe = data.get(CONF_SAFE_MODE)
+
+    await async_validate_email(user)
+
+    try:
+        await async_test_connect(user, passwd)
+        _LOGGER.debug("Test of Neviweb connection successful...")
+    except CannotConnect as exc:
+        _LOGGER.debug("Error in Neviweb test connection, check email and password...")
+        raise CannotConnect(str(exc)) from exc
+    except PyNeviweb130Error as exc:
+        _LOGGER.debug("Network error during Neviweb test connection")
+        raise exc
+
+    return {
+        CONF_PREFIX: prefi,
+        CONF_USERNAME: user,
+        CONF_PASSWORD: passwd,
+        CONF_NETWORK: net,
+        CONF_NETWORK2: net2,
+        CONF_NETWORK3: net3,
+        CONF_HOMEKIT_MODE: homekit,
+        CONF_IGNORE_MIWI: ignore,
+        CONF_SCAN_INTERVAL: scan,
+        CONF_STAT_INTERVAL: stat,
+        CONF_NOTIFY: notif,
+        CONF_SAFE_MODE: safe,
+    }
+
+
+class Neviweb130ConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Sinope Neviweb130 config flow."""
+
+    VERSION = 1
+
+    hass: HomeAssistant
+
+    data: dict[str, Any] | None
+
+    def __init__(self) -> None:
+        """Initialise Neviweb130 config flow."""
+        _LOGGER.info(STARTUP_MESSAGE)
+
+        self.username = None
+        self.password = None
+        self.network = None
+        self.network2 = None
+        self.network3 = None
+        self.scan_interval = 480
+        self.homekit_mode = False
+        self.ignore_miwi = False
+        self.stat_interval = 1800
+        self.notify = "both"
+        self.prefix = ""
+        self.safe_mode = "-"
+        self._cookies = None
+        self._timeout = 30
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Invoked when a user initiates a flow via the user interface."""
+        # Only a single instance of the integration
+        _LOGGER.debug("current_entry number = %s", len(self._async_current_entries()))
+        if len(self._async_current_entries()) > 3:
+            return cast(ConfigFlowResult, self.async_abort(reason="Max_three_instances_allowed"))
+
+        errors: dict[str, Any] = {}
+
+        if user_input is None:
+            return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
+
+        if user_input is not None:
+            info = None
+            try:
+                info = await async_validate_input(user_input)
+            except InvalidUserEmail:
+                errors["base"] = "invalid_user_email"
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except (vol.MultipleInvalid, vol.ValueInvalid):
+                errors["base"] = "bad_data_entry"
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+            if info is not None and not errors:
+                user_input[CONF_PREFIX] = info[CONF_PREFIX]
+                user_input[CONF_USERNAME] = info[CONF_USERNAME]
+                user_input[CONF_PASSWORD] = info[CONF_PASSWORD]
+                user_input[CONF_NETWORK] = info[CONF_NETWORK]
+                user_input[CONF_NETWORK2] = info[CONF_NETWORK2]
+                user_input[CONF_NETWORK3] = info[CONF_NETWORK3]
+                user_input[CONF_HOMEKIT_MODE] = info[CONF_HOMEKIT_MODE]
+                user_input[CONF_IGNORE_MIWI] = info[CONF_IGNORE_MIWI]
+                user_input[CONF_SCAN_INTERVAL] = info[CONF_SCAN_INTERVAL]
+                user_input[CONF_STAT_INTERVAL] = info[CONF_STAT_INTERVAL]
+                user_input[CONF_NOTIFY] = info[CONF_NOTIFY]
+                user_input[CONF_SAFE_MODE] = info[CONF_SAFE_MODE]
+
+            self.data = user_input
+            result = await self.async_set_unique_id(user_input[CONF_USERNAME].strip().lower())
+            _LOGGER.debug("Configure entry unique_id: %s", result)
+            self._abort_if_unique_id_configured(error="already_configured_for_this_user")
+            return cast(ConfigFlowResult, self.async_create_entry(title="Sinope Neviweb130", data=self.data))
+
+        return cast(ConfigFlowResult, self.async_show_form(step_id="user", data_schema=FLOW_SCHEMA, errors=errors))
+
+    async def async_step_import(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Import one Neviweb130 account from configuration.yaml."""
+        user_input = user_input or {}
+
+        username = user_input[CONF_USERNAME].strip().lower()
+        prefix = user_input[CONF_PREFIX]
+
+        _LOGGER.warning(
+            "YAML import: processing account prefix=%s, username=%s",
+            prefix,
+            username,
+        )
+
+        # Username must be unique.
+        await self.async_set_unique_id(username)
+        self._abort_if_unique_id_configured(error="already_configured_for_this_user")
+
+        # Prefix must also be unique.
+        existing_prefix = [entry for entry in self._async_current_entries() if entry.data.get("prefix") == prefix]
+
+        if existing_prefix:
+            msg = await translate_error(self.hass, "duplicated_prefix", prefix=prefix)
+            _LOGGER.warning(msg)
+            await async_notify_critical(
+                self.hass,
+                msg,
+                title=f"Neviweb130 integration {VERSION}",
+                notification_id=f"import_prefix_{prefix}",
+            )
+
+            return cast(
+                ConfigFlowResult,
+                self.async_abort(reason="prefix_already_configured"),
+            )
+
+        _LOGGER.warning(
+            "YAML import: creating ConfigEntry prefix=%s, username=%s",
+            prefix,
+            username,
+        )
+
+        # Inform the user that YAML is deprecated
+        msg = await translate_error(self.hass, "config_imported", prefix=prefix)
+        _LOGGER.info(msg)
+        await async_notify_once_or_update(
+            self.hass,
+            msg,
+            title=f"Neviweb130 integration {VERSION}",
+            notification_id=f"neviweb130_config_imported_{prefix}",
+        )
+
+        return cast(
+            ConfigFlowResult,
+            self.async_create_entry(
+                title=f"Neviweb130 ({prefix})",
+                data=user_input,
+            ),
+        )
+
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> FlowResult[Any]:
+        """Add reconfigure step to allow to reconfigure a config entry."""
+
+        # get entry
+        reconfigure_entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+
+        # If user submitted the form
+        if user_input is not None:
+            try:
+                # validate new config entry
+                info = await async_validate_input(user_input)
+                # Merge validated values
+                user_input.update(info)
+                # Close active session
+                domain_data = self.hass.data.get(DOMAIN, {})
+                entry_data = domain_data.get(reconfigure_entry.entry_id, {})
+                session_manager = entry_data.get("session")
+
+            except InvalidUserEmail:
+                errors["base"] = "invalid_user_email"
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except (vol.MultipleInvalid, vol.ValueInvalid):
+                errors["base"] = "bad_data_entry"
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+
+            if not errors:
+                await self.async_set_unique_id(reconfigure_entry.unique_id)
+                self._abort_if_unique_id_mismatch()
+
+                # Stop coordinator before closing session
+                coordinator = entry_data.get("coordinator")
+                if coordinator:
+                    _LOGGER.debug("Stopping coordinator before closing session")
+                    try:
+                        await coordinator.async_shutdown()
+                    except Exception:
+                        _LOGGER.exception("Error while stopping coordinator")
+
+                # Close active session
+                session_manager = entry_data.get("session")
+                if session_manager:
+                    _LOGGER.debug("Closing active Neviweb session before restart")
+                    try:
+                        await session_manager.close_session()
+                    except Exception:
+                        _LOGGER.exception("Error while closing Neviweb session")
+
+                # Notify user that Neviweb130 has been reloaded
+                msg = await translate_error(self.hass, "configuration_reloaded")
+                self.hass.async_create_task(
+                    self.hass.services.async_call(
+                        "persistent_notification",
+                        "create",
+                        {
+                            "title": "Neviweb130",
+                            "message": msg,
+                            "notification_id": "configuration_reloaded",
+                        },
+                    )
+                )
+
+                return self.async_update_reload_and_abort(
+                    self._get_reconfigure_entry(),
+                    data_updates=user_input,
+                )
+
+        merged_data = {**reconfigure_entry.data, **reconfigure_entry.options}
+        prefix_value = merged_data.get(CONF_PREFIX, "")
+
+        RECONFIGURE_FLOW_SCHEMA = vol.Schema(
+            {
+                vol.Required(CONF_PREFIX, default=prefix_value): cv.string,
+                vol.Required(CONF_USERNAME, default=reconfigure_entry.data[CONF_USERNAME]): cv.string,
+                vol.Required(CONF_PASSWORD, default=reconfigure_entry.data[CONF_PASSWORD]): cv.string,
+                vol.Optional(CONF_NETWORK, default=reconfigure_entry.data.get(CONF_NETWORK, "")): cv.string,
+                vol.Optional(CONF_NETWORK2, default=reconfigure_entry.data.get(CONF_NETWORK2, "")): cv.string,
+                vol.Optional(CONF_NETWORK3, default=reconfigure_entry.data.get(CONF_NETWORK3, "")): cv.string,
+                vol.Optional(CONF_SCAN_INTERVAL, default=reconfigure_entry.data[CONF_SCAN_INTERVAL]): vol.All(
+                    vol.Coerce(int), vol.Range(min=300, max=600)
+                ),
+                vol.Optional(
+                    CONF_HOMEKIT_MODE,
+                    default=reconfigure_entry.data.get(CONF_HOMEKIT_MODE, False),
+                ): cv.boolean,
+                vol.Optional(
+                    CONF_IGNORE_MIWI,
+                    default=reconfigure_entry.data.get(CONF_IGNORE_MIWI, False),
+                ): cv.boolean,
+                vol.Optional(
+                    CONF_STAT_INTERVAL,
+                    default=reconfigure_entry.data[CONF_STAT_INTERVAL],
+                ): vol.All(vol.Coerce(int), vol.Range(min=300, max=1800)),
+                vol.Optional(CONF_NOTIFY, default=reconfigure_entry.data[CONF_NOTIFY]): vol.In(
+                    ["nothing", "logging", "notification", "both"]
+                ),
+                vol.Optional(
+                    CONF_SAFE_MODE,
+                    default=reconfigure_entry.data.get(CONF_SAFE_MODE, DEFAULT_SAFE_MODE),
+                ): cv.string,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=RECONFIGURE_FLOW_SCHEMA,
+            errors=errors,
+            description_placeholders={"title": reconfigure_entry.title},
+        )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return Neviweb130OptionsFlowHandler(config_entry)
+
+
+class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow for Neviweb130."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self._config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Entry point: go directly to options."""
+        return await self.async_step_options()
+
+    async def async_step_options(self, user_input=None):
+        """Manage the options."""
+        if user_input is not None:
+            # Set log level based on the user input
+
+            new_prefix = user_input.get(CONF_PREFIX)
+
+            error = self._validate_prefix(new_prefix)
+            if error:
+                return self.async_show_form(
+                    step_id="options",
+                    data_schema=self._get_options_schema(),
+                    errors={CONF_PREFIX: error},
+                    description_placeholders={"help": "Click on button ? for help and documentation."},
+                )
+
+            # Process each option separately
+            if user_input.get("log_level"):
+                self._set_log_level(user_input["log_level"])
+
+            if user_input.get("download_log"):
+                await self._trigger_download_log()
+
+            if user_input.get("reload"):
+                await self._trigger_reload()
+
+            if user_input.get("migrate"):
+                await self._trigger_migration()
+
+            if "backup_folders" in user_input:
+                folders = user_input["backup_folders"].strip()
+
+                # Normalisation : string → liste
+                if isinstance(folders, str):
+                    folders = [folders]
+
+                error = self._validate_backup_folders(folders)
+                if error:
+                    key, placeholders = error
+                    return self.async_show_form(
+                        step_id="options",
+                        data_schema=self._get_options_schema(),
+                        errors={"backup_folders": key},
+                        description_placeholders={**placeholders, "help": "Enter a folder relative to /config"},
+                    )
+
+            new_options = {
+                **self._config_entry.options,
+                **user_input,
+            }
+
+            return self.async_create_entry(title="", data=new_options)
+
+        return self.async_show_form(
+            step_id="options",
+            data_schema=self._get_options_schema(),
+            description_placeholders={"help": "Click on button ? for help and documentation."},
+        )
+
+    def _get_options_schema(self):
+        options = self._config_entry.options
+        log_levels = ["debug", "info", "warning", "error", "critical"]
+
+        current_prefix = (
+            self._config_entry.options.get(CONF_PREFIX) or self._config_entry.data.get(CONF_PREFIX) or PREFIX
+        )
+
+        return vol.Schema(
+            {
+                vol.Optional("prefix", default=current_prefix): str,
+                vol.Optional("log_level", default=options.get("log_level", "info")): vol.In(log_levels),
+                vol.Optional("log_max_bytes", default=options.get("log_max_bytes", 2 * 1024 * 1024)): int,
+                vol.Optional("log_backup_count", default=options.get("log_backup_count", 2)): int,
+                vol.Optional("log_reset_on_start", default=options.get("log_reset_on_start", True)): bool,
+                vol.Optional("download_log", default=False): bool,
+                vol.Optional("reload", default=False): bool,
+                vol.Optional("migrate", default=False): bool,
+                # New option: daily request limit
+                vol.Optional(CONF_REQUEST_LIMIT, default=options.get(CONF_REQUEST_LIMIT, DEFAULT_REQUEST_LIMIT)): int,
+                # New option for update
+                vol.Optional(
+                    CONF_UPDATE_INTERVAL, default=options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+                ): vol.In(["1h", "3h", "6h", "12h", "24h"]),
+                # New options for backup
+                vol.Optional("backup_mode", default=options.get("backup_mode", "full")): vol.In(["full", "partial"]),
+                vol.Optional("backup_folders", default="config"): selector.TextSelector(
+                    selector.TextSelectorConfig(multiline=False)
+                ),
+            }
+        )
+
+    @staticmethod
+    def _set_log_level(log_level: str) -> None:
+        """Set the log level for the neviweb130 component."""
+
+        level = getattr(logging, log_level.upper(), logging.INFO)
+
+        # Apply to global logger global
+        logger = logging.getLogger("custom_components.neviweb130")
+        logger.setLevel(level)
+
+        for handler in logger.handlers:
+            handler.setLevel(level)
+
+        # Optional : confirmation log
+        logger.info("Neviweb130 log level changed to %s", log_level)
+
+    def _validate_prefix(self, prefix: str) -> str | None:
+        """Validate prefix format and uniqueness."""
+        prefix = prefix.strip()
+
+        # Minimal format
+        if not prefix:
+            return "empty_prefix"
+
+        if " " in prefix:
+            return "space_not_allowed"
+
+        if not prefix.isascii():
+            return "non_ascii_prefix"
+
+        # Unicity : Check other entry
+        for entry in self.hass.config_entries.async_entries("neviweb130"):
+            if entry.entry_id != self._config_entry.entry_id:
+                if entry.data.get("prefix") == prefix or entry.options.get("prefix") == prefix:
+                    return "duplicate_prefix"
+
+        return None
+
+    async def _trigger_download_log(self):
+        """Copy neviweb130_log.txt to config/www to allow user to download it."""
+        public_path = await expose_log_file(self.hass, LOG_PATH, expire_after=1800)
+        if public_path:
+            # Create a persistent notification to tell how to download log file and expire after xx seconds
+            msg = await translate_error(self.hass, "neviweb130_log_ready")
+            self.hass.async_create_task(
+                self.hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "title": "Log file ready for download",
+                        "message": msg,
+                        "notification_id": "neviweb130_log_ready",
+                    },
+                )
+            )
+
+    async def _trigger_reload(self):
+        """Method to handle reloading the integration."""
+        await async_shutdown(self.hass)
+        try:
+            # Unload the existing entry if it's already set up
+            if self._config_entry.state == config_entries.ConfigEntryState.LOADED:
+                await self.hass.config_entries.async_unload(self._config_entry.entry_id)
+                _LOGGER.info("Unloaded existing config entry")
+
+            # Reload the entry
+            await self.hass.config_entries.async_setup(self._config_entry.entry_id)
+            _LOGGER.info("Integration has been reloaded")
+
+            # Create a persistent notification
+            msg = await translate_error(self.hass, "neviweb130_reloaded")
+            self.hass.async_create_task(
+                self.hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "title": "Integration neviweb130 reloaded",
+                        "message": msg,
+                        "notification_id": "neviweb130_reloaded",
+                    },
+                )
+            )
+        except Exception as e:
+            msg = await translate_error(self.hass, "neviweb130_reload_error", error=str(e))
+            _LOGGER.error("Failed to reload integration: %s", str(e))
+            await self.hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": "Reload Failed",
+                    "message": msg,
+                    "notification_id": "neviweb130_reload_error",
+                },
+            )
+
+    async def _trigger_migration(self):
+        """Method to handle the migration."""
+        # The migration needs the logged-in client, it runs in async_setup_entry
+        await self.hass.config_entries.async_reload(self._config_entry.entry_id)
+        _LOGGER.info("Unique_id migration done")
+        # Create a persistent notification
+        msg = await translate_error(self.hass, "neviweb130_migrated")
+        self.hass.async_create_task(
+            self.hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": "Unique_id migrated",
+                    "message": msg,
+                    "notification_id": "neviweb130_migrated",
+                },
+            )
+        )
+
+    def _validate_backup_folders(self, folders: list[str]):
+        """Validate that each folder exists and is accessible."""
+        for folder in folders:
+            folder = folder.strip()
+
+            if folder == "config":
+                continue
+
+            if not folder:
+                return "empty_folder", {}
+
+            if any(c in folder for c in ["*", "?", "<", ">", "|"]):
+                return "invalid_characters", {}
+
+            full_path = os.path.join(self.hass.config.path(), folder)
+
+            if not os.path.exists(full_path):
+                return "folder_not_found", {"folder": folder}
+
+            if not os.path.isdir(full_path):
+                return "not_a_directory", {"folder": folder}
+
+            if not os.access(full_path, os.W_OK):
+                return "not_writable", {"folder": folder}
+
+        return None
+
+
+class InvalidUserEmail(exceptions.HomeAssistantError):
+    """Error to indicate invalid email specified."""
+
+
+class CannotConnect(exceptions.HomeAssistantError):
+    """Error to indicate we cannot connect to Neviweb."""
+
+
+class OsError(exceptions.HomeAssistantError):
+    """Error to indicate we cannot send requests to Neviweb."""
