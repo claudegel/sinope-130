@@ -1,13 +1,64 @@
 {
-  "title": "neviweb130",
+  "title": "Neviweb130",
   "config": {
-    "step": {},
-    "abort": {},
+    "step": {
+      "user": {
+        "title": "Neviweb130: gestion Sinopé Zigbee et Wi-Fi.",
+        "description": "Entrer les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats, notifications et safe_mode.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "data": {
+          "prefix": "Compte Neviweb, optionel pour le premier compte.",
+          "username": "Courriel pour Neviweb",
+          "password": "Mot de passe pour Neviweb",
+          "network": "Optionel, Premier emplacement dans Neviweb ou '_' ou vide pour auto détection.",
+          "network2": "Optionel, Deuxième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
+          "network3": "Optionel, Troisième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
+          "homekit_mode": "Optionel, Support Homekit:",
+          "ignore_miwi": "Optionel, Ignorer les appareils miwi:",
+          "scan_interval": "Optionel, Intervalle des requêtes sur neviweb, 300 à 600 sec.",
+          "stat_interval": "Optionel, Intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
+          "notify": "Optionel, Avis en cas de déconnexion pour un appareil.",
+          "safe_mode": "Optionel, Indiquez l’identifiant de l’appareil à mettre à jour en mode sans échec ou '-'."
+        }
+      },
+      "reconfigure":{
+        "title": "Neviweb130: reconfiguration.",
+        "description": "Modifier les informations pour la connexion à Neviweb: nom d'utilisateur (courriel), mot de passe, emplacements (utiliser les champs emplacement, emplacement 2 et emplacement 3 si vous avez plusieurs emplacements ou laissez vide pour qu'ils soient détectés automatiquement), (mettre _ pour ne pas détecter), Intervalle de scan, support pour Homekit, intervalle de stats, notifications et safe_mode.\n(* = requis), Cliquez sur le bouton ? pour l’aide et documentation.",
+        "data": {
+          "prefix": "Compte Neviweb, requis pour tous les comptes, défini comme 'default' pour le premier.",
+          "username": "Courriel pour Neviweb",
+          "password": "Mot de passe pour Neviweb",
+          "network": "Optionel, Premier emplacement dans Neviweb ou '_' ou vide pour auto détection.",
+          "network2": "Optionel, Deuxième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
+          "network3": "Optionel, Troisième emplacement dans Neviweb ou '_' ou vide pour auto détection.",
+          "homekit_mode": "Optionel, Support homekit",
+          "ignore_miwi": "Optionel, Ignorer les appareils miwi",
+          "scan_interval": "Optionel, Intervalle des requêtes sur neviweb, 300 à 600 sec.",
+          "stat_interval": "Optionel, Intervalle des requêtes pour les statistiques de consommation des appareils, 300 à 1800 sec.",
+          "notify": "Optionel, Avis en cas de déconnection pour un appareil.",
+          "safe_mode": "Optionel, Indiquez l’identifiant de l’appareil à mettre à jour en mode sans échec ou '-'."
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]",
+      "already_configured_for_this_user": "Une configuration existe déjà pour ce compte Neviweb.",
+      "Max_three_instances_allowed": "Vous ne pouvez pas ajouter plus de trois instances de cette intégration."
+    },
     "error": {
+      "bad_data_entry": "Vérifiez les informations entrées, il y a des erreurs.",
+      "bad_network_name": "Le nom d'emplacement ne peut contenir de caractères accentués.",
+      "cannot_connect": "Le test de connection à neviweb a échoué, vérifier le courriel et le mot de passe.",
+      "invalid_user_email": "Le courriel fournit est invalide.",
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "empty_folder": "Le dossier ne peut pas être vide.",
+      "invalid_characters": "Le dossier contient des caractères invalides.",
+      "folder_not_found": "Le dossier {folder} n'existe pas.",
+      "not_a_directory": "Le chemin {folder} n'est pas un dossier.",
+      "not_writable": "Home Assistant ne peut pas écrire dans {folder}.",
       "login_submit_failed": "Impossible de soumettre le formulaire de connexion. Vérifiez votre réseau ou votre pare-feu.",
       "login_failed": "Impossible de se connecter à Neviweb. {code}.",
-      "too_many_sessions": "Trop de sessions actives.\nFermez toutes les sessions Neviweb ouvertes sur d’autres plateformes (mobile, navigateur, etc.).\nSi l’erreur persiste, désactivez cette intégration (ou arrêtez Home Assistant), attendez quelques minutes, puis réactivez-la (ou redémarrez Home Assistant). Code d’erreur: {code}.",
-      "bad_credentials": "Nom d’utilisateur ou mot de passe Neviweb invalide. Vérifiez vos paramètres de configuration. Code d’erreur: {code}.",
+      "too_many_sessions": "Trop de sessions actives ({count}).\nFermez toutes les sessions Neviweb ouvertes sur d’autres plateformes (mobile, navigateur, etc.).\nSi l’erreur persiste, désactivez cette intégration (ou arrêtez Home Assistant), attendez quelques minutes, puis réactivez-la (ou redémarrez Home Assistant).",
+      "bad_credentials": "Nom d’utilisateur ou mot de passe Neviweb invalide. Vérifiez vos paramètres de configuration. Code d’erreur : {code}.",
       "unknown_login_error": "Erreur inconnue lors de la connexion à Neviweb. Code d’erreur : {code}.",
       "account_id_empty": "L’ID du compte est vide. Vérifiez votre nom d’utilisateur et votre mot de passe pour vous connecter à Neviweb.",
       "networks_fetch_failed": "Impossible d’obtenir les réseaux (emplacements) Neviweb.",
@@ -22,12 +73,12 @@
       "entity_must_be_domain": "L'entité {entity} doit être un {domain} {platform}.",
       "missing_parameter": "Paramètre requis manquant: {param}.",
       "does_not_support": "L’entité {entity} est un thermostat {domain} {model} et ne prend pas en charge le format d’heure.",
-      "must_be_heat_cool": "L'entité {entity} doit être un thermostat {domain} du groupe heat-cool (TH6xxxWF) ou Wi-Fi HP (HP6000WF).",
+      "must_be_heat_cool": "L'entité {entity} doit être un thermostat {domain} du groupe heat-cool (TH6xxxWF).",
       "fan_model_not_supported": "La vitesse du ventilateur n’est pas supportée pour le modèle {model}.",
       "unknown_mode": "Mode heat-cool inconnu pour {model}: {mode}.",
       "fan_mode_not_supported": "Le mode de ventilation {mode} n’est pas supporté pour le modèle {model}.",
-      "Invalid_lock_value": "La valeur de verrouillage {lock} n’est pas supportée pour le modèle {model}.",
-      "no_off_value": "L'entité {entity} ne supporte pas la valeur 'off'.",
+      "invalid_lock_value": "La valeur de verrouillage {lock} n’est pas supportée pour le modèle {model}.",
+      "no_off_value": "L'entité {entity} ne supporte pas la valeur off.",
       "multiple_heating_level": "L'entité {entity} ne supporte pas des niveaux de chauffe multiples avec la configuration actuelle.",
       "multiple_cooling_level": "L'entité {entity} ne supporte pas des niveaux de climatisation multiples avec la configuration actuelle.",
       "integer_needed": "Valeur invalide pour {param}, un nombre entier est requis.",
@@ -35,12 +86,15 @@
       "missing_functionality": "L'entité {entity} n'a pas les fonctionalités pompe à chaleur et chauffage auxiliaire.",
       "invalid_value": "Valeur invalide pour {param}, doit être parmis les valeurs: {value}.",
       "cannot_use_entity": "L'entité {entity} ne peut être utilisée pour ce service (action).",
-      "update_stopped": "Avertissement: message reçu de Neviweb, appareil déconnecté... Vérifiez votre journal de log...\nLa mise à jour via Neviweb sera interrompue pendant 20 minutes pour {name}, id: {id}, Sku: {sku}",
+      "scan_interval_error": "Format d’intervalle invalide. Utilisez des secondes ou HH:MM:SS.",
+      "username_missing": "Le nom d’utilisateur ne peut pas être vide.",
+      "password_missing": "Le mot de passe ne peut pas être vide.",
+      "update_stopped": "Avertissement: message reçu de Neviweb, appareil déconnecté... Vérifiez votre journal de log...\nLa mise à jour via Neviweb sera interrompue pendant 20 minutes pour {name}, id: {id}, Sku: {sku}.",
       "update_restarted": "Avertissement: la mise à jour de l'appareil est redémarrée pour {name}, Sku: {sku}.",
       "usr_session": "Avertissement: erreur USRSESSEXP, la session Neviweb a expiré.\nRéglez votre paramètre scan_interval sur moins de 10 minutes pour éviter cela...\nReconnexion...",
       "maintenance": "Avertissement: Accès Neviweb temporairement bloqué pour maintenance... Réessayez plus tard.",
       "access_limit": "Avertissement: ACCSESSEXC nombre maximum de sessions Neviweb atteint... Fermez les autres connexions et réessayez.",
-      "error_code": "Avertissement: Code d'erreur de l'appareil Neviweb détecté: {code} pour l'appareil: {name}, ID: {id}, Sku: {sku}. {message}",
+      "error_code": "Avertissement: Code d'erreur de l'appareil Neviweb détecté: {code} pour l'appareil: {name}, ID: {id}, Sku: {sku}. {message}.",
       "temp_error": "Avertissement: Code d'erreur de température de l'appareil Neviweb détecté: {error} pour l'appareil: {name}, ID: {id}, Sku: {sku}.",
       "emergency_heat_error": "Avertissement: Impossible d'activer BOOST (chauffage d'urgence) en raison de la configuration de l'appareil. Condition non remplie pour {name}, Sku: {sku}.",
       "ignore_miwi": "L'emplacement Neviweb sélectionné pour le paramètre {param} contient des appareils MiWi non pris en charge.\nSi cet emplacement contient uniquement des appareils MiWi, utilisez plutôt l'intégration sinope neviweb.\nS'il existe des appareils mixtes, définissez ignore_miwi : True dans votre configuration neviweb130.",
@@ -55,13 +109,2115 @@
       "request_count": "Avertissement: {count} demandes aujourd'hui. Limite de sécurité: {limit}, Limite quotidienne: 30000.",
       "unknown_error": "Erreur inconnue pour {name} (id: {id}) (SKU: {sku}), (Modèle: {model}). Signaler au responsable. Données reçues: {data}.",
       "daily_access": "Nombre de requête quotidienne maximale atteint... Augmenter l'intervalle d'interrogation de Neviweb, (scan_interval).",
-      "update_successful": "La mise à jour vers la version {version} a été installée avec succès.\n[Voir les notes de mise à jour]({url}).",
-      "update_fail": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été rétablie.\n[Voir les notes de mise à jour]({url}).",
-      "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRestauration ignorée, aucune sauvegarde locale disponible.\n{message}.",
+      "update_message": "La mise à jour vers la version {version} a été installée avec succès.",
+      "update_rejected": "La mise à jour vers la version {version} a échoué.\nUne restauration a été effectuée et l'ancienne version a été restaurée.\n{message}.",
+      "rollback_skip": "La mise à jour vers la version {version} a échoué.\nRollback ignoré, aucune sauvegarde locale disponible.\n{message}.",
+      "update_fail": "La restauration n'a pas pu être effectuée. Intervention manuelle requise.",
+      "service_failed": "Le service {service} a échoué : {error}.",
+      "critical_service_failed": "Erreur critique lors de l'exécution du service {service} : {error}.",
+      "valinvld": "Valeur invalide {value} pour l’attribut {name}.",
       "error_resolved": "Toutes les erreurs ont été résolues pour l'appareil {name}, ID : {id}, Sku : {sku}.",
-      "safe_mode_enabled": "Activation automatique du mode sans échec pour le périphérique {name} (id : {id}) en raison d'un attribut non pris en charge.",
+      "safe_mode_enabled": "Activation automatique du mode sans échec pour le périphérique {name} (id: {id}) en raison d'un attribut non pris en charge.",
+      "neviweb130_reload_error": "Échec du rechargement de l'intégration: {error}.",
+      "neviweb130_migrated": "Les identifiants uniques des appareils Neviweb130 ont été migrés de valeurs entières vers des valeurs de type chaîne de caractères.\nPlus de détails dans le journal.\nVérifiez vos journaux.",
+      "neviweb130_reloaded": "L'intégration neviweb130 a été rechargée.",
+      "neviweb130_log_ready": "Télécharger le fichier journal à /local/neviweb130.log. Le fichier sera supprimé après 30 minutes.",
+      "configuration_reloaded": "La configuration a été mise à jour et neviweb130 a redémarré avec succès.",
       "set_attribute_failed": "Incapable d'envoyer la commande à l'appareil {id}. Erreur: {error}. Description: {description}. Données envoyées: {data}",
-      "bedroom_mode_not_supported": "Le mode chambre n'est pas disponible par l'appareil {id} (modèle {model})."
+      "bedroom_mode_not_supported": "Le mode chambre n'est pas supporté pour l'appareil {id} (modèle {model}).",
+      "config_imported": "La configuration YAML de neviweb130 est désormais obsolète. La configuration du compte « {prefix} » a été importée automatiquement dans l’interface Home Assistant. Une fois tous vos comptes importés, veuillez retirer ou commenter la section `neviweb130:` de votre `configuration.yaml`, puis redémarrer Home Assistant.",
+      "yaml_config_detected": "Une configuration YAML pour Neviweb130 a été détectée et l'importation automatique a démarré.",
+      "duplicated_prefix": "Importation YAML: prefix = {prefix} est déjà configuré, importation avortée.",
+      "safe_mode_active": "Le mode sécurisé a été activé pour l’appareil {name} (ID : {id}) en raison d’un attribut non pris en charge. Rapporter au mainteneur.",
+      "not_supported": "Non pris en charge",
+      "empty_value": "Non configuré",
+      "not_available": "Non disponible",
+      "g_not_connected": "Appareil {name}, aucun cable connecté à la borne G, service non disponible.",
+      "must_support_fan_control": "L'entité {entity} ne prend pas en charge le contrôle de la vitesse du ventilateur.",
+      "missing_attributes": "Avertissement : L'appareil {id} n'a pas renvoyé tous les attributs demandés. Éléments manquants : {missing}. Vérifiez dans la documentation pour les attributs manquants et signalez-le au responsable si ces derniers ne figurent pas déjà dans la liste.",
+      "system_mode_error": "Avertissement : Le service set_system_mode est réservé aux modèles de contrôleur RM3250WF, RM3500WF et RM3510WF."
+    }
+  },
+  "options": {
+    "step": {
+      "options": {
+        "title": "Gestion Neviweb130",
+        "description": "Configurez chaque option de Neviweb130 selon vos besoins.\nCliquez sur le bouton ? pour l’aide et documentation.",
+        "data": {
+          "prefix": "Nom du compte Neviweb",
+          "log_level": "Niveau de journalisation",
+          "log_max_bytes": "Taille maximale du journal",
+          "log_backup_count": "Nombre de fichiers de sauvegarde",
+          "log_reset_on_start": "Réinitialisation du journal au démarrage",
+          "download_log": "Télécharger les diagnostiques",
+          "reload": "Recharger l'integration",
+          "migrate": "Migrer les unique_id numériques",
+          "request_limit": "Limite de sécurité du compteur de requêtes Neviweb",
+          "update_check_interval": "Intervalle de vérification des mises à jour",
+          "backup_mode": "Mode de sauvegarde, complet ou partiel",
+          "backup_folders": "Répertoire racine de la sauvegarde"
+        }
+      }
+    },
+    "error": {
+      "empty_prefix": "Le préfixe ne peut pas être vide.",
+      "space_not_allowed": "Les espaces ne sont pas autorisés.",
+      "non_ascii_prefix": "Le préfixe doit contenir uniquement des caractères ASCII.",
+      "duplicate_prefix": "Ce préfixe est déjà utilisé par un autre compte."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "activation": {
+        "name": "Actif",
+        "state": {
+          "on": "Activé",
+          "off": "Inactif"
+        }
+      },
+      "battery_status": {
+        "name": "Alerte Batterie",
+        "state": {
+          "on": "OK",
+          "off": "Faible"
+        }
+      },
+      "em_heating": {
+        "name": "Chauffage d'urgence",
+        "state": {
+          "on": "Chauffe",
+          "off": "Inactif"
+        }
+      },
+      "emergency_heat_allowed": {
+        "name": "Chauffage d'urgence permis",
+        "state": {
+          "on": "Permis",
+          "off": "Interdit"
+        }
+      },
+      "gateway_status": {
+        "name": "État de la passerelle",
+        "state": {
+          "on": "Présente",
+          "off": "Déconnectée"
+        }
+      },
+      "gauge_error": {
+        "name": "Jauge Débranchée",
+        "state": {
+          "on": "Débranchée",
+          "off": "Connectée"
+        }
+      },
+      "heating": {
+        "name": "Chauffe",
+        "state": {
+          "on": "Chauffe",
+          "off": "Inactif"
+        }
+      },
+      "input1_status": {
+        "name": "Statut input 1",
+        "state": {
+          "on": "Actif",
+          "off": "Inactif"
+        }
+      },
+      "input2_status": {
+        "name": "Statut imput 2",
+        "state": {
+          "on": "Actif",
+          "off": "Inactif"
+        }
+      },
+      "leak_status": {
+        "name": "Alerte Fuite",
+        "state": {
+          "on": "Fuite",
+          "off": "OK"
+        }
+      },
+      "level_status": {
+        "name": "Alerte Bas Niveau",
+        "state": {
+          "on": "Bas",
+          "off": "OK"
+        }
+      },
+      "low_temp_status": {
+        "name": "Alerte Basse température",
+        "state": {
+          "on": "Bas",
+          "off": "OK"
+        }
+      },
+      "motor_jam_error": {
+        "name": "Blocage moteur",
+        "state": {
+          "on": "Blocage moteur détecté",
+          "off": "Moteur normal"
+        }
+      },
+      "motor_limit_error": {
+        "name": "Erreur de limite moteur",
+        "state": {
+          "on": "Limite moteur en erreur",
+          "off": "Limite moteur normale"
+        }
+      },
+      "motor_position_error": {
+        "name": "Erreur de position moteur",
+        "state": {
+          "on": "Position moteur en erreur",
+          "off": "Position moteur normale"
+        }
+      },
+      "refuel_status": {
+        "name": "Alerte Remplissage",
+        "state": {
+          "on": "Rempli",
+          "off": "Pas de changement"
+        }
+      },
+      "temp_alert": {
+        "name": "Alerte Température",
+        "state": {
+          "on": "Température basse",
+          "off": "Normale"
+        }
+      }
+    },
+    "button": {
+      "reset_filter": {
+        "name": "Réinitialiser Filtre"
+      }
+    },
+    "number": {
+      "brightness": {
+        "name": "Intensité"
+      },
+      "cool_lockout_temp": {
+        "name": "Température Verrouillage Clim."
+      },
+      "cool_setpoint_away": {
+        "name": "Consigne Refroid. en Absence"
+      },
+      "heat_lockout_temp": {
+        "name": "Température Verrouillage Chauffage"
+      },
+      "intensity_min": {
+        "name": "Intensité Minimum"
+      },
+      "fan_filter_remain": {
+        "name": "Rappel Nettoyage Filtre"
+      },
+      "floor_max_temp": {
+        "name": "Temp. Maximale au Sol"
+      },
+      "floor_min_temp": {
+        "name": "Temp. Minimale au Sol"
+      },
+      "led_off_intensity": {
+        "name": "Intensité DEL Off"
+      },
+      "led_on_intensity": {
+        "name": "Intensité DEL On"
+      },
+      "max_cool_temp": {
+        "name": "Consigne Clim. Max"
+      },
+      "max_temp": {
+        "name": "Consigne Maximum"
+      },
+      "min_cool_temp": {
+        "name": "Consigne Clim. Min"
+      },
+      "min_temp": {
+        "name": "Consigne Minimum"
+      },
+      "setpoint_away": {
+        "name": "Consigne en Absence"
+      },
+      "temp_offset_heat": {
+        "name": "Étalonnage Température"
+      },
+      "water_remaining_time": {
+        "name": "Temps Restant",
+        "state": {
+          "measurement": "Durée restante"
+        }
+      }
+    },
+    "select": {
+      "aux_cycle_length": {
+        "name": "Durée du cycle auxiliaire"
+      },
+      "backlight": {
+        "name": "Rétroéclairage",
+        "state": {
+          "auto": "Auto",
+          "on": "Allumé",
+          "bedroom": "Chambre"
+        }
+      },
+      "battery_type": {
+        "name": "Battery Type",
+        "state": {
+          "alkaline": "Alcaline",
+          "lithium": "Lithium"
+        }
+      },
+      "controlled_device": {
+        "name": "Dispositif contrôlé",
+        "state": {
+          "hot_water_heater": "Chauffe-eau",
+          "pool_pump": "Pompe de piscine",
+          "electric_vehicle_charger": "Borne de recharge",
+          "other": "Autre"
+        }
+      },
+      "cycle_length": {
+        "name": "Durée du cycle"
+      },
+      "early_start": {
+        "name": "Démarrage Anticipé",
+        "state": {
+          "off": "Inactif",
+          "on": "Actif"
+        }
+      },
+      "flow_duration": {
+        "name": "Durée du Débit"
+      },
+      "flowmeter_option": {
+        "name": "Options Débimètre",
+        "state": {
+          "close_valve_and_send_alert": "Fermer et Alerter",
+          "alert_only": "Alerter Seulement",
+          "no_action": "Ne Rien Faire"
+        }
+      },
+      "flowmeter_timer": {
+        "name": "Minuterie Débitmètre"
+      },
+      "flow_meter": {
+        "name": "Débitmètre",
+        "state": {
+          "no_flow": "Pas de Débimètre",
+          "fs4220": "FS4220",
+          "fs4221": "FS4221",
+          "fs4222": "FS4222"
+        }
+      },
+      "fuel_alert": {
+        "name": "Alerte Carburant"
+      },
+      "gauge_type": {
+        "name": "Modèle de Jauge"
+      },
+      "hc_fan_speed": {
+        "name": "Vitesse ventilateur HC",
+        "state": {
+          "auto": "Auto",
+          "on": "On"
+        }
+      },
+      "hc_second_display": {
+        "name": "Affichage secondaire",
+        "state": {
+          "exterior_temperature": "Température extérieure",
+          "setpoint": "Consigne",
+          "none": "Aucune"
+        }
+      },
+      "keypad_lock": {
+        "name": "Verrouillage du clavier",
+        "state": {
+          "lock": "Verrouillé",
+          "locked": "Verrouillé",
+          "unlock": "Déverrouillé",
+          "unlocked": "Déverrouillé",
+          "partialLock": "Limité",
+          "partiallyLocked": "Limité"
+        }
+      },
+      "language": {
+        "name": "Langue",
+        "state": {
+          "en": "Anglais",
+          "fr": "Français"
+        }
+      },
+      "led_off_color": {
+        "name": "Couleur DEL Off",
+        "state": {
+          "lime": "Lime",
+          "amber": "Ambre",
+          "fuchsia": "Fuchsia",
+          "pearl": "Perle",
+          "blue": "Bleu",
+          "red": "Rouge",
+          "orange": "Orange",
+          "green": "Vert",
+          "white": "Blanc"
+        }
+      },
+      "led_on_color": {
+        "name": "Couleur DEL On",
+        "state": {
+          "lime": "Lime",
+          "amber": "Ambre",
+          "fuchsia": "Fuchsia",
+          "pearl": "Perle",
+          "blue": "Bleu",
+          "red": "Rouge",
+          "orange": "Orange",
+          "green": "Vert",
+          "white": "Blanc"
+        }
+      },
+      "lv_cycle_length": {
+        "name": "Durée du Cycle"
+      },
+      "occupancy_mode": {
+        "name": "Présence Globale",
+        "state": {
+          "home": "Présent",
+          "away": "Absent"
+        }
+      },
+      "phase": {
+        "name": "Contrôle de Phase",
+        "state": {
+          "forward": "Vers l'avant",
+          "reverse": "Inversée"
+        }
+      },
+      "power_supply": {
+        "name": "Alimentation",
+        "state": {
+          "acups_01": "ACUPS-01",
+          "battery": "Batterie",
+          "battery_acups_01": "Les deux"
+        }
+      },
+      "power_timer": {
+        "name": "Minuterie"
+      },
+      "pro_aux_cycle_length": {
+        "name": "Durée du Cycle"
+      },
+      "second_display": {
+        "name": "Affichage secondaire",
+        "state": {
+          "default": "Défaut",
+          "exterior_temperature": "Température extérieure",
+          "setpoint": "Consigne"
+        }
+      },
+      "sensor_mode": {
+        "name": "Mode Capteur"
+      },
+      "system_mode": {
+        "name": "Mode système",
+        "state": {
+          "auto": "Auto",
+          "manual": "Manuel",
+          "autobypass": "Mode auto contourné"
+        }
+      },
+      "switch_lock": {
+        "name": "Verrouillage clavier",
+        "state": {
+          "locked": "Verrouillé",
+          "unlocked": "Déverrouillé",
+          "partiallyLocked": "Limité"
+        }
+      },
+      "tank_height": {
+        "name": "Hauteur Réservoir",
+        "state": {
+          "none": "Unknown",
+          "23_inch": "23 pouces",
+          "24_inch": "24 pouces",
+          "35_inch": "35 pouces",
+          "38_inch": "38 pouces",
+          "47_inch": "47 pouces",
+          "48_inch": "48 pouces",
+          "50_inch": "50 pouces"
+        }
+      },
+      "tank_size": {
+        "name": "Taille du Réservoir",
+        "state": {
+          "40_gal": "40 gal",
+          "50_gal": "50 gal",
+          "60_gal": "60 gal",
+          "80_gal": "80 gal"
+        }
+      },
+      "tank_type": {
+        "name": "Type de Réservoir",
+        "state": {
+          "propane": "Propane",
+          "oil": "Mazout"
+        }
+      },
+      "temp_format": {
+        "name": "Format Température",
+        "state": {
+          "celsius": "Celsius",
+          "fahrenheit": "Fahrenheit"
+        }
+      },
+      "temp_protection": {
+        "name": "Protection Température",
+        "state": {
+          "off": "Off",
+          "45_C": "45°C",
+          "46_C": "46°C",
+          "47_C": "47°C",
+          "48_C": "48°C",
+          "49_C": "49°C",
+          "50_C": "50°C",
+          "51_C": "51°C",
+          "52_C": "52°C",
+          "53_C": "53°C",
+          "54_C": "54°C",
+          "55_C": "55°C"
+        }
+      },
+      "time_format": {
+        "name": "Format Heure",
+        "state": {
+          "12h": "12 heures",
+          "24h": "24 heures"
+        }
+      },
+      "timer": {
+        "name": "Minuterie"
+      },
+      "timer2": {
+        "name": "Minuterie 2"
+      },
+      "whc_fan_speed": {
+        "name": "Vitesse ventilateur HP",
+        "state": {
+          "auto": "Auto",
+          "high": "Haut",
+          "medium": "Médium",
+          "low": "Bas"
+        }
+      },
+      "wifi_aux_cycle_length": {
+        "name": "Durée du Cycle auxiliaire",
+        "state": {
+          "10_min": "10 min",
+          "15_min": "15 min",
+          "20_min": "20 min",
+          "25_min": "25 min"
+        }
+      },
+      "wifi_cycle_length": {
+        "name": "Durée du Cycle",
+        "state": {
+          "10_min": "10 min",
+          "15_min": "15 min",
+          "20_min": "20 min",
+          "25_min": "25 min"
+        }
+      }
+    },
+    "sensor": {
+      "aux_heat_stage1_hourly_count": {
+        "name": "Chauffage aux. étape 1 décompte horaire"
+      },
+      "aux_heat_stage2_hourly_count": {
+        "name": "Chauffage aux. étape 2 décompte horaire"
+      },
+      "aux_heat_stage1_hourly_total_count": {
+        "name": "Chauffage aux. étape 1 décompte horaire total"
+      },
+      "aux_heat_stage2_hourly_total_count": {
+        "name": "Chauffage aux. étape 2 décompte horaire total"
+      },
+      "battery_level": {
+        "name": "Niveau de la batterie"
+      },
+      "battery_voltage": {
+        "name": "Voltage de la batterie"
+      },
+      "cool_stage1_hourly_count": {
+        "name": "Refroidissement étape 1 décompte horaire"
+      },
+      "cool_stage2_hourly_count": {
+        "name": "Refroidissement étape 2 décompte horaire"
+      },
+      "cool_stage1_hourly_total_count": {
+        "name": "Refroidissement étape 1 décompte horaire total"
+      },
+      "cool_stage2_hourly_total_count": {
+        "name": "refroidissement étape 2 décompte horaire total"
+      },
+      "daily_flow_count": {
+        "name": "Flux quotidien"
+      },
+      "daily_kwh_count": {
+        "name": "Énergie quotidienne"
+      },
+      "emergency_heat_hourly_count": {
+        "name": "Chauffage d'urgence décompte horaire"
+      },
+      "emergency_heat_hourly_total_count": {
+        "name": "Chauffage d'urgence décompte horaire total"
+      },
+      "extern_temperature": {
+        "name": "Température externe"
+      },
+      "fan_hourly_count": {
+        "name": "ventilateur décompte horaire"
+      },
+      "fan_hourly_total_count": {
+        "name": "ventilateur décompte horaire total"
+      },
+      "gauge_angle": {
+        "name": "Angle de jauge"
+      },
+      "heat_stage1_hourly_count": {
+        "name": "Chaufage Étape 1 décompte horaire"
+      },
+      "heat_stage2_hourly_count": {
+        "name": "Chaufage Étape 2 décompte horaire"
+      },
+      "heat_stage1_hourly_total_count": {
+        "name": "Chaufage Étape 1 décompte horaire total"
+      },
+      "heat_stage2_hourly_total_count": {
+        "name": "Chaufage Étape 2 décompte horaire total"
+      },
+      "hourly_flow_count": {
+        "name": "Débit Horaire"
+      },
+      "hourly_kwh_count": {
+        "name": "Énergie Horaire"
+      },
+      "humidity": {
+        "name": "Humidité"
+      },
+      "monthly_flow_count": {
+        "name": "Débit Mensuel"
+      },
+      "monthly_kwh_count": {
+        "name": "Énergie Mensuelle"
+      },
+      "motor_position": {
+        "name": "Position moteur"
+      },
+      "motor_target": {
+        "name": "Cible moteur"
+      },
+      "native_current_temperature": {
+        "name": "Température"
+      },
+      "outdoor_temp": {
+        "name": "Température extérieure"
+      },
+      "pi_heating_demand": {
+        "name": "Intensité Chauffage"
+      },
+      "room_temperature": {
+        "name": "Température ambiante"
+      },
+      "rssi": {
+        "name": "Force du signal"
+      },
+      "sensor_temperature": {
+        "name": "Température détecteur"
+      },
+      "total_flow_count": {
+        "name": "Débit Total"
+      },
+      "total_kwh_count": {
+        "name": "Énergie totale"
+      },
+      "water_temperature":{
+        "name": "Température de l'eau"
+      },
+      "wattage": {
+        "name": "Puissance"
+      },
+      "wattage_instant": {
+        "name": "Puissance instantané"
+      },
+      "weather_icon": {
+        "name": "Icône météo"
+      },
+      "wifirssi": {
+        "name": "Signal Strength"
+      }
+    },
+    "switch": {
+      "alert_temp": {
+        "name": "Alerte Température"
+      },
+      "batt_alert": {
+        "name": "Alerte Batterie"
+      },
+      "close_valve": {
+        "name": "Fermer la Valve"
+      },
+      "fuel_alert": {
+        "name": "Alerte Combustible"
+      },
+      "leak_alert": {
+        "name": "Alerte fuite"
+      },
+      "onoff2": {
+        "name": "Onoff2"
+      },
+      "temperature_alert": {
+        "name": "Alerte température"
+      },
+      "refuel_alert": {
+        "name": "Alerte Remplissage"
+      },
+      "safe_mode": {
+        "name": "Mode sans échec"
+      },
+      "temp_alert": {
+        "name": "Alerte basse Température"
+      },
+      "valve_alert": {
+        "name": "Alerte Valve"
+      }
+    }
+  },
+  "device": {},
+  "services": {
+    "set_climate_keypad_lock": {
+      "name": "Verrouillage du clavier du climatiseur",
+      "description": "Verrouille ou déverrouille le clavier d’un appareil climatique Zigbee.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130 dont vous souhaitez verrouiller ou déverrouiller le clavier."
+        },
+        "lock_keypad": {
+          "name": "Mode de verrouillage",
+          "description": "Statut du verrouillage : « locked » = Verrouillé, « unlocked » = Déverrouillé, « partiallyLocked » = Protection contre les manipulations. Non disponible pour les appareils HP6000ZB-xx."
+        }
+      }
+    },
+
+    "set_light_keypad_lock": {
+      "name": "Verrouillage du clavier de l’éclairage",
+      "description": "Verrouille ou déverrouille le clavier d’un appareil d’éclairage ou d’un gradateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil d’éclairage neviweb130 dont vous souhaitez verrouiller ou déverrouiller le clavier."
+        },
+        "lock_keypad": {
+          "name": "Mode de verrouillage",
+          "description": "Statut du verrouillage : « locked », « unlocked » ou « partiallyLocked »."
+        }
+      }
+    },
+
+    "set_switch_keypad_lock": {
+      "name": "Verrouillage du clavier de l’interrupteur",
+      "description": "Verrouille ou déverrouille le clavier d’un interrupteur Zigbee.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 dont vous souhaitez verrouiller ou déverrouiller le clavier."
+        },
+        "lock_keypad": {
+          "name": "Mode de verrouillage",
+          "description": "Statut du verrouillage : « locked », « unlocked » ou « partiallyLocked »."
+        }
+      }
+    },
+
+    "set_light_timer": {
+      "name": "Définir la minuterie d’éclairage",
+      "description": "Définit une minuterie pour un appareil d’éclairage. L’appareil s’éteindra après le délai choisi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil d’éclairage neviweb130 pour définir la minuterie."
+        },
+        "power_timer": {
+          "name": "Durée",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs »."
+        }
+      }
+    },
+
+    "set_switch_timer": {
+      "name": "Définir la minuterie de l’interrupteur",
+      "description": "Définit une minuterie pour un interrupteur. L’appareil s’éteindra après le délai choisi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 pour définir la minuterie."
+        },
+        "power_timer": {
+          "name": "Durée",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs »."
+        }
+      }
+    },
+
+    "set_switch_timer2": {
+      "name": "Définir la minuterie 2 de l’interrupteur",
+      "description": "Définit la minuterie secondaire (timer2) pour les interrupteurs multi‑contrôleurs.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 pour définir la minuterie 2."
+        },
+        "power_timer2": {
+          "name": "Durée minuterie 2",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs »."
+        }
+      }
+    },
+
+    "set_switch_power_timer": {
+      "name": "Définir la minuterie de puissance",
+      "description": "Définit une minuterie pour les interrupteurs RM3250ZB. L’appareil s’éteindra après le délai choisi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’interrupteur neviweb130 pour définir la minuterie."
+        },
+        "power_timer": {
+          "name": "Durée",
+          "description": "Valeurs possibles : « off », « 1 min », « 2 min », « 5 min », « 10 min », « 15 min », « 30 min », « 1 hr », « 2 hrs », « 3 hrs », « 6 hrs », « 12 hrs », « 24 hrs »."
+        }
+      }
+    },
+
+    "set_switch_temp_alert": {
+      "name": "Définir l’alerte de température",
+      "description": "Configure l’alerte de basse température pour l’interrupteur MC3100ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom de l’interrupteur MC3100ZB."
+        },
+        "alert_low_temp": {
+          "name": "Seuil de température",
+          "description": "0 pour désactiver l’alerte, ou une valeur de température (ex. 5 °C)."
+        }
+      }
+    },
+
+    "set_time_format": {
+      "name": "Définir le format de l’heure",
+      "description": "Définit le format horaire de l’appareil (12 h ou 24 h).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir le format horaire."
+        },
+        "time_format": {
+          "name": "Format horaire",
+          "description": "Valeurs possibles : 12h ou 24h."
+        }
+      }
+    },
+
+    "set_temperature_format": {
+      "name": "Définir le format de température",
+      "description": "Définit le format de température (Celsius ou Fahrenheit).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir le format de température."
+        },
+        "temperature_format": {
+          "name": "Format de température",
+          "description": "Valeurs possibles : « celsius » ou « fahrenheit »."
+        }
+      }
+    },
+
+    "set_led_indicator": {
+      "name": "Définir la couleur du témoin lumineux",
+      "description": "Définit la couleur du témoin lumineux selon l’état de la lumière (allumée/éteinte).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir la couleur du témoin lumineux."
+        },
+        "state": {
+          "name": "État",
+          "description": "0 = lumière éteinte, 1 = lumière allumée."
+        },
+        "color": {
+          "name": "Couleur",
+          "description": "Couleurs possibles : « lime », « amber », « fushia », « perle », « blue », « red », « orange », « green »."
+        }
+      }
+    },
+
+    "set_led_on_intensity": {
+      "name": "Définir l’intensité du témoin allumé",
+      "description": "Définit l’intensité du témoin lumineux lorsque la lumière est allumée.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir l’intensité du témoin."
+        },
+        "status_led_on_intensity": {
+          "name": "Intensité",
+          "description": "Valeur entre 0 et 100 %."
+        }
+      }
+    },
+
+    "set_led_off_intensity": {
+      "name": "Définir l’intensité du témoin éteint",
+      "description": "Définit l’intensité du témoin lumineux lorsque la lumière est éteinte.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir l’intensité du témoin."
+        },
+        "status_led_on_intensity": {
+          "name": "Intensité",
+          "description": "Valeur entre 0 et 100 %."
+        }
+      }
+    },
+
+    "set_light_min_intensity": {
+      "name": "Définir l’intensité minimale",
+      "description": "Définit l’intensité minimale d’un gradateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir l’intensité minimale."
+        },
+        "intensity_min": {
+          "name": "Intensité minimale",
+          "description": "Valeur entre 1 et 3000."
+        }
+      }
+    },
+
+    "set_second_display": {
+      "name": "Définir l’affichage secondaire",
+      "description": "Définit l’affichage secondaire du thermostat (température extérieure ou consigne).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130 pour définir l’affichage secondaire."
+        },
+        "config2nd_display": {
+          "name": "Mode d’affichage",
+          "description": "Valeurs possibles : « exteriorTemperature », « setpoint », « default »."
+        }
+      }
+    },
+
+    "set_backlight": {
+      "name": "Définir le rétroéclairage",
+      "description": "Définit le mode de rétroéclairage de l’appareil.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour définir le rétroéclairage."
+        },
+        "backlight_adaptive": {
+          "name": "Mode de rétroéclairage",
+          "description": "Valeurs possibles : « auto », « on », « bedroom »."
+        }
+      }
+    },
+
+    "set_wattage": {
+      "name": "Définir une puissance forcée",
+      "description": "Configurez une valeur de puissance de substitution pour un éclairage ou un variateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du ou des appareils neviweb130 pour lesquels définir une puissance de remplacement (wattage override)."
+        },
+        "loadwattoutput1": {
+          "name": "Puissance en watts",
+          "description": "Puissance à régler : 0–1800 W pour l’éclairage, 0–600 W pour le variateur."
+        }
+      }
+    },
+
+    "set_setpoint_max": {
+      "name": "Définir la consigne maximale",
+      "description": "Définir la température de consigne maximale pour l'appareil de chauffage de la pièce.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat Neviweb130."
+        },
+        "roomsetpointmax": {
+          "name": "Consigne maximale",
+          "description": "Température de consigne maximale à réglable."
+        }
+      }
+    },
+
+    "set_setpoint_min": {
+      "name": "Définir la consigne minimale",
+      "description": "Définir la température de consigne minimale pour l'appareil de chauffage de la pièce.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat Neviweb130."
+        },
+        "roomsetpointmin": {
+          "name": "Consigne minimale",
+          "description": "Température de consigne minimale à réglable."
+        }
+      }
+    },
+
+    "set_room_setpoint_away": {
+      "name": "Définir la consigne de chauffage d'absence",
+      "description": "Définir la température de consigne pour tous les thermostats Wi-Fi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat Neviweb130."
+        },
+        "roomsetpointaway": {
+          "name": "Consigne en absence",
+          "description": "Valeurs de consigne possibles comprises entre 5 et 30."
+        }
+      }
+    },
+
+    "set_cool_setpoint_away": {
+      "name": "Définir la consigne de climatisation en absence",
+      "description": "Définir la température de consigne de refroidissement pour les thermostats TH6xxxWF et HP6000WF.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat (heaat/cool) Neviweb130."
+        },
+        "coolsetpointaway": {
+          "name": "Consigne de refroidissement",
+          "description": "Valeurs de consigne de refroidissement possibles comprises entre 16 et 30."
+        }
+      }
+    },
+
+    "set_floor_air_limit": {
+      "name": "Définir la limite ambiante pour le sol",
+      "description": "Définir la température ambiante maximale du thermostat de plancher.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostats pour plancher chauffant Neviweb130."
+        },
+        "floormaxairtemperature": {
+          "name": "Température ambiante maximale",
+          "description": "Limite de température ambiante à définir."
+        }
+      }
+    },
+
+    "set_sensor_closure_action": {
+      "name": "Définir l’action de fermeture du capteur",
+      "description": "Configurer l'action de fermeture associée au capteur de fuite d'eau. Concerne uniquement les capteurs de fuite connectés directement à une vanne Sedna.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des capteurs de fuite d’eau Neviweb130."
+        },
+        "cfgvalveclosure": {
+          "name": "Configuration de l'action de clôture",
+          "description": "Réglez le capteur sur «on» pour fermer la vanne en cas de fuite, ou sur « off » pour qu'il ne fasse rien. Si le capteur n'est pas connecté à la vanne Sedna, celle-ci ne se fermera pas en cas de fuite. Vous devrez intercepter cette alerte et automatiser la fermeture de la vanne."
+        }
+      }
+    },
+
+    "set_sensor_leak_alert": {
+      "name": "Configurer une alerte de fuite",
+      "description": "Activer ou désactiver l’alerte de fuite pour le capteur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des capteurs de fuite d’eau Neviweb130."
+        },
+        "alertwaterleak": {
+          "name": "Configuration des alertes de fuite",
+          "description": "Définissez sur «True» ou « true » pour envoyer une alerte, ou sur «False» ou « false » pour ne rien faire."
+        }
+      }
+    },
+
+    "set_sensor_temp_alert": {
+      "name": "Définir une alerte de température",
+      "description": "Activer ou désactiver l’alerte de basse température pour le capteur de fuite.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des capteurs de fuite d’eau Neviweb130."
+        },
+        "alertlowtemp": {
+          "name": "Configuration de l’alerte de basse température",
+          "description": "Définir sur True ou « true » pour envoyer une alerte, sur False ou « false » pour ne rien faire."
+        }
+      }
+    },
+
+    "set_valve_alert": {
+      "name": "Définir une alerte pour la pile de la vanne",
+      "description": "Activer ou désactiver l’alerte de batterie pour la vanne Sedna.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de la vanne Sedna de neviweb130."
+        },
+        "alertlowbatt": {
+          "name": "Configuration de l’alerte de batterie faible",
+          "description": "Réglé sur «true», envoie une alerte de batterie, sur «false», ne fait rien."
+        }
+      }
+    },
+
+    "set_valve_temp_alert": {
+      "name": "Définir une alerte de température pour la vanne",
+      "description": "Activer ou désactiver l'alerte de température pour la vanne Sedna.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de la vanne Sedna de neviweb130."
+        },
+        "alertlowbatt": {
+          "name": "Configuration de l’alerte de basse température",
+          "description": "Réglez sur 1 (« true ») pour envoyer une alerte, ou sur 0 (« false ») pour ne rien faire."
+        }
+      }
+    },
+
+    "set_early_start": {
+      "name": "Activer un démarrage anticipé",
+      "description": "Configurer le démarrage anticipé du chauffage sur les thermostats (pour les thermostats Wi-Fi).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom de l’appareil thermostat Wi-Fi neviweb130."
+        },
+        "earlystartcfg": {
+          "name": "Configuration de démarrage anticipé",
+          "description": "Réglez sur « on » ou sur « off » pour activer/désactiver le chauffage anticipé sur le thermostat."
+        }
+      }
+    },
+
+    "set_air_floor_mode": {
+      "name": "Régler le mode air/sol",
+      "description": "Définissez le mode de régulation du thermostat de sol en utilisant la sonde de température ambiante ou la sonde de température au sol.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat de plancher Neviweb130."
+        },
+        "airfloormode": {
+          "name": "Configuration du mode air/sol",
+          "description": "Réglez sur «airByFloor» (Zigbee) ou «roomByFloor» (Wi-Fi) pour utiliser le capteur de température ambiante, ou sur «floor» pour utiliser le capteur de température au sol."
+        }
+      }
+    },
+
+    "set_phase_control": {
+      "name": "Régler le contrôle de phase",
+      "description": "Réglez le mode de contrôle de phase du variateur sur « reverse » (fin de phase) ou « forward » (début de phase).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du variateur d’éclairage Neviweb130."
+        },
+        "phasecontrol": {
+          "name": "Contrôle de phase",
+          "description": "Régler sur « reverse » (fin de phase) ou « forward » (début de phase) pour le contrôle de la variation lumineuse."
+        }
+      }
+    },
+
+    "set_hvac_dr_options": {
+      "name": "Définir les options HVAC DR",
+      "description": "Set demand response attributes for thermostats in Éco Sinopé mode",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats de chauffage/climatisation neviweb130."
+        },
+        "dractive": {
+          "name": "Activation drActive",
+          "description": "Set to «on» or « off » to activate Éco Sinopé mode."
+        },
+        "optout": {
+          "name": "Option de désinscription",
+          "description": "Réglez sur « on » ou « off » pour désactiver le mode Éco Sinopé."
+        },
+        "setpoint": {
+          "name": "Activation de la consigne",
+          "description": "Réglez sur « activé » ou « désactivé » pour activer la fonction de réduction des consignes Éco Sinopé."
+        },
+        "auxoptim": {
+          "name": "Optimisation auxiliaire",
+          "description": "Activez ou désactivez l’optimisation du chauffage d’appoint « Éco Sinopé » sur les modèles TH6500WF et TH6250WF. Cette option n’est utile que si le chauffage d’appoint ne consomme pas d’électricité (par exemple, un système de chauffage fonctionnant au combustible)."
+        },
+        "fanspeedoptim": {
+          "name": "Optimisation de la vitesse des ventilateurs",
+          "description": "Activez ou désactivez l’optimisation du ventilateur « Éco Sinopé » sur les modèles TH6500WF et TH6250WF. Lorsque cette fonction est activée, le ventilateur passe automatiquement en mode « auto » durant les périodes « Éco » afin de réduire la consommation électrique."
+        }
+      }
+    },
+
+    "set_hvac_dr_setpoint": {
+      "name": "Définir la consigne HVAC DR",
+      "description": "Set demand response setpoint reduction value for thermostats in Éco Sinopé mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats de chauffage/climatisation neviweb130."
+        },
+        "status": {
+          "name": "Statut",
+          "description": "Réglez sur « on » ou « off » pour activer la réduction des consignes pour le mode Éco Sinopé."
+        },
+        "value": {
+          "name": "Valeur de réduction de la consigne",
+          "description": "Définissez la valeur de réduction de la consigne pour Éco Sinopé."
+        }
+      }
+    },
+
+    "set_load_dr_options": {
+      "name": "Définir les options DR du contrôleur de charge",
+      "description": "Définissez les attributs de gestion de la demande pour le contrôleur de charge en mode Éco Sinopé.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des contrôleur de charge neviweb130."
+        },
+        "dractive": {
+          "name": "Activation du DR",
+          "description": "Réglez sur « on » ou « off » pour activer le mode Éco Sinopé."
+        },
+        "optout": {
+          "name": "Option de désinscription",
+          "description": "Réglez sur « on » ou « off » pour désactiver le mode Éco Sinopé."
+        },
+        "onoff": {
+          "name": "onOff",
+          "description": "Réglez sur « on » ou « off » pour activer la commande de mise sous/hors tension Éco Sinopé."
+        }
+      }
+    },
+
+    "set_control_onoff": {
+      "name": "Définir la sortie du contrôleur",
+      "description": "Définissez l'état des sorties « onOff » et « onOff2 » du contrôleur de vanne MC3100ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du contrôleur de vanne neviweb130."
+        },
+        "status": {
+          "name": "Statut",
+          "description": "Réglez sur « on » ou « off » pour modifier l’état du contrôleur de vanne de sortie."
+        },
+        "onoff_num": {
+          "name": "Numéro de l'output",
+          "description": "Sélectionnez la sortie 1, (1) ou la sortie 2, (2) du contrôleur."
+        }
+      }
+    },
+
+    "set_auxiliary_load": {
+      "name": "Définir la charge auxiliaire",
+      "description": "Définissez la charge de chauffage auxiliaire (en watts) pour les thermostats Zigbee de plancher et basse tension.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130."
+        },
+        "status": {
+          "name": "Statut",
+          "description": "Réglez sur « on » ou « off » pour modifier l'état de la charge (en watts)."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Charge en watts."
+        }
+      }
+    },
+
+    "set_cycle_output": {
+      "name": "Définir la sortie du cycle",
+      "description": "La configuration de l'équipement doit être effectuée par un professionnel. Définissez la durée du cycle principal (en minutes) pour les thermostats basse tension, qu'ils soient de type Wi-Fi ou Zigbee.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat neviweb130."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Durée du cycle en minutes. Les valeurs acceptées sont « 15 sec », « 5 min », « 10 min », « 15 min », « 20 min », « 25 min », « 30 min »."
+        }
+      }
+    },
+
+    "set_aux_cycle_output": {
+      "name": "Définir la sortie du cycle auxiliaireDéfinir la sortie du cycle auxiliaire",
+      "description": "La configuration de l’équipement doit être effectuée par un professionnel. Réglez la durée du cycle auxiliaire (en minutes) pour les thermostats basse tension, qu’ils soient de type Wi-Fi ou Zigbee.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat neviweb130."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Durée du cycle en minutes. Les valeurs acceptées sont « 15 sec », « 5 min », « 10 min », « 15 min », « 20 min », « 25 min », « 30 min »."
+        }
+      }
+    },
+
+    "set_battery_type": {
+      "name": "Définir le type de batterie",
+      "description": "Définissez le type de pile du détecteur de fuites : alcaline ou au lithium.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du capteur de fuite neviweb130."
+        },
+        "batterytype": {
+          "name": "Type de batterie",
+          "description": "Réglez sur « alcaline » ou sur « lithium ». Le type de pile d’origine pour les détecteurs de fuites est alcaline."
+        }
+      }
+    },
+
+    "set_pump_protection": {
+      "name": "Configurer la protection de la pompe",
+      "description": "Activez ou désactivez la protection de la pompe pour les thermostats basse tension.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du/des thermostat neviweb130."
+        },
+        "status": {
+          "name": "Statut",
+          "description": "Réglez sur « on » ou « off » pour modifier l’état de la protection de la pompe."
+        }
+      }
+    },
+
+    "set_tank_size": {
+      "name": "Définir la taille du réservoir",
+      "description": "Définir la capacité du ballon d'eau chaude pour le gestionnaire de charge Calypso RM3500ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du contrôleur de commutateur neviweb130."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Capacité du réservoir en gallons. Les valeurs acceptées sont « 40 gal », « 50 gal », « 60 gal », « 80 gal »."
+        }
+      }
+    },
+
+    "set_controlled_device": {
+      "name": "Définir l'appareil contrôlé",
+      "description": "Définir le type d'appareil contrôlé par le contrôleur de charge RM3250ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du contrôleur de commutateur neviweb130."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Nom du type d’appareil. Les valeurs acceptées sont « Chauffe-eau », « Pompe de piscine », « Borne de recharge pour véhicule électrique », « Autre »."
+        }
+      }
+    },
+
+    "set_cool_setpoint_max": {
+      "name": "Définir la consigne de refroidissement maximale",
+      "description": "Définir la température maximale de consigne pour le refroidissement de la pièce sur les appareils HP6000WF, TH1134ZB-HC, TH6500WF et TH6250WF.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du ou des thermostats compatibles avec le système Neviweb130."
+        },
+        "coolsetpointmax": {
+          "name": "Consigne de refroidissement maximale",
+          "description": "Température de consigne maximale à régler pour le refroidissement."
+        }
+      }
+    },
+
+    "set_cool_setpoint_min": {
+      "name": "Définir la consigne de refroidissement minimale",
+      "description": "Définir la température minimale de consigne pour le refroidissement de la pièce sur les appareils HP6000WF, TH1134ZB-HC, TH6500WF et TH6250WF.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Nom(s) du ou des thermostats compatibles avec le système Neviweb130."
+        },
+        "coolsetpointmin": {
+          "name": "Consigne de refroidissement minimale",
+          "description": "Température de consigne minimale à régler pour le refroidissement."
+        }
+      }
+    },
+
+    "set_low_temp_protection": {
+      "name": "Définir la protection contre les basses températures",
+      "description": "Activez ou désactivez la protection basse température de Calypso. Si la température de l’eau descend en dessous de la valeur choisie (entre 45 et 55 °C), le chauffage se déclenchera automatiquement.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 Calypso (RM3500ZB)."
+        },
+        "drconfigwatertempmin": {
+          "name": "Température minimale de l'eau",
+          "description": "Réglez sur 0 pour désactiver la protection, ou sur une valeur comprise entre 45 et 55 °C pour activer le niveau de protection."
+        }
+      }
+    },
+
+    "set_flow_meter_model": {
+      "name": "Définir le modèle de débitmètre",
+      "description": "Configurez le modèle de débitmètre Sedna de 2e génération et activez ou désactivez la protection du débitmètre.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil Sedna 2e génération de neviweb130 (VA4220ZB)."
+        },
+        "flowmodel": {
+          "name": "Modèle de débitmètre",
+          "description": "Réglez sur « FS4222 » for 1.5 pouce, « FS4221 » pour 1 pouce, « FS4220 » pour 3/4 de pouce ou sur « No flow » (absence de débitmètre)."
+        }
+      }
+    },
+
+    "set_flow_meter_delay": {
+      "name": "Définir le délai du débitmètre",
+      "description": "Définissez le délai du débitmètre Sedna de 2e génération avant le déclenchement de l'alarme de fuite.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil Sedna 2e génération de neviweb130 (VA4220ZB)."
+        },
+        "alarm1period": {
+          "name": "Délai du débitmètre",
+          "description": "Réglez sur 15 min, 30 min, 45 min, 60 min, 75 min, 90 min, 3 h, 6 h, 12 h et 24 h."
+        }
+      }
+    },
+
+    "set_flow_meter_options": {
+      "name": "Définir les options du débitmètre",
+      "description": "Définir l'action du débitmètre Sedna de 2e génération en cas de détection de fuite.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil Sedna 2e génération de neviweb130 (VA4220ZB)."
+        },
+        "triggeralarm": {
+          "name": "Déclencher l'alarme",
+          "description": "Envoyer une alerte de fuite, activé/désactivé. (on/off)"
+        },
+        "closevalve": {
+          "name": "Fermer la vanne",
+          "description": "Fermer la vanne, marche/arrêt. (on/off)"
+        }
+      }
+    },
+
+    "set_floor_limit_high": {
+      "name": "Fixer une limite maximum de température",
+      "description": "Définir la température maximum au sol pour l'appareil de régulation thermique.",
+      "fields": {
+        "entity_id": {
+          "name": "Entityé",
+          "description": "Nom(s) du thermostat de plancher Neviweb130 (TH1300ZB)."
+        },
+        "floorlimithigh": {
+          "name": "Limite supérieure plancher",
+          "description": "Température maximale à régler pour le chauffage par le sol. Entre 7 et 36 °C. (0 = désactivé)."
+        }
+      }
+    },
+
+    "set_floor_limit_low": {
+      "name": "Fixer une limite minimum de température",
+      "description": "Définir la température minimum au sol pour l'appareil de régulation thermique.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat de plancher Neviweb130 (TH1300ZB)."
+        },
+        "floorlimitlow": {
+          "name": "Limite inférieure plancher",
+          "description": "Température minimale à régler pour le chauffage par le sol. Entre 5 et 34 °C. (0 = off)."
+        }
+      }
+    },
+
+    "set_tank_type": {
+      "name": "Définir le type de réservoir",
+      "description": "Définir le type de réservoir pour le LM4110-ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 LM4110-ZB."
+        },
+        "tanktype": {
+          "name": "Type de réservoir",
+          "description": "Valeurs possibles : « propane » ou « oil »."
+        }
+      }
+    },
+
+    "set_gauge_type": {
+      "name": "Définir le type de jauge",
+      "description": "Définir le type de jauge pour le LM4110-ZB sur le réservoir de propane ou huile.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 LM4110-ZB."
+        },
+        "gaugetype": {
+          "name": "Type de jauge",
+          "description": "Valeurs possibles : 595 ou 1080."
+        }
+      }
+    },
+
+    "set_low_fuel_alert": {
+      "name": "Définir une alerte de niveau bas",
+      "description": "Définir le seuil de niveau bas pour le réservoir de propane.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 LM4110-ZB."
+        },
+        "alertlowfuelpercent": {
+          "name": "Pourcentage niveau de carburant",
+          "description": "Valeurs possibles : 0 (désactivé), 10, 20, 30."
+        }
+      }
+    },
+
+    "set_tank_height": {
+      "name": "Définir la hauteur du réservoir",
+      "description": "Définissez la hauteur de la cuve pour le LM4110-ZB sur la cuve à diezel. Le type de cuve doit être réglé au préalable sur « oil ».",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 LM4110-ZB."
+        },
+        "tankheight": {
+          "name": "Hauteur du réservoir",
+          "description": "Valeurs possibles : 23, 24, 35, 38, 47, 48, 50."
+        }
+      }
+    },
+
+    "set_fuel_alert": {
+      "name": "Définir une alerte carburant",
+      "description": "Configurer l'alerte de carburant (activation/désactivation) pour le LM4110-ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 LM4110-ZB."
+        },
+        "alertlowfuel": {
+          "name": "Alerte carburant bas",
+          "description": "Définissez sur « True » pour activer l’alerte, ou sur « False »."
+        }
+      }
+    },
+
+    "set_refuel_alert": {
+      "name": "Définir alert ravitaillement",
+      "description": "Définir l'alerte de ravitaillement (activation/désactivation) pour le LM4110-ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 LM4110-ZB."
+        },
+        "alertrefuel": {
+          "name": "Refuel alert",
+          "description": "Définissez sur « True » pour activer l’alerte, ou sur « False »."
+        }
+      }
+    },
+
+    "set_battery_alert": {
+      "name": "Définir alerte batterie",
+      "description": "Activer ou désactiver l’alerte de batterie.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 (LM4110-ZB ou WL42xxx) pour le réglage de l'alerte batterie."
+        },
+        "alertlowbatt": {
+          "name": "Alerte batterie",
+          "description": "Définissez sur « True » pour activer l’alerte, ou sur « False »."
+        }
+      }
+    },
+
+    "set_power_supply": {
+      "name": "Configurer l'alimentation",
+      "description": "Définir le type d'alimentation pour la vanne Sedna.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 : vanne Sedna."
+        },
+        "backuppowersupply": {
+          "name": "Source d’alimentation de secours",
+          "description": "Réglez sur « batt » pour une utilisation sur batterie uniquement, sur « power » pour une utilisation avec l’alimentation ACUPS-01 uniquement, et sur « both » pour une utilisation combinant batterie et alimentation."
+        }
+      }
+    },
+
+    "set_input_output_names": {
+      "name": "Noms des E/S",
+      "description": "Définissez des noms pour les entrées 1 et 2 ainsi que pour les sorties 1 et 2 du contrôleur multifonction MC3100ZB. Vous pouvez laisser vides les champs dont vous n'avez pas besoin.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif MC3100ZB."
+        },
+        "input1name": {
+          "name": "Nom de l'entrée 1",
+          "description": "Définissez le nom de l’entrée 1. Longueur maximale : 10 caractères."
+        },
+        "input2name": {
+          "name": "Nom de l'entrée 2",
+          "description": "Définissez le nom de l’entrée 2. Longueur maximale : 10 caractères."
+        },
+        "output1name": {
+          "name": "Nom de la sortie 1",
+          "description": "Définissez le nom de la sortie 1. Longueur maximale : 10 caractères."
+        },
+        "output2name": {
+          "name": "Nom de la sortie 2",
+          "description": "Définissez le nom de lla sortie 2. Longueur maximale : 10 caractères."
+        }
+      }
+    },
+
+    "set_activation": {
+      "name": "Activation",
+      "description": "Activez ou désactivez les appareils qui ne sont plus connectés, ou qui sont reconnectés, afin d’éviter que Neviweb ne tente d’interroger des appareils indisponibles.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil Neviweb."
+        },
+        "active": {
+          "name": "Actif",
+          "description": "Activer « True » ou désactiver l’appareil « False »."
+        }
+      }
+    },
+
+    "set_key_double_up": {
+      "name": "Définir l'action pour le double appui",
+      "description": "Activer ou désactiver l’action associée à une double pression sur une touche pour le DM2550ZB.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du dispositif neviweb130 DM2550ZB."
+        },
+        "active": {
+          "name": "Active",
+          "description": "Activer (« On ») ou désactiver (« Off ») l’action."
+        }
+      }
+    },
+
+    "set_sensor_type": {
+      "name": "Définir le type de capteur",
+      "description": "Définir le type de sonde de sol : 10 kΩ ou 12 kΩ.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat Neviweb130 (TH1300ZB)."
+        },
+        "floorsensortype": {
+          "name": "Type de sonde de sol",
+          "description": "Réglez sur « 10k » ou « 12k »."
+        }
+      }
+    },
+
+    "set_remaining_time": {
+      "name": "Définir le temps restant",
+      "description": "Définissez le temps restant, en secondes, avant que le RM3500xx ne relance le chauffage de l'eau.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat Neviweb130 (TH1300ZB)."
+        },
+        "coldloadpickupremainingtime": {
+          "name": "Temps restant avant redémarrage",
+          "description": "Valeur en secondes : 900 s (15 min), 10 800 pour 3 h, 14 400 pour 4 h, 65 535 pour « désactivé » (de 0 à 65 535)."
+        }
+      }
+    },
+
+    "set_on_off_input_delay": {
+      "name": "Définir le délai d’entrée",
+      "description": "Réglez le délai d'activation/désactivation des 2 entrées, en le faisant passer de « désactivé » à 3 heures. L'entrée sera transmise après ce délai.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 MC3100ZB."
+        },
+        "input_number": {
+          "name": "No d'entrée",
+          "description": "Choisissez entre l'entrée/sortie 1 ou 2."
+        },
+        "onoff": {
+          "name": "On off",
+          "description": "Régler sur « on » (temporisation à l’enclenchement) ou sur « off » (temporisation au déclenchement)."
+        },
+        "delay": {
+          "name": "délais",
+          "description": "Réglez le délai sur « off », « 1 min », « 2 min », 5 min », « 10 min », « 15 min », « 30 min », « 1 h », « 2 h », « 3 h »."
+        }
+      }
+    },
+
+    "set_em_heat": {
+      "name": "Activer le chauffage d'urgence",
+      "description": "Activez le chauffage d'urgence.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130."
+        },
+        "value": {
+          "name": "valeur",
+          "description": "Réglez sur « on » ou « off » pour activer ou désactiver le chauffage d’urgence."
+        }
+      }
+    },
+
+    "set_heat_pump_operation_limit": {
+      "name": "Définir la limite de fonctionnement de la pompe à chaleur",
+      "description": "La configuration de l'équipement doit être effectuée par un professionnel. Définissez la limite de température extérieure basse pour le fonctionnement de la pompe à chaleur. Cette valeur dépend du modèle de pompe à chaleur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130 (modèle HP6000, TH6500WF ou TH6250WF)."
+        },
+        "balancepoint": {
+          "name": "Point d’équilibre",
+          "description": "Valeurs possibles, de 10 à 30 °C, ou « off »."
+        }
+      }
+    },
+
+    "set_cool_lockout_temperature": {
+      "name": "Température de verrouillage climatisation",
+      "description": "Ne pas autoriser le mode refroidissement de la pompe à chaleur si la température extérieure est inférieure à cette valeur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130 (modèle HP6000, TH6500WF ou TH6250WF)."
+        },
+        "coollockouttemperature": {
+          "name": "Température de verrouillage climatisation",
+          "description": "Valeurs possibles, de 0 à 30 °C, ou « off »."
+        }
+      }
+    },
+
+    "set_heat_lockout_temperature": {
+      "name": "Température de verrouillage du chauffage",
+      "description": "Ne pas autoriser le chauffage pour les thermostats enregistrés si la température extérieure est supérieure à ce seuil.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat neviweb130, modèle HP6000, TH6xxxWF ou G2."
+        },
+        "heatlockouttemp": {
+          "name": "Température de verrouillage du chauffage",
+          "description": "Valeurs possibles : de 10 à 30 °C, ou « off) »."
+        }
+      }
+    },
+
+    "set_display_config": {
+      "name": "définir_configuration_affichage",
+      "description": "Activer/désactiver l'affichage de la pompe à chaleur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat HP6000 (appareil Neviweb130)."
+        },
+        "displayconfig": {
+          "name": "Configuration de l'affichage",
+          "description": "Valeurs possibles : « enabled », « disabled »."
+        }
+      }
+    },
+
+    "set_sound_config": {
+      "name": "Configurer le son",
+      "description": "Activer/désactiver le son de la pompe à chaleur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat HP6000 (appareil Neviweb130)."
+        },
+        "soundconfig": {
+          "name": "Configuration du son",
+          "description": "Valeurs possibles : « enabled », « disabled »."
+        }
+      }
+    },
+
+    "set_hc_second_display": {
+      "name": "Configurer le deuxième écran (HC)",
+      "description": "Configurez l'affichage du second thermostat Neviweb130 (modèle TH1134ZB-HC) pour qu'il indique la température de consigne ou la température extérieure.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l'appareil neviweb130 TH1134ZB-HC pour configurer le deuxième affichage."
+        },
+        "config2nddisplay": {
+          "name": "Configuration de l'affichage secondaire",
+          "description": "« exteriorTemperature » = heure et température extérieure ; « setpoint » = heure et valeur de consigne ; « none » = température ambiante uniquement."
+        }
+      }
+    },
+
+    "set_language": {
+      "name": "Définir la langue",
+      "description": "Définissez la langue d’affichage de l’appareil pour les thermostats Neviweb130 (modèles TH1134ZB-HC, HP6000ZB-xx, TH6500WF, TH6250WF et TH6250WF-PRO).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130 pour lequel définir la langue d’affichage."
+        },
+        "language": {
+          "name": "Langue",
+          "description": "« fr » = langue française, « en » = langue anglaise."
+        }
+      }
+    },
+
+    "set_reversing_valve_polarity": {
+      "name": "Définir la polarité de la vanne d’inversion",
+      "description": "Définit la polarité de la vanne d’inversion de la thermopompe. Cette configuration doit être effectuée par un professionnel.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de l’appareil neviweb130."
+        },
+        "polarity": {
+          "name": "Polarité",
+          "description": "Valeurs possibles : « cooling » (refroidissement lorsque la vanne est activée) ou « heating » (chauffage lorsque la vanne est activée)."
+        }
+      }
+    },
+
+    "set_min_time_on": {
+      "name": "Définir le temps minimal ON",
+      "description": "Définit le temps minimal pendant lequel l’appareil doit rester allumé avant de pouvoir s’éteindre. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "heat_min_time_on": {
+          "name": "Temps minimal chauffage ON",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "aux_heat_min_time_on": {
+          "name": "Temps minimal chauffage auxiliaire ON",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "cool_min_time_on": {
+          "name": "Temps minimal refroidissement ON",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "air_exchanger_min_time_on": {
+          "name": "Temps minimal échangeur d’air ON",
+          "description": "Valeurs possibles : « Off », « 20 min », « 40 min », « Continuous »."
+        }
+      }
+    },
+
+    "set_min_time_off": {
+      "name": "Définir le temps minimal OFF",
+      "description": "Définit le temps minimal pendant lequel l’appareil doit rester éteint avant de pouvoir se rallumer. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "heat_min_time_off": {
+          "name": "Temps minimal chauffage OFF",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "aux_heat_min_time_off": {
+          "name": "Temps minimal chauffage auxiliaire OFF",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        },
+        "cool_min_time_off": {
+          "name": "Temps minimal refroidissement OFF",
+          "description": "Valeurs possibles : 120, 180, 240, 300, 600 secondes."
+        }
+      }
+    },
+
+    "set_heat_interstage_delay": {
+      "name": "Définir le délai inter‑étage chauffage",
+      "description": "Définit le temps minimal de chauffage avant de permettre l’augmentation du niveau de chauffage. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "time": {
+          "name": "Délai",
+          "description": "Valeurs possibles : 1 à 60 minutes."
+        }
+      }
+    },
+
+    "set_cool_interstage_delay": {
+      "name": "Définir le délai inter‑étage refroidissement",
+      "description": "Définit le temps minimal de refroidissement avant de permettre l’augmentation du niveau de refroidissement. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "time": {
+          "name": "Délai",
+          "description": "Valeurs possibles : 1 à 60 minutes."
+        }
+      }
+    },
+
+    "set_neviweb_status": {
+      "name": "Définir l’état Neviweb",
+      "description": "Définit l’état global d’occupation Neviweb (maison ou absent) via le GT130.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom du GT130."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Valeurs possibles : « home » ou « away »."
+        }
+      }
+    },
+
+    "set_climate_neviweb_status": {
+      "name": "Définir l’état Neviweb via thermostat",
+      "description": "Définit l’état global d’occupation Neviweb (maison ou absent) via un thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom du thermostat."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Valeurs possibles : « home » ou « away »."
+        }
+      }
+    },
+
+    "set_accessory_type": {
+      "name": "Définir le type d’accessoire",
+      "description": "Définit le type d’accessoire (humidificateur, déshumidificateur, échangeur d’air). Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "accessory_type": {
+          "name": "Type d’accessoire",
+          "description": "Valeurs possibles : « none », « humOnHeat », « humOnFan », « dehum », « airExchanger »."
+        }
+      }
+    },
+
+    "set_schedule_mode": {
+      "name": "Définir le mode d’horaire",
+      "description": "Définit le mode d’horaire du thermostat (manuel ou automatique).",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat TH6500WF."
+        },
+        "setpoint_mode": {
+          "name": "Mode d’horaire",
+          "description": "Valeurs possibles : « manual », « auto »."
+        }
+      }
+    },
+
+    "set_flow_alarm_disable_timer": {
+      "name": "Définir le délai de désactivation d’alarme de débit",
+      "description": "Définit un délai pour désactiver l’alarme du débitmètre pour les vannes Sedna 2e génération.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) de la vanne Sedna 2e génération."
+        },
+        "flow_meter_alarm_disable_timer": {
+          "name": "Délai",
+          "description": "Valeur en secondes entre 0 et 86400 (24 h). 0 = désactivé."
+        }
+      }
+    },
+
+    "set_heatcool_setpoint_delta": {
+      "name": "Définir le delta chauffage/refroidissement",
+      "description": "Définit la différence minimale entre les consignes de chauffage et de refroidissement en mode automatique.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "heat_cool_setpoint_min_delta": {
+          "name": "Delta",
+          "description": "Valeurs possibles : 1 °C à 5 °C."
+        }
+      }
+    },
+
+    "set_fan_filter_reminder": {
+      "name": "Définir le rappel de filtre",
+      "description": "Définit la période de rappel pour le filtre du ventilateur.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "fan_filter_reminder_period": {
+          "name": "Période",
+          "description": "Valeurs possibles : 1 à 12 mois."
+        }
+      }
+    },
+
+    "set_temperature_offset": {
+      "name": "Définir l’ajustement de température",
+      "description": "Définit l’ajustement de température du thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "temperature_offset_heat": {
+          "name": "Ajustement",
+          "description": "Valeurs possibles : de -2 à 2 °C par pas de 0,5 °C."
+        }
+      }
+    },
+
+    "set_aux_heating_source": {
+      "name": "Définir la source de chauffage auxiliaire",
+      "description": "Définit la source de chauffage auxiliaire. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "aux_heat_source_type": {
+          "name": "Source auxiliaire",
+          "description": "Valeurs possibles : « Electric » ou « Fossil »."
+        }
+      }
+    },
+
+    "set_fan_speed": {
+      "name": "Définir la vitesse du ventilateur",
+      "description": "Définit la vitesse du ventilateur du thermostat.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "fan_speed": {
+          "name": "Vitesse",
+          "description": "Valeurs possibles : « On », « Auto » pour TH6xxxWF; ou 0, 20, 40, 60, 80, 100, 128 pour HP6000WF‑xx."
+        }
+      }
+    },
+
+    "set_humidity_mode": {
+      "name": "Définir le mode d’humidité",
+      "description": "Définit le mode de consigne d’humidité.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) des thermostats TH6500WF ou TH6250WF."
+        },
+        "humidity_setpoint_mode": {
+          "name": "Mode d’humidité",
+          "description": "Valeurs possibles : « defog », « manual »."
+        }
+      }
+    },
+
+    "set_heat_dissipation_time": {
+      "name": "Définir le temps de purge chauffage",
+      "description": "Définit le temps de purge du chauffage. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat."
+        },
+        "time": {
+          "name": "Temps de purge",
+          "description": "Valeurs possibles : 0 à 5 minutes. 0 = désactivé."
+        }
+      }
+    },
+
+    "set_cool_dissipation_time": {
+      "name": "Définir le temps de purge refroidissement",
+      "description": "Définit le temps de purge du refroidissement. Configuration réservée aux professionnels.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "Nom(s) du thermostat."
+        },
+        "time": {
+          "name": "Temps de purge",
+          "description": "Valeurs possibles : 0 à 5 minutes. 0 = désactivé."
+        }
+      }
+    }
+  },
+  "issues": {
+    "dangerous_attribute_change": {
+      "title": "Modification d’attribut risquée",
+      "description": "La modification de l’attribut {attribute}\npour l’entité {entity}\npeut entraîner un comportement imprévisible ou risqué de l’appareil.\nValeur tentée : {value}.\n\nPour plus d’informations, consultez : {doc_url}"
     }
   }
 }
