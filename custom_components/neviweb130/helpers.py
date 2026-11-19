@@ -1,70 +1,188 @@
 """Helpers for debugging and logger setup in neviweb130"""
 
+from __future__ import annotations
+
 import asyncio
+import datetime
 import logging
 import os
 import shutil
-from logging.handlers import RotatingFileHandler
+import time
+from dataclasses import dataclass
+from typing import Any, Callable, Mapping
 
+from aiohttp import ClientError
+from homeassistant.components.persistent_notification import DOMAIN as PN_DOMAIN
+from homeassistant.components.recorder.models import StatisticMeanType
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription, SensorStateClass
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
-from requests.exceptions import RequestException
 
-from .const import DOMAIN
-from .exceptions import SilentAttributeIgnoreError
+from .const import (
+    CLIMATE_MODEL,
+    DOMAIN,
+    ICON_DIR,
+    ICON_URL,
+    LIGHT_MODEL,
+    RISKY_ATTRIBUTES,
+    SENSOR_MODEL,
+    SIGNAL_EVENTS_CHANGED,
+    SWITCH_MODEL,
+    UPDATE_PROTECTION_DELAY,
+    VALVE_MODEL,
+    VERSION,
+)
+from .exceptions import NeviwebUnsupportedAttributeError, SilentAttributeIgnoreError
 
 _LOGGER = logging.getLogger(__name__)
+_NOT_SUPPORTED = "[not supported]"
+_EMPTY_VALUE = "[empty value]"
+
+
+def set_validation_translations(
+    not_supported: str,
+    empty_value: str,
+) -> None:
+    """Initialize validation translations."""
+    global _NOT_SUPPORTED, _EMPTY_VALUE
+
+    _NOT_SUPPORTED = not_supported
+    _EMPTY_VALUE = empty_value
+
 
 REQUEST_STORE_VERSION = 1
-REQUEST_STORE_KEY = f"{DOMAIN}_request_count"
+REQUEST_STORE_KEY = "neviweb130_daily_requests"
+
+NETWORK_MAP = {
+    1: "network",
+    2: "network2",
+    3: "network3",
+}
 
 # ─────────────────────────────────────────────
 # SECTION LOGGER SETUP
 # ─────────────────────────────────────────────
 
 
-def setup_logger(
-    name: str,
-    log_path: str,
-    level: str = "INFO",
-    max_bytes: int = 2 * 1024 * 1024,
-    backup_count: int = 2,
-    reset_on_start: bool = True,
-):
+_rotate_lock = asyncio.Lock()
+
+
+async def async_write(hass, path, text):
+    def _write():
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+
+    return hass.async_add_executor_job(_write)
+
+
+async def async_rotate(hass, path, max_bytes, backup_count):
+    async with _rotate_lock:
+
+        def _rotate():
+            try:
+                if not os.path.exists(path):
+                    return
+
+                if os.path.getsize(path) < max_bytes:
+                    return
+
+                # Rotate backups
+                for i in range(backup_count - 1, 0, -1):
+                    src = f"{path}.{i}"
+                    dst = f"{path}.{i + 1}"
+
+                    if os.path.exists(src):
+                        os.replace(src, dst)
+
+                # Move current log to .1
+                os.replace(path, f"{path}.1")
+
+            except FileNotFoundError:
+                # File already rotated by another task.
+                pass
+
+        return hass.async_add_executor_job(_rotate)
+
+
+class AsyncRotatingHandler(logging.Handler):
+    def __init__(self, hass, path, max_bytes, backup_count):
+        super().__init__()
+        self.hass = hass
+        self.path = path
+        self.baseFilename = path
+        self.max_bytes = max_bytes
+        self.backup_count = backup_count
+
+    def emit(self, record):
+        msg = self.format(record)
+        # Async rotation
+        self.hass.loop.call_soon_threadsafe(
+            self.hass.async_create_task,
+            async_rotate(
+                self.hass,
+                self.path,
+                self.max_bytes,
+                self.backup_count,
+            ),
+        )
+        # Async write
+        self.hass.loop.call_soon_threadsafe(
+            self.hass.async_create_task,
+            async_write(
+                self.hass,
+                self.path,
+                msg,
+            ),
+        )
+
+
+def setup_logger(hass, name, log_path, level="INFO", max_bytes=2 * 1024 * 1024, backup_count=2, reset_on_start=True):
     if reset_on_start and os.path.exists(log_path):
-        clear_log_file(log_path)
+
+        def _clear():
+            open(log_path, "w").close()
+
+        hass.async_add_executor_job(_clear)
 
     logger = logging.getLogger(name)
-    numeric_level = getattr(logging, level.upper(), logging.WARNING)
+    numeric_level = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(numeric_level)
 
-    handler = RotatingFileHandler(log_path, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8")
+    handler = AsyncRotatingHandler(hass, log_path, max_bytes, backup_count)
     handler.setLevel(numeric_level)
     formatter = logging.Formatter(
         "%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
 
-    # Delete hold handlers on same file
-    logger.handlers = [
-        h for h in logger.handlers if not (isinstance(h, RotatingFileHandler) and h.baseFilename == log_path)
-    ]
+    logger.handlers = []
     logger.addHandler(handler)
     logger.propagate = False
 
-    logger.debug("Logger initialized early at level %s", level.upper())
+    return logger
 
 
-def clear_log_file(log_path: str):
-    if not os.path.exists(log_path):
-        return
+async def async_clear_log_file(hass, log_path: str):
+    def _clear():
+        open(log_path, "w").close()
 
-    try:
-        with open(log_path, "w", encoding="utf-8") as f:
-            f.write("")
-    except (OSError, PermissionError) as err:
-        print(f"Failed to clear log file: {err}")
+    return hass.async_add_executor_job(_clear)
+
+
+def extract_log_options(entry):
+    options = entry.options
+    return {
+        "log_level": options.get("log_level", "warning"),
+        "log_max_bytes": options.get("log_max_bytes", 2 * 1024 * 1024),
+        "log_backup_count": options.get("log_backup_count", 2),
+        "log_reset_on_start": options.get("log_reset_on_start", True),
+    }
 
 
 def update_logger_level(name: str, level: str):
@@ -83,12 +201,16 @@ def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, b
 
     updated = False
     for h in logger.handlers:
-        if isinstance(h, RotatingFileHandler) and os.path.samefile(h.baseFilename, log_path):
-            h.setLevel(numeric_level)
-            h.maxBytes = max_bytes
-            h.backupCount = backup_count
-            logger.debug("Logger handler updated : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
-            updated = True
+        if isinstance(h, AsyncRotatingHandler):
+            try:
+                if os.path.samefile(h.baseFilename, log_path):
+                    h.setLevel(numeric_level)
+                    h.max_bytes = max_bytes
+                    h.backup_count = backup_count
+                    logger.debug("Logger handler updated : max_bytes=%s, backup_count=%s", max_bytes, backup_count)
+                    updated = True
+            except FileNotFoundError:
+                continue
 
     if not updated:
         logger.warning("No handler updated — check log path or level")
@@ -96,21 +218,27 @@ def update_logger_config(name: str, log_path: str, level: str, max_bytes: int, b
     logger.debug("Logger config updated to level %s", level.upper())
 
 
-def expose_log_file(hass, log_path: str, public_name: str = "neviweb130.log", expire_after: int = 1800) -> str | None:
-    """Copy log file to /config/www for browser download with forced filename."""
+async def expose_log_file(
+    hass: HomeAssistant,
+    log_path: str,
+    public_name: str = "neviweb130.log",
+    expire_after: int = 1800,
+) -> str | None:
+    """Copy log file to /config/www asynchronously for browser download."""
+
     www_dir = hass.config.path("www")
     os.makedirs(www_dir, exist_ok=True)
 
     www_path = os.path.join(www_dir, public_name)
 
     try:
-        shutil.copy2(log_path, www_path)
+        await hass.async_add_executor_job(shutil.copy2, log_path, www_path)
     except (OSError, PermissionError) as err:
         _LOGGER.warning("Cannot expose log file: %s", err)
         return None
 
     _LOGGER.debug("Log file copied to %s", www_path)
-    hass.loop.create_task(_delete_file_later(www_path, expire_after))
+    hass.async_create_task(_delete_file_later(www_path, expire_after))
     return www_path
 
 
@@ -129,7 +257,76 @@ async def _delete_file_later(path: str, delay: int):
 
 
 # ─────────────────────────────────────────────
-# Updater section
+# Clean entry section
+# ─────────────────────────────────────────────
+
+
+def sanitize_entry_data(
+    data: Mapping[str, Any],
+    hidden_keys: tuple[str, ...] = ("username", "password"),
+) -> dict[str, Any]:
+    def mask(value: Any) -> str:
+        if isinstance(value, str) and "@" in value:
+            name, domain = value.split("@", 1)
+            return name[:2] + "***@" + domain
+        return "***"
+
+    return {k: (mask(v) if k in hidden_keys else v) for k, v in data.items()}
+
+
+# ─────────────────────────────────────────────
+# Debug coordinator section
+# ─────────────────────────────────────────────
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def debug_coordinator(coordinator, device_id=None, device_name=None):
+    import pprint
+
+    _LOGGER.debug("Coordinator class: %s", type(coordinator))
+    _LOGGER.debug("Available attributes: %s", dir(coordinator._devices))
+    _LOGGER.debug("Available clients: %s", dir(coordinator.client))
+    _LOGGER.debug("Available data: %s", dir(coordinator.data.values))
+    for attr in ["data", "_devices", "update_interval"]:
+        value = getattr(coordinator, attr, "<inconnu>")
+        try:
+            _LOGGER.debug("%s: %s", attr, value)
+        except Exception as e:
+            _LOGGER.warning("Can't show %s: %s", attr, e)
+
+    _LOGGER.debug("Coordinator data (data):")
+    for dev_id, dev_obj in coordinator.data.items():
+        _LOGGER.debug("[%s] %s", dev_id, getattr(dev_obj, "name", "??"))
+
+    # Targeted inspection
+    target_device = None
+    _LOGGER.debug("device_id  = %s", device_id)
+    _LOGGER.debug("device_name  = %s", device_name)
+    if device_id and device_id in coordinator.data:
+        target_device = coordinator.data[device_id]
+    elif device_name:
+        for dev in coordinator.data.values():
+            if getattr(dev, "name", None) == device_name:
+                target_device = dev
+                break
+
+    if target_device:
+        _LOGGER.debug(
+            "Targeted device (%s):\n%s",
+            getattr(target_device, "name", "inconnu"),
+            pprint.pformat(vars(target_device)),
+        )
+    else:
+        _LOGGER.warning(
+            "Device not found with ID '%s' or name '%s'",
+            device_id,
+            device_name,
+        )
+
+
+# ─────────────────────────────────────────────
+# Update section
 # ─────────────────────────────────────────────
 
 
@@ -159,115 +356,579 @@ def has_breaking_changes(notes: str | None) -> bool:
 
 
 def build_update_summary(installed: str, latest: str, notes: str) -> str:
-    """Build a full update summary for Neviweb130 V1."""
-    if not installed or not latest:
-        return "You are running the latest available version."
-
+    """Build a full update summary for Neviweb130 V2."""
     base_url = "https://github.com/claudegel/sinope-130"
-    tag_installed = f"v{installed}" if not installed.startswith("v") else installed
-    tag_latest = f"v{latest}" if not latest.startswith("v") else latest
 
-    # Link to compare between new version and latest
+    tag_installed = installed if installed.startswith("v") else f"v{installed}"
+    tag_latest = latest if latest.startswith("v") else f"v{latest}"
+
+    release_link = f"{base_url}/releases/tag/{tag_latest}"
     compare_link = f"{base_url}/compare/{tag_installed}...{tag_latest}"
 
-    safe_notes = str(notes or "").strip()
+    return (
+        "### Update Summary\n\n"
+        f"**Installed:** {installed}\n"
+        f"**Available:** {latest}\n\n"
+        f"{release_link}\n"
+        f"{compare_link}\n\n"
+        f"### Version Notes\n{notes}"
+    )
 
-    if not safe_notes:
-        safe_notes = f"## Version {latest}\n\nNo release notes available."
 
-    section = ""
+# ─────────────────────────────────────────────
+# Normalize yaml config import
+# ─────────────────────────────────────────────
 
-    if "## What's Changed" in safe_notes:
-        after = safe_notes.split("## What's Changed", 1)[1]
-        if "##" in after:
-            after = after.split("##", 1)[0]
-        cleaned_lines = []
-        for line in after.splitlines():
-            if " in https" in line:
-                line = line.split(" in https", 1)[0].rstrip()
-                cleaned_lines.append(line)
-        section = "## What's Changed\n" + "\n".join(cleaned_lines).strip()
+
+def normalize_yaml_config(yaml_config: dict) -> tuple[list[dict], dict, bool]:
+    """
+    Normalize YAML configuration for Neviweb130.
+
+    Returns:
+        accounts: list of normalized accounts
+        global_options: dict of global options
+    """
+
+    is_legacy = False
+
+    # --- Detection legacy vs V2 ---
+    if "accounts" in yaml_config:
+        raw_accounts = yaml_config["accounts"]
     else:
-        section = "No 'What's Changed' section found."
-    _LOGGER.debug("Release notes = %s", section)
+        # Compatibility legacy → convert to V2
+        is_legacy = True
+        raw_accounts = [
+            {
+                "username": yaml_config.get("username"),
+                "password": yaml_config.get("password"),
+                "network": yaml_config.get("network"),
+                "network2": yaml_config.get("network2"),
+                "network3": yaml_config.get("network3"),
+                "location": yaml_config.get("location"),
+                "location2": yaml_config.get("location2"),
+                "location3": yaml_config.get("location3"),
+                "prefix": "default",
+            }
+        ]
 
-    return f"Available versions :\n- [{tag_installed} -> {tag_latest}]({compare_link})\n\n{section}"
+    # --- Accounts normalization ---
+    accounts = []
+    seen_prefixes = set()
+    seen_credentials = set()
+
+    for idx, acc in enumerate(raw_accounts):
+        username = acc.get("username")
+        password = acc.get("password")
+
+        # Validate username and password
+        if not username or not password:
+            raise HomeAssistantError(
+                f"Neviweb130 YAML import error: username and password are required "
+                f"for account index {idx} (prefix={acc.get('prefix', '?')})."
+            )
+
+        # Automatic prefix
+        prefix = acc.get("prefix")
+        if not prefix:
+            prefix = "default" if idx == 0 else f"default{idx + 1}"
+
+        # Validate prefix are different
+        if prefix in seen_prefixes:
+            raise HomeAssistantError(f"Neviweb130 YAML import error: duplicate prefix '{prefix}' detected.")
+        seen_prefixes.add(prefix)
+
+        # Validate credential are different
+        cred_key = (username.lower().strip(), password)
+        if cred_key in seen_credentials:
+            raise HomeAssistantError(
+                f"Neviweb130 YAML import error: duplicate account detected for username '{username}'."
+            )
+        seen_credentials.add(cred_key)
+
+        # Synonymes network/location, empty if missing
+        network = acc.get("network") or acc.get("location") or ""
+        network2 = acc.get("network2") or acc.get("location2") or ""
+        network3 = acc.get("network3") or acc.get("location3") or ""
+
+        accounts.append(
+            {
+                "username": username,
+                "password": password,
+                "prefix": prefix,
+                "network": network,
+                "network2": network2,
+                "network3": network3,
+            }
+        )
+
+    # --- Global options ---
+    scan = yaml_config.get("scan_interval", 420)
+    stat = yaml_config.get("stat_interval", 1800)
+
+    # --- Validation scan_interval ---
+    if not (300 <= scan <= 600):
+        raise HomeAssistantError(
+            f"Neviweb130 YAML import error: scan_interval must be between 300 and 600 seconds (got {scan})."
+        )
+
+    # --- Validation stat_interval ---
+    if not (1000 <= stat <= 2000):
+        raise HomeAssistantError(
+            f"Neviweb130 YAML import error: stat_interval must be between 1000 and 2000 seconds (got {stat})."
+        )
+
+    # --- Validation notify ---
+    valid_notify_values = {"both", "logging", "nothing", "notification"}
+
+    notify = yaml_config.get("notify", "both")  # default value
+
+    if notify not in valid_notify_values:
+        raise HomeAssistantError(
+            f"Neviweb130 YAML import error: notify must be one of {', '.join(valid_notify_values)} (got '{notify}')."
+        )
+
+    global_options = {
+        "scan_interval": scan,
+        "homekit_mode": yaml_config.get("homekit_mode", False),
+        "ignore_miwi": yaml_config.get("ignore_miwi", False),
+        "stat_interval": stat,
+        "notify": notify,
+        "safe_mode": "-",
+    }
+
+    return accounts, global_options, is_legacy
+
+
+def build_import_summary(accounts: list[dict], global_options: dict, is_legacy: bool) -> str:
+    """Build a human-readable summary of the YAML import."""
+
+    lines = []
+
+    if is_legacy:
+        lines.append("YAML configuration detected with legacy format (only one Neviweb account).")
+    else:
+        lines.append(f"YAML configuration detected with new multi accounts ({len(accounts)} neviweb accounts).")
+
+    lines.append("")
+
+    for acc in accounts:
+        lines.append(f"- Account « {acc['prefix']} » :")
+        lines.append(f"    • User name : {acc['username']}")
+        if acc.get("network"):
+            lines.append(f"    • Network / Location 1 : {acc['network']}")
+        if acc.get("network2"):
+            lines.append(f"    • Network2 / Location 2 : {acc['network2']}")
+        if acc.get("network3"):
+            lines.append(f"    • Network3 / Location 3 : {acc['network3']}")
+        lines.append("")
+
+    lines.append("")
+    lines.append("Global options applied :")
+    for key, value in global_options.items():
+        lines.append(f"    • {key}: {value}")
+
+    return "\n".join(lines)
 
 
 # ─────────────────────────────────────────────
-# SECTION DAILY REQUEST COUNTER
+# Notification to HA
 # ─────────────────────────────────────────────
 
 
-def init_request_counter(hass):
-    """Initialise the persistent store for request counter data."""
-    store: Store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
+async def async_notify_ha(
+    hass: HomeAssistant,
+    msg: str,
+    title: str | None = None,
+    notification_id: str | None = None,
+) -> None:
+    """Send a persistent notification to the HA frontend."""
 
-    # Load data
-    future = asyncio.run_coroutine_threadsafe(store.async_load(), hass.loop)
-    data = future.result()
+    if title is None:
+        title = f"Neviweb130 integration {VERSION}"
 
-    if not data:
-        data = {
+    data = {
+        "title": title,
+        "message": msg,
+    }
+    if notification_id:
+        data["notification_id"] = notification_id
+
+    await hass.services.async_call(
+        PN_DOMAIN,
+        "create",
+        data,
+        blocking=False,
+    )
+
+
+async def async_notify_once_or_update(
+    hass: HomeAssistant, msg: str, title: str | None = None, notification_id: str | None = None
+) -> None:
+    """Create or update a persistent notification."""
+
+    if notification_id is None:
+        raise ValueError("async_notify_once_or_update requires a notification_id")
+
+    await async_notify_ha(
+        hass,
+        msg,
+        title=title,
+        notification_id=notification_id,
+    )
+    return
+
+
+async def async_notify_throttled(
+    hass: HomeAssistant,
+    msg: str,
+    *,
+    title: str | None = None,
+    notification_id: str | None = None,
+    min_interval: int = 3600,
+) -> None:
+    """
+    Send a persistent notification, but throttled.
+
+    - If the notification was sent less than `min_interval` seconds ago → ignore
+    - Otherwise → send it and update the timestamp
+
+    Args:
+        hass: Home Assistant instance
+        msg: message to send
+        title: optional title
+        notification_id: unique ID for throttling
+        min_interval: minimum seconds between notifications
+    """
+
+    if notification_id is None:
+        raise ValueError("async_notify_throttled requires a notification_id")
+
+    # Internal storage for throtteling
+    throttles: dict[str, Any] = hass.data.setdefault(DOMAIN, {}).setdefault("notify_throttle", {})
+
+    now = time.time()
+    last_time = throttles.get(notification_id, 0)
+
+    # Too soon → just ignore
+    if now - last_time < min_interval:
+        return
+
+    # Or → we send and update timestamp
+    throttles[notification_id] = now
+
+    await async_notify_ha(
+        hass,
+        msg,
+        title=title,
+        notification_id=notification_id,
+    )
+
+    return
+
+
+async def async_notify_critical(hass: HomeAssistant, msg: str, title: str, notification_id: str) -> None:
+    """Thread-safe critical notification."""
+
+    msg = str(msg)
+    _LOGGER.error(msg)
+
+    async def _send():
+        await hass.services.async_call(
+            "persistent_notification",
+            "create",
+            {
+                "title": title,
+                "message": msg,
+                "notification_id": notification_id,
+            },
+            blocking=False,
+        )
+
+    # Always execute in main loop
+    hass.loop.call_soon_threadsafe(hass.async_create_task, _send())
+
+
+# ─────────────────────────────────────────────
+# Devices default_name
+# ─────────────────────────────────────────────
+
+
+class NamingHelper:
+    def __init__(self, domain: str, prefix: str):
+        self.domain = domain
+        if prefix == "default":
+            self.prefix = ""
+        else:
+            self.prefix = prefix or ""
+
+    def default_name(self, platform: str, index: int) -> str:
+        """
+            Build default_name for each bridge, for given platform.
+
+        - If prefix == "default":
+            Keep legacy logic :
+                DEFAULT_NAME = f"{DOMAIN} climate"
+                DEFAULT_NAME_2 = f"{DOMAIN} climate 2"
+                DEFAULT_NAME_3 = f"{DOMAIN} climate 3"
+        - If prefix != "default":
+            V2 logic applied :
+                DEFAULT_NAME = f"{DOMAIN} {prefix} {network}"
+                DEFAULT_NAME_2 = f"{DOMAIN} {prefix} {network2}"
+                DEFAULT_NAME_3 = f"{DOMAIN} {prefix} {network3}"
+
+        Args:
+            domain (str): DOMAIN name.
+            platform (str): climate, light, switch, etc.
+            prefix (str): Prefix defined in config (default or other).
+            index (int): 1, 2 or 3 ,bridge number.
+
+        Returns:
+            str: default_name built.
+        """
+        network = NETWORK_MAP[index]
+
+        if self.prefix in ("default", ""):
+            # Legacy logic applied
+            suffix = "" if index == 1 else f" {index}"
+            return f"{self.domain} {platform}{suffix}"
+
+        # V2 logic
+        return f"{self.domain} {self.prefix} {network}"
+
+    def device_name(self, platform: str, index: int, device_info: dict) -> str:
+        """
+        Build complete device name.
+        """
+        base = self.default_name(platform, index)
+
+        return f"{base} {device_info['name']}"
+
+    def entity_name(self, platform: str, index: int, device_info: dict, attribute: str) -> str:
+        """
+        Construct entity name
+        """
+        base = self.device_name(platform, index, device_info)
+        return f"{base} {attribute}"
+
+    @staticmethod
+    def get_device_platform(model: str | int) -> str:
+        """Return the primary platform for a device model."""
+        model_id = int(model)
+
+        if model_id in CLIMATE_MODEL:
+            return "climate"
+        if model_id in LIGHT_MODEL:
+            return "light"
+        if model_id in SWITCH_MODEL:
+            return "switch"
+        if model_id in SENSOR_MODEL:
+            return "sensor"
+        if model_id in VALVE_MODEL:
+            return "valve"
+
+        raise ValueError(f"Unsupported device model: {model}")
+
+
+# ─────────────────────────────────────────────
+# Device method request counter
+# ─────────────────────────────────────────────
+
+
+class DailyRequestCounter:
+    """Track daily request count with safe typing."""
+
+    def __init__(self, hass):
+        self.hass = hass
+        self.store: Store = Store(hass, REQUEST_STORE_VERSION, REQUEST_STORE_KEY)
+
+        # Types stricts : date = str, count = int
+        self.data: dict[str, str | int] = {
             "date": dt_util.now().date().isoformat(),
             "count": 0,
         }
 
-        future = asyncio.run_coroutine_threadsafe(store.async_save(data), hass.loop)
-        future.result()
+    async def async_load(self) -> None:
+        """Load stored data and normalize types."""
+        stored = await self.store.async_load()
 
-    hass.data[DOMAIN]["request_store"] = store
-    hass.data[DOMAIN]["request_data"] = data
+        if stored:
+            # Normalisation stricte
+            date = stored.get("date", dt_util.now().date().isoformat())
+            count = stored.get("count", 0)
 
+            self.data = {
+                "date": str(date),
+                "count": int(count),
+            }
+        else:
+            await self.store.async_save(self.data)
 
-def increment_request_counter(hass):
-    """Increase counter by one."""
-    data = hass.data[DOMAIN]["request_data"]
-    today = dt_util.now().date().isoformat()
+    async def async_increment(self) -> int:
+        """Increment the counter and return the new value."""
+        today = dt_util.now().date().isoformat()
 
-    # Reset if day change
-    if data["date"] != today:
-        data["date"] = today
-        data["count"] = 0
+        if self.data["date"] != today:
+            self.data["date"] = today
+            self.data["count"] = 0
 
-    data["count"] += 1
+        self.data["count"] = int(self.data["count"]) + 1
 
-    # Persistent saving
-    future = asyncio.run_coroutine_threadsafe(
-        hass.data[DOMAIN]["request_store"].async_save(data),
-        hass.loop,
-    )
-    future.result()
+        await self.store.async_save(self.data)
+        return int(self.data["count"])
 
-    return data["count"]
-
-
-def get_daily_request_count(hass):
-    """Return the daily request count."""
-    return hass.data[DOMAIN]["request_data"]["count"]
+    def get_count(self) -> int:
+        """Return the current count as an int."""
+        return int(self.data["count"])
 
 
 # ─────────────────────────────────────────────
-# SECTION NOTIFICATION
+# Runtime attributes
 # ─────────────────────────────────────────────
 
 
-async def async_notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integration") -> None:
-    await hass.services.async_call(
-        "persistent_notification",
-        "create",
-        {
-            "title": title,
-            "message": msg,
-        },
-    )
+@dataclass(frozen=True)
+class Neviweb130SensorEntityDescription(SensorEntityDescription):
+    """Describes an attribute sensor entity."""
+
+    value_fn: Callable[[Any], Any] | None = None
+    signal: str = ""
+    icon: str | None = None
+    state_class: str | None = "measurement"
+    device_class: SensorDeviceClass | None = None
+    native_unit_of_measurement: str | None = None
+    unit_class: str | None = None
+    mean_type: StatisticMeanType | None = None
 
 
-def notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integration") -> None:
-    asyncio.run_coroutine_threadsafe(
-        async_notify_ha(hass, msg, title),
-        hass.loop,
-    )
+def init_runtime_attributes(obj, modes: dict[str, str], prefix: str) -> None:
+    """Initialize runtime statistics attributes dynamically."""
+    for mode in modes:
+        # None until the first hourly stats fetch, so total_increasing sensors don't see a reset on restart
+        setattr(obj, f"_{mode}_{prefix}_total_count", None)
+        setattr(obj, f"_{mode}_{prefix}_count", None)
+        setattr(obj, f"_{mode}_{prefix}_last_timestamp", None)
+        setattr(obj, f"_{mode}_{prefix}_last_timestamp_local", None)
+
+
+def runtime_attributes_dict(obj, modes: dict[str, str], prefix: str) -> dict[str, Any]:
+    """Return a dict of runtime attributes for extra_state_attributes."""
+    data: dict[str, Any] = {}
+    for mode in modes:
+        data[f"{mode}_{prefix}_total_count"] = getattr(obj, f"_{mode}_{prefix}_total_count")
+        data[f"{mode}_{prefix}_count"] = getattr(obj, f"_{mode}_{prefix}_count")
+        data[f"{mode}_{prefix}_last_timestamp"] = getattr(obj, f"_{mode}_{prefix}_last_timestamp")
+        data[f"{mode}_{prefix}_last_timestamp_local"] = getattr(obj, f"_{mode}_{prefix}_last_timestamp_local")
+    return data
+
+
+def generate_runtime_count_attributes(modes: dict[str, str], prefix: str) -> list[str]:
+    """Generate only the runtime count attributes for EXPOSED_ATTRIBUTES."""
+    attrs = []
+    for mode in modes:
+        attrs.append(f"{mode}_{prefix}_total_count")
+        attrs.append(f"{mode}_{prefix}_count")
+    return attrs
+
+
+def update_runtime_stats(obj, device_stats: dict, modes: dict[str, str], prefix: str) -> None:
+    """Update runtime statistics for a thermostat based on hourly stats."""
+    for mode, key in modes.items():
+        data = device_stats.get(key, [])
+
+        total_attr = f"_{mode}_{prefix}_total_count"
+        time_attr = f"_{mode}_{prefix}_count"
+        ts_attr = f"_{mode}_{prefix}_last_timestamp"
+        local_ts_attr = f"_{mode}_{prefix}_last_timestamp_local"
+
+        if data and len(data) >= 2:
+            last_entry = data[-1]
+            prev_entry = data[-2]
+
+            last_value = last_entry["value"]
+            prev_value = prev_entry["value"]
+
+            # Convert timestamp UTC → local
+            ts_utc = datetime.datetime.strptime(last_entry["timestamp"], "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=datetime.timezone.utc
+            )
+            ts_local = dt_util.as_local(ts_utc)
+
+            # Update only if timestamp changed
+            if getattr(obj, ts_attr, None) != last_entry["timestamp"]:
+                setattr(obj, total_attr, last_value)
+                setattr(obj, time_attr, max(0, last_value - prev_value))
+                setattr(obj, ts_attr, last_entry["timestamp"])
+                setattr(obj, local_ts_attr, ts_local.isoformat())
+
+        else:
+            # Unsupported mode → reset values
+            setattr(obj, total_attr, 0.0)
+            setattr(obj, time_attr, 0)
+
+
+def _runtime_icon_for_mode(mode: str) -> str:
+    """Return an appropriate icon based on the runtime mode."""
+    if "heat" in mode.lower():
+        return "mdi:fire"
+    if "cool" in mode.lower():
+        return "mdi:snowflake"
+    if "fan" in mode.lower():
+        return "mdi:fan"
+    if "aux" in mode.lower():
+        return "mdi:heat-wave"
+    if "emergency" in mode.lower():
+        return "mdi:alert"
+    return "mdi:counter"
+
+
+def _make_value_fn(key: str):
+    def _value_fn(data: dict[str, Any]) -> Any:
+        return data.get(key)
+
+    return _value_fn
+
+
+def generate_runtime_sensor_descriptions(modes: dict[str, str], prefix: str):
+    descriptions = []
+
+    for mode in modes:
+        icon = _runtime_icon_for_mode(mode)
+
+        # total count
+        key_total = f"{mode}_{prefix}_total_count"
+        descriptions.append(
+            Neviweb130SensorEntityDescription(
+                key=key_total,
+                device_class=SensorDeviceClass.DURATION,
+                state_class=SensorStateClass.TOTAL_INCREASING,
+                translation_key=key_total,
+                value_fn=_make_value_fn(key_total),
+                signal=SIGNAL_EVENTS_CHANGED,
+                native_unit_of_measurement=UnitOfTime.MINUTES,
+                unit_class="duration",
+                mean_type=StatisticMeanType.ARITHMETIC,
+                icon=icon,
+            )
+        )
+
+        # delta count
+        key_delta = f"{mode}_{prefix}_count"
+        descriptions.append(
+            Neviweb130SensorEntityDescription(
+                key=key_delta,
+                device_class=SensorDeviceClass.DURATION,
+                state_class=SensorStateClass.MEASUREMENT,
+                translation_key=key_delta,
+                value_fn=_make_value_fn(key_delta),
+                signal=SIGNAL_EVENTS_CHANGED,
+                native_unit_of_measurement=UnitOfTime.MINUTES,
+                unit_class="duration",
+                mean_type=StatisticMeanType.ARITHMETIC,
+                icon=icon,
+            )
+        )
+
+    return descriptions
 
 
 # ─────────────────────────────────────────────
@@ -276,9 +937,8 @@ def notify_ha(hass: HomeAssistant, msg: str, title: str = "Neviweb130 integratio
 
 
 def file_exists(hass, path: str) -> bool:
-    """Return True if a /local/ file exists."""
-    local_path = path.replace("/local/", "www/")
-    full_path = os.path.join(hass.config.path(), local_path)
+    """Return True if an icon served under ICON_URL exists."""
+    full_path = os.path.join(ICON_DIR, path.removeprefix(f"{ICON_URL}/"))
 
     try:
         return os.path.isfile(full_path)
@@ -287,23 +947,28 @@ def file_exists(hass, path: str) -> bool:
 
 
 # ─────────────────────────────────────────────
-# Translate error messages
+# Translate error and other messages
 # ─────────────────────────────────────────────
 
 
-def translate_error(hass, key: str, **placeholders):
-    """Translate an error message using cached translations (sync)."""
+_translation_cache = None
 
-    if not hass.data[DOMAIN].get("ready"):
-        return None
 
-    cache = hass.data[DOMAIN].get("translation_cache")
+async def translate_error(hass, key: str, **placeholders):
+    """Translate an error message using HA translation system."""
+    global _translation_cache
 
-    if cache is None:
-        return None
+    if _translation_cache is None:
+        _translation_cache = await async_get_translations(
+            hass,
+            hass.config.language,
+            "config",
+            integrations=["neviweb130"],
+        )
 
-    full_key = f"component.neviweb130.config.error.{key}"
-    msg = cache.get(full_key)
+    # keys are in the form of "component.neviweb130.config.error.key"
+    full_key = f"component.neviweb130.config.error.{key.lower()}"
+    msg = _translation_cache.get(full_key)
 
     if msg:
         return msg.format(**placeholders)
@@ -318,10 +983,194 @@ def translate_error(hass, key: str, **placeholders):
     return f"[Missing translation: {key}]"
 
 
-def translated_or_default(hass, key, default, **placeholders):
-    """Return default message in case translation_cache is not loaded."""
-    msg = translate_error(hass, key, **placeholders)
-    return msg or default
+async def translate_neviweb_error(self, err, **placeholders):
+    hass = self.hass
+
+    # Log
+    _LOGGER.debug("Neviweb error received: %s", err)
+
+    # Load translations once
+    translations = await async_get_translations(
+        hass,
+        hass.config.language,
+        "config",
+        integrations=["neviweb130"],
+    )
+
+    # Case 1 : structured error
+    if isinstance(err, dict) and "error" in err:
+        code = err["error"].get("code")
+        data = err["error"].get("data", {})
+
+        if code:
+            key = f"component.neviweb130.config.error.{code.lower()}"
+            msg = translations.get(key)
+            if msg:
+                return msg.format(**placeholders)
+
+        return f"Neviweb error {code}: {data}"
+
+    # Case 2 : simple code
+    if isinstance(err, str):
+        key = f"component.neviweb130.config.error.{err.lower()}"
+        msg = translations.get(key)
+        if msg:
+            return msg.format(**placeholders)
+        return err
+
+    # Case 3 : Python exception
+    if isinstance(err, Exception):
+        return str(err)
+
+    return str(err)
+
+
+# ─────────────────────────────────────────────
+# Report service failure
+# ─────────────────────────────────────────────
+
+
+async def _async_report_service_failure(entity, service_name: str, error: str, critical: bool) -> None:
+    """Log (and notify if critical) a failed service call."""
+    key = "critical_service_failed" if critical else "service_failed"
+    msg = await translate_error(entity.hass, key, service=service_name, error=error)
+    if critical:
+        await async_notify_critical(
+            entity.hass,
+            msg,
+            title=f"Neviweb130 integration {VERSION}",
+            notification_id="neviweb130_service_error",
+        )
+    else:
+        _LOGGER.error(msg)
+
+
+# ─────────────────────────────────────────────
+# Apply devices update from service (action)
+# ─────────────────────────────────────────────
+
+
+async def async_apply_device_update(
+    entity,
+    coro,
+    service_name: str,
+    attr_name: str | None = None,
+    new_value=None,
+    critical: bool = False,
+):
+    """
+    Execute a coordinator update coroutine and apply the result to the entity.
+
+    entity: HA entity (self)
+    coro: coroutine return True/False
+    service_name: name of service used
+    attr_name: Name of attribute to update (ex: "_temp_alert")
+    new_value: Value to apply on success
+    critical: if True → use async_notify_critical to send notification
+    """
+    try:
+        resp = await coro
+
+        # Case 1 : Neviweb structured response {"error": {...}}
+        if isinstance(resp, dict) and "error" in resp:
+            translated = await translate_neviweb_error(entity, resp)
+            await _async_report_service_failure(entity, service_name, translated, critical)
+            return False
+
+    except Exception as err:
+        # Cas 2 : Python or API error exception
+        translated = await translate_neviweb_error(entity, err)
+        await _async_report_service_failure(entity, service_name, translated, critical)
+        return False
+
+    # Case 3 : Logical fail (resp=False)
+    if resp is False:
+        await _async_report_service_failure(entity, service_name, "no confirmation from Neviweb", critical)
+        return False
+
+    # Success → local update
+    if attr_name is not None:
+        setattr(entity, attr_name, new_value)
+
+    return True
+
+
+# ─────────────────────────────────────────────
+# Create issue in specific case
+# ─────────────────────────────────────────────
+
+
+def create_issue(
+    hass,
+    issue_id: str,
+    translation_key: str,
+    severity: IssueSeverity = IssueSeverity.WARNING,
+    fixable: bool = False,
+    **placeholders,
+):
+    """Create a Home Assistant issue for Neviweb130."""
+    async_create_issue(
+        hass=hass,
+        domain="neviweb130",
+        issue_id=issue_id,
+        is_fixable=fixable,
+        severity=severity,
+        translation_key=translation_key,
+        translation_placeholders=placeholders or None,
+    )
+
+
+# ─────────────────────────────────────────────
+# Return safe attribute and safe value for issues
+# ─────────────────────────────────────────────
+
+
+BASE_DOC_URL = "https://github.com/claudegel/sinope-130/wiki"
+
+
+def get_doc_url(attribute: str) -> str:
+    """Return documentation URL for a risky attribute."""
+    if attribute in RISKY_ATTRIBUTES:
+        return f"{BASE_DOC_URL}/{attribute}"
+    return f"{BASE_DOC_URL}/Risky-Attributes"
+
+
+def _sanitize(text: str) -> str:
+    """Sanitize text for use in issue_id."""
+    return str(text).lower().replace(" ", "_").replace("-", "_").replace(":", "_").replace(".", "_").replace("/", "_")
+
+
+def create_risky_issue(hass, entity_id: str, attribute: str, value):
+    """Create a risky attribute issue with a safe issue_id."""
+
+    safe_attribute = _sanitize(attribute)
+
+    # Normalisation de la valeur selon son type
+    if isinstance(value, bool):
+        safe_value = "on" if value else "off"
+    else:
+        safe_value = _sanitize(value)
+
+    issue_id = f"risky_{safe_attribute}_{safe_value}"
+
+    doc_url = get_doc_url(attribute)
+
+    _LOGGER.warning(
+        "Risky attribute '%s' modified on entity %s with value %s",
+        attribute,
+        entity_id,
+        value,
+    )
+
+    create_issue(
+        hass,
+        issue_id=issue_id,
+        translation_key="dangerous_attribute_change",
+        entity=entity_id,
+        attribute=attribute,
+        value=value,
+        doc_url=doc_url,
+    )
 
 
 # ─────────────────────────────────────────────
@@ -332,96 +1181,105 @@ def translated_or_default(hass, key, default, **placeholders):
 UNSUPPORTED_ATTRS: dict[str, set[str]] = {}
 
 
-def safe_get_device_attributes(
+async def async_safe_get_device_attributes(
     hass,
     client,
-    device_id,
-    attributes,
+    device_id: str,
+    attributes: list[str],
     logger,
-    device_sku=None,
-    device_model=None,
-    firmware=None,
+    device_sku: str | None = None,
+    device_model: str | None = None,
+    firmware: str | None = None,
 ):
-    logger.warning("Running update helper")
+    logger.debug("Running async update helper")
 
-    filtered_attrs = [attr for attr in attributes if attr not in UNSUPPORTED_ATTRS.get(device_id, set())]
+    unsupported_attrs = UNSUPPORTED_ATTRS.setdefault(device_id, set())
+
+    # Filter out blacklisted attributes
+    filtered_attrs = [attr for attr in attributes if attr not in unsupported_attrs]
 
     try:
-        result = client.get_device_attributes(device_id, filtered_attrs)
+        result = await client.async_get_device_attributes(device_id, filtered_attrs)
+
+        if isinstance(result, dict) and "error" in result:
+            if result["error"].get("code") == "DVCATTRNSPTD":
+                raise NeviwebUnsupportedAttributeError(result["error"]["code"])
+            # Not an attribute problem (session expired, etc.), the caller handles it
+            return result
 
         logger.debug("client result = %s", result)
-        # If Neviweb silently ignore → result == {} or incomplete
+
         if not result or any(attr not in result for attr in filtered_attrs):
             raise SilentAttributeIgnoreError(f"Missing attributes: {filtered_attrs} for device {device_id}")
 
-        # Inject UNSUPPORTED_ATTRS with None into the result
-        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
+        for attr in unsupported_attrs:
             result[attr] = None
 
         return result
 
-    except (RequestException, OSError, SilentAttributeIgnoreError) as err:
-        # if not a DVCATTRNSPTD → we restart
-        if "DVCATTRNSPTD" not in str(err):
-            raise
-
-        # here we know it is an unsupported attribute
-        model_info = f"Model: {device_model}" if device_model else "Model: unknown"
-        fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
-        sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
-
-        logger.warning(
-            "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+    except NeviwebUnsupportedAttributeError:
+        logger.debug(
+            "Device %s returned DVCATTRNSPTD, switching to attribute-by-attribute discovery",
             device_id,
-            sku_info,
-            model_info,
-            fw_info,
         )
 
-        notify_ha(
-            hass,
-            (
-                f"Some attributes requested for device {device_id} are not supported.\n"
-                f"{model_info}\n{fw_info}\n{sku_info}\n"
-                "Check your logs to identify which attributes failed and report to maintainer."
-            ),
-            title="Neviweb130: Unsupported attributes detected",
+    except SilentAttributeIgnoreError:
+        logger.debug(
+            "Device %s returned incomplete attributes, switching to attribute-by-attribute discovery",
+            device_id,
         )
 
-        device_data = {}
+    except (ClientError, OSError):
+        raise
 
-        # Test each attributes one by one
-        for attr in attributes:
-            logger.debug("Testing attribute %s for %s", attr, model_info)
-            try:
-                result = client.get_device_attributes(device_id, [attr])
-                logger.debug("Result for '%s': %s", attr, result)
+    # here we know it is an unsupported attribute
+    model_info = f"Model: {device_model}" if device_model else "Model: unknown"
+    fw_info = f"Firmware: {firmware}" if firmware else "Firmware: unknown"
+    sku_info = f"SKU: {device_sku}" if device_sku else "SKU: unknown"
 
-                # 1. If Neviweb return value
-                if result and attr in result:
-                    device_data[attr] = result[attr]
-                    continue
+    logger.warning(
+        "Unsupported or ignored attribute detected for device %s (%s, %s, %s). Testing attributes individually...",
+        device_id,
+        sku_info,
+        model_info,
+        fw_info,
+    )
 
-                # 2. If Neviweb return {} → Attribute is supported but empty → just ignore
-                if result == {}:
-                    logger.warning(
-                        "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                    )
-                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
-                    device_data[attr] = None
-                    continue
+    await async_notify_ha(
+        hass,
+        (
+            f"Some attributes requested for device {device_id} are not supported.\n"
+            f"{model_info}\n{fw_info}\n{sku_info}\n"
+            "Check your logs to identify which attributes failed and report to maintainer."
+        ),
+        title="Neviweb130: Unsupported attributes detected",
+        notification_id="Attr_not_supported",
+    )
 
-                # 3. If Neviweb return None explicitly we add it to device_data
-                if attr in result and result[attr] is None:
-                    device_data[attr] = None
-                    continue
+    device_data: dict[str, object] = {}
 
-                # 4. Improbable case : absent attr → log but add nothing
+    # Test each attribute individually
+    for attr in attributes:
+        logger.debug("Testing attribute %s for %s", attr, model_info)
+
+        try:
+            result = await client.async_get_device_attributes(device_id, [attr])
+            logger.debug("Result for '%s': %s", attr, result)
+
+            if isinstance(result, dict) and result.get("error", {}).get("code") == "DVCATTRNSPTD":
+                unsupported_attrs.add(attr)
+                device_data[attr] = None
+                continue
+
+            if isinstance(result, dict) and "error" in result:
+                # Not an attribute problem (session expired, etc.), don't blacklist, the caller handles it
+                return result
+
+            if result and attr in result:
+                device_data[attr] = result[attr]
+                continue
+
+            if not result:
                 logger.warning(
                     "Attribute '%s' ignored or unsupported for device %s (%s, %s, %s)",
                     attr,
@@ -430,44 +1288,29 @@ def safe_get_device_attributes(
                     model_info,
                     fw_info,
                 )
-                continue
 
-            except (RequestException, OSError, SilentAttributeIgnoreError) as err:
-                # 5. if we get DVCATTRNSPTD → this attribute is not supported, add None
-                if "DVCATTRNSPTD" in str(err):
-                    logger.warning(
-                        "Attribute '%s' not supported for device %s (%s, %s, %s): %s",
-                        attr,
-                        device_id,
-                        sku_info,
-                        model_info,
-                        fw_info,
-                        err,
-                    )
-
-                    if attr not in UNSUPPORTED_ATTRS.get(device_id, set()):
-                        logger.warning("Blacklisting unsupported attribute '%s' for device %s", attr, device_id)
-
-                    UNSUPPORTED_ATTRS.setdefault(device_id, set()).add(attr)
-                    device_data[attr] = None
-                    continue
-
-                # Other network errors / I/O
-                logger.error(
-                    "Error while fetching attribute '%s' for device %s: %s",
-                    attr,
-                    device_id,
-                    err,
-                )
-                continue
-
-        # Reinject UNSUPPORTED_ATTRS with None into fallback result
-        for attr in UNSUPPORTED_ATTRS.get(device_id, set()):
-            if attr not in device_data:
+                unsupported_attrs.add(attr)
                 device_data[attr] = None
+                continue
 
-        logger.debug("Returned device_data = %s", device_data)
-        return device_data
+            logger.debug(
+                "Attribute '%s' not returned by device %s",
+                attr,
+                device_id,
+            )
+            unsupported_attrs.add(attr)
+            device_data[attr] = None
+            continue
+
+        except (ClientError, OSError) as err:
+            logger.error("Error in device update: %s", err)
+            raise
+
+    for attr in unsupported_attrs:
+        device_data.setdefault(attr, None)
+
+    logger.debug("Returned device_data = %s", device_data)
+    return device_data
 
 
 # ─────────────────────────────────────────────
@@ -483,3 +1326,104 @@ def safe_number(value) -> float:
         return float(value)
     except (TypeError, ValueError):
         return 0.0
+
+
+# ─────────────────────────────────────────────
+# Manage safe mode
+# ─────────────────────────────────────────────
+
+
+def parse_safe_mode(value: str) -> set[str]:
+    """Convert safe mode configuration to a set of device IDs."""
+    return {device_id.strip() for device_id in value.split(",") if device_id.strip() and device_id.strip() != "-"}
+
+
+# ─────────────────────────────────────────────
+# Manage attributes not availables
+# ─────────────────────────────────────────────
+
+
+def validate_value(value: object) -> object:
+    """Return translated text when value is unavailable or empty."""
+
+    if value is None:
+        return _NOT_SUPPORTED
+
+    if isinstance(value, str) and value == "":
+        return _EMPTY_VALUE
+
+    return value
+
+
+# ─────────────────────────────────────────────
+# manage delayed refresh and early update for climate and switch Wi-Fi devices
+# ─────────────────────────────────────────────
+
+
+async def async_delayed_refresh(
+    entity: CoordinatorEntity,
+    delay: float = 2.0,
+    wifi: bool = False,
+    write_state: bool = True,
+) -> None:
+    """Push state immediately and optionally refresh coordinator."""
+
+    if write_state:
+        entity.async_write_ha_state()
+
+    # Only Wi-Fi devices need a delayed refresh
+    if wifi:
+        # Wait to let Neviweb apply the changes
+        await asyncio.sleep(delay)
+
+        # Refresh via coordinator
+        await entity.coordinator.async_request_refresh()
+
+
+def ignore_early_update(
+    name: str,
+    last_change: float | None,
+    attrib: str,
+    data: float | int | str | bool,
+) -> bool:
+    """Return True if attribute update should be ignored because update is too early."""
+
+    if last_change is None:
+        return False
+
+    elapsed = time.time() - last_change
+
+    if elapsed < UPDATE_PROTECTION_DELAY:
+        _LOGGER.debug(
+            "Ignoring early update for %s: %s=%s (%.1f sec after local change)",
+            name,
+            attrib,
+            data,
+            elapsed,
+        )
+        return True
+
+    return False
+
+
+# await async_notify_throttled(
+#    self.hass,
+#    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
+#    title="Neviweb130",
+#    notification_id=f"neviweb130_comm_error_{self._prefix}",
+#    min_interval=1800,  # max 1 notification par 30 minutes
+# )
+
+# await async_notify_once_or_update(
+#    self.hass,
+#    "Erreur de communication avec Neviweb. Nouvelle tentative en cours.",
+#    title=f"Neviweb130 integration {VERSION}",
+#    notification_id=f"neviweb130_comm_error_{self._prefix}",
+# )
+
+# await async_notify_critical(
+#    self.hass,
+#    "Neviweb130: Impossible de se connecter depuis 10 minutes.",  # Message
+#    "Neviweb130 - Erreur critique",  # Title
+#    "neviweb130_connection_error"  # id
+# )
