@@ -31,6 +31,7 @@ Signaler un problème ou proposer une amélioration : [Créer une issue](https:/
 - [Compteur de requêtes](#compteur-de-requetes-quotidiennes-neviweb)
 - [Multi instance (obsolète)](#execution-de-plusieurs-instances-de-neviweb130-pour-gerer-differents-comptes-neviweb)
 - [Services / Actions](#services-personnalises-actions)
+- [Services / Actions V2](#services-personnalises-Actions-v2)
 - [Journalisation](#journalisation-pour-le-debogage)
 - [Éco-Sinopé](#capter-le-signal-eco-sinope-de-neviweb-pour-les-periodes-de-pointe)
 - [Statistiques d'énergie](#statistiques-pour-lenergie)
@@ -727,6 +728,36 @@ ou pour changer certains paramètres des appareils. Ces services personnalisés 
 - neviweb130.set_aux_heating_source, pour sélectionner le type de source de chauffage d'appoint utilisé pour le TH6xxxWF.
 - neviweb130.set_fan_speed, pour régler la vitesse du ventilateur, activé ou automatique pour TH6xxxWF.
 - neviweb130.set_switch_temp_alert, pour régler la fonction d'envoi d'alerte de basse température pour les MC3100ZB.
+
+## Services personnalises (Actions) V2
+Dans Neviweb130 V2, tous les services personnalisés restent fonctionnels. Vos automatisations continueront également de fonctionner. 
+Désormais, vous pouvez toutefois utiliser directement les entités d'attributs sur la page de l'appareil, ou bien les intégrer directement 
+dans vos automatisations, comme suit :
+Pour le service `set_backlight` des thermostats, la version V2 dispose d'une entité **select.neviweb130_climate_th1124wf_retroeclairage**.
+Vous pouvez l'utiliser comme suit :
+```yaml
+action: select.select_option
+data:
+  entity_id: select.neviweb130_climate_th1124wf_retroeclairage
+  option: "on"
+```
+Pour connaître le nom de l'entité (entity_id), il vous suffit de cliquer sur l'icône située à gauche de l'attribut « entity » sur 
+la page de l'appareil. Cliquez ensuite sur l'icône en forme de roue crantée ⚙️ pour afficher le nom de l'entité que vous pouvez utiliser.
+
+Les actions dont vous avez besoin sont spécifiques à chaque type d’entité :
+- select: select.select_option
+- number: number.set_value
+- button: button.press
+- switch: switch.toggle, switch.turn_on and switch.turn_off
+
+### Entités de capteur V2
+Dans la V2, vous pouvez utiliser directement les entités de type `sensor` et `binary_sensor`. Il n’est plus nécessaire, par exemple, 
+de créer des capteurs de type « template » pour les statistiques énergétiques. Chaque attribut devant être suivi dispose d’un 
+capteur dédié, créé comme suit:
+ex: Total_kwh_count, **sensor.neviweb130_climate_th1124wf_total_kwh_count**
+
+Vous pouvez trouver le nom de l’entité de la même manière que pour les éléments « select », « number », « button » et « switch » 
+mentionnés ci-dessus.
 
 ## Journalisation pour le debogage
 
