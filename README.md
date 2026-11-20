@@ -731,7 +731,7 @@ The action you need are specific for each entity type:
 - button: button.press
 - switch: switch.toggle, switch.turn_on and switch.turn_off
 
-# V2 sensor entities
+### V2 sensor entities
 In V2 you can use the sensor and binary_sensor entities directly. No need to create template sensor for example in energy stat.
 All attributes that need to be followed have a dedicated sensor created like this
 ex: Total_kwh_count, **sensor.neviweb130_climate_th1124wf_total_kwh_count**
