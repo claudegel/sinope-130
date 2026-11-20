@@ -719,17 +719,24 @@ you can use it like this:
 ```yaml
 action: select.select_option
 data:
-  entity_id: select.neviweb130_climate_th1124wf_retroeclairage
+  entity_id: select.neviweb130_climate_th1124wf_backlight
   option: "on"
 ```
 To find out the entities name (entity_id) you just need to click on the icon at the left of the attribute entity in device page. 
-Then click on the configuration gear to see the entity name you can use.
+Then click on the configuration gear ⚙️ to see the entity name you can use.
 
 The action you need are specific for each entity type:
 - select: select.select_option
 - number: number.set_value
 - button: button.press
 - switch: switch.toggle, switch.turn_on and switch.turn_off
+
+# V2 sensor entities
+In V2 you can use the sensor and binary_sensor entities directly. No need to create template sensor for example in energy stat.
+All attributes that need to be followed have a dedicated sensor created like this
+ex: Total_kwh_count, **sensor.neviweb130_climate_th1124wf_total_kwh_count**
+
+You can find the entity name the same way as for the above select, number, button, switch.
 
 ## Logging for debugging
 As the file home-assistant.log is no longer available, we have added a new logger that write all logger data about neviweb130 
