@@ -748,7 +748,7 @@ Les actions dont vous avez besoin sont spécifiques à chaque type d’entité :
 - select: select.select_option
 - number: number.set_value
 - button: button.press
-- switch: switch.toggle, switch.turn_on and switch.turn_off
+- switch: switch.toggle, switch.turn_on et switch.turn_off
 
 ### Entités de capteur V2
 Dans la V2, vous pouvez utiliser directement les entités de type `sensor` et `binary_sensor`. Il n’est plus nécessaire, par exemple, 
