@@ -31,6 +31,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 - [Request counter](#neviweb-daily-request-counter)
 - [Multi instance (obsolete)](#running-more-than-one-instance-of-neviweb130-to-manage-different-neviweb-connections)
 - [Services / Actions](#custom-services)
+- [Services / Actions V2](#custom-services-V2)
 - [Debugging](#logging-for-debugging)
 - [Eco-Sinopé](#catch-eco-sinope-signal-for-peak-period)
 - [Energy statistic](#energy-statistic)
@@ -709,6 +710,18 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_aux_heating_source, to select which type of auxiliary heating source is in use for TH6xxxWF.
 - neviweb130.set_fan_speed, to set fan speed, on or auto for TH6xxxWF.
 - neviweb130.set_switch_temp_alert, to set low temperature alert on / off for MC3100ZB devices.
+
+## Custom services V2
+In neviweb130 V2 all custom services still work. Your automation will still work. But now you can use directly the attributes entities
+in device page or use directly the attribute entities in your automations like this:
+For set_backlight service for climate device, V2 have a **select.select.neviweb130_climate_th1124wf_backlight** entity.
+you can use it like this:
+```yaml
+action: select.select_option
+data:
+  entity_id: select.neviweb130_climate_th1124wf_retroeclairage
+  option: "on"
+```
 
 ## Logging for debugging
 As the file home-assistant.log is no longer available, we have added a new logger that write all logger data about neviweb130 
