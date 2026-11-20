@@ -2,6 +2,30 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v5.0.0b0] - 2026-11-__
+### Added
+- Almost complete rewrite of neviweb130 to comply with HA config_flow and coordinator
+- Add config_flow.py
+- Add coordinator.py
+- Add session_manager.py
+- Add devices.py
+- Add binary_sensor.py
+- Add button.py
+- Add number.py
+- Add select.py
+- Add attributes entities as sensor, number, button, select, switch and binary_sensor.
+- Add complete translation of entities, error messages, notifications etc.
+- Add neviweb130 reload without HA restart.
+- Add log file download.
+
+### Fix
+- Update __init__.py, climate.py, light.py, switch.py, valve.py and sensor.py to work with coordinator
+
+### Doc
+- Add V2 documentation for new account setting.
+- Add V2 documentation for account options management.
+- Add V2 documentation for new options in config_flow.
+
 ## [v4.3.4] - 2026-11-13
 ### Added
 
