@@ -852,7 +852,6 @@ async def async_setup_entry(
         thermostat = await get_thermostat(service)
         value = {
             "id": thermostat.id,
-            "type": service.data[ATTR_TYPE],
             "level": service.data[ATTR_BACKLIGHT],
         }
         await thermostat.async_set_backlight(value)
@@ -2854,7 +2853,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
     async def async_set_backlight(self, value):
         """Set thermostat backlight «auto» = off when idle / on when active or «on» = always on."""
         """Work differently for Zigbee and Wi-Fi devices."""
-        is_wifi = self._is_wifi or self._is_low_wifi or self._is_wifi_lite or self._is_wifi_floor
+        is_wifi = self._is_wifi
         await self._client.async_set_backlight(value["id"], value["level"], is_wifi, self._device_model)
         self._backlight = value["level"]
 
