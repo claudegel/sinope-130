@@ -712,9 +712,9 @@ parameters. Those custom services can be accessed via development tool/services 
 - neviweb130.set_switch_temp_alert, to set low temperature alert on / off for MC3100ZB devices.
 
 ## Custom services V2
-In neviweb130 V2 all custom services still work. Your automation will still work. But now you can use directly the attributes entities
+In neviweb130 V2 all custom services still work. Your automations will still work. But now you can use directly the attributes entities
 in device page or use directly the attribute entities in your automations like this:
-For set_backlight service for climate device, V2 have a **select.select.neviweb130_climate_th1124wf_backlight** entity.
+For climate device set_backlight service, V2 have a **select.select.neviweb130_climate_th1124wf_backlight** entity.
 you can use it like this:
 ```yaml
 action: select.select_option
@@ -722,6 +722,14 @@ data:
   entity_id: select.neviweb130_climate_th1124wf_retroeclairage
   option: "on"
 ```
+To find out the entities name (entity_id) you just need to click on the icon at the left of the attribute entity in device page. 
+Then click on the configuration gear to see the entity name you can use.
+
+The action you need are specific for each entity type:
+- select: select.select_option
+- number: number.set_value
+- button: button.press
+- switch: switch.toggle, switch.turn_on and switch.turn_off
 
 ## Logging for debugging
 As the file home-assistant.log is no longer available, we have added a new logger that write all logger data about neviweb130 
