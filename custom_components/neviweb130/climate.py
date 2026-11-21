@@ -2665,7 +2665,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         """Return current HVAC action."""
         gap = self._target_temp - self._cur_temp
         cool_gap = self._target_cool - self._cur_temp
-        # Use the real heat output when known, the thermostat keeps heating at low % near the setpoint
+        # Use the real heat level output when known, the thermostat keeps heating at low % near the setpoint
         heating = self._heat_level > 0 if self._heat_level is not None else gap >= 0.2
         cooling = cool_gap >= 0.2
 
