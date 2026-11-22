@@ -98,7 +98,9 @@ from .const import (
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_WATER_TEMP_MIN,
+    CLOUD_HOSTS,
     CONF_ACCOUNTS,
+    CONF_CLOUD,
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
     CONF_LOCATION,
@@ -117,6 +119,7 @@ from .const import (
 """Default parameters values."""
 
 SCAN_INTERVAL = timedelta(seconds=540)
+CLOUD = "neviweb"
 HOMEKIT_MODE = False
 STAT_INTERVAL = 1800
 IGNORE_MIWI = False
@@ -301,6 +304,8 @@ ACCOUNT_SCHEMA = vol.Schema(
         vol.Optional(CONF_NETWORK3): cv.string,
         # Account alias used for entity naming (see Neviweb130Client.default_group_name)
         vol.Optional(CONF_PREFIX): cv.string,
+        # Cloud for this account, defaults to the global cloud setting
+        vol.Optional(CONF_CLOUD): vol.In(list(CLOUD_HOSTS)),
     }
 )
 
@@ -317,6 +322,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_NETWORK2): cv.string,
                 vol.Optional(CONF_NETWORK3): cv.string,
                 # Global settings
+                vol.Optional(CONF_CLOUD, default=CLOUD): vol.In(list(CLOUD_HOSTS)),
                 vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
                 vol.Optional(CONF_HOMEKIT_MODE, default=HOMEKIT_MODE): cv.boolean,
                 vol.Optional(CONF_IGNORE_MIWI, default=IGNORE_MIWI): cv.boolean,

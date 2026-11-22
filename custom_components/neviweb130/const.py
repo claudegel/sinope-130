@@ -36,6 +36,7 @@ Sélectionner l’entité Update → ⚙️ → désactiver “Visible”.
 """
 
 CONF_ACCOUNTS = "accounts"
+CONF_CLOUD = "cloud"
 CONF_HOMEKIT_MODE = "homekit_mode"
 CONF_IGNORE_MIWI = "ignore_miwi"
 CONF_LOCATION = "location"
@@ -48,6 +49,12 @@ CONF_NOTIFY = "notify"
 CONF_PREFIX = "prefix"
 CONF_SAFE_MODE = "safe_mode"
 CONF_STAT_INTERVAL = "stat_interval"
+
+# Neviweb clouds: value of the cloud option (also sent as login interface) -> API host
+CLOUD_HOSTS = {
+    "neviweb": "https://neviweb.com",
+    "schluter": "https://schluterditraheat.com",
+}
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"

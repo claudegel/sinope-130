@@ -38,6 +38,9 @@ Support for Flextherm Wi-Fi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
     (sku: FLP55), no energy stats
 
+Support for Schluter Wi-Fi thermostat (Schluter cloud, cloud: schluter)
+model 740 = thermostat Schluter DITRA-HEAT-E-RS1 (Wi-Fi floor)
+
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
 model 6810 = HP6000ZB-GE-RS485 for Tosot heat pump with Gree connector
@@ -524,7 +527,7 @@ PRESET_h_c_MODES = [
 DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
-DEVICE_MODEL_WIFI_FLOOR = [738]
+DEVICE_MODEL_WIFI_FLOOR = [738, 740]
 DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_WIFI_LITE = [336, 343, 348]
 DEVICE_MODEL_COLOR_WIFI = [350, 354]
@@ -5513,7 +5516,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat and FLP55."""
+    """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat, FLP55
+    and Schluter DITRA-HEAT-E-RS1."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -5617,7 +5621,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME_FORMAT]
-                    self._display2 = device_data[ATTR_DISPLAY2]
+                    # Schluter DITRA-HEAT-E-RS1 (model 740) does not report config2ndDisplay
+                    self._display2 = device_data.get(ATTR_DISPLAY2, self._display2)
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (

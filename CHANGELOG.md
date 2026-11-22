@@ -2,6 +2,17 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.5] - 2026-11-__
+### Added
+- Add `cloud` option (`neviweb` or `schluter`, global or per account) to connect to the Schluter DITRA-HEAT cloud.
+- Add support for Schluter DITRA-HEAT-E-RS1 Wi-Fi floor thermostat (model 740).
+
+### Fix
+- Use get method for config2ndDisplay in Wi-Fi floor thermostat update; the DITRA-HEAT-E-RS1 does not report it.
+
+### Doc
+- Add `cloud` option and DITRA-HEAT-E-RS1 to readme.md and readme_fr.md.
+
 ## [v4.3.4] - 2026-11-13
 ### Added
 
