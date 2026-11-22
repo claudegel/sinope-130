@@ -600,6 +600,9 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage, type_val):
     """Convert voltage level from volt to percentage."""
+    if voltage is None:
+        return None
+
     if type_val == "alkaline":
         return int((min(voltage, 3.0) - 2.0) / (3.0 - 2.0) * 100)
     else:
@@ -678,7 +681,7 @@ class Neviweb130Sensor(Entity):
         self._fuel_percent_alert = None
         self._gauge_type = None
         self._leak_alert = None
-        self._leak_status = None
+        self._leak_status = "ok"
         self._rssi = None
         self._sampling = None
         self._sensor_type = None
@@ -735,8 +738,9 @@ class Neviweb130Sensor(Entity):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            code = device_data[ATTR_WATER_LEAK_STATUS]
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS, self._leak_status)
+                        if leak_status == "probe":
+                            code = leak_status
                             self.notify_ha(
                                 translated_or_default(
                                     self.hass,
@@ -752,11 +756,9 @@ class Neviweb130Sensor(Entity):
                                     sku=self._sku,
                                 )
                             )
-                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            self._leak_status = leak_status
                         else:
-                            self._leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -1236,8 +1238,9 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            code = device_data[ATTR_WATER_LEAK_STATUS]
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS, self._leak_status)
+                        if leak_status == "probe":
+                            code = leak_status
                             self.notify_ha(
                                 translated_or_default(
                                     self.hass,
@@ -1254,11 +1257,9 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                                     sku=self._sku,
                                 )
                             )
-                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            self._leak_status = leak_status
                         else:
-                            self._leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
