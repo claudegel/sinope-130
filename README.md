@@ -282,6 +282,16 @@ Schluter DITRA-HEAT-E-RS1 thermostats are registered on Schluter's own Neviweb b
 on neviweb.com. To use them, put the username and password of your Schluter DITRA-HEAT account (the one used in the
 Schluter DITRA-HEAT app or on schluterditraheat.com) and add `cloud: schluter`. Without `cloud`, neviweb130 connects to Neviweb as before.
 
+The DITRA-HEAT-E-RS1 have the same attributes as the other Wi-Fi floor thermostats plus:
+- **floor_setpoint_pwm**: floor setpoint in PWM mode, in % (floorSetpointPwm).
+- **floor_setpoint_pwm_min**, **floor_setpoint_pwm_max**: limits for floor_setpoint_pwm, in % (floorSetpointPwmMin, floorSetpointPwmMax).
+- **floor_sensor_offset**: floor sensor offset (floorSensorOffset).
+- **floor_setpoint_pwm_timeout**: PWM setpoint timeout (floorSetpointPwmTimeout).
+- **language**: display language (language).
+- **eco_onOff**: onOff value of drStatus, see [Eco Sinope](#catch-eco-sinope-signal-for-peak-period).
+
+The RS1 report drStatus but not drSetpoint, so eco_setpoint_status and eco_setpoint_delta stay at their default values.
+
 ## Multi-Account Configuration
 (New in v3.1.0)
 
