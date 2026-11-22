@@ -282,7 +282,7 @@ et non sur neviweb.com. Pour les utiliser, indiquez le nom d'utilisateur et le m
 (celui utilisé dans l'application Schluter DITRA-HEAT ou sur schluterditraheat.com) et ajoutez `cloud: schluter`. Sans `cloud`, neviweb130 se connecte à Neviweb comme avant.
 
 Le DITRA-HEAT-E-RS1 a les mêmes attributs que les autres thermostats de sol Wi-Fi, plus :
-- **floor_setpoint_pwm** : consigne du plancher en mode PWM, en % (floorSetpointPwm).
+- **floor_setpoint_pwm** : puissance de chauffe du plancher en %, utilisée seulement quand sensor_mode est regulator (floorSetpointPwm, 0-80 % par pas de 5 %). En mode floor ou ambient, ce n'est pas la consigne active.
 - **floor_setpoint_pwm_min**, **floor_setpoint_pwm_max** : limites de floor_setpoint_pwm, en % (floorSetpointPwmMin, floorSetpointPwmMax).
 - **floor_sensor_offset** : décalage de la sonde de plancher (floorSensorOffset).
 - **floor_setpoint_pwm_timeout** : délai de la consigne PWM (floorSetpointPwmTimeout).

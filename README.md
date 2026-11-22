@@ -283,7 +283,7 @@ on neviweb.com. To use them, put the username and password of your Schluter DITR
 Schluter DITRA-HEAT app or on schluterditraheat.com) and add `cloud: schluter`. Without `cloud`, neviweb130 connects to Neviweb as before.
 
 The DITRA-HEAT-E-RS1 have the same attributes as the other Wi-Fi floor thermostats plus:
-- **floor_setpoint_pwm**: floor setpoint in PWM mode, in % (floorSetpointPwm).
+- **floor_setpoint_pwm**: floor heating output in %, used only when sensor_mode is regulator (floorSetpointPwm, 0-80 % in 5 % steps). In floor or ambient mode it is not the active setpoint.
 - **floor_setpoint_pwm_min**, **floor_setpoint_pwm_max**: limits for floor_setpoint_pwm, in % (floorSetpointPwmMin, floorSetpointPwmMax).
 - **floor_sensor_offset**: floor sensor offset (floorSensorOffset).
 - **floor_setpoint_pwm_timeout**: PWM setpoint timeout (floorSetpointPwmTimeout).
