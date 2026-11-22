@@ -1490,11 +1490,12 @@ class Neviweb130Sensor(Neviweb130BaseSensor, SensorEntity):
             if device_data and "error" not in device_data:
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS, self._leak_status)
+                        if leak_status == "probe":
                             msg = await translate_error(
                                 self.hass,
                                 "error_code",
-                                code=device_data[ATTR_WATER_LEAK_STATUS],
+                                code=leak_status,
                                 message="",
                                 name=self._name,
                                 id=self._id,
@@ -1506,11 +1507,9 @@ class Neviweb130Sensor(Neviweb130BaseSensor, SensorEntity):
                                 title=f"Neviweb130 integration {VERSION}",
                                 notification_id="neviweb130_error_code",
                             )
-                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            self._leak_status = leak_status
                         else:
-                            self._leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -1679,11 +1678,12 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, SensorEntity):
             if device_data and "error" not in device_data:
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS, self._leak_status)
+                        if leak_status == "probe":
                             msg = await translate_error(
                                 self.hass,
                                 "error_code",
-                                code=device_data[ATTR_WATER_LEAK_STATUS],
+                                code=leak_status,
                                 message="",
                                 name=self._name,
                                 id=self._id,
@@ -1695,11 +1695,9 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, SensorEntity):
                                 title=f"Neviweb130 integration {VERSION}",
                                 notification_id="neviweb130_sensor_error",
                             )
-                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            self._leak_status = leak_status
                         else:
-                            self._leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
