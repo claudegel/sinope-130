@@ -8,6 +8,7 @@ All modification for this custom_component will be added in this file.
 - Add support for Schluter DITRA-HEAT-E-RS1 Wi-Fi floor thermostat (model 740).
 - Add DITRA-HEAT-E-RS1 attributes floorSetpointPwm, floorSetpointPwmMin, floorSetpointPwmMax, floorSensorOffset,
   floorSetpointPwmTimeout, language and drStatus onOff (model 740 only).
+- Add model 740 to HAVE_BEDROOM_BACKLIGHT; the DITRA-HEAT-E-RS1 supports backlightAutoDim bedroom.
 
 ### Fix
 - Use get method for config2ndDisplay in Wi-Fi floor thermostat update; the DITRA-HEAT-E-RS1 does not report it.
