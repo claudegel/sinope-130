@@ -863,7 +863,20 @@ async def async_setup_platform(
                         )
                     )
 
-    async_add_entities(entities, True)
+    async_add_entities(entities, False)
+
+    async def _refresh_entities_initially() -> None:
+        """Refresh entities one by one after startup, without blocking setup."""
+        for entity in entities:
+            if hass.is_stopping:
+                return
+            try:
+                await entity.async_device_update()
+                entity.async_write_ha_state()
+            except Exception:  # noqa: BLE001 - one bad device must not abort the sweep
+                _LOGGER.warning("Initial refresh failed for %s", entity.name)
+
+    hass.async_create_task(_refresh_entities_initially())
 
     entity_map: dict[str, Neviweb130Thermostat] | None = None
     _entity_map_lock = Lock()
@@ -2048,6 +2061,8 @@ def neviweb_to_ha_mode(mode: str) -> HVACMode:
 
 def extract_capability_full(cap):
     """Extract swing capability which are True for each HP device and add general capability."""
+    if not cap:
+        return FULL_SWING_OFF
     value = {i for i in cap if cap[i] is True}
     return FULL_SWING_OFF + sorted(value)
 
@@ -3562,6 +3577,25 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._id,
                 self._sku,
             )
+            if NOTIFY == "logging" or NOTIFY == "both":
+                _LOGGER.warning(
+                    "Device %s (id: %s) is unavailable (SVCERR), de-activated and won't be updated for 20 minutes",
+                    self._name,
+                    self._id,
+                )
+            if NOTIFY == "notification" or NOTIFY == "both":
+                self.notify_ha(
+                    translated_or_default(
+                        self.hass,
+                        "update_stopped",
+                        f"Update for {self._name}, {self._id} ({self._sku}), is stopped for 20 minutes",
+                        name=self._name,
+                        id=self._id,
+                        sku=self._sku,
+                    )
+                )
+            self._active = False
+            self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
