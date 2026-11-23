@@ -771,7 +771,7 @@ class Neviweb130Sensor(Entity):
                             )
                             self._leak_status = leak_status
                         else:
-                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
+                            self._leak_status = STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -1291,7 +1291,7 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                             )
                             self._leak_status = leak_status
                         else:
-                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
+                            self._leak_status = STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
