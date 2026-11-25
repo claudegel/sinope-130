@@ -294,12 +294,12 @@ async def async_setup_platform(
                 await entity.async_device_update()
                 entity.async_write_ha_state()
 
-            except Exception:  # noqa: BLE001 - one bad device must not abort the sweep
+            except Exception as err:  # noqa: BLE001 - one bad device must not abort the sweep
                 msg = translated_or_default(
                     hass,
                     "initial_refresh_failed",
                     f"Initial refresh failed for {entity.name}: {err}",
-                    name=sentity.name,
+                    name=entity.name,
                     error=str(err),
                 )
                 _LOGGER.warning(msg)
