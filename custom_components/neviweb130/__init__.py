@@ -504,4 +504,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Force one refresh after all entities have been created.
+    hass.async_create_task(
+        initialized_coordinator.async_request_refresh()
+    )
+
     return True
