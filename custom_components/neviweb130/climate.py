@@ -809,8 +809,7 @@ async def async_setup_entry(
                             entities.append(device)
                             coordinator.register_device(device)
 
-    async_add_entities(entities, True)
-    hass.async_create_task(coordinator.async_request_refresh())
+    async_add_entities(entities)
 
     entity_map: dict[str, Neviweb130Thermostat] | None = None
     _entity_map_lock = Lock()
@@ -1817,12 +1816,16 @@ def backlight_to_ha(back):
 
 def extract_capability_full(cap):
     """Extract swing capability which are True for each HP device and add genegal capability."""
+    if not cap:
+        return FULL_SWING_OFF
     value = {i for i in cap if cap[i] is True}
     return FULL_SWING_OFF + sorted(value)
 
 
 def extract_capability(cap):
     """Extract capability which are True for each HP device."""
+    if not cap:
+        return None
     value = {i for i in cap if cap[i] is True}
     return sorted(value)
 
@@ -1943,7 +1946,7 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
         self._drsetpoint_value = 0
         self._drstatus_abs = "off"
         self._drstatus_active = "off"
-        self._drstatus_onoff = "off"
+        self._drstatus_onOff = "off"
         self._drstatus_optout = "off"
         self._drstatus_rel = "off"
         self._drstatus_setpoint = "off"
@@ -3514,6 +3517,18 @@ class Neviweb130Thermostat(CoordinatorEntity, ClimateEntity):
                 error_data,
                 self._sku,
             )
+            msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+            if self._notify == "logging" or self._notify == "both":
+                _LOGGER.warning(msg)
+            if self._notify == "notification" or self._notify == "both":
+                await async_notify_once_or_update(
+                    self.hass,
+                    msg,
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_update_stopped",
+                )
+            self._active = False
+            self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s...(SKU: %s)",
@@ -5120,7 +5135,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                        self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                        self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
                     percent = device_data.get(ATTR_OUTPUT_PERCENT_DISPLAY, {}).get("percent")
                     if not ignore_early_update(
                         self._name, self._last_setpoint_change, ATTR_OUTPUT_PERCENT_DISPLAY, percent
@@ -5244,7 +5259,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                 "eco_setpoint": self._drstatus_setpoint,
                 "eco_power_relative": self._drstatus_rel,
                 "eco_power_absolute": self._drstatus_abs,
-                "eco_onOff": self._drstatus_onoff,
+                "eco_onOff": self._drstatus_onOff,
                 "eco_setpoint_status": self._drsetpoint_status,
                 "eco_setpoint_delta": self._drsetpoint_value,
                 "total_kwh_count": self._total_kwh_count,
@@ -6784,7 +6799,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                         self._drstatus_setpoint = device_data[ATTR_DRSTATUS]["setpoint"]
                         self._drstatus_abs = device_data[ATTR_DRSTATUS]["powerAbsolute"]
                         self._drstatus_rel = device_data[ATTR_DRSTATUS]["powerRelative"]
-                        self._drstatus_onoff = device_data[ATTR_DRSTATUS]["onOff"]
+                        self._drstatus_onOff = device_data[ATTR_DRSTATUS]["onOff"]
                     wifi_keypad = device_data.get(ATTR_WIFI_KEYPAD)
                     if wifi_keypad is not None:
                         self._keypad = lock_to_ha(wifi_keypad)
@@ -7202,7 +7217,7 @@ class Neviweb130WifiHPThermostat(Neviweb130Thermostat):
                 "eco_setpoint": self._drstatus_setpoint,
                 "eco_power_relative": self._drstatus_rel,
                 "eco_power_absolute": self._drstatus_abs,
-                "eco_onOff": self._drstatus_onoff,
+                "eco_onOff": self._drstatus_onOff,
                 "eco_setpoint_status": self._drsetpoint_status,
                 "eco_setpoint_delta": self._drsetpoint_value,
                 "outdoor_temp": self._temperature,
