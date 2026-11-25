@@ -61,7 +61,8 @@
       "error_resolved": "Toutes les erreurs ont été résolues pour l'appareil {name}, ID : {id}, Sku : {sku}.",
       "safe_mode_enabled": "Activation automatique du mode sans échec pour le périphérique {name} (id : {id}) en raison d'un attribut non pris en charge.",
       "set_attribute_failed": "Incapable d'envoyer la commande à l'appareil {id}. Erreur: {error}. Description: {description}. Données envoyées: {data}",
-      "bedroom_mode_not_supported": "Le mode chambre n'est pas disponible par l'appareil {id} (modèle {model})."
+      "bedroom_mode_not_supported": "Le mode chambre n'est pas disponible par l'appareil {id} (modèle {model}).",
+      "initial_refresh_failed": "L’actualisation initiale a échoué pour {name} avec l'erreur {error}."
     }
   }
 }

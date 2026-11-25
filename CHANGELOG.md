@@ -2,6 +2,17 @@
 
 All modification for this custom_component will be added in this file.
 
+## [v4.3.5] - 2026-11-__
+### Added
+- Add Non-blocking startup: don't gate HA boot on the initial Neviweb devices polling.
+
+### Fix
+- Fix hvac_action for Wi-Fi device slow to report heating demand.
+- Block device that do not respond on initial polling.
+- Prevent disabled device from blocking neviweb130 startup.
+
+### Doc
+
 ## [v4.3.4] - 2026-11-13
 ### Added
 
