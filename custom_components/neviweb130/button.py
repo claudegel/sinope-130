@@ -134,7 +134,6 @@ async def async_setup_entry(
     entities = create_attribute_buttons(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
-    hass.async_create_task(coordinator.async_request_refresh())
 
 
 class Neviweb130DeviceAttributeButton(CoordinatorEntity[Neviweb130Coordinator], ButtonEntity):
