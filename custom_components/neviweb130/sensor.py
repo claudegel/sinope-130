@@ -698,7 +698,6 @@ async def async_setup_entry(
     entities.append(Neviweb130DailyRequestSensor(hass, counter, entry))
 
     async_add_entities(entities)
-    hass.async_create_task(coordinator.async_request_refresh())
 
     entity_map: dict[str, SensorEntity] | None = None
     _entity_map_lock = Lock()
@@ -1035,13 +1034,23 @@ def neviweb_to_ha_height(value):
 
 
 def convert(sampling):
-    sample = str(sampling)
-    ts = int(sample[0:-3])
-    date = dt_util.utc_from_timestamp(ts)
-    return date
+    """Convert Neviweb sampling timestamp to datetime."""
+
+    if sampling is None:
+        return None
+
+    try:
+        ts = int(sampling) // 1000
+    except (ValueError, TypeError):
+        _LOGGER.debug("Invalid sampling timestamp: %s", sampling)
+        return None
+
+    return dt_util.utc_from_timestamp(ts)
 
 
 def convert_to_percent(angle, low, high):
+    """Convert tank gauge angle to tank percentage."""
+
     x = angle
     x_min = 110
     if low == 5:
@@ -1055,10 +1064,10 @@ def convert_to_percent(angle, low, high):
     if 0 <= x <= delta:
         x = x + 360
     y = (x - x_min) / (x_max - x_min)
-    lower_limit = low
-    upper_limit = high
-    value_range = upper_limit - lower_limit
-    pct = y * value_range + lower_limit
+
+    value_range = high - low
+    pct = y * value_range + low
+
     return round(pct)
 
 
@@ -1389,6 +1398,18 @@ class Neviweb130BaseSensor(CoordinatorEntity):
                 error_data,
                 self._sku,
             )
+            msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+            if self._notify == "logging" or self._notify == "both":
+                _LOGGER.warning(msg)
+            if self._notify == "notification" or self._notify == "both":
+                await async_notify_once_or_update(
+                    self.hass,
+                    msg,
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_update_stopped",
+                )
+            self._active = False
+            self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s...(SKU: %s)",
@@ -1509,7 +1530,7 @@ class Neviweb130Sensor(Neviweb130BaseSensor, SensorEntity):
                             )
                             self._leak_status = leak_status
                         else:
-                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
+                            self._leak_status = STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -1697,7 +1718,7 @@ class Neviweb130ConnectedSensor(Neviweb130BaseSensor, SensorEntity):
                             )
                             self._leak_status = leak_status
                         else:
-                            self._leak_status = (STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok")
+                            self._leak_status = STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)
