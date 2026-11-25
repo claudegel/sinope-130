@@ -317,7 +317,6 @@ async def async_setup_entry(
     entities = create_attribute_numbers(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
-    hass.async_create_task(coordinator.async_request_refresh())
 
 
 class Neviweb130DeviceAttributeNumber(CoordinatorEntity[Neviweb130Coordinator], NumberEntity):
