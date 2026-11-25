@@ -412,7 +412,6 @@ async def async_setup_entry(
     entities = create_attribute_selects(hass, entry, data, coordinator, device_registry)
 
     async_add_entities(entities)
-    hass.async_create_task(coordinator.async_request_refresh())
 
 
 class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], SelectEntity):
