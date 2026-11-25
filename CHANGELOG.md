@@ -8,7 +8,7 @@ All modification for this custom_component will be added in this file.
 
 ### Fix
 - Fix hvac_action for Wi-Fi device slow to report heating demand.
-- Bloc device that do not respond on initial polling.
+- Block device that do not respond on initial polling.
 - Prevent disabled device from blocking neviweb130 startup.
 
 ### Doc
