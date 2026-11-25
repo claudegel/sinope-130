@@ -600,6 +600,9 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage, type_val):
     """Convert voltage level from volt to percentage."""
+    if voltage is None:
+        # Neviweb sends no battery voltage while a sensor isn't reporting
+        return None
     if type_val == "alkaline":
         return int((min(voltage, 3.0) - 2.0) / (3.0 - 2.0) * 100)
     else:
@@ -735,7 +738,11 @@ class Neviweb130Sensor(Entity):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS)
+                        if leak_status is None:
+                            # Neviweb leaves the status out while a sensor isn't reporting
+                            self._leak_status = None
+                        elif leak_status == "probe":
                             code = device_data[ATTR_WATER_LEAK_STATUS]
                             self.notify_ha(
                                 translated_or_default(
@@ -1236,7 +1243,11 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS)
+                        if leak_status is None:
+                            # Neviweb leaves the status out while a sensor isn't reporting
+                            self._leak_status = None
+                        elif leak_status == "probe":
                             code = device_data[ATTR_WATER_LEAK_STATUS]
                             self.notify_ha(
                                 translated_or_default(
