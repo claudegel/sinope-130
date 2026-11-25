@@ -36,6 +36,7 @@ Sélectionner l’entité Update → ⚙️ → désactiver “Visible”.
 """
 
 CONF_ACCOUNTS = "accounts"
+CONF_CLOUD = "cloud"
 CONF_HOMEKIT_MODE = "homekit_mode"
 CONF_IGNORE_MIWI = "ignore_miwi"
 CONF_LOCATION = "location"
@@ -48,6 +49,12 @@ CONF_NOTIFY = "notify"
 CONF_PREFIX = "prefix"
 CONF_SAFE_MODE = "safe_mode"
 CONF_STAT_INTERVAL = "stat_interval"
+
+# Neviweb clouds: value of the cloud option (also sent as login interface) -> API host
+CLOUD_HOSTS = {
+    "neviweb": "https://neviweb.com",
+    "schluter": "https://schluterditraheat.com",
+}
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
@@ -225,6 +232,11 @@ ATTR_POWER_SUPPLY = "backupPowerSupply"
 ATTR_PUMP_PROTEC = "pumpProtection"  # status on/off, duration, frequency
 ATTR_PUMP_PROTEC_DURATION = "pumpProtectDuration"  # status on/off, value
 ATTR_PUMP_PROTEC_PERIOD = "pumpProtectPeriod"  # status on/off, value
+ATTR_PWM_FLOOR_SENSOR_OFFSET = "floorSensorOffset"
+ATTR_PWM_FLOOR_SETPOINT = "floorSetpointPwm"
+ATTR_PWM_FLOOR_SETPOINT_MAX = "floorSetpointPwmMax"
+ATTR_PWM_FLOOR_SETPOINT_MIN = "floorSetpointPwmMin"
+ATTR_PWM_SETPOINT_TIMEOUT = "floorSetpointPwmTimeout"
 ATTR_RED = "red"
 ATTR_REFUEL = "alertRefuel"
 ATTR_REL_HUMIDITY = "relativeHumidity"
@@ -425,6 +437,7 @@ HAVE_BEDROOM_BACKLIGHT: set[int] = {
     354,
     738,
     739,
+    740,
     742,
     1510,
     1512,

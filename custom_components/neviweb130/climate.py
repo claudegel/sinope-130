@@ -38,6 +38,9 @@ Support for Flextherm Wi-Fi thermostat
 model 738 = Thermostat Flextherm concerto connect FLP55 (wifi floor),
     (sku: FLP55), no energy stats
 
+Support for Schluter Wi-Fi thermostat (Schluter cloud, cloud: schluter)
+model 740 = thermostat Schluter DITRA-HEAT-E-RS1 (Wi-Fi floor)
+
 Support for heat pump interfaces
 model 6810 = HP6000ZB-GE for Ouellet heat pump with Gree connector
 model 6810 = HP6000ZB-GE-RS485 for Tosot heat pump with Gree connector
@@ -185,6 +188,11 @@ from .const import (
     ATTR_PUMP_PROTEC,
     ATTR_PUMP_PROTEC_DURATION,
     ATTR_PUMP_PROTEC_PERIOD,
+    ATTR_PWM_FLOOR_SENSOR_OFFSET,
+    ATTR_PWM_FLOOR_SETPOINT,
+    ATTR_PWM_FLOOR_SETPOINT_MAX,
+    ATTR_PWM_FLOOR_SETPOINT_MIN,
+    ATTR_PWM_SETPOINT_TIMEOUT,
     ATTR_REVERSING_VALVE_POLARITY,
     ATTR_ROOM_SETPOINT,
     ATTR_ROOM_SETPOINT_AWAY,
@@ -524,7 +532,7 @@ PRESET_h_c_MODES = [
 DEVICE_MODEL_LOW = [7372]
 DEVICE_MODEL_LOW_WIFI = [739]
 DEVICE_MODEL_FLOOR = [737]
-DEVICE_MODEL_WIFI_FLOOR = [738]
+DEVICE_MODEL_WIFI_FLOOR = [738, 740]
 DEVICE_MODEL_WIFI = [1510, 742]
 DEVICE_MODEL_WIFI_LITE = [336, 343, 348]
 DEVICE_MODEL_COLOR_WIFI = [350, 354]
@@ -5551,7 +5559,8 @@ class Neviweb130LowWifiThermostat(Neviweb130Thermostat):
 
 
 class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
-    """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat and FLP55."""
+    """Implementation of Neviweb TH1300WF, TH1310WF, TH1315WF, TH1325WF, SRM40, True Comfort thermostat, FLP55
+    and Schluter DITRA-HEAT-E-RS1."""
 
     def __init__(self, device_info, name, sku, firmware, location, client):
         """Initialize."""
@@ -5565,6 +5574,11 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
         self._heat_source_type = None
         self._load1 = 0
         self._load2 = 0
+        self._pwm_floor_sensor_offset = None
+        self._pwm_floor_setpoint = None
+        self._pwm_floor_setpoint_max = None
+        self._pwm_floor_setpoint_min = None
+        self._pwm_setpoint_timeout = None
         self._room_temp_error = None
         self._target_temp_away = None
 
@@ -5575,6 +5589,18 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 WIFI_1315 = []
             else:
                 WIFI_1315 = [ATTR_WIFI_WATTAGE]
+            if self._device_model == 740:
+                # Schluter DITRA-HEAT-E-RS1
+                WIFI_RS1 = [
+                    ATTR_PWM_FLOOR_SETPOINT,
+                    ATTR_PWM_FLOOR_SETPOINT_MIN,
+                    ATTR_PWM_FLOOR_SETPOINT_MAX,
+                    ATTR_PWM_FLOOR_SENSOR_OFFSET,
+                    ATTR_PWM_SETPOINT_TIMEOUT,
+                    ATTR_LANGUAGE,
+                ]
+            else:
+                WIFI_RS1 = []
             WIFI_FLOOR_ATTRIBUTES = [
                 ATTR_ROOM_TEMP_DISPLAY,
                 ATTR_GFCI_ALERT,
@@ -5598,7 +5624,7 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
             ]
             """Get the latest data from Neviweb and update the state."""
             start = time.time()
-            attributes = UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES + WIFI_1315
+            attributes = UPDATE_ATTRIBUTES + WIFI_FLOOR_ATTRIBUTES + WIFI_1315 + WIFI_RS1
             _LOGGER.debug(
                 "Updated attributes for %s: %s",
                 self._name,
@@ -5655,7 +5681,8 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._max_temp = device_data[ATTR_ROOM_SETPOINT_MAX]
                     self._temperature_format = device_data[ATTR_TEMP]
                     self._time_format = device_data[ATTR_TIME_FORMAT]
-                    self._display2 = device_data[ATTR_DISPLAY2]
+                    # Schluter DITRA-HEAT-E-RS1 (model 740) does not report config2ndDisplay
+                    self._display2 = device_data.get(ATTR_DISPLAY2, self._display2)
                     if ATTR_DRSETPOINT in device_data:
                         self._drsetpoint_status = device_data[ATTR_DRSETPOINT]["status"]
                         self._drsetpoint_value = (
@@ -5699,6 +5726,23 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                     self._floor_min_status = floor_min.get("status", self._floor_min_status)
                     self._gfci_alert = device_data[ATTR_GFCI_ALERT]
                     self._load2 = device_data[ATTR_FLOOR_OUTPUT2]
+                    if self._device_model == 740:
+                        self._pwm_floor_setpoint = device_data.get(ATTR_PWM_FLOOR_SETPOINT, self._pwm_floor_setpoint)
+                        self._pwm_floor_setpoint_min = device_data.get(
+                            ATTR_PWM_FLOOR_SETPOINT_MIN, self._pwm_floor_setpoint_min
+                        )
+                        self._pwm_floor_setpoint_max = device_data.get(
+                            ATTR_PWM_FLOOR_SETPOINT_MAX, self._pwm_floor_setpoint_max
+                        )
+                        self._pwm_floor_sensor_offset = device_data.get(
+                            ATTR_PWM_FLOOR_SENSOR_OFFSET, self._pwm_floor_sensor_offset
+                        )
+                        self._pwm_setpoint_timeout = device_data.get(
+                            ATTR_PWM_SETPOINT_TIMEOUT, self._pwm_setpoint_timeout
+                        )
+                        self._language = device_data.get(ATTR_LANGUAGE, self._language)
+                        dr_status = device_data.get(ATTR_DRSTATUS, {})
+                        self._drstatus_onoff = dr_status.get("onOff", self._drstatus_onoff)
                 elif device_data["errorCode"] == "ReadTimeout":
                     _LOGGER.warning(
                         "A timeout occur during data update. Device %s do not respond. Check your network... (%s)",
@@ -5834,6 +5878,18 @@ class Neviweb130WifiFloorThermostat(Neviweb130Thermostat):
                 "id": self._id,
             }
         )
+        if self._device_model == 740:
+            data.update(
+                {
+                    "floor_setpoint_pwm": self._pwm_floor_setpoint,
+                    "floor_setpoint_pwm_min": self._pwm_floor_setpoint_min,
+                    "floor_setpoint_pwm_max": self._pwm_floor_setpoint_max,
+                    "floor_sensor_offset": self._pwm_floor_sensor_offset,
+                    "floor_setpoint_pwm_timeout": self._pwm_setpoint_timeout,
+                    "language": self._language,
+                    "eco_onOff": self._drstatus_onoff,
+                }
+            )
         if self._sku == "TH1315WF":
             heat_level = self._heat_level or 0
             data.update(

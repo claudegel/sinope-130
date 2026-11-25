@@ -141,7 +141,9 @@ from .const import (
     ATTR_TIMER2,
     ATTR_WATER_TEMP_MIN,
     ATTR_WIFI_KEYPAD,
+    CLOUD_HOSTS,
     CONF_ACCOUNTS,
+    CONF_CLOUD,
     CONF_HOMEKIT_MODE,
     CONF_IGNORE_MIWI,
     CONF_LOCATION,
@@ -168,6 +170,7 @@ from .helpers import (
     setup_logger,
     translated_or_default,
 )
+from .schema import CLOUD as DEFAULT_CLOUD
 from .schema import CONFIG_SCHEMA, NEVIWEB_MODE_MAP
 from .schema import HOMEKIT_MODE as DEFAULT_HOMEKIT_MODE
 from .schema import IGNORE_MIWI as DEFAULT_IGNORE_MIWI
@@ -179,13 +182,6 @@ from .schema import STAT_INTERVAL as DEFAULT_STAT_INTERVAL
 __all__ = ["CONFIG_SCHEMA"]
 
 REQUESTS_TIMEOUT = 30
-HOST = "https://neviweb.com"
-LOGIN_URL = f"{HOST}/api/login"
-LOCATIONS_URL = f"{HOST}/api/locations?account$id="
-GATEWAY_DEVICE_URL = f"{HOST}/api/devices?location$id="
-DEVICE_DATA_URL = f"{HOST}/api/device/"
-NEVIWEB_LOCATION = f"{HOST}/api/location/"
-NEVIWEB_WEATHER = f"{HOST}/api/weather?code="
 
 HOMEKIT_MODE = DEFAULT_HOMEKIT_MODE
 IGNORE_MIWI = DEFAULT_IGNORE_MIWI
@@ -383,14 +379,17 @@ class Neviweb130Data:
                 # when names collide, but unique_id is still scoped per account to avoid breaking the integration.
                 prefix = (account.get(CONF_PREFIX) or "").strip()
                 # No "primary" concept inside accounts-list mode (see legacy single-account mode below).
+                # Per account cloud, defaults to the global cloud setting.
+                cloud = account.get(CONF_CLOUD, config.get(CONF_CLOUD, DEFAULT_CLOUD))
 
                 _LOGGER.debug(
-                    "Creating client for account %s with location(s) %s/%s/%s and prefix %s",
+                    "Creating client for account %s with location(s) %s/%s/%s, prefix %s and cloud %s",
                     username,
                     location,
                     location2,
                     location3,
                     prefix,
+                    cloud,
                 )
 
                 client = Neviweb130Client(
@@ -403,6 +402,7 @@ class Neviweb130Data:
                     ignore_miwi,
                     prefix,
                     is_primary=False,
+                    cloud=cloud,
                 )
                 self.neviweb130_clients.append(client)
 
@@ -423,7 +423,10 @@ class Neviweb130Data:
                     "A non-empty 'prefix' in legacy single-account configuration "
                     "will rename entities and may break existing automations."
                 )
-            client = Neviweb130Client(hass, username, password, network, network2, network3, ignore_miwi, prefix)
+            cloud = config.get(CONF_CLOUD, DEFAULT_CLOUD)
+            client = Neviweb130Client(
+                hass, username, password, network, network2, network3, ignore_miwi, prefix, cloud=cloud
+            )
             self.neviweb130_clients.append(client)
 
         else:
@@ -454,10 +457,20 @@ class Neviweb130Client:
         prefix: str,
         *,
         is_primary: bool = True,
+        cloud: str = DEFAULT_CLOUD,
         timeout=REQUESTS_TIMEOUT,
     ):
         """Initialize the client object."""
         self.hass = hass
+        # Neviweb or white-labelled Neviweb cloud (same API, different host and login interface)
+        self._interface = cloud
+        host = CLOUD_HOSTS[cloud]
+        self._login_url = f"{host}/api/login"
+        self._locations_url = f"{host}/api/locations?account$id="
+        self._gateway_device_url = f"{host}/api/devices?location$id="
+        self._device_data_url = f"{host}/api/device/"
+        self._neviweb_location = f"{host}/api/location/"
+        self._neviweb_weather = f"{host}/api/weather?code="
         self._account_prefix = prefix
         self._is_primary = is_primary
         self._email = username
@@ -562,12 +575,12 @@ class Neviweb130Client:
         data = {
             "username": self._email,
             "password": self._password,
-            "interface": "neviweb",
+            "interface": self._interface,
             "stayConnected": 1,
         }
         try:
             raw_res = requests.post(
-                LOGIN_URL,
+                self._login_url,
                 json=data,
                 cookies=self._cookies,
                 allow_redirects=False,
@@ -658,7 +671,7 @@ class Neviweb130Client:
 
         try:
             raw_res = requests.get(
-                LOCATIONS_URL + self._account,
+                self._locations_url + self._account,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -818,7 +831,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                GATEWAY_DEVICE_URL + str(self._gateway_id),
+                self._gateway_device_url + str(self._gateway_id),
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -846,7 +859,7 @@ class Neviweb130Client:
         if self._gateway_id2 is not None:
             try:
                 raw_res2 = requests.get(
-                    GATEWAY_DEVICE_URL + str(self._gateway_id2),
+                    self._gateway_device_url + str(self._gateway_id2),
                     headers=self._headers,
                     cookies=self._cookies,
                     timeout=self._timeout,
@@ -868,7 +881,7 @@ class Neviweb130Client:
         if self._gateway_id3 is not None:
             try:
                 raw_res3 = requests.get(
-                    GATEWAY_DEVICE_URL + str(self._gateway_id3),
+                    self._gateway_device_url + str(self._gateway_id3),
                     headers=self._headers,
                     cookies=self._cookies,
                     timeout=self._timeout,
@@ -960,7 +973,7 @@ class Neviweb130Client:
 
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/attribute?attributes=" + ",".join(attributes),
+                self._device_data_url + device_id + "/attribute?attributes=" + ",".join(attributes),
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -997,7 +1010,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/status",
+                self._device_data_url + device_id + "/status",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -1035,7 +1048,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                NEVIWEB_LOCATION + str(location) + "/notifications",
+                self._neviweb_location + str(location) + "/notifications",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -1069,7 +1082,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/alert",
+                self._device_data_url + device_id + "/alert",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -1112,9 +1125,9 @@ class Neviweb130Client:
         increment_request_counter(self.hass)
         # Http requests
         if HC:
-            data = DEVICE_DATA_URL + device_id + "/energy/monthly"
+            data = self._device_data_url + device_id + "/energy/monthly"
         else:
-            data = DEVICE_DATA_URL + device_id + "/consumption/monthly"
+            data = self._device_data_url + device_id + "/consumption/monthly"
         _LOGGER.debug("monthly data = %s", data)
         try:
             raw_res = requests.get(
@@ -1154,9 +1167,9 @@ class Neviweb130Client:
         increment_request_counter(self.hass)
         # Http requests
         if HC:
-            data = DEVICE_DATA_URL + device_id + "/energy/daily"
+            data = self._device_data_url + device_id + "/energy/daily"
         else:
-            data = DEVICE_DATA_URL + device_id + "/consumption/daily"
+            data = self._device_data_url + device_id + "/consumption/daily"
         _LOGGER.debug("daily data = %s", data)
         try:
             raw_res = requests.get(
@@ -1196,9 +1209,9 @@ class Neviweb130Client:
         increment_request_counter(self.hass)
         # Http requests
         if HC:
-            data = DEVICE_DATA_URL + device_id + "/energy/hourly"
+            data = self._device_data_url + device_id + "/energy/hourly"
         else:
-            data = DEVICE_DATA_URL + device_id + "/consumption/hourly"
+            data = self._device_data_url + device_id + "/consumption/hourly"
         _LOGGER.debug("hourly data = %s", data)
         try:
             raw_res = requests.get(
@@ -1240,7 +1253,7 @@ class Neviweb130Client:
             raise ValueError("self._code is None")
         try:
             raw_res = requests.get(
-                NEVIWEB_WEATHER + self._code,
+                self._neviweb_weather + self._code,
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -1270,7 +1283,7 @@ class Neviweb130Client:
         # Http requests
         try:
             raw_res = requests.get(
-                DEVICE_DATA_URL + device_id + "/attribute?attributes=errorCodeSet1",
+                self._device_data_url + device_id + "/attribute?attributes=errorCodeSet1",
                 headers=self._headers,
                 cookies=self._cookies,
                 timeout=self._timeout,
@@ -2297,7 +2310,7 @@ class Neviweb130Client:
         while result < 4:
             try:
                 resp = requests.put(
-                    DEVICE_DATA_URL + device_id + "/attribute",
+                    self._device_data_url + device_id + "/attribute",
                     json=data,
                     headers=self._headers,
                     cookies=self._cookies,
@@ -2305,7 +2318,7 @@ class Neviweb130Client:
                 )
                 _LOGGER.debug(
                     "Requests = %s%s%s %s",
-                    DEVICE_DATA_URL,
+                    self._device_data_url,
                     device_id,
                     "/attribute",
                     data,
@@ -2380,7 +2393,7 @@ class Neviweb130Client:
         data = {ATTR_MODE: mode}
         try:
             resp = requests.post(
-                NEVIWEB_LOCATION + location + "/mode",
+                self._neviweb_location + location + "/mode",
                 json=data,
                 headers=self._headers,
                 cookies=self._cookies,

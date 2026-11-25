@@ -94,6 +94,7 @@ Here is a list of currently supported devices. Basically, it's everything that c
   - Flextherm concerto connect FLP55 floor thermostat (sku FLP55 do not provide energy stats in Neviweb)
   - Flextherm True Comfort floor thermostat
   - SRM40 floor thermostat
+  - Schluter DITRA-HEAT-E-RS1 Wi-Fi floor thermostat (on the Schluter cloud, needs `cloud: schluter`)
 - **Heatpump controller**:
   - Sinopé HP6000ZB-GE for Ouellet heat pump with Gree connector
   - Sinopé HP6000ZB-GE-RS485 for Tosot heat pump with Gree connector
@@ -234,6 +235,7 @@ Home Assistant.
 neviweb130:
   username: '«your Neviweb username»'
   password: '«your Neviweb password»'
+  cloud: neviweb   # or schluter for a Schluter DITRA-HEAT account
   network: '«your gt130 location name in Neviweb»'   # gt130 emplacement dans Neviweb
   network2: '«your second location name in Neviweb»' # 2e emplacement
   network3: '«your third location name in Neviweb»'  # 3e emplacement
@@ -259,6 +261,7 @@ custom_component which can run along with this custom_component in HA.
 |-------------------|----------|--------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **username**      | yes      |                                                                                                                    | Your email address used to log in Neviweb.                                                                                                                                                                                   |
 | **password**      | yes      |                                                                                                                    | Your Neviweb password.                                                                                                                                                                                                       |
+| **cloud**         | no       | neviweb                                                                                                            | Cloud to log in to: `neviweb` (neviweb.com) or `schluter` (schluterditraheat.com, Schluter DITRA-HEAT Wi-Fi thermostats like the DITRA-HEAT-E-RS1).                                                                          |
 | **network**       | no       | if not specified, 1st location found is used. Write the name of the GT130 location in Neviweb you want to control. | Network name is the location name in Neviweb written on top center of first page, where your Wi-Fi or Zigbee devices are registered.                                                                                         |
 | **network2**      | no       | 2nd location found                                                                                                 | The name of the second location you want to control (Zigbee and/or Wi-Fi only). Don't add it if you have only one network.                                                                                                   |
 | **network3**      | no       | 3rd location found                                                                                                 | The name of the third location you want to control (Zigbee and/or Wi-Fi only). Don't add it if you have only one network.                                                                                                    |
@@ -274,6 +277,20 @@ setup, the GT125 network will be picked up accidentally. If you have only two GT
 names as during setup, the first two network found will be picked up automatically. If you prefer to add networks names 
 make sure that they are written «exactly» as in Neviweb. (first letter capitalized or not). Avoid also accented letters 
 as Home Assistant will remove them and location name won't match preventing custom_component loading.
+
+Schluter DITRA-HEAT-E-RS1 thermostats are registered on Schluter's own Neviweb based cloud (schluterditraheat.com), not
+on neviweb.com. To use them, put the username and password of your Schluter DITRA-HEAT account (the one used in the
+Schluter DITRA-HEAT app or on schluterditraheat.com) and add `cloud: schluter`. Without `cloud`, neviweb130 connects to Neviweb as before.
+
+The DITRA-HEAT-E-RS1 have the same attributes as the other Wi-Fi floor thermostats plus:
+- **floor_setpoint_pwm**: floor heating output in %, used only when sensor_mode is regulator (floorSetpointPwm, 0-80 % in 5 % steps). In floor or ambient mode it is not the active setpoint.
+- **floor_setpoint_pwm_min**, **floor_setpoint_pwm_max**: limits for floor_setpoint_pwm, in % (floorSetpointPwmMin, floorSetpointPwmMax).
+- **floor_sensor_offset**: floor sensor offset (floorSensorOffset).
+- **floor_setpoint_pwm_timeout**: PWM setpoint timeout (floorSetpointPwmTimeout).
+- **language**: display language (language).
+- **eco_onOff**: onOff value of drStatus, see [Eco Sinope](#catch-eco-sinope-signal-for-peak-period).
+
+The RS1 report drStatus but not drSetpoint, so eco_setpoint_status and eco_setpoint_delta stay at their default values.
 
 ## Multi-Account Configuration
 (New in v3.1.0)
@@ -300,6 +317,11 @@ neviweb130:
       password: 'parents_password'
       location: '5678'           # Optional: location id/name (or use 'network')
       prefix: 'parents'          # Optional: account alias (used in entity naming)
+
+    # Schluter DITRA-HEAT account (schluterditraheat.com)
+    - username: 'schluter_email@example.com'
+      password: 'schluter_password'
+      cloud: 'schluter'          # Optional: neviweb (default) or schluter
   
   # Global settings (apply to all accounts)
   scan_interval: 360
@@ -343,6 +365,7 @@ neviweb130:
 | **location2** (or **network2**) | no | second location found | Location id/name for this account (network #2).
 | **location3** (or **network3**) | no | third location found | Location id/name for this account (network #3).
 | **prefix** | no | (empty) | Optional account alias used in entity naming to distinguish accounts.
+| **cloud** | no | global `cloud` value (`neviweb`) | Cloud for this account, `neviweb` or `schluter`, so Neviweb and Schluter accounts can be mixed.
 
 **Notes:**
 - `prefix` is optional. If omitted, it is not included in the entity name (Home Assistant may auto-suffix entity_ids if collisions occur).
@@ -352,7 +375,7 @@ neviweb130:
   - If you omit all locations, the integration will automatically use the first 1–3 locations returned by Neviweb.
   - Or you can explicitly set `location2` and `location3`.
 - Both `location*` and `network*` are accepted as aliases in the new format for consistency with the legacy format.
-- Global settings (`scan_interval`, `homekit_mode`, etc.) apply to all accounts.
+- Global settings (`scan_interval`, `homekit_mode`, etc.) apply to all accounts. A `cloud` set on an account overrides the global `cloud`.
 - The legacy single-account configuration format (shown above) remains fully supported for backward compatibility.
 
 **Example entity names:**
