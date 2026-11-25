@@ -283,7 +283,28 @@ async def async_setup_platform(
                         )
                     )
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+
+    async def _refresh_entities_initially() -> None:
+        """Refresh entities one by one after startup, without blocking setup."""
+        for entity in entities:
+            if hass.is_stopping:
+                return
+            try:
+                await entity.async_device_update()
+                entity.async_write_ha_state()
+
+            except Exception as err:  # noqa: BLE001 - one bad device must not abort the sweep
+                msg = translated_or_default(
+                    hass,
+                    "initial_refresh_failed",
+                    f"Initial refresh failed for {entity.name}: {err}",
+                    name=entity.name,
+                    error=str(err),
+                )
+                _LOGGER.warning(msg)
+
+    hass.async_create_task(_refresh_entities_initially())
 
     entity_map: dict[str, Entity] | None = None
     _entity_map_lock = Lock()
@@ -600,6 +621,9 @@ async def async_setup_platform(
 
 def voltage_to_percentage(voltage, type_val):
     """Convert voltage level from volt to percentage."""
+    if voltage is None:
+        return None
+
     if type_val == "alkaline":
         return int((min(voltage, 3.0) - 2.0) / (3.0 - 2.0) * 100)
     else:
@@ -607,13 +631,26 @@ def voltage_to_percentage(voltage, type_val):
 
 
 def convert(sampling):
-    sample = str(sampling)
-    ts = int(sample[0:-3])
-    date = dt_util.utc_from_timestamp(ts)
-    return date
+    """Convert Neviweb sampling timestamp to datetime."""
+
+    if sampling is None:
+        return None
+
+    try:
+        ts = int(sampling) // 1000
+    except (ValueError, TypeError):
+        _LOGGER.debug("Invalid sampling timestamp: %s", sampling)
+        return None
+
+    return dt_util.utc_from_timestamp(ts)
 
 
 def convert_to_percent(angle, low, high):
+    """Convert tank gauge angle to tank percentage."""
+
+    if angle is None or low is None or high is None:
+        return None
+
     x = angle
     x_min = 110
     if low == 5:
@@ -627,10 +664,10 @@ def convert_to_percent(angle, low, high):
     if 0 <= x <= delta:
         x = x + 360
     y = (x - x_min) / (x_max - x_min)
-    lower_limit = low
-    upper_limit = high
-    value_range = upper_limit - lower_limit
-    pct = y * value_range + lower_limit
+
+    value_range = high - low
+    pct = y * value_range + low
+
     return round(pct)
 
 
@@ -678,7 +715,7 @@ class Neviweb130Sensor(Entity):
         self._fuel_percent_alert = None
         self._gauge_type = None
         self._leak_alert = None
-        self._leak_status = None
+        self._leak_status = "ok"
         self._rssi = None
         self._sampling = None
         self._sensor_type = None
@@ -735,8 +772,9 @@ class Neviweb130Sensor(Entity):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_leak or self._is_new_leak:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            code = device_data[ATTR_WATER_LEAK_STATUS]
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS, self._leak_status)
+                        if leak_status == "probe":
+                            code = leak_status
                             self.notify_ha(
                                 translated_or_default(
                                     self.hass,
@@ -752,11 +790,9 @@ class Neviweb130Sensor(Entity):
                                     sku=self._sku,
                                 )
                             )
-                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            self._leak_status = leak_status
                         else:
-                            self._leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                            self._leak_status = STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._leak_alert = device_data[ATTR_LEAK_ALERT]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
@@ -1078,7 +1114,7 @@ class Neviweb130Sensor(Entity):
             _LOGGER.warning(
                 "Device attribute not supported for %s (id: %s): %s... (SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 error_data,
                 self._sku,
             )
@@ -1103,7 +1139,7 @@ class Neviweb130Sensor(Entity):
             _LOGGER.warning(
                 "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
                 self._name,
-                str(self._id),
+                self._id,
                 self._sku,
                 str(self._device_model),
             )
@@ -1113,22 +1149,36 @@ class Neviweb130Sensor(Entity):
                 + "did not respond to the server within the prescribed delay"
                 + "(SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 self._sku,
             )
         elif error_data == "SVCERR":
             _LOGGER.warning(
                 "Service error, device not available retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 error_data,
                 self._sku,
             )
+            msg = translated_or_default(
+                self.hass,
+                "update_stopped",
+                f"Update for {self._name}, {self._id} ({self._sku}), is stopped for 20 minutes",
+                name=self._name,
+                id=self._id,
+                sku=self._sku,
+            )
+            if NOTIFY == "logging" or NOTIFY == "both":
+                _LOGGER.warning(msg)
+            if NOTIFY == "notification" or NOTIFY == "both":
+                self.notify_ha(msg, title="Neviweb130 - Update stopped")
+            self._active = False
+            self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 error_data,
                 self._sku,
             )
@@ -1137,7 +1187,7 @@ class Neviweb130Sensor(Entity):
                 _LOGGER.warning(
                     "Device %s is disconnected from Neviweb: %s (id: %s)... (SKU: %s)",
                     self._name,
-                    str(self._id),
+                    self._id,
                     error_data,
                     self._sku,
                 )
@@ -1236,8 +1286,9 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
             if "error" not in device_data or device_data is not None:
                 if "errorCode" not in device_data:
                     if self._is_connected or self._is_new_connected:
-                        if device_data[ATTR_WATER_LEAK_STATUS] == "probe":
-                            code = device_data[ATTR_WATER_LEAK_STATUS]
+                        leak_status = device_data.get(ATTR_WATER_LEAK_STATUS, self._leak_status)
+                        if leak_status == "probe":
+                            code = leak_status
                             self.notify_ha(
                                 translated_or_default(
                                     self.hass,
@@ -1254,11 +1305,9 @@ class Neviweb130ConnectedSensor(Neviweb130Sensor):
                                     sku=self._sku,
                                 )
                             )
-                            self._leak_status = device_data[ATTR_WATER_LEAK_STATUS]
+                            self._leak_status = leak_status
                         else:
-                            self._leak_status = (
-                                STATE_WATER_LEAK if device_data[ATTR_WATER_LEAK_STATUS] == STATE_WATER_LEAK else "ok"
-                            )
+                            self._leak_status = STATE_WATER_LEAK if leak_status == STATE_WATER_LEAK else "ok"
                         self._cur_temp = device_data[ATTR_ROOM_TEMPERATURE]
                         self._temp_status = device_data[ATTR_ROOM_TEMP_ALARM]
                         self._temp_alert = device_data.get(ATTR_TEMP_ALERT, self._temp_alert)

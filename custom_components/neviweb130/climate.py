@@ -871,7 +871,28 @@ async def async_setup_platform(
                         )
                     )
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
+
+    async def _refresh_entities_initially() -> None:
+        """Refresh entities one by one after startup, without blocking setup."""
+        for entity in entities:
+            if hass.is_stopping:
+                return
+            try:
+                await entity.async_device_update()
+                entity.async_write_ha_state()
+
+            except Exception as err:  # noqa: BLE001 - one bad device must not abort the sweep
+                msg = translated_or_default(
+                    hass,
+                    "initial_refresh_failed",
+                    f"Initial refresh failed for {entity.name}: {err}",
+                    name=entity.name,
+                    error=str(err),
+                )
+                _LOGGER.warning(msg)
+
+    hass.async_create_task(_refresh_entities_initially())
 
     entity_map: dict[str, Neviweb130Thermostat] | None = None
     _entity_map_lock = Lock()
@@ -2056,6 +2077,8 @@ def neviweb_to_ha_mode(mode: str) -> HVACMode:
 
 def extract_capability_full(cap):
     """Extract swing capability which are True for each HP device and add general capability."""
+    if not cap:
+        return FULL_SWING_OFF
     value = {i for i in cap if cap[i] is True}
     return FULL_SWING_OFF + sorted(value)
 
@@ -2653,7 +2676,8 @@ class Neviweb130Thermostat(ClimateEntity):
         """Return current HVAC action."""
         gap = self._target_temp - self._cur_temp
         cool_gap = self._target_cool - self._cur_temp
-        heating = gap >= 0.2
+        # Use the real heat level output when known, the thermostat keeps heating at low % near the setpoint
+        heating = self._heat_level > 0 if self._heat_level is not None else gap >= 0.2
         cooling = cool_gap >= 0.2
 
         if self._operation_mode == HVACMode.OFF:
@@ -3569,6 +3593,20 @@ class Neviweb130Thermostat(ClimateEntity):
                 self._id,
                 self._sku,
             )
+            msg = translated_or_default(
+                self.hass,
+                "update_stopped",
+                f"Update for {self._name}, {self._id} ({self._sku}), is stopped for 20 minutes",
+                name=self._name,
+                id=self._id,
+                sku=self._sku,
+            )
+            if NOTIFY == "logging" or NOTIFY == "both":
+                _LOGGER.warning(msg)
+            if NOTIFY == "notification" or NOTIFY == "both":
+                self.notify_ha(msg, title="Neviweb130 - Update stopped")
+            self._active = False
+            self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",

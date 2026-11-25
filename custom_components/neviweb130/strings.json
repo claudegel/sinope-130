@@ -61,7 +61,8 @@
       "error_resolved": "All errors resolved for device {name}, ID: {id}, Sku: {sku}.",
       "safe_mode_enabled": "Auto-enabling safe mode for device {name} (id: {id}) due to unsupported attribute.",
       "set_attribute_failed": "Unable to send command to device {id}. Error: {error}. Description: {description}. Payload: {data}.",
-      "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model})."
+      "bedroom_mode_not_supported": "Bedroom mode is not supported by device {id} (model {model}).",
+      "initial_refresh_failed": "Initial refresh failed for {name} with error: {error}."
     }
   }
 }

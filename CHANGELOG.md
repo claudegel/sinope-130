@@ -9,6 +9,7 @@ All modification for this custom_component will be added in this file.
 - Add DITRA-HEAT-E-RS1 attributes floorSetpointPwm, floorSetpointPwmMin, floorSetpointPwmMax, floorSensorOffset,
   floorSetpointPwmTimeout, language and drStatus onOff (model 740 only).
 - Add model 740 to HAVE_BEDROOM_BACKLIGHT; the DITRA-HEAT-E-RS1 supports backlightAutoDim bedroom.
+- Add Non-blocking startup: don't gate HA boot on the initial Neviweb devices polling.
 
 ### Fix
 - Use get method for config2ndDisplay in Wi-Fi floor thermostat update; the DITRA-HEAT-E-RS1 does not report it.
@@ -16,6 +17,13 @@ All modification for this custom_component will be added in this file.
 ### Doc
 - Add `cloud` option and DITRA-HEAT-E-RS1 to readme.md and readme_fr.md.
 - Add DITRA-HEAT-E-RS1 attributes to readme.md and readme_fr.md.
+
+### Fix
+- Fix hvac_action for Wi-Fi device slow to report heating demand.
+- Block device that do not respond on initial polling.
+- Prevent disabled device from blocking neviweb130 startup.
+
+### Doc
 
 ## [v4.3.4] - 2026-11-13
 ### Added
