@@ -231,8 +231,7 @@ async def async_setup_entry(
                             entities.append(device)
                             coordinator.register_device(device)
 
-    async_add_entities(entities, True)
-    hass.async_create_task(coordinator.async_request_refresh())
+    async_add_entities(entities)
 
     entity_map: dict[str, Neviweb130Light] | None = None
     _entity_map_lock = Lock()
@@ -1150,6 +1149,18 @@ class Neviweb130Light(CoordinatorEntity, LightEntity):
                 error_data,
                 self._sku,
             )
+            msg = await translate_error(self.hass, "update_stopped", name=self._name, id=self._id, sku=self._sku)
+            if self._notify == "logging" or self._notify == "both":
+                _LOGGER.warning(msg)
+            if self._notify == "notification" or self._notify == "both":
+                await async_notify_once_or_update(
+                    self.hass,
+                    msg,
+                    title=f"Neviweb130 integration {VERSION}",
+                    notification_id="neviweb130_update_stopped",
+                )
+            self._active = False
+            self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s...(SKU: %s)",
