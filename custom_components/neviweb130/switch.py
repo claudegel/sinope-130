@@ -409,7 +409,7 @@ async def async_setup_platform(
                         )
                     )
 
-    async_add_entities(entities, False)
+    async_add_entities(entities)
 
     async def _refresh_entities_initially() -> None:
         """Refresh entities one by one after startup, without blocking setup."""
@@ -419,8 +419,16 @@ async def async_setup_platform(
             try:
                 await entity.async_device_update()
                 entity.async_write_ha_state()
+
             except Exception:  # noqa: BLE001 - one bad device must not abort the sweep
-                _LOGGER.warning("Initial refresh failed for %s", entity.name)
+                msg = translated_or_default(
+                    hass,
+                    "initial_refresh_failed",
+                    f"Initial refresh failed for {entity.name}: {err}",
+                    name=sentity.name,
+                    error=str(err),
+                )
+                _LOGGER.warning(msg)
 
     hass.async_create_task(_refresh_entities_initially())
 
@@ -1228,7 +1236,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning(
                 "Device attribute not supported for %s (id: %s): %s... (SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 error_data,
                 self._sku,
             )
@@ -1253,7 +1261,7 @@ class Neviweb130Switch(SwitchEntity):
             _LOGGER.warning(
                 "Device action not supported for %s (id: %s)... (SKU: %s), (Model: %s). Report to maintainer",
                 self._name,
-                str(self._id),
+                self._id,
                 self._sku,
                 str(self._device_model),
             )
@@ -1263,7 +1271,7 @@ class Neviweb130Switch(SwitchEntity):
                 + "did not respond to the server within the prescribed delay"
                 + " (SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 self._sku,
             )
         elif error_data == "SVCERR":
@@ -1274,30 +1282,25 @@ class Neviweb130Switch(SwitchEntity):
                 error_data,
                 self._sku,
             )
+            msg = translated_or_default(
+                self.hass,
+                "update_stopped",
+                f"Update for {self._name}, {self._id} ({self._sku}), is stopped for 20 minutes",
+                name=self._name,
+                id=self._id,
+                sku=self._sku,
+            )
             if NOTIFY == "logging" or NOTIFY == "both":
-                _LOGGER.warning(
-                    "Device %s (id: %s) is unavailable (SVCERR), de-activated and won't be updated for 20 minutes",
-                    self._name,
-                    str(self._id),
-                )
+                _LOGGER.warning(msg)
             if NOTIFY == "notification" or NOTIFY == "both":
-                self.notify_ha(
-                    translated_or_default(
-                        self.hass,
-                        "update_stopped",
-                        f"Update for {self._name}, {self._id} ({self._sku}), is stopped for 20 minutes",
-                        name=self._name,
-                        id=self._id,
-                        sku=self._sku,
-                    )
-                )
+                self.notify_ha(msg, title="Neviweb130 - Update stopped")
             self._active = False
             self._snooze = time.time()
         elif error_data == "DVCBUSY":
             _LOGGER.warning(
                 "Device busy can't reach (neviweb update ?), retry later %s (id: %s): %s... (SKU: %s)",
                 self._name,
-                str(self._id),
+                self._id,
                 error_data,
                 self._sku,
             )
@@ -1306,7 +1309,7 @@ class Neviweb130Switch(SwitchEntity):
                 _LOGGER.warning(
                     "Device %s (id: %s) is disconnected from Neviweb: %s... (SKU: %s)",
                     self._name,
-                    str(self._id),
+                    self._id,
                     error_data,
                     self._sku,
                 )
