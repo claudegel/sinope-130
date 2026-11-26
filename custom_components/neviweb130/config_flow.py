@@ -5,6 +5,7 @@ from __future__ import annotations
 # import json
 import logging
 import os
+import re
 from typing import Any, cast
 
 import aiohttp
@@ -33,6 +34,7 @@ from .const import (
     DEFAULT_REQUEST_LIMIT,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
+    MAX_PREFIX_LENGTH,
     STARTUP_MESSAGE,
     VERSION,
 )
@@ -543,11 +545,17 @@ class Neviweb130OptionsFlowHandler(config_entries.OptionsFlow):
         if not prefix:
             return "empty_prefix"
 
+        if len(prefix) > MAX_PREFIX_LENGTH:
+            return "prefix_too_long"
+
         if " " in prefix:
             return "space_not_allowed"
 
         if not prefix.isascii():
             return "non_ascii_prefix"
+
+        if not re.match(r"^[A-Za-z0-9_-]+$", prefix):
+            return "invalid_prefix"
 
         # Unicity : Check other entry
         for entry in self.hass.config_entries.async_entries("neviweb130"):
