@@ -5151,7 +5151,7 @@ class Neviweb130ColorWifiThermostat(Neviweb130Thermostat):
                     if wifi_keypad is not None:
                         self._keypad = lock_to_ha(wifi_keypad)
                     self._rssi = device_data.get(ATTR_WIFI, self._rssi)
-                    self._backlight = device_data[ATTR_BACKLIGHT_AUTO_DIM]
+                    self._backlight = backlight_to_ha(device_data[ATTR_BACKLIGHT_AUTO_DIM])
                     self._early_start = device_data[ATTR_EARLY_START]
                     self._target_temp_away = device_data[ATTR_ROOM_SETPOINT_AWAY]
                     self._load1 = device_data[ATTR_OUTPUT1]
