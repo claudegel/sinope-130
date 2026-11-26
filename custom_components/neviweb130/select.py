@@ -550,9 +550,24 @@ class Neviweb130DeviceAttributeSelect(CoordinatorEntity[Neviweb130Coordinator], 
         """Return the current selected option."""
         if self.coordinator.data is None:
             return None
+
         device_obj = self.coordinator.data.get(self._id)
+
         if device_obj and self._attribute in device_obj:
-            return device_obj[self._attribute]
+            value = device_obj[self._attribute]
+
+            if value not in self.options:
+                _LOGGER.warning(
+                    "Invalid select value '%s' received for %s (%s). "
+                    "Valid options are: %s",
+                    value,
+                    self.entity_id,
+                    self._attribute,
+                    self.options,
+                )
+
+            return value
+
         else:
             _LOGGER.debug(
                 "AttributeSelect: %s attribute %s not found for device: %s.",
