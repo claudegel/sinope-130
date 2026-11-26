@@ -161,8 +161,10 @@
     },
     "error": {
       "empty_prefix": "Prefix cannot be empty.",
+      "prefix_too_long": "The prefix cannot exceed 20 characters.",
       "space_not_allowed": "Spaces are not allowed.",
       "non_ascii_prefix": "Prefix must contain only ASCII characters.",
+      "invalid_prefix": "The prefix may only contain letters, digits, underscores (_) and hyphens (-).",
       "duplicate_prefix": "This prefix is already used by another Neviweb account."
     }
   },
