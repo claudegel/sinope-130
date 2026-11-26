@@ -59,6 +59,7 @@ DEFAULT_REQUEST_LIMIT = 25000
 DEFAULT_UPDATE_INTERVAL = "6h"
 # Delay (seconds) during which device attributes updates are ignored after a local change.
 UPDATE_PROTECTION_DELAY = 10  # seconds
+MAX_PREFIX_LENGTH = 20
 
 ATTR_ACCESSORY_TYPE = "accessoryType"
 ATTR_ACTIVE = "active"
