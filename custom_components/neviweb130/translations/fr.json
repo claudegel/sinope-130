@@ -161,8 +161,10 @@
     },
     "error": {
       "empty_prefix": "Le préfixe ne peut pas être vide.",
+      "prefix_too_long": "Le préfixe ne peut pas dépasser 20 caractères.",
       "space_not_allowed": "Les espaces ne sont pas autorisés.",
       "non_ascii_prefix": "Le préfixe doit contenir uniquement des caractères ASCII.",
+      "invalid_prefix": "Le préfixe ne peut contenir que des lettres, des chiffres, le trait de soulignement (_) et le trait d’union (-).",
       "duplicate_prefix": "Ce préfixe est déjà utilisé par un autre compte."
     }
   },
