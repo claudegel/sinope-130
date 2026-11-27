@@ -482,9 +482,9 @@ CLIMATE_MODEL = [
     7373,
 ]
 LIGHT_MODEL = [2121, 21212, 2131, 21312, 2132, 21322]
-SWITCH_MODEL = [346, 2151, 2152, 2180, 2181, 2506, 25062, 2600, 2610, 26002, 26102]
+SWITCH_MODEL = [339, 346, 2151, 2152, 2180, 2181, 2506, 25062, 2600, 2610, 26002, 26102]
 VALVE_MODEL = [3150, 3151, 3153, 3155, 31532]
-SENSOR_MODEL = [130, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
+SENSOR_MODEL = [130, 3156, 4210, 5050, 5051, 5052, 5053, 5055, 5056, 42102]
 ALL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL
 FULL_MODEL = CLIMATE_MODEL + LIGHT_MODEL + SWITCH_MODEL + VALVE_MODEL + SENSOR_MODEL
 
@@ -1438,6 +1438,29 @@ MODEL_ATTRIBUTES = {
         "switch": ["safe_mode"],
     },
     # Switch
+    339: {  # RM3510WF 20,8A, Wi-Fi
+        "sensor": [
+            ATTR_RSSI,
+            "daily_kwh_count",
+            "hourly_kwh_count",
+            "monthly_kwh_count",
+            "total_kwh_count",
+            "water_temperature",
+            "wattage",
+            "wattage_instant",
+        ],
+        "number": ["water_remaining_time"],
+        "select": [
+            "tank_size",
+            "heater_temp_min",
+        ],
+        "binary_sensor": [
+            "activation",
+            "water_leak_status",
+        ],
+        "button": [],
+        "switch": ["safe_mode"],
+    },
     346: {  # RM3250WF, 40A, Wi-Fi
         "sensor": [
             ATTR_RSSI,
@@ -1483,7 +1506,7 @@ MODEL_ATTRIBUTES = {
         "button": [],
         "switch": ["safe_mode"],
     },
-    2152: {  # RM3500WF 20,8A, Wi-Fi, RM3510WF 20,8A, Wi-Fi
+    2152: {  # RM3500WF 20,8A, Wi-Fi
         "sensor": [
             ATTR_RSSI,
             "daily_kwh_count",
@@ -1765,6 +1788,17 @@ MODEL_ATTRIBUTES = {
     },
     # sensors
     130: {  # GT130
+        "sensor": [],
+        "number": [],
+        "select": ["occupancy_mode"],
+        "binary_sensor": [
+            "activation",
+            "gateway_status",
+        ],
+        "button": [],
+        "switch": [],
+    },
+    3156: {  # GT4220WF, GT4220WF-M
         "sensor": [],
         "number": [],
         "select": ["occupancy_mode"],
