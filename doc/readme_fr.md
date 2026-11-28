@@ -431,20 +431,23 @@ Neviweb130 inclut désormais un système de mise à jour complet qui comprend :
   - update_percentage : Afficher un curseur pour le suivi du processus de mise à jour.
 
 Vous devrez désactiver la carte de mise à jour de Marketplace pour Neviweb130 ou vous recevrez deux notifications de mise à jour avec deux cartes 
-de mise à jour. Cela peut être fait dans paramètres → appareils et services → Entités. Recherchez  **update.sinope_neviweb130_update** et désactivez 
-l'option `Visible` si elle est active. Cliquer sur la molette de configuration et désactiver l'option `Visible`. 
+de mise à jour. Cela peut être fait dans paramètres → appareils et services → Entités. Recherchez  **update.sinope_neviweb130_update** 
+et désactivez l'option `Visible` si elle est active. Cliquer sur la molette de configuration et désactiver l'option `Visible`. 
 Il sera toujours possible de faire une mise à jour ou télécharger une autre version via Marketplace.
 Il faut éviter de désactiver **update.neviweb130_update** qui est l'updater de neviweb130.
 
-Vous pouvez aussi attendre une nouvelle mise à jour, ouvrir la carte de mise à jour de Marketplace et cliquer sur la molette de configuration pour
-Désactiver l'option `Visible`.
+Vous pouvez aussi attendre une nouvelle mise à jour, ouvrir la carte de mise à jour de Marketplace et cliquer sur la 
+molette de configuration pour désactiver l'option `Visible`.
 
 Pour recevoir les versions bêta / préversions de neviweb130:
 - Paramètres → Appareils et services → Entités
-- Afficher les entités désactivées et rechercher Neviweb130.
+- Afficher les entités désactivées et rechercher **switch.sinope_neviweb130_pre_release**.
 - Activer l'entité « Pre-release », puis la mettre à ON.
 
 Marketplace proposera alors les versions préliminaires de Neviweb130.
+
+L'updater de Neviweb130 présentera aussi les versions bêta en les affichant de manière spécifique pour s'assurer que 
+l'utilisateur sait de quoi il s'agit.
 
 ## Compteur de requêtes quotidiennes Neviweb
 Comme Sinopé est de plus en plus pointilleux sur le nombre de requêtes par jour, la limite est fixée à 30000. Si vous atteignez cette limite, vous 
