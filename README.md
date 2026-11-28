@@ -429,20 +429,26 @@ You will need to deactivate Marketplace update card or you will get two updates 
 This can be done in Parameters → Devices and Services → Entities. Search for 'Neviweb130' entities and locate 
 **update.sinope_neviweb130_update**. Click on the entity → Configuration gear and deactivate `Visible` option.
 Don't deactivate this for **update.neviweb130_update** which is the updater of neviweb130.
-It will still be possible to do manual update or redownload neviweb130 via Marketplace.
+It will still be possible to do manual update or download neviweb130 via Marketplace.
 
 You can also wait for a new update and select Marketplace update card. Then clic on the configuration button and deactivate the 
 `Visible` option.
 
-To get the pre-release update for Neviweb130, go in same Parameters → Devices and Services → Entities. Look for pre-release.
-Sinope Neviweb130 pre-release, **switch.sinope_neviweb130_pre_release** must be turned on, It is off by default.
+To receive beta / pre-release versions, Sinope Neviweb130 pre-release, **switch.sinope_neviweb130_pre_release** 
+must be turned on, It is off by default:
 
-neviweb130 updater will flag the pre-release in the update card.
+- Settings → Devices & Services → Entities
+- Show disabled entities and search for Neviweb130.
+- Enable the "Pre-release" entity, then turn it ON.
+
+Marketplace will then offer Neviweb130 pre-release versions.
+
+neviweb130 updater will also flag the beta / pre-release version in the update card. 
 
 ## Neviweb daily request counter
 As Sinopé is becoming more picky about request number per day, limit fixed to 30000. If you reach that limit you 
 will be disconnected until midnight. This is very bad if you have many devices or doing development on neviweb130.
-I've added a daily Neviweb request counter that is reset to 0 at midnight and suvive HA restart. It create a 
+I've added a daily Neviweb request counter that is reset to 0 at midnight and survive HA restart. It create a 
 sensor sensor.neviweb130_daily_requests that increase at each request: update, stats polling, error status, etc.
 The sensor survive HA restart and is set back to 0 at midnight every days.
 
