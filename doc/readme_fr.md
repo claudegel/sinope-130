@@ -173,12 +173,15 @@ Les appareils Wi-Fi peuvent être connectés au même réseau (emplacement) que 
 
 Il existe quatre composants personnalisés vous donnant le choix de gérer vos appareils via le portail Neviweb ou directement en local. 
 
-- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (Marketplace : Sinope Neviweb) permettant de gérer vos appareils via le portail Neviweb.
-- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (Marketplace : Sinope GT125) permettant de gérer vos appareils directement via
+- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (Marketplace : Sinope Neviweb) permettant de gérer vos appareils
+  Miwi via le portail Neviweb.
+- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (Marketplace : Sinope GT125) permettant de gérer vos appareils
+  Miwi localement via
   votre passerelle web GT125.
 
 **Passerelle Zigbee**:
-- [**neviweb130**](https://github.com/claudegel/sinope-130) (Marketplace : Sinope Neviweb130), ce composant personnalisé, pour gérer vos appareils via le portail Neviweb.
+- [**neviweb130**](https://github.com/claudegel/sinope-130) (Marketplace : Sinope Neviweb130), ce composant personnalisé, pour gérer vos appareils
+  Zigbee et Wi-Fi via le portail Neviweb.
 - [**sinope-zha**](https://github.com/claudegel/sinope-zha) où je mets tous les gestionnaires d’adaptations Zigbee (quirks) des nouveaux
   appareils Sinopé avant qu'ils ne soient fusionnés dans les gestionnaires de périphériques ZHA. Achetez une passerelle Zigbee
   comme la clé USB **Dresden ConBee II** ou Home Assistant **Sky Connect** et gérez votre appareil Zigbee localement via le composant ZHA.
