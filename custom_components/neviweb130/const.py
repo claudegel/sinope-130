@@ -38,13 +38,13 @@ To disable update notifications from Marketplace:
 Settings → Devices & Services → Entities
 Search for:
 update.sinope_neviweb130_update
-Open the entity and disable 'visible' option.
+Open the entity, click on the configuration gear → ⚙️ and disable 'visible' option.
 
 Pour désactiver les notifications de mise à jour par Marketplace:
 Paramètres → Appareils et services → Entités
 Rechercher :
 update.sinope_neviweb130_update
-Ouvrir l'entité puis désactiver l'option 'visible'.
+Ouvrir l'entité, cliquez sur la molette de configuration → ⚙️ puis désactiver l'option 'visible'.
 -------------------------------------------------------------------
 """
 
