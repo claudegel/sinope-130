@@ -9,7 +9,7 @@ Custom components to support [Neviweb](https://neviweb.com/) devices in [Home As
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
 switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
-Neviweb130 (Sinope Neviweb130 in HACS) will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
+Neviweb130 (Sinope Neviweb130 in Marketplace) will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
 directly to Neviweb. It is presently almost up to date with Neviweb but some information are still missing from Sinopé. 
 As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
 yet, please open an issue and I'll add it quickly.
@@ -46,7 +46,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 
 ### Neviweb130-V2 is almost there
 
-neviweb130 v5.0.0b0 is ready for testing. I just need to add documentation on separate branch for those who are interested
+neviweb130 v5.0.0b0 is ready for testing. I just need to add documentation on separate branch V2-doc for those who are interested.
 
 ## Supported Devices
 Here is a list of currently supported devices. Basically, it's everything that can be added in Neviweb.
@@ -171,12 +171,12 @@ Wi-Fi devices can be connected in the same network (location) then the GT130 Zig
 
 There are four custom components giving you the choice to manage your devices via the neviweb portal or directly via local 
 
-- [**neviweb**](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb) custom component to manage your devices via Neviweb portal.
-- [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
+- [**neviweb**](https://github.com/claudegel/sinope-1) (Marketplace: Sinope Neviweb) custom component to manage your Miwi devices via Neviweb portal.
+- [**sinope**](https://github.com/claudegel/sinope-gt125) (Marketplace: Sinope GT125) custom component to manage your Miwi devices directly via
   your GT125 web gateway.
 - **Zigbee gateway**:
-  - [**neviweb130**](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) this custom component, to manage your devices
-    via neviweb portal.
+  - [**neviweb130**](https://github.com/claudegel/sinope-130) (Marketplace: Sinope Neviweb130) this custom component, to manage your Zigbee and Wi-Fi
+    devices via neviweb portal.
   - [**sinope-zha**](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
     into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage your Zigbee device locally
     via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks
@@ -566,12 +566,9 @@ Neviweb130 now include a complete update system that include:
   - rollback_status: If an update fail, last active version will be rolled back.
   - update_percentage: Show a slider for update process followup.
 
-You will need to deactivate HACS update card or you will get two updates notifications with two updates cards. 
-This can be done in parameters / devices & services / HACS. Pick 'Sinope Neviweb130' line and deactivate 
-the pre-release button if set. Locate the Sinope Neviweb130 integration and click on the three vertical 
-dots on the right end of the line. There are two options: `2 entities` and `deactivate the device`. Clic on `2 entities`.
-Then select update. Click on the configuration button and deactivate option `Visible`. It will still be possible to 
-do manual update or redownload neviweb130 via HACS.
+You will need to deactivate Marketplace update card or you will get two updates notifications with two updates cards. 
+This can be done in Parameters / Devices & Services / Entities. Pick 'Sinope Neviweb130', open it and click on the configuration 
+gear to deactivate the `Visible` option button. It will till be possible to do manual update or download neviweb130 via Marketplace.
 
 You can also wait for a new update and select HACS update card. Then clic on the configuration button and deactivate the 
 `Visible` option.
