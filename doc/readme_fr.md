@@ -9,7 +9,7 @@ Composants personnalisés pour prendre en charge les appareils [Neviweb](https:/
 Neviweb est une plateforme créée par Sinopé Technologies pour interagir avec leurs appareils intelligents comme les thermostats, l'éclairage
 interrupteurs/gradateurs, contrôleurs de charge, prise, vannes et détecteur de fuite d'eau, etc.
 
-Neviweb130 (HACS: Sinope Neviweb130) gérera les appareils Zigbee connectés à Neviweb via la passerelle GT130 et les nouveaux appareils Wi-Fi connectés 
+Neviweb130 (Marketplace: Sinope Neviweb130) gérera les appareils Zigbee connectés à Neviweb via la passerelle GT130 et les nouveaux appareils Wi-Fi connectés 
 directement sur Neviweb. Il est actuellement pratiquement à jour avec Neviweb mais certaines informations manquent encore chez Sinopé. 
 Au fur et à mesure que de nouveaux appareils sont lancés par Sinopé, ils sont ajoutés à ce composant personnalisé. Si vous possédez 
 un appareil qui n'est pas pris en charge, veuillez ouvrir une issue et je l'ajouterai rapidement.
@@ -170,9 +170,9 @@ Les appareils Wi-Fi peuvent être connectés au même emplacement (location) que
 
 Il existe quatre composants personnalisés vous donnant le choix de gérer vos appareils via le portail Neviweb ou directement en local. 
 
-- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb) permettant de gérer vos appareils
+- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (Marketplace : Sinope Neviweb) permettant de gérer vos appareils
   Miwi via le portail Neviweb.
-- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS : Sinope GT125) permettant de gérer vos appareils
+- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (Marketplace : Sinope GT125) permettant de gérer vos appareils
   Miwi directement via votre passerelle web GT125.
 
 **Passerelle Zigbee**:
@@ -191,10 +191,8 @@ ZHA doivent être supprimées de Neviweb car elles ne peuvent pas être sur deux
 ## Installation
 ### Composant personnalisé Neviweb130 pour gérer votre appareil via le portail Neviweb
 Il existe deux méthodes pour installer ce composant personnalisé :
-- **Via le composant HACS** (Home Assistant Community Store):
-  - Neviweb130 est compatible avec [HACS](https://community.home-assistant.io/t/custom-component-hacs/121727).
-  - Après avoir installé HACS, installez « Sinope neviweb-130 » (neviweb130) depuis le magasin et utilisez l'exemple configuration.yaml
-    ci-dessous.
+- **Via Home Assistant Marketplace** (Home Assistant Community Store):
+  - Neviweb130 est compatible avec Home Assistant Marketplace.
     
 - **Manuellement via téléchargement direct**:
   - Téléchargez le fichier zip de ce référentiel en utilisant le bouton de téléchargement vert en haut à droite.
@@ -463,7 +461,7 @@ La configuration dans **configuration.yaml** est maintenant obsolète.
 
 - **Via une installation vierge**:
 
-  Pour une installation vierge, on installe Neviweb130-V2 via HACS (Sinopé neviweb130), Version minimum v5.0.0. Allez ensuite dans Paramètres /
+  Pour une installation vierge, on installe Neviweb130-V2 via Marketplace (Sinopé neviweb130), Version minimum v5.0.0. Allez ensuite dans Paramètres /
   Appareils et services. Au bas de la page clicquez sur **Ajouter une intégration** et recherchez **Sinopé Neviweb130**.
   Une fenêtre de configuration apparait à l'écran pour entrer les paramètres de connections à Neviweb.
 
@@ -471,7 +469,7 @@ La configuration dans **configuration.yaml** est maintenant obsolète.
 
 Les paramètres sont:
 - nom du compte Neviweb, le premier est nommé **default**. Vous pouvez le conserver, le remplacer ou même laisser ce champs vide pour avoir les même noms
-  d'appareil que dans Neviweb130-V1.
+  d'appareil que dans Neviweb130-V1. Le nom du compte ne doit pas dépasser 20 caractères. Il doit ne contenir que les caractères suivants: a-z, A-Z, 0-9, - et _
 - Courriel Neviweb
 - Mot de passe Neviweb
 - Premier emplacement (location)
@@ -481,20 +479,20 @@ Les paramètres sont:
   Ces champs sont optionnels si vous n'avez pas d'appareil Miwi. Dans le cas contraire il faut entrer le nom de l'emplacement. Les emplacements
   non utilisés sont laissé vides ou on peut mettre un "_" pour indiquer à Neviweb130-V2 de ne pas les rechercher.
 - Scan_interval, par défaut 360 secondes.
-- Support Homekit, optionnel
-- Ignorer les appareils Miwi, optionnel
+- Support Homekit, optionnel, par défaut False
+- Ignorer les appareils Miwi, optionnel, par défaut False
 - Stat_interval, par défaut 1800 secondes
 - Avis en cas de déconnections d'appareils, 4 options:
   - nothing, aucun avis
   - logging, seulement dans les log
   - Notification, on reçois une notification en cas de déconnections d'appareil
   - Both, "Notification" plus "logging"
-- ID d'appareil à mettre à jour en mode sans échec. Pour les appareils problématiques (Wi-FI ?)
+- ID d'appareil à mettre à jour en mode sans échec. Pour les appareils problématiques (Wi-Fi ?) Inscrire l'id de l'appareil.
 
 Ensuite Neviweb130-V2 est rechargé et commencera à récupérer les appareils de Neviweb. 
 
 La grosse différence entre V1 et V2 c'est qu'il n'est plus nécessaire de créer des capteurs pour suivre certains attributs de vos appareils.
-Pour tous les appareils, neviweb130-V2 cré des entités d'attributs automatiquement.
+Pour tous les appareils, neviweb130-V2 va créer des entités d'attributs automatiquement.
 
 - capteur (sensors), pour les attributs numériques à suivre comme la température, le voltage et les statistiques d'énergie.
 - capteur_binaire (binary_sensors), pour les attributs binaires comme les capteurs de fuite.
@@ -503,9 +501,9 @@ Pour tous les appareils, neviweb130-V2 cré des entités d'attributs automatique
 - commutateur (switch), pour activer / désactiver un attribut.
 - sélecteur (select), pour les attributs avec un choix d'options. Toutes les options sont traduites et il n'est plus nécessaire de mettre
   des chiffres pour les intervalles comme 15 secondes, 15 minutes etc. Neviweb130-V2 fait la conversion automatiquement pour envoyer les
-  valeurs à Neviweb et la réception des valeurs de Neviweb.
+  valeurs à Neviweb et à la réception des valeurs de Neviweb.
 
-On peut retrouver tous ces entités d'attribut dans la page de chaque appareil. (Paramètres / Appareils et services / Neviweb130).
+On peut retrouver tous ces entités d'attribut dans la page de chaque appareil. (Paramètres → Appareils et services → Neviweb130).
 Elles sont mises à jour en temps réel par HA. Ces entités peuvent être utilisées directement dans vos automations ou pour le module énergie.
 Si vous installez neviweb130-V2 via une mise à jour, il faudra revalider vos automations. Celles-ci demeureront fonctionnelles mais
 en utilisant les nouvelles entités d'attributs vous pourrez vous débarrasser de tous vos capteurs et ça va simplifier vos automations.
