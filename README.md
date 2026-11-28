@@ -9,7 +9,7 @@ Custom components to support [Neviweb](https://neviweb.com/) devices in [Home As
 Neviweb is a platform created by Sinopé Technologies to interact with their smart devices like thermostats, light 
 switches/dimmers , load controllers, plug, valves and water leak detector etc. 
 
-Neviweb130 (Sinope Neviweb130 in HACS) will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
+Neviweb130, (Sinope Neviweb130 in Marketplace) will manage the Zigbee devices connected to Neviweb via the GT130 gateway and the new Wi-Fi devices connected 
 directly to Neviweb. It is presently almost up to date with Neviweb but some information are still missing from Sinopé. 
 As new devices are launched by Sinopé, they are added to this custom-component. If you have a device that is not supported 
 yet, please open an issue and I'll add it quickly.
@@ -175,16 +175,16 @@ Wi-Fi devices can be connected in the same network (location) then the GT130 Zig
 
 There are four custom components giving you the choice to manage your devices via the neviweb portal or directly via local 
 
-- [**neviweb**](https://github.com/claudegel/sinope-1) (HACS: Sinope Neviweb) custom component to manage your devices via Neviweb portal.
-- [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS: Sinope GT125) custom component to manage your devices directly via
+- [**neviweb**](https://github.com/claudegel/sinope-1) (Marketplace: Sinope Neviweb) custom component to manage your devices via Neviweb portal.
+- [**sinope**](https://github.com/claudegel/sinope-gt125) (Marketplace: Sinope GT125) custom component to manage your devices directly via
   your GT125 web gateway.
 - **Zigbee gateway**:
-  - [**neviweb130**](https://github.com/claudegel/sinope-130) (HACS: Sinope Neviweb130) this custom component, to manage your devices
+  - [**neviweb130**](https://github.com/claudegel/sinope-130) (Marketplace: Sinope Neviweb130) this custom component, to manage your devices
     via neviweb portal.
   - [**sinope-zha**](https://github.com/claudegel/sinope-zha) where I put all new Sinopé devices quirks before they are merged
-    into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle and manage your Zigbee device locally
-    via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé devices quirks
-    in HA by coping the sinope-zha files directly in your HA setup. ZHA will load them in place of the standard sinopé quirks.
+    into zha-device-handlers. Buy a Zigbee gateway like Dresden ConBee II usb dongle or Home Assistant Sky Connect and manage your
+    Zigbee device locally via ZHA component. I'm adding support for Sinopé Zigbee in zha-device-handlers. You can test new Sinopé
+    devices quirks in HA by coping the sinope-zha files directly in your HA setup. ZHA will load them in place of the standard Sinopé quirks.
 
 You need to install only one of them but all can be used at the same time on HA. Zigbee devices managed directly via 
 ConBee II must be removed from Neviweb as they cannot be on two Zigbee networks at the same time.
@@ -192,10 +192,9 @@ ConBee II must be removed from Neviweb as they cannot be on two Zigbee networks 
 ## Installation
 ### Neviweb130 custom component to manage your device via Neviweb portal:
 There are two methods to install this custom component:
-- **Via HACS component**:
-  - This repository is compatible with the Home Assistant Community Store 
-    ([HACS](https://community.home-assistant.io/t/custom-component-hacs/121727)).
-  - After installing HACS, install 'Sinope neviweb-130' (neviweb130) from the store, and use the configuration.yaml example below.
+- **Via Home Assistant Marketplace**:
+  - This repository is compatible with the Home Assistant Marketplace
+  - In Settings → Marketplace, install 'Sinope Neviweb130' (neviweb130), and use the configuration.yaml example below.
 - **Manually via direct download**:
   - Download the zip file of this repository using the top right, green download button.
   - Extract the zip file on your computer, then copy the entire `custom_components` folder inside your Home Assistant 
@@ -244,9 +243,9 @@ neviweb130:
   notify: "both"
   safe_mode: "-"
 ```
-Networks names are the names found on top of first page after logging into Neviweb. If you have more then one network, 
+Networks (Locations) names are the names found on top of first page after logging into Neviweb. If you have more then one network, 
 just click on icon on top to find all networks names. Select the one used for Zigbee GT130 or Wi-Fi devices. Both devices types 
-must be on same network to work in neviweb130. If you have two networks for two GT130 or two Wi-Fi groups then you can 
+can be on same network to work in neviweb130. If you have two networks for two GT130 or two Wi-Fi groups then you can 
 add network2 parameter in your configuration.yaml. See below. You can't mix miwi devices and Zigbee/Wi-Fi devices on the 
 same network. For miwi devices install [Neviweb](https://github.com/claudegel/sinope-1) 
 custom_component which can run along with this custom_component in HA.
@@ -426,15 +425,19 @@ Neviweb130 now include a complete update system that include:
   - rollback_status: If an update fail, last active version will be rolled back.
   - update_percentage: Show a slider for update process followup.
 
-You will need to deactivate HACS update card or you will get two updates notifications with two updates cards. 
-This can be done in parameters / devices & services / HACS. Pick 'Sinope Neviweb130' line and deactivate 
-the pre-release button if set. Locate the Sinope Neviweb130 integration and click on the three vertical 
-dots on the right end of the line. There are two options: `2 entities` and `deactivate the device`. Clic on `2 entities`.
-Then select update. Click on the configuration button and deactivate option `Visible`. It will still be possible to 
-do manual update or redownload neviweb130 via HACS.
+You will need to deactivate Marketplace update card or you will get two updates notifications with two updates cards. 
+This can be done in Parameters → Devices and Services → Entities. Search for 'Neviweb130' entities and locate 
+**update.sinope_neviweb130_update**. Click on the entity → Configuration gear and deactivate `Visible` option.
+Don't deactivate this for **update.neviweb130_update** which is the updater of neviweb130.
+It will still be possible to do manual update or redownload neviweb130 via Marketplace.
 
-You can also wait for a new update and select HACS update card. Then clic on the configuration button and deactivate the 
+You can also wait for a new update and select Marketplace update card. Then clic on the configuration button and deactivate the 
 `Visible` option.
+
+To get the pre-release update for Neviweb130, go in same Parameters → Devices and Services → Entities. Look for pre-release.
+Sinope Neviweb130 pre-release, **switch.sinope_neviweb130_pre_release** must be turned on, It is off by default.
+
+neviweb130 updater will flag the pre-release in the update card.
 
 ## Neviweb daily request counter
 As Sinopé is becoming more picky about request number per day, limit fixed to 30000. If you reach that limit you 
@@ -779,12 +782,13 @@ If you find other error code, please forward them to me.
 
 ## Customization
 Custom-ui is almost deprecated and hard to configure. So I've switch to modern lovelace card to ease the process 
-and get better results.
+and get better results. Now Neviweb130 include it's own icons that are activated for each device and most of then are 
+
 
 Prerequisites:
 - The icons are located in www folder in this repo. Copy them in config/www/neviweb130/. You need to create the
-  neviweb130 under config/www. (called /local in HA)
-- Install via HACS the lovelace card: card-mod, mushroom and for stack-in-card.
+  neviweb130 folder under config/www. (called /local in HA)
+- Install via Marketplace the lovelace card: card-mod, mushroom and for stack-in-card.
 - Make sure you have at least neviweb130 v4.1.2
 
 Neviweb130 will manage the icon to show depending on heat level for thermostats via the **icon_type** attribute. For
