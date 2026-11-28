@@ -44,7 +44,7 @@ Report a problem or suggest an improvement: [Open an issue](https://github.com/c
 
 ### Neviweb130-V2 is almost there
 
-neviweb130 v5.0.0b0 is ready for testing. I just need to add documentation on separate branch for those who are interested
+neviweb130 v5.0.0b0 v2, is ready for testing. I just need to add documentation on branch V2-doc for those who are interested.
 
 ### Big changes for Sedna valve devices
 
