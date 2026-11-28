@@ -21,21 +21,32 @@ STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME} ({DOMAIN})
 Version: {VERSION}
-Requirement: Home Assistant minimum version {REQUIRE}
+
+Exigence : Home Assistant {REQUIRE} ou supérieur
+Requirement: Home Assistant {REQUIRE} or later
+
+Ceci est une intégration personnalisée!
 This is a custom integration!
-If you have any issues with this you need to open an issue here:
+
+Pour signaler un problème :
+To report an issue:
 {ISSUE_URL}
-Documentation: {DOC_URL}
 
-If not done yet, you can delete or comment out the neviweb130 config in configuration.yaml.
+Documentation:
 
-To disable update tracking in HACS:
-HACS → Integrations → Sinope Neviweb130 → 3-dot menu → 2 entities →
-Select the Update entity → ⚙️ → disable “Visible”.
+{DOC_URL}
 
-Pour désactiver le suivi des mises à jour dans HACS :
-HACS → Intégrations → Sinope Neviweb130 → menu 3-points → 2 entités →
-Sélectionner l’entité Update → ⚙️ → désactiver “Visible”.
+To disable update notifications from Marketplace:
+Settings → Devices & Services → Entities
+Search for:
+update.sinope_neviweb130_update
+Open the entity, click on the configuration gear → ⚙️ and disable 'visible' option.
+
+Pour désactiver les notifications de mise à jour par Marketplace:
+Paramètres → Appareils et services → Entités
+Rechercher :
+update.sinope_neviweb130_update
+Ouvrir l'entité, cliquez sur la molette de configuration → ⚙️ puis désactiver l'option 'visible'.
 -------------------------------------------------------------------
 """
 
