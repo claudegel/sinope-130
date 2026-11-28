@@ -9,7 +9,7 @@ Composants personnalisés pour prendre en charge les appareils [Neviweb](https:/
 Neviweb est une plateforme créée par Sinopé Technologies pour interagir avec leurs appareils intelligents comme les thermostats, l'éclairage
 interrupteurs/gradateurs, contrôleurs de charge, prise, vannes et détecteur de fuite d'eau, etc.
 
-Neviweb130 (HACS: Sinope Neviweb130) gérera les appareils Zigbee connectés à Neviweb via la passerelle GT130 et les nouveaux appareils Wi-Fi connectés 
+Neviweb130 (Marketplace: Sinope Neviweb130) gérera les appareils Zigbee connectés à Neviweb via la passerelle GT130 et les nouveaux appareils Wi-Fi connectés 
 directement sur Neviweb. Il est actuellement pratiquement à jour avec Neviweb mais certaines informations manquent encore chez Sinopé. 
 Au fur et à mesure que de nouveaux appareils sont lancés par Sinopé, ils sont ajoutés à ce composant personnalisé. Si vous possédez 
 un appareil qui n'est pas pris en charge, veuillez ouvrir une issue et je l'ajouterai rapidement.
@@ -173,18 +173,18 @@ Les appareils Wi-Fi peuvent être connectés au même réseau (emplacement) que 
 
 Il existe quatre composants personnalisés vous donnant le choix de gérer vos appareils via le portail Neviweb ou directement en local. 
 
-- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (HACS : Sinope Neviweb) permettant de gérer vos appareils via le portail Neviweb.
-- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (HACS : Sinope GT125) permettant de gérer vos appareils directement via
+- Composant personnalisé [**neviweb**](https://github.com/claudegel/sinope-1) (Marketplace : Sinope Neviweb) permettant de gérer vos appareils via le portail Neviweb.
+- Composant personnalisé [**sinope**](https://github.com/claudegel/sinope-gt125) (Marketplace : Sinope GT125) permettant de gérer vos appareils directement via
   votre passerelle web GT125.
 
 **Passerelle Zigbee**:
-- [**neviweb130**](https://github.com/claudegel/sinope-130) ce composant personnalisé, pour gérer vos appareils via le portail Neviweb.
+- [**neviweb130**](https://github.com/claudegel/sinope-130) (Marketplace : Sinope Neviweb130), ce composant personnalisé, pour gérer vos appareils via le portail Neviweb.
 - [**sinope-zha**](https://github.com/claudegel/sinope-zha) où je mets tous les gestionnaires d’adaptations Zigbee (quirks) des nouveaux
   appareils Sinopé avant qu'ils ne soient fusionnés dans les gestionnaires de périphériques ZHA. Achetez une passerelle Zigbee
-  comme la clé USB **Dresden ConBee II** et gérez votre appareil Zigbee localement via le composant ZHA. J'ajoute le support des
-  appareils Sinopé Zigbee dans le gestionnaire de périphériques ZHA. Vous pouvez tester les gestionnaire d’adaptations Zigbee
+  comme la clé USB **Dresden ConBee II** ou Home Assistant **Sky Connect** et gérez votre appareil Zigbee localement via le composant ZHA.
+  J'ajoute le support des appareils Sinopé Zigbee dans le gestionnaire de périphériques ZHA. Vous pouvez tester les gestionnaire d’adaptations (quirks) Zigbee
   Sinopé dans HA en copiant les fichiers sinope-zha directement dans votre configuration HA. ZHA les chargera à la place des
-  gestionnaire d’adaptations Zigbee standard de Sinopé dans ZHA.
+  gestionnaire d’adaptations Zigbee (quirks) standard de Sinopé dans ZHA.
 
 Vous pouvez en installer qu’un seul, mais tous peuvent être utilisés en même temps sur HA. Les appareils Zigbee gérés directement via 
 ZHA doivent être supprimées de Neviweb car elles ne peuvent pas être sur deux réseaux Zigbee en même temps.
@@ -192,9 +192,7 @@ ZHA doivent être supprimées de Neviweb car elles ne peuvent pas être sur deux
 ## Installation
 ### Composant personnalisé Neviweb130 pour gérer votre appareil via le portail Neviweb
 Il existe deux méthodes pour installer ce composant personnalisé :
-- **Via le composant HACS** (Home Assistant Community Store):
-  - Neviweb130 est compatible avec [HACS](https://community.home-assistant.io/t/custom-component-hacs/121727).
-  - Après avoir installé HACS, installez « Sinope neviweb-130 » (neviweb130) depuis le magasin et utilisez l'exemple configuration.yaml ci-dessous.
+- **Via Marketplace** (Home Assistant Marketplace): utilisez l'exemple configuration.yaml ci-dessous.
 - **Manuellement via téléchargement direct**:
   - Téléchargez le fichier zip de ce référentiel en utilisant le bouton de téléchargement vert en haut à droite.
   - Extrayez le fichier zip sur votre ordinateur, puis copiez l'intégralité du dossier « custom_components » dans votre Home Assistant 
@@ -432,16 +430,23 @@ Neviweb130 inclut désormais un système de mise à jour complet qui comprend :
   - rollback_status : si une mise à jour échoue, la dernière version active sera restaurée.
   - update_percentage : Afficher un curseur pour le suivi du processus de mise à jour.
 
-Vous devrez désactiver la carte de mise à jour HACS pour Neviweb130 ou vous recevrez deux notifications de mise à jour avec deux cartes 
-de mise à jour. Cela peut être fait dans paramètres / appareils et services / HACS. Choisissez 'Sinope Neviweb130' et desactivez 
-l'option pre-release si elle est active. Puis et cliquer sur le menu 3-points à l'extrémité droite de la ligne. Dans ce menu il y a une 
-sélections: `2 entités` et `désactiver l'appareil`. Ouvrir l'option `2 entités` et chosir Update. Cliquer sur la molette de configuration
-et désactiver l'option `Visible`. Il sera toujours possible de faire une mise à jour ou retélécharger une autre version via HACS.
+Vous devrez désactiver la carte de mise à jour de Marketplace pour Neviweb130 ou vous recevrez deux notifications de mise à jour avec deux cartes 
+de mise à jour. Cela peut être fait dans paramètres → appareils et services → Entités. Recherchez  **update.sinope_neviweb130_update** et désactivez 
+l'option `Visible` si elle est active. Cliquer sur la molette de configuration et désactiver l'option `Visible`. 
+Il sera toujours possible de faire une mise à jour ou télécharger une autre version via Marketplace.
+Il faut éviter de désactiver **update.neviweb130_update** qui est l'updater de neviweb130.
 
-Vous pouvez aussi attendre une nouvelle mise à jour, ouvrir la carte de mise à jour de HACS et cliquer sur la molette de configuration.
+Vous pouvez aussi attendre une nouvelle mise à jour, ouvrir la carte de mise à jour de Marketplace et cliquer sur la molette de configuration pour
 Désactiver l'option `Visible`.
 
-## Compteur de requetes quotidiennes Neviweb
+Pour recevoir les versions bêta / préversions de neviweb130:
+- Paramètres → Appareils et services → Entités
+- Afficher les entités désactivées et rechercher Neviweb130.
+- Activer l'entité « Pre-release », puis la mettre à ON.
+
+Marketplace proposera alors les versions préliminaires de Neviweb130.
+
+## Compteur de requêtes quotidiennes Neviweb
 Comme Sinopé est de plus en plus pointilleux sur le nombre de requêtes par jour, la limite est fixée à 30000. Si vous atteignez cette limite, vous 
 serez déconnecté jusqu'à minuit. C'est très mauvais si vous possédez de nombreux appareils ou si vous développez sur neviweb130.
 J'ai ajouté un compteur de requêtes Neviweb quotidien qui est réinitialisé à 0 à minuit et qui survit à un  redémarrage de HA. Cela crée un 
@@ -799,7 +804,7 @@ de simplifier le processus et d'obtenir de meilleurs résultats.
 Prérequis :
 - Les icônes se trouvent dans le dossier www de ce dépôt. Copiez-les dans config/www/neviweb130/. Vous devez créer le répertoire
   neviweb130 sous config/www (appelé /local dans HA).
-- Installez la carte Lovelace via HACS : card-mod, mushroom et stack-in-card.
+- Installez la carte Lovelace via Marketplace : card-mod, mushroom et stack-in-card.
 - Assurez-vous d'avoir au moins la version 4.1.2 de neviweb130.
 
 Neviweb130 gère l'icône affichée pour les thermostats en fonction du niveau de température grâce à l'attribut **icon_type**.
